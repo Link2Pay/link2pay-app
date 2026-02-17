@@ -1,0 +1,111 @@
+// prisma/schema.prisma
+// StellarPay Invoice System - Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  EXPIRED
+  CANCELLED
+}
+
+enum Currency {
+  XLM
+  USDC
+  EURC
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique @map("invoice_number")
+  status        InvoiceStatus @default(DRAFT)
+
+  // Freelancer (creator) info
+  freelancerWallet  String  @map("freelancer_wallet")
+  freelancerName    String? @map("freelancer_name")
+  freelancerEmail   String? @map("freelancer_email")
+  freelancerCompany String? @map("freelancer_company")
+
+  // Client (payer) info
+  clientName    String  @map("client_name")
+  clientEmail   String  @map("client_email")
+  clientCompany String? @map("client_company")
+  clientAddress String? @map("client_address")
+  clientWallet  String? @map("client_wallet")
+
+  // Invoice details
+  title       String
+  description String?
+  notes       String?
+
+  // Financial
+  subtotal  Decimal  @db.Decimal(18, 7)
+  taxRate   Decimal? @map("tax_rate") @db.Decimal(5, 2)
+  taxAmount Decimal? @map("tax_amount") @db.Decimal(18, 7)
+  discount  Decimal? @db.Decimal(18, 7)
+  total     Decimal  @db.Decimal(18, 7)
+  currency  Currency @default(XLM)
+
+  // Dates
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  dueDate   DateTime? @map("due_date")
+  paidAt    DateTime? @map("paid_at")
+
+  // Blockchain reference
+  transactionHash String? @map("transaction_hash")
+  ledgerNumber    Int?    @map("ledger_number")
+  payerWallet     String? @map("payer_wallet")
+
+  // Relations
+  lineItems LineItem[]
+  payments  Payment[]
+
+  @@index([freelancerWallet])
+  @@index([status])
+  @@index([invoiceNumber])
+  @@map("invoices")
+}
+
+model LineItem {
+  id          String  @id @default(cuid())
+  invoiceId   String  @map("invoice_id")
+  description String
+  quantity    Decimal @db.Decimal(10, 2)
+  rate        Decimal @db.Decimal(18, 7)
+  amount      Decimal @db.Decimal(18, 7)
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("line_items")
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  invoiceId       String   @map("invoice_id")
+  transactionHash String   @unique @map("transaction_hash")
+  ledgerNumber    Int      @map("ledger_number")
+  fromWallet      String   @map("from_wallet")
+  toWallet        String   @map("to_wallet")
+  amount          Decimal  @db.Decimal(18, 7)
+  asset           String
+  status          String   @default("confirmed")
+  confirmedAt     DateTime @default(now()) @map("confirmed_at")
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([transactionHash])
+  @@map("payments")
+}

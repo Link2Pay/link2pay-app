@@ -1,0 +1,115 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 220 60% 6%;
+    --foreground: 210 20% 92%;
+
+    --card: 220 45% 10%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 45% 10%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 175 75% 45%;
+    --primary-foreground: 220 60% 6%;
+
+    --secondary: 220 35% 16%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 220 30% 14%;
+    --muted-foreground: 215 15% 55%;
+
+    --accent: 175 75% 45%;
+    --accent-foreground: 220 60% 6%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 30% 18%;
+    --input: 220 30% 18%;
+    --ring: 175 75% 45%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 220 50% 8%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 175 75% 45%;
+    --sidebar-primary-foreground: 220 60% 6%;
+    --sidebar-accent: 220 35% 14%;
+    --sidebar-accent-foreground: 210 20% 92%;
+    --sidebar-border: 220 30% 15%;
+    --sidebar-ring: 175 75% 45%;
+
+    /* Custom tokens */
+    --neon-glow: 175 75% 45%;
+    --neon-glow-subtle: 175 60% 35%;
+    --surface-elevated: 220 40% 12%;
+    --success: 155 70% 45%;
+    --success-foreground: 155 90% 95%;
+    --warning: 45 90% 55%;
+    --warning-foreground: 45 90% 10%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+}
+
+@layer utilities {
+  .neon-border {
+    border: 1px solid hsl(175 75% 45% / 0.3);
+    box-shadow: 
+      0 0 10px hsl(175 75% 45% / 0.05),
+      inset 0 0 10px hsl(175 75% 45% / 0.02);
+  }
+
+  .neon-border-strong {
+    border: 1px solid hsl(175 75% 45% / 0.5);
+    box-shadow: 
+      0 0 20px hsl(175 75% 45% / 0.1),
+      0 0 40px hsl(175 75% 45% / 0.05),
+      inset 0 0 15px hsl(175 75% 45% / 0.03);
+  }
+
+  .neon-text {
+    color: hsl(175 75% 45%);
+    text-shadow: 0 0 20px hsl(175 75% 45% / 0.4);
+  }
+
+  .glass-card {
+    background: hsl(220 45% 10% / 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(220 30% 18% / 0.5);
+  }
+
+  .gradient-bg {
+    background: radial-gradient(
+      ellipse at 50% 0%,
+      hsl(175 75% 45% / 0.08) 0%,
+      transparent 60%
+    );
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(175 75% 55%), hsl(175 75% 40%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
