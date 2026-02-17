@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-stellar: #4c6ef5;
+    --color-stellar-dark: #3b5bdb;
+    --color-bg: #fafbfc;
+    --color-surface: #ffffff;
+    --color-border: #e9ecef;
+  }
+
+  body {
+    @apply bg-[var(--color-bg)] text-ink-0 font-sans;
+    font-feature-settings: 'ss01', 'ss02';
+  }
+
+  * {
+    @apply border-surface-3;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
+           font-medium text-sm transition-all duration-150 cursor-pointer
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-stellar-600 text-white hover:bg-stellar-700
+           active:bg-stellar-800 shadow-sm hover:shadow;
+  }
+
+  .btn-secondary {
+    @apply btn bg-white text-ink-1 border border-surface-3
+           hover:bg-surface-1 active:bg-surface-2;
+  }
+
+  .btn-danger {
+    @apply btn bg-danger text-white hover:bg-red-700 active:bg-red-800;
+  }
+
+  .btn-ghost {
+    @apply btn text-ink-2 hover:bg-surface-1 active:bg-surface-2;
+  }
+
+  .card {
+    @apply bg-white rounded-xl border border-surface-3 shadow-card;
+  }
+
+  .input {
+    @apply w-full px-3 py-2.5 rounded-lg border border-surface-3
+           bg-white text-ink-0 text-sm placeholder:text-ink-4
+           focus:outline-none focus:ring-2 focus:ring-stellar-200 focus:border-stellar-400
+           transition-all duration-150;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-ink-1 mb-1.5;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-draft {
+    @apply badge bg-surface-2 text-ink-2;
+  }
+
+  .badge-pending {
+    @apply badge bg-amber-50 text-amber-700 border border-amber-200;
+  }
+
+  .badge-processing {
+    @apply badge bg-blue-50 text-blue-700 border border-blue-200;
+  }
+
+  .badge-paid {
+    @apply badge bg-emerald-50 text-emerald-700 border border-emerald-200;
+  }
+
+  .badge-failed {
+    @apply badge bg-red-50 text-red-700 border border-red-200;
+  }
+
+  .badge-cancelled {
+    @apply badge bg-surface-2 text-ink-3;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-stellar-600 to-stellar-400 bg-clip-text text-transparent;
+  }
+
+  .animate-in {
+    animation: fadeSlideIn 0.4s ease-out forwards;
+  }
+
+  @keyframes fadeSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .shine {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shine::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.08),
+      transparent
+    );
+    animation: shine 3s ease-in-out infinite;
+  }
+
+  @keyframes shine {
+    0% { left: -100%; }
+    50% { left: 100%; }
+    100% { left: 100%; }
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #ced4da;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}
