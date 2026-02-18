@@ -210,6 +210,7 @@ export async function getPaymentStatus(
   transactionHash: string | null;
   ledgerNumber: number | null;
   paidAt: string | null;
+  payerWallet: string | null;
 }> {
   return request(`/payments/${invoiceId}/status`);
 }

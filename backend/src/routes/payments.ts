@@ -31,7 +31,8 @@ router.post(
       }
 
       // Validate invoice can be paid
-      if (!['PENDING', 'DRAFT'].includes(invoice.status)) {
+      // PROCESSING is included to allow retries if signing/submission failed
+      if (!['PENDING', 'DRAFT', 'PROCESSING'].includes(invoice.status)) {
         return res.status(400).json({
           error: `Invoice cannot be paid. Current status: ${invoice.status}`,
         });
@@ -72,7 +73,6 @@ router.post(
         invoiceId,
         transactionXdr,
         sep7Uri,
-        destination: invoice.freelancerWallet,
         amount,
         asset: {
           code: assetCode,
@@ -159,7 +159,11 @@ router.post(
       }
 
       if (invoice.status === 'PAID') {
-        return res.json({ status: 'already_paid', invoice });
+        return res.json({
+          status: 'already_paid',
+          transactionHash: invoice.transactionHash,
+          paidAt: invoice.paidAt?.toISOString() || null,
+        });
       }
 
       // Verify on-chain
@@ -207,7 +211,6 @@ router.post(
         transactionHash,
         ledger: txDetails.ledger,
         paidAt: txDetails.createdAt,
-        invoice: updated,
       });
     } catch (error: any) {
       console.error('Confirm payment error:', error);

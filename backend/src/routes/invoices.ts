@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { invoiceService } from '../services/invoiceService';
+import { clientService } from '../services/clientService';
 import {
   validateBody,
   requireWallet,
@@ -29,6 +30,23 @@ router.post(
       }
 
       const invoice = await invoiceService.createInvoice(req.body);
+
+      // Auto-save client if requested
+      if (req.body.saveClient) {
+        try {
+          await clientService.upsertClient(walletAddress, {
+            name: req.body.clientName,
+            email: req.body.clientEmail,
+            company: req.body.clientCompany,
+            address: req.body.clientAddress,
+            isFavorite: req.body.favoriteClient ?? false,
+          });
+        } catch (clientErr) {
+          console.error('Failed to auto-save client:', clientErr);
+          // Non-fatal — invoice was already created
+        }
+      }
+
       res.status(201).json(invoice);
     } catch (error: any) {
       console.error('Create invoice error:', error);
@@ -65,6 +83,26 @@ router.get('/stats', requireWallet, async (req: Request, res: Response) => {
     res.json(stats);
   } catch (error: any) {
     console.error('Stats error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * GET /api/invoices/:id/owner
+ * Get full invoice details for the owner (requires wallet auth)
+ */
+router.get('/:id/owner', requireWallet, async (req: Request, res: Response) => {
+  try {
+    const invoice = await invoiceService.getInvoice(req.params.id);
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+    if (invoice.freelancerWallet !== (req as any).walletAddress) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    res.json(invoice);
+  } catch (error: any) {
+    console.error('Get owner invoice error:', error);
     res.status(500).json({ error: error.message });
   }
 });

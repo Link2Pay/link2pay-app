@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getInvoice, createPayIntent, submitPayment, getPaymentStatus } from '../../services/api';
 import { useWalletStore } from '../../store/walletStore';
@@ -17,7 +17,7 @@ export default function PaymentFlow() {
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
 
-  // Load invoice
+  // Load invoice once on mount
   useEffect(() => {
     if (!id) return;
     getInvoice(id)
@@ -34,7 +34,15 @@ export default function PaymentFlow() {
         setError(err.message);
         setStep('error');
       });
-  }, [id, connected]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]); // intentionally excludes `connected` — wallet changes handled below
+
+  // Advance from connect → view when wallet connects (without re-fetching invoice)
+  useEffect(() => {
+    if (connected && step === 'connect') {
+      setStep('view');
+    }
+  }, [connected, step]);
 
   // Poll for status while confirming
   useEffect(() => {

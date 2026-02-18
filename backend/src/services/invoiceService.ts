@@ -148,10 +148,7 @@ export class InvoiceService {
   async updateStatus(id: string, status: InvoiceStatus) {
     return prisma.invoice.update({
       where: { id },
-      data: {
-        status,
-        ...(status === 'PENDING' ? {} : {}),
-      },
+      data: { status },
     });
   }
 

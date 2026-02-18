@@ -29,7 +29,6 @@ export interface PayIntentResponse {
   invoiceId: string;
   transactionXdr: string;
   sep7Uri: string;
-  destination: string;
   amount: string;
   asset: { code: string; issuer?: string };
   memo: string;

@@ -12,9 +12,9 @@ export type Currency = 'XLM' | 'USDC' | 'EURC';
 export interface LineItem {
   id?: string;
   description: string;
-  quantity: number;
-  rate: number;
-  amount: number;
+  quantity: string;
+  rate: string;
+  amount: string;
 }
 
 export interface Invoice {
@@ -123,7 +123,6 @@ export interface PayIntentResponse {
   invoiceId: string;
   transactionXdr: string;
   sep7Uri: string;
-  destination: string;
   amount: string;
   asset: { code: string; issuer?: string | null };
   memo: string;
