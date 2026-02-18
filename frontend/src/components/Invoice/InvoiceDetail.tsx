@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useWalletStore } from '../../store/walletStore';
-import { getInvoice, sendInvoice, deleteInvoice } from '../../services/api';
+import { getOwnerInvoice, sendInvoice, deleteInvoice } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import type { Invoice, InvoiceStatus } from '../../types';
 import { CURRENCY_SYMBOLS, config } from '../../config';
@@ -17,13 +17,14 @@ export default function InvoiceDetail() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !publicKey) return;
     setLoading(true);
-    getInvoice(id)
+    setError(null);
+    getOwnerInvoice(id, publicKey)
       .then(setInvoice)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, publicKey]);
 
   const paymentLink = invoice
     ? `${window.location.origin}/pay/${invoice.id}`

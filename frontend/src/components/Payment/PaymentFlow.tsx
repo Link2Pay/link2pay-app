@@ -4,7 +4,7 @@ import { getInvoice, createPayIntent, submitPayment, getPaymentStatus } from '..
 import { useWalletStore } from '../../store/walletStore';
 import InvoiceStatusBadge from '../Invoice/InvoiceStatusBadge';
 import WalletConnect from '../Wallet/WalletConnect';
-import type { Invoice, InvoiceStatus } from '../../types';
+import type { PublicInvoice, InvoiceStatus } from '../../types';
 import { CURRENCY_SYMBOLS, config } from '../../config';
 
 type PayStep = 'loading' | 'view' | 'connect' | 'paying' | 'confirming' | 'success' | 'error';
@@ -12,7 +12,7 @@ type PayStep = 'loading' | 'view' | 'connect' | 'paying' | 'confirming' | 'succe
 export default function PaymentFlow() {
   const { id } = useParams<{ id: string }>();
   const { connected, publicKey, signTransaction } = useWalletStore();
-  const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const [invoice, setInvoice] = useState<PublicInvoice | null>(null);
   const [step, setStep] = useState<PayStep>('loading');
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
