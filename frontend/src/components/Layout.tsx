@@ -24,7 +24,7 @@ export default function Layout() {
             </div>
             <div>
               <h1 className="text-base font-semibold text-ink-0 leading-none">
-                StellarPay
+                Link2Pay
               </h1>
               <span className="text-[10px] text-ink-3 uppercase tracking-wider">
                 Invoice Platform

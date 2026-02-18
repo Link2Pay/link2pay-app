@@ -123,7 +123,7 @@ export default function PaymentFlow() {
           <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-stellar-600 flex items-center justify-center">
             <span className="text-white text-sm font-bold">S</span>
           </div>
-          <h1 className="text-lg font-semibold text-ink-0">StellarPay</h1>
+          <h1 className="text-lg font-semibold text-ink-0">Link2Pay</h1>
           <p className="text-xs text-ink-3">Invoice Payment</p>
         </div>
 
@@ -364,7 +364,7 @@ export default function PaymentFlow() {
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-[11px] text-ink-4">
-            Powered by StellarPay · Payments on the Stellar Network
+            Powered by Link2Pay · Payments on the Stellar Network
           </p>
         </div>
       </div>

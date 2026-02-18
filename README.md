@@ -1,4 +1,4 @@
-# StellarPay — Decentralized Invoice & Payment Platform
+# Link2Pay — Decentralized Invoice & Payment Platform
 
 A full-stack decentralized invoice management system built on the Stellar blockchain network. Freelancers create invoices, share payment links, and receive instant cryptocurrency payments with near-zero fees.
 
@@ -45,7 +45,7 @@ A full-stack decentralized invoice management system built on the Stellar blockc
 ## Project Structure
 
 ```
-stellarpay/
+link2pay/
 ├── backend/
 │   ├── prisma/
 │   │   └── schema.prisma          # Database schema

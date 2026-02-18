@@ -86,7 +86,7 @@ app.use((_req, res) => {
 const server = app.listen(config.port, () => {
   console.log(`
 ╔══════════════════════════════════════════════════╗
-║          StellarPay Backend API v1.0.0           ║
+║          Link2Pay Backend API v1.0.0             ║
 ╠══════════════════════════════════════════════════╣
 ║  Server:    http://localhost:${config.port}              ║
 ║  Network:   ${config.stellar.network.padEnd(36)}║

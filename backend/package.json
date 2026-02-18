@@ -1,7 +1,7 @@
 {
-  "name": "stellarpay-backend",
+  "name": "link2pay-backend",
   "version": "1.0.0",
-  "description": "StellarPay Invoice System - Backend API",
+  "description": "Link2Pay Invoice System - Backend API",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

@@ -1,5 +1,5 @@
 // prisma/schema.prisma
-// StellarPay Invoice System - Database Schema
+// Link2Pay Invoice System - Database Schema
 
 generator client {
   provider = "prisma-client-js"

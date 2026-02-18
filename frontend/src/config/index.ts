@@ -1,5 +1,5 @@
 export const config = {
-  appName: import.meta.env.VITE_APP_NAME || 'StellarPay',
+  appName: import.meta.env.VITE_APP_NAME || 'Link2Pay',
   apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:3001',
   stellarNetwork: import.meta.env.VITE_STELLAR_NETWORK || 'testnet',
   horizonUrl:
