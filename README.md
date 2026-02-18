@@ -1,4 +1,4 @@
-# StellarPay — Decentralized Invoice & Payment Platform
+# Link2Pay — Decentralized Invoice & Payment Platform
 
 A full-stack decentralized invoice management system built on the Stellar blockchain network. Freelancers create invoices, share payment links, and receive instant cryptocurrency payments with near-zero fees.
 
@@ -22,14 +22,14 @@ A full-stack decentralized invoice management system built on the Stellar blockc
 
 ## Tech Stack
 
-| Layer      | Technology                                    |
-|------------|-----------------------------------------------|
-| Frontend   | React 18, TypeScript, Vite, TailwindCSS       |
-| State      | Zustand, React Query                          |
-| Backend    | Node.js, Express, TypeScript                  |
-| Database   | PostgreSQL + Prisma ORM                       |
-| Blockchain | Stellar SDK, Horizon API, Freighter Wallet    |
-| Validation | Zod (backend), HTML5 (frontend)               |
+| Layer      | Technology                                 |
+| ---------- | ------------------------------------------ |
+| Frontend   | React 18, TypeScript, Vite, TailwindCSS    |
+| State      | Zustand, React Query                       |
+| Backend    | Node.js, Express, TypeScript               |
+| Database   | PostgreSQL + Prisma ORM                    |
+| Blockchain | Stellar SDK, Horizon API, Freighter Wallet |
+| Validation | Zod (backend), HTML5 (frontend)            |
 
 ## Features
 
@@ -157,25 +157,25 @@ npm run dev
 
 ### Invoices
 
-| Method | Path                         | Description                    | Auth     |
-|--------|------------------------------|--------------------------------|----------|
-| POST   | `/api/invoices`              | Create invoice                 | Wallet   |
-| GET    | `/api/invoices`              | List user's invoices           | Wallet   |
-| GET    | `/api/invoices/stats`        | Dashboard statistics           | Wallet   |
-| GET    | `/api/invoices/:id`          | Get invoice (public)           | None     |
-| PATCH  | `/api/invoices/:id`          | Update draft invoice           | Wallet   |
-| POST   | `/api/invoices/:id/send`     | Mark as PENDING                | Wallet   |
-| DELETE | `/api/invoices/:id`          | Delete draft invoice           | Wallet   |
+| Method | Path                     | Description          | Auth   |
+| ------ | ------------------------ | -------------------- | ------ |
+| POST   | `/api/invoices`          | Create invoice       | Wallet |
+| GET    | `/api/invoices`          | List user's invoices | Wallet |
+| GET    | `/api/invoices/stats`    | Dashboard statistics | Wallet |
+| GET    | `/api/invoices/:id`      | Get invoice (public) | None   |
+| PATCH  | `/api/invoices/:id`      | Update draft invoice | Wallet |
+| POST   | `/api/invoices/:id/send` | Mark as PENDING      | Wallet |
+| DELETE | `/api/invoices/:id`      | Delete draft invoice | Wallet |
 
 ### Payments
 
-| Method | Path                                  | Description                     |
-|--------|---------------------------------------|---------------------------------|
-| POST   | `/api/payments/:id/pay-intent`        | Build payment transaction       |
-| POST   | `/api/payments/submit`                | Submit signed transaction       |
-| POST   | `/api/payments/confirm`               | Manually confirm by tx hash     |
-| GET    | `/api/payments/:id/status`            | Check payment status            |
-| POST   | `/api/payments/verify-tx`             | Verify transaction on-chain     |
+| Method | Path                           | Description                 |
+| ------ | ------------------------------ | --------------------------- |
+| POST   | `/api/payments/:id/pay-intent` | Build payment transaction   |
+| POST   | `/api/payments/submit`         | Submit signed transaction   |
+| POST   | `/api/payments/confirm`        | Manually confirm by tx hash |
+| GET    | `/api/payments/:id/status`     | Check payment status        |
+| POST   | `/api/payments/verify-tx`      | Verify transaction on-chain |
 
 ## Payment Flow
 
@@ -197,24 +197,24 @@ npm run dev
 
 ### Backend
 
-| Variable                   | Description                          | Default                              |
-|----------------------------|--------------------------------------|--------------------------------------|
-| `PORT`                     | Server port                          | `3001`                               |
-| `DATABASE_URL`             | PostgreSQL connection string         | Required                             |
-| `STELLAR_NETWORK`          | `testnet` or `mainnet`               | `testnet`                            |
-| `HORIZON_URL`              | Stellar Horizon API URL              | Testnet URL                          |
-| `NETWORK_PASSPHRASE`       | Stellar network passphrase           | Testnet passphrase                   |
-| `FRONTEND_URL`             | Frontend origin for CORS             | `http://localhost:5173`              |
-| `WATCHER_POLL_INTERVAL_MS` | Payment watcher poll interval        | `5000`                               |
+| Variable                   | Description                   | Default                 |
+| -------------------------- | ----------------------------- | ----------------------- |
+| `PORT`                     | Server port                   | `3001`                  |
+| `DATABASE_URL`             | PostgreSQL connection string  | Required                |
+| `STELLAR_NETWORK`          | `testnet` or `mainnet`        | `testnet`               |
+| `HORIZON_URL`              | Stellar Horizon API URL       | Testnet URL             |
+| `NETWORK_PASSPHRASE`       | Stellar network passphrase    | Testnet passphrase      |
+| `FRONTEND_URL`             | Frontend origin for CORS      | `http://localhost:5173` |
+| `WATCHER_POLL_INTERVAL_MS` | Payment watcher poll interval | `5000`                  |
 
 ### Frontend
 
-| Variable                  | Description                | Default                             |
-|---------------------------|----------------------------|-------------------------------------|
-| `VITE_API_URL`            | Backend API base URL       | `http://localhost:3001`             |
-| `VITE_STELLAR_NETWORK`    | Stellar network            | `testnet`                           |
-| `VITE_HORIZON_URL`        | Horizon API URL            | Testnet URL                         |
-| `VITE_NETWORK_PASSPHRASE` | Network passphrase         | Testnet passphrase                  |
+| Variable                  | Description          | Default                 |
+| ------------------------- | -------------------- | ----------------------- |
+| `VITE_API_URL`            | Backend API base URL | `http://localhost:3001` |
+| `VITE_STELLAR_NETWORK`    | Stellar network      | `testnet`               |
+| `VITE_HORIZON_URL`        | Horizon API URL      | Testnet URL             |
+| `VITE_NETWORK_PASSPHRASE` | Network passphrase   | Testnet passphrase      |
 
 ## Security
 
