@@ -67,7 +67,7 @@ export default function Dashboard() {
             Overview of your invoicing activity
           </p>
         </div>
-        <Link to="/create" className="btn-primary text-sm">
+        <Link to="/dashboard/create" className="btn-primary text-sm">
           + New Invoice
         </Link>
       </div>
@@ -97,7 +97,7 @@ export default function Dashboard() {
                 {stats.pendingAmount}
               </p>
             </div>
-            <Link to="/invoices?status=PENDING" className="btn-secondary text-xs">
+            <Link to="/dashboard/invoices?status=PENDING" className="btn-secondary text-xs">
               View Pending
             </Link>
           </div>
@@ -109,7 +109,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-ink-0">Recent Invoices</h3>
           <Link
-            to="/invoices"
+            to="/dashboard/invoices"
             className="text-xs text-stellar-600 hover:text-stellar-700"
           >
             View All →
@@ -121,7 +121,7 @@ export default function Dashboard() {
             <p className="text-sm text-ink-3 mb-3">
               No invoices yet. Create your first one!
             </p>
-            <Link to="/create" className="btn-primary text-sm">
+            <Link to="/dashboard/create" className="btn-primary text-sm">
               Create Invoice
             </Link>
           </div>
@@ -130,7 +130,7 @@ export default function Dashboard() {
             {recentInvoices.map((invoice) => (
               <Link
                 key={invoice.id}
-                to={`/invoices/${invoice.id}`}
+                to={`/dashboard/invoices/${invoice.id}`}
                 className="flex items-center justify-between p-4 hover:bg-surface-1 transition-colors"
               >
                 <div className="flex items-center gap-4">

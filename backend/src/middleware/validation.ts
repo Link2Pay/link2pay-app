@@ -29,7 +29,21 @@ export const createInvoiceSchema = z.object({
   taxRate: z.number().min(0).max(100).optional(),
   discount: z.number().min(0).optional(),
   dueDate: z.string().datetime().optional(),
+  saveClient: z.boolean().optional(),
+  favoriteClient: z.boolean().optional(),
   lineItems: z.array(lineItemSchema).min(1).max(50),
+});
+
+export const saveClientSchema = z.object({
+  name: z.string().min(1).max(200),
+  email: z.string().email(),
+  company: z.string().max(200).optional(),
+  address: z.string().max(500).optional(),
+  isFavorite: z.boolean().optional(),
+});
+
+export const updateClientFavoriteSchema = z.object({
+  isFavorite: z.boolean(),
 });
 
 export const payIntentSchema = z.object({

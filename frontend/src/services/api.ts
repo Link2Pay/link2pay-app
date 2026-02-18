@@ -1,9 +1,12 @@
 import { config } from '../config';
 import type {
   Invoice,
+  PublicInvoice,
   CreateInvoiceData,
   PayIntentResponse,
   DashboardStats,
+  SavedClient,
+  SaveClientData,
 } from '../types';
 
 const API_BASE = config.apiUrl + '/api';
@@ -76,8 +79,15 @@ export async function listInvoices(
   return request<Invoice[]>(`/invoices${query}`, {}, walletAddress);
 }
 
-export async function getInvoice(id: string): Promise<Invoice> {
-  return request<Invoice>(`/invoices/${id}`);
+export async function getInvoice(id: string): Promise<PublicInvoice> {
+  return request<PublicInvoice>(`/invoices/${id}`);
+}
+
+export async function getOwnerInvoice(
+  id: string,
+  walletAddress: string
+): Promise<Invoice> {
+  return request<Invoice>(`/invoices/${id}/owner`, {}, walletAddress);
 }
 
 export async function updateInvoice(
@@ -121,6 +131,43 @@ export async function getDashboardStats(
   walletAddress: string
 ): Promise<DashboardStats> {
   return request<DashboardStats>('/invoices/stats', {}, walletAddress);
+}
+
+// Client API ---------------------------------------------------
+
+export async function listSavedClients(
+  walletAddress: string
+): Promise<SavedClient[]> {
+  return request<SavedClient[]>('/clients', {}, walletAddress);
+}
+
+export async function saveClient(
+  data: SaveClientData,
+  walletAddress: string
+): Promise<SavedClient> {
+  return request<SavedClient>(
+    '/clients',
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    },
+    walletAddress
+  );
+}
+
+export async function updateClientFavorite(
+  clientId: string,
+  isFavorite: boolean,
+  walletAddress: string
+): Promise<SavedClient> {
+  return request<SavedClient>(
+    `/clients/${clientId}/favorite`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ isFavorite }),
+    },
+    walletAddress
+  );
 }
 
 // ─── Payment API ──────────────────────────────────────────────────

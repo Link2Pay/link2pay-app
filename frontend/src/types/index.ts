@@ -49,6 +49,35 @@ export interface Invoice {
   lineItems: LineItem[];
 }
 
+export interface PublicInvoice {
+  id: string;
+  invoiceNumber: string;
+  status: InvoiceStatus;
+  freelancerName?: string | null;
+  freelancerCompany?: string | null;
+  clientName: string;
+  clientCompany?: string | null;
+  title: string;
+  description?: string | null;
+  notes?: string | null;
+  subtotal: string;
+  taxRate?: string | null;
+  taxAmount?: string | null;
+  discount?: string | null;
+  total: string;
+  currency: Currency;
+  createdAt: string;
+  dueDate?: string | null;
+  paidAt?: string | null;
+  transactionHash?: string | null;
+  lineItems: {
+    description: string;
+    quantity: string;
+    rate: string;
+    amount: string;
+  }[];
+}
+
 export interface CreateInvoiceData {
   freelancerWallet: string;
   freelancerName?: string;
@@ -65,7 +94,29 @@ export interface CreateInvoiceData {
   taxRate?: number;
   discount?: number;
   dueDate?: string;
+  saveClient?: boolean;
+  favoriteClient?: boolean;
   lineItems: { description: string; quantity: number; rate: number }[];
+}
+
+export interface SavedClient {
+  id: string;
+  freelancerWallet: string;
+  name: string;
+  email: string;
+  company?: string | null;
+  address?: string | null;
+  isFavorite: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SaveClientData {
+  name: string;
+  email: string;
+  company?: string;
+  address?: string;
+  isFavorite?: boolean;
 }
 
 export interface PayIntentResponse {

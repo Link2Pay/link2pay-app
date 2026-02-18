@@ -4,20 +4,113 @@
 
 @layer base {
   :root {
-    --color-stellar: #4c6ef5;
-    --color-stellar-dark: #3b5bdb;
-    --color-bg: #fafbfc;
-    --color-surface: #ffffff;
-    --color-border: #e9ecef;
+    --background: 220 60% 6%;
+    --foreground: 210 20% 92%;
+
+    --card: 220 45% 10%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 220 45% 10%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 175 75% 45%;
+    --primary-foreground: 220 60% 6%;
+
+    --secondary: 220 35% 16%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 220 30% 14%;
+    --muted-foreground: 215 15% 55%;
+
+    --accent: 175 75% 45%;
+    --accent-foreground: 220 60% 6%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 30% 18%;
+    --input: 220 30% 18%;
+    --ring: 175 75% 45%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 220 50% 8%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 175 75% 45%;
+    --sidebar-primary-foreground: 220 60% 6%;
+    --sidebar-accent: 220 35% 14%;
+    --sidebar-accent-foreground: 210 20% 92%;
+    --sidebar-border: 220 30% 15%;
+    --sidebar-ring: 175 75% 45%;
+
+    /* Custom tokens */
+    --neon-glow: 175 75% 45%;
+    --neon-glow-subtle: 175 60% 35%;
+    --surface-elevated: 220 40% 12%;
+    --success: 155 70% 45%;
+    --success-foreground: 155 90% 95%;
+    --warning: 45 90% 55%;
+    --warning-foreground: 45 90% 10%;
   }
 
-  body {
-    @apply bg-[var(--color-bg)] text-ink-0 font-sans;
-    font-feature-settings: 'ss01', 'ss02';
+  .light {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 175 72% 34%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 32% 95%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 30% 96%;
+    --muted-foreground: 215 16% 38%;
+
+    --accent: 175 72% 34%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 26% 88%;
+    --input: 214 26% 88%;
+    --ring: 175 72% 34%;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 175 72% 34%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 32% 95%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 26% 88%;
+    --sidebar-ring: 175 72% 34%;
+
+    --neon-glow: 175 72% 34%;
+    --neon-glow-subtle: 175 55% 34%;
+    --surface-elevated: 210 32% 95%;
+    --success: 155 70% 38%;
+    --success-foreground: 155 90% 95%;
+    --warning: 42 92% 45%;
+    --warning-foreground: 42 90% 12%;
   }
 
   * {
-    @apply border-surface-3;
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: 'ss01', 'ss02';
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
   }
 }
 
@@ -29,36 +122,36 @@
   }
 
   .btn-primary {
-    @apply btn bg-stellar-600 text-white hover:bg-stellar-700
-           active:bg-stellar-800 shadow-sm hover:shadow;
+    @apply btn bg-primary text-primary-foreground hover:brightness-110
+           active:brightness-90 shadow-sm hover:shadow;
   }
 
   .btn-secondary {
-    @apply btn bg-white text-ink-1 border border-surface-3
-           hover:bg-surface-1 active:bg-surface-2;
+    @apply btn bg-secondary text-secondary-foreground border border-border
+           hover:bg-muted active:brightness-90;
   }
 
   .btn-danger {
-    @apply btn bg-danger text-white hover:bg-red-700 active:bg-red-800;
+    @apply btn bg-destructive text-destructive-foreground hover:brightness-110 active:brightness-90;
   }
 
   .btn-ghost {
-    @apply btn text-ink-2 hover:bg-surface-1 active:bg-surface-2;
+    @apply btn text-muted-foreground hover:bg-muted hover:text-foreground active:brightness-90;
   }
 
   .card {
-    @apply bg-white rounded-xl border border-surface-3 shadow-card;
+    @apply bg-card rounded-xl border border-border shadow-card;
   }
 
   .input {
-    @apply w-full px-3 py-2.5 rounded-lg border border-surface-3
-           bg-white text-ink-0 text-sm placeholder:text-ink-4
-           focus:outline-none focus:ring-2 focus:ring-stellar-200 focus:border-stellar-400
+    @apply w-full px-3 py-2.5 rounded-lg border border-border
+           bg-muted text-foreground text-sm placeholder:text-muted-foreground
+           focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50
            transition-all duration-150;
   }
 
   .label {
-    @apply block text-sm font-medium text-ink-1 mb-1.5;
+    @apply block text-sm font-medium text-secondary-foreground mb-1.5;
   }
 
   .badge {
@@ -66,33 +159,70 @@
   }
 
   .badge-draft {
-    @apply badge bg-surface-2 text-ink-2;
+    @apply badge bg-secondary text-muted-foreground;
   }
 
   .badge-pending {
-    @apply badge bg-amber-50 text-amber-700 border border-amber-200;
+    @apply badge bg-warning/10 text-warning border border-warning/30;
   }
 
   .badge-processing {
-    @apply badge bg-blue-50 text-blue-700 border border-blue-200;
+    @apply badge bg-primary/10 text-primary border border-primary/30;
   }
 
   .badge-paid {
-    @apply badge bg-emerald-50 text-emerald-700 border border-emerald-200;
+    @apply badge bg-success/10 text-success border border-success/30;
   }
 
   .badge-failed {
-    @apply badge bg-red-50 text-red-700 border border-red-200;
+    @apply badge bg-destructive/10 text-destructive border border-destructive/30;
   }
 
   .badge-cancelled {
-    @apply badge bg-surface-2 text-ink-3;
+    @apply badge bg-secondary text-muted-foreground;
   }
 }
 
 @layer utilities {
+  .neon-border {
+    border: 1px solid hsl(175 75% 45% / 0.3);
+    box-shadow:
+      0 0 10px hsl(175 75% 45% / 0.05),
+      inset 0 0 10px hsl(175 75% 45% / 0.02);
+  }
+
+  .neon-border-strong {
+    border: 1px solid hsl(175 75% 45% / 0.5);
+    box-shadow:
+      0 0 20px hsl(175 75% 45% / 0.1),
+      0 0 40px hsl(175 75% 45% / 0.05),
+      inset 0 0 15px hsl(175 75% 45% / 0.03);
+  }
+
+  .neon-text {
+    color: hsl(175 75% 45%);
+    text-shadow: 0 0 20px hsl(175 75% 45% / 0.4);
+  }
+
+  .glass-card {
+    background: hsl(var(--card) / 0.82);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border) / 0.7);
+  }
+
+  .gradient-bg {
+    background: radial-gradient(
+      ellipse at 50% 0%,
+      hsl(175 75% 45% / 0.08) 0%,
+      transparent 60%
+    );
+  }
+
   .text-gradient {
-    @apply bg-gradient-to-r from-stellar-600 to-stellar-400 bg-clip-text text-transparent;
+    background: linear-gradient(135deg, hsl(175 75% 55%), hsl(175 75% 40%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .animate-in {
@@ -125,7 +255,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.05),
       transparent
     );
     animation: shine 3s ease-in-out infinite;
@@ -135,6 +265,18 @@
     0% { left: -100%; }
     50% { left: 100%; }
     100% { left: 100%; }
+  }
+
+  .hover-glow {
+    transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease;
+  }
+
+  .hover-glow:hover {
+    border-color: hsl(175 75% 45% / 0.45);
+    box-shadow:
+      0 10px 20px hsl(175 75% 45% / 0.08),
+      0 2px 8px hsl(175 75% 45% / 0.1);
+    transform: translateY(-1px);
   }
 }
 
@@ -147,9 +289,9 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #ced4da;
+  background: hsl(var(--border));
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #adb5bd;
+  background: hsl(var(--muted-foreground) / 0.55);
 }

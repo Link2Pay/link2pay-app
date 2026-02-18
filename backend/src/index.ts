@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import invoiceRoutes from './routes/invoices';
 import paymentRoutes from './routes/payments';
+import clientRoutes from './routes/clients';
 import { watcherService } from './services/watcherService';
 
 const app = express();
@@ -59,6 +60,9 @@ app.use('/api/invoices', invoiceRoutes);
 
 // Payment routes
 app.use('/api/payments', paymentRoutes);
+
+// Saved client routes
+app.use('/api/clients', clientRoutes);
 
 // ─── Error Handling ─────────────────────────────────────────────────
 app.use(

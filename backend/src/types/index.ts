@@ -14,6 +14,8 @@ export interface CreateInvoiceInput {
   taxRate?: number;
   discount?: number;
   dueDate?: string;
+  saveClient?: boolean;
+  favoriteClient?: boolean;
   lineItems: LineItemInput[];
 }
 
@@ -49,7 +51,6 @@ export interface InvoicePublicView {
   id: string;
   invoiceNumber: string;
   status: string;
-  freelancerWallet: string;
   freelancerName?: string | null;
   freelancerCompany?: string | null;
   clientName: string;
@@ -73,4 +74,16 @@ export interface InvoicePublicView {
     rate: string;
     amount: string;
   }[];
+}
+
+export interface SaveClientInput {
+  name: string;
+  email: string;
+  company?: string;
+  address?: string;
+  isFavorite?: boolean;
+}
+
+export interface UpdateClientFavoriteInput {
+  isFavorite: boolean;
 }

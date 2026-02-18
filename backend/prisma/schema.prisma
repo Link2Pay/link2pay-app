@@ -78,6 +78,23 @@ model Invoice {
   @@map("invoices")
 }
 
+model Client {
+  id              String   @id @default(cuid())
+  freelancerWallet String  @map("freelancer_wallet")
+  name            String
+  email           String
+  company         String?
+  address         String?
+  isFavorite      Boolean  @default(false) @map("is_favorite")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([freelancerWallet, email])
+  @@index([freelancerWallet])
+  @@index([isFavorite])
+  @@map("clients")
+}
+
 model LineItem {
   id          String  @id @default(cuid())
   invoiceId   String  @map("invoice_id")

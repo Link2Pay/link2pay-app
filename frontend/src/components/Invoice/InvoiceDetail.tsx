@@ -85,7 +85,7 @@ export default function InvoiceDetail() {
         <p className="text-danger text-sm mb-3">
           {error || 'Invoice not found'}
         </p>
-        <Link to="/invoices" className="btn-secondary text-sm">
+        <Link to="/dashboard/invoices" className="btn-secondary text-sm">
           Back to Invoices
         </Link>
       </div>

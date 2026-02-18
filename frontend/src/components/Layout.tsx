@@ -1,11 +1,13 @@
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useWalletStore } from '../store/walletStore';
 import WalletConnect from './Wallet/WalletConnect';
+import ThemeToggle from './ThemeToggle';
 
 const NAV_ITEMS = [
-  { path: '/', label: 'Dashboard', icon: '◆' },
-  { path: '/invoices', label: 'Invoices', icon: '▤' },
-  { path: '/create', label: 'Create Invoice', icon: '+' },
+  { path: '/dashboard', label: 'Dashboard', icon: 'D' },
+  { path: '/dashboard/clients', label: 'Clients', icon: 'C' },
+  { path: '/dashboard/invoices', label: 'Invoices', icon: 'I' },
+  { path: '/dashboard/create', label: 'Create Invoice', icon: '+' },
 ];
 
 export default function Layout() {
@@ -13,46 +15,39 @@ export default function Layout() {
   const { connected } = useWalletStore();
 
   return (
-    <div className="min-h-screen flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-surface-3 flex flex-col fixed h-full z-10">
-        {/* Logo */}
-        <div className="px-6 py-5 border-b border-surface-3">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-stellar-600 flex items-center justify-center">
-              <span className="text-white text-sm font-bold">S</span>
+    <div className="flex min-h-screen">
+      <aside className="fixed z-10 flex h-full w-64 flex-col border-r border-sidebar-border bg-sidebar">
+        <div className="border-b border-sidebar-border px-6 py-5">
+          <Link to="/dashboard" className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+              <span className="text-sm font-bold text-primary-foreground">S</span>
             </div>
             <div>
-              <h1 className="text-base font-semibold text-ink-0 leading-none">
-                Link2Pay
-              </h1>
-              <span className="text-[10px] text-ink-3 uppercase tracking-wider">
-                Invoice Platform
-              </span>
+              <h1 className="leading-none text-base font-semibold text-foreground">Link2Pay</h1>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Invoice Platform</span>
             </div>
           </Link>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 px-3 py-4">
           <div className="space-y-1">
             {NAV_ITEMS.map((item) => {
               const isActive =
-                item.path === '/'
-                  ? location.pathname === '/'
+                item.path === '/dashboard'
+                  ? location.pathname === '/dashboard'
                   : location.pathname.startsWith(item.path);
 
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
                     isActive
-                      ? 'bg-stellar-50 text-stellar-700'
-                      : 'text-ink-2 hover:bg-surface-1 hover:text-ink-0'
+                      ? 'bg-sidebar-accent text-primary'
+                      : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
                   }`}
                 >
-                  <span className={`text-base ${isActive ? 'text-stellar-500' : 'text-ink-4'}`}>
+                  <span className={`text-base ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
                     {item.icon}
                   </span>
                   {item.label}
@@ -62,39 +57,38 @@ export default function Layout() {
           </div>
         </nav>
 
-        {/* Network Badge */}
-        <div className="px-4 py-3 border-t border-surface-3">
-          <div className="flex items-center gap-2 text-xs text-ink-3">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-slow" />
+        <div className="border-t border-sidebar-border px-4 py-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse-slow" />
             Stellar Testnet
           </div>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 ml-64">
-        {/* Top Bar */}
-        <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-surface-3 px-8 py-3 flex items-center justify-between">
-          <div />
-          <WalletConnect />
+      <main className="ml-64 flex-1">
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/80 px-8 py-3 backdrop-blur-md">
+          <Link to="/" className="text-sm text-muted-foreground transition-colors hover:text-primary">
+            Back to site
+          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <WalletConnect />
+          </div>
         </header>
 
-        {/* Page Content */}
-        <div className="px-8 py-6 max-w-5xl">
+        <div className="max-w-5xl px-8 py-6">
           {connected ? (
             <Outlet />
           ) : (
-            <div className="flex items-center justify-center min-h-[60vh]">
-              <div className="text-center max-w-md animate-in">
-                <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-stellar-50 flex items-center justify-center">
-                  <span className="text-3xl text-stellar-500">◆</span>
+            <div className="flex min-h-[60vh] items-center justify-center">
+              <div className="max-w-md text-center animate-in">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+                  <span className="text-3xl text-primary">S</span>
                 </div>
-                <h2 className="text-xl font-semibold text-ink-0 mb-2">
-                  Connect Your Wallet
-                </h2>
-                <p className="text-ink-3 text-sm mb-6 leading-relaxed">
-                  Connect your Freighter wallet to start creating invoices and
-                  receiving instant payments on the Stellar network.
+                <h2 className="mb-2 text-xl font-semibold text-foreground">Connect Your Wallet</h2>
+                <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
+                  Connect your Freighter wallet to start creating invoices and receiving payments on
+                  Stellar.
                 </p>
                 <WalletConnect variant="large" />
               </div>

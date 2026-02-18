@@ -50,7 +50,7 @@ export default function InvoiceList() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-ink-0">Invoices</h2>
-        <Link to="/create" className="btn-primary text-sm">
+        <Link to="/dashboard/create" className="btn-primary text-sm">
           + New Invoice
         </Link>
       </div>
@@ -80,7 +80,7 @@ export default function InvoiceList() {
       ) : invoices.length === 0 ? (
         <div className="card p-12 text-center">
           <p className="text-ink-3 text-sm mb-3">No invoices found</p>
-          <Link to="/create" className="btn-primary text-sm">
+          <Link to="/dashboard/create" className="btn-primary text-sm">
             Create Your First Invoice
           </Link>
         </div>
@@ -114,7 +114,7 @@ export default function InvoiceList() {
                 >
                   <td className="px-4 py-3">
                     <Link
-                      to={`/invoices/${invoice.id}`}
+                      to={`/dashboard/invoices/${invoice.id}`}
                       className="text-sm font-medium text-stellar-600 hover:text-stellar-700"
                     >
                       {invoice.invoiceNumber}
