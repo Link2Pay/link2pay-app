@@ -102,7 +102,6 @@ export class InvoiceService {
       id: invoice.id,
       invoiceNumber: invoice.invoiceNumber,
       status: invoice.status,
-      freelancerWallet: invoice.freelancerWallet,
       freelancerName: invoice.freelancerName,
       freelancerCompany: invoice.freelancerCompany,
       clientName: invoice.clientName,
