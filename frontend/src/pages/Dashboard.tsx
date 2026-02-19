@@ -1,5 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronRight,
+  CircleDollarSign,
+  Clock3,
+  FilePlus2,
+  FileText,
+  History,
+} from 'lucide-react';
 import { getDashboardStats, listInvoices } from '../services/api';
 import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
 import { useI18n } from '../i18n/I18nProvider';
@@ -135,22 +145,25 @@ export default function Dashboard() {
       label: copy.totalInvoices,
       value: stats?.totalInvoices || 0,
       color: 'text-ink-0',
+      icon: FileText,
     },
     {
       label: copy.paid,
       value: stats?.paidInvoices || 0,
       color: 'text-emerald-600',
+      icon: CheckCircle2,
     },
     {
       label: copy.pending,
       value: stats?.pendingInvoices || 0,
       color: 'text-amber-600',
+      icon: Clock3,
     },
     {
       label: copy.revenue,
       value: stats?.totalRevenue || '0.00',
       color: 'text-stellar-600',
-      prefix: '',
+      icon: CircleDollarSign,
     },
   ];
 
@@ -162,28 +175,42 @@ export default function Dashboard() {
           <p className="text-sm text-ink-3">{copy.subtitle}</p>
         </div>
         <Link to="/dashboard/create" className="btn-primary w-full text-sm sm:w-auto">
-          + {copy.newInvoice}
+          <FilePlus2 className="h-4 w-4" />
+          {copy.newInvoice}
         </Link>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {statCards.map((stat) => (
-          <div key={stat.label} className="card p-5">
-            <p className="text-xs text-ink-3 mb-1">{stat.label}</p>
-            <p className={`text-2xl font-semibold font-mono ${stat.color}`}>
-              {stat.prefix !== undefined ? stat.prefix : ''}
-              {stat.value}
-            </p>
-          </div>
-        ))}
+        {statCards.map((stat) => {
+          const Icon = stat.icon;
+
+          return (
+            <div key={stat.label} className="card p-5">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-xs text-ink-3">{stat.label}</p>
+                <span className="rounded-md bg-muted p-1.5 text-ink-3">
+                  <Icon className="h-3.5 w-3.5" />
+                </span>
+              </div>
+              <p className={`text-2xl font-semibold font-mono ${stat.color}`}>
+                {stat.value}
+              </p>
+            </div>
+          );
+        })}
       </div>
 
       {stats && parseFloat(stats.pendingAmount) > 0 && (
         <div className="card p-5 bg-amber-50 border-amber-200">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-xs text-amber-600 font-medium mb-1">{copy.awaitingPayment}</p>
-              <p className="text-xl font-semibold font-mono text-amber-700">{stats.pendingAmount}</p>
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                <AlertTriangle className="h-4 w-4" />
+              </span>
+              <div>
+                <p className="text-xs text-amber-600 font-medium mb-1">{copy.awaitingPayment}</p>
+                <p className="text-xl font-semibold font-mono text-amber-700">{stats.pendingAmount}</p>
+              </div>
             </div>
             <Link to="/dashboard/invoices?status=PENDING" className="btn-secondary w-full text-xs sm:w-auto">
               {copy.viewPending}
@@ -194,9 +221,16 @@ export default function Dashboard() {
 
       <div>
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h3 className="text-sm font-semibold text-ink-0">{copy.recentInvoices}</h3>
-          <Link to="/dashboard/invoices" className="text-xs text-stellar-600 hover:text-stellar-700">
-            {copy.viewAll} -&gt;
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-0">
+            <History className="h-4 w-4 text-ink-3" />
+            {copy.recentInvoices}
+          </h3>
+          <Link
+            to="/dashboard/invoices"
+            className="inline-flex items-center gap-1 text-xs text-stellar-600 hover:text-stellar-700"
+          >
+            {copy.viewAll}
+            <ChevronRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
@@ -204,6 +238,7 @@ export default function Dashboard() {
           <div className="card p-8 text-center">
             <p className="text-sm text-ink-3 mb-3">{copy.noInvoices}</p>
             <Link to="/dashboard/create" className="btn-primary text-sm">
+              <FilePlus2 className="h-4 w-4" />
               {copy.createInvoice}
             </Link>
           </div>

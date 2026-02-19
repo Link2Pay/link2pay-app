@@ -1,4 +1,5 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { FilePlus2, LayoutDashboard, Receipt, Users } from 'lucide-react';
 import { useWalletStore } from '../store/walletStore';
 import WalletConnect from './Wallet/WalletConnect';
 import ThemeToggle from './ThemeToggle';
@@ -11,10 +12,10 @@ export default function Layout() {
   const { t } = useI18n();
 
   const navItems = [
-    { path: '/dashboard', label: t('layout.nav.dashboard'), icon: 'D' },
-    { path: '/dashboard/clients', label: t('layout.nav.clients'), icon: 'C' },
-    { path: '/dashboard/invoices', label: t('layout.nav.invoices'), icon: 'I' },
-    { path: '/dashboard/create', label: t('layout.nav.createInvoice'), icon: '+' },
+    { path: '/dashboard', label: t('layout.nav.dashboard'), icon: LayoutDashboard },
+    { path: '/dashboard/clients', label: t('layout.nav.clients'), icon: Users },
+    { path: '/dashboard/invoices', label: t('layout.nav.invoices'), icon: Receipt },
+    { path: '/dashboard/create', label: t('layout.nav.createInvoice'), icon: FilePlus2 },
   ];
 
   const isActivePath = (path: string) =>
@@ -43,6 +44,7 @@ export default function Layout() {
           <div className="space-y-1">
             {navItems.map((item) => {
               const isActive = isActivePath(item.path);
+              const Icon = item.icon;
 
               return (
                 <Link
@@ -54,9 +56,7 @@ export default function Layout() {
                       : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
                   }`}
                 >
-                  <span className={`text-base ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
-                    {item.icon}
-                  </span>
+                  <Icon className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                   {item.label}
                 </Link>
               );
@@ -90,6 +90,7 @@ export default function Layout() {
           <nav className="flex items-center gap-1 overflow-x-auto">
             {navItems.map((item) => {
               const isActive = isActivePath(item.path);
+              const Icon = item.icon;
 
               return (
                 <Link
@@ -101,7 +102,10 @@ export default function Layout() {
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
-                  {item.label}
+                  <span className="inline-flex items-center gap-1.5">
+                    <Icon className="h-3.5 w-3.5" />
+                    {item.label}
+                  </span>
                 </Link>
               );
             })}
