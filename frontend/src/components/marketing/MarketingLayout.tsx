@@ -43,7 +43,7 @@ export default function MarketingLayout() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 py-2">
+          <div className="flex min-h-16 items-center justify-between gap-3 py-2">
             <Link to="/" className="flex items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <Zap className="h-4 w-4" />
@@ -70,40 +70,67 @@ export default function MarketingLayout() {
               ))}
             </nav>
 
-            <div className="flex flex-wrap items-center justify-end gap-2">
+            <div className="flex items-center gap-2">
               <LanguageToggle />
               <ThemeToggle />
 
-              {connected && publicKey && (
-                <span className="hidden items-center gap-2 rounded-lg border border-border bg-muted px-3 py-1.5 text-[11px] font-mono text-foreground sm:flex sm:text-xs">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  {truncateAddress(publicKey)}
-                </span>
-              )}
+              <div className="hidden items-center gap-2 md:flex">
+                {connected && publicKey && (
+                  <span className="hidden items-center gap-2 rounded-lg border border-border bg-muted px-3 py-1.5 text-[11px] font-mono text-foreground sm:flex sm:text-xs">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    {truncateAddress(publicKey)}
+                  </span>
+                )}
 
-              {!connected ? (
-                <button
-                  onClick={handleConnect}
-                  disabled={isConnecting}
-                  className="btn-primary px-3 py-2 text-xs sm:text-sm"
-                >
-                  <Wallet className="h-4 w-4" />
-                  {isConnecting ? t('marketing.connecting') : t('marketing.connectWallet')}
-                </button>
-              ) : (
-                <button
-                  onClick={disconnect}
-                  className="btn-ghost px-3 py-2 text-xs sm:text-sm"
-                >
-                  {t('marketing.disconnect')}
-                </button>
-              )}
+                {!connected ? (
+                  <button
+                    onClick={handleConnect}
+                    disabled={isConnecting}
+                    className="btn-primary px-3 py-2 text-sm"
+                  >
+                    <Wallet className="h-4 w-4" />
+                    {isConnecting ? t('marketing.connecting') : t('marketing.connectWallet')}
+                  </button>
+                ) : (
+                  <button
+                    onClick={disconnect}
+                    className="btn-ghost px-3 py-2 text-sm"
+                  >
+                    {t('marketing.disconnect')}
+                  </button>
+                )}
 
-              <Link to="/get-started" className="btn-secondary px-3 py-2 text-xs sm:text-sm">
-                {t('marketing.dashboard')}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+                <Link to="/get-started" className="btn-secondary px-3 py-2 text-sm">
+                  {t('marketing.dashboard')}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2 pb-3 md:hidden">
+            {!connected ? (
+              <button
+                onClick={handleConnect}
+                disabled={isConnecting}
+                className="btn-primary flex-1 px-3 py-2 text-xs"
+              >
+                <Wallet className="h-4 w-4" />
+                {isConnecting ? t('marketing.connecting') : t('marketing.connectWallet')}
+              </button>
+            ) : (
+              <button
+                onClick={disconnect}
+                className="btn-ghost flex-1 px-3 py-2 text-xs"
+              >
+                {t('marketing.disconnect')}
+              </button>
+            )}
+
+            <Link to="/get-started" className="btn-secondary px-3 py-2 text-xs">
+              {t('marketing.dashboard')}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
 
           <nav className="flex items-center gap-1 overflow-x-auto pb-3 md:hidden">
