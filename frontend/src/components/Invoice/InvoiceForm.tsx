@@ -249,12 +249,12 @@ export default function InvoiceForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 animate-in">
+    <form onSubmit={handleSubmit} className="space-y-6 animate-in sm:space-y-8">
       {error && (
         <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
       )}
 
-      <section className="card p-6">
+      <section className="card p-5 sm:p-6">
         <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.yourInformation}</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -290,11 +290,11 @@ export default function InvoiceForm() {
         </div>
         <div className="mt-3">
           <label className="label">{copy.walletAddress}</label>
-          <div className="input bg-surface-1 font-mono text-xs text-ink-2 cursor-default">{publicKey}</div>
+          <div className="input bg-surface-1 font-mono text-xs text-ink-2 cursor-default break-all">{publicKey}</div>
         </div>
       </section>
 
-      <section className="card p-6">
+      <section className="card p-5 sm:p-6">
         <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.clientInformation}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -336,7 +336,7 @@ export default function InvoiceForm() {
         </div>
       </section>
 
-      <section className="card p-6">
+      <section className="card p-5 sm:p-6">
         <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.invoiceDetails}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
@@ -352,7 +352,7 @@ export default function InvoiceForm() {
               required
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="label">{copy.currency}</label>
               <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value as Currency)}>
@@ -378,15 +378,15 @@ export default function InvoiceForm() {
         </div>
       </section>
 
-      <section className="card p-6">
-        <div className="flex items-center justify-between mb-4">
+      <section className="card p-5 sm:p-6">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="text-sm font-semibold text-ink-0 uppercase tracking-wider">{copy.lineItems}</h3>
-          <button type="button" onClick={addLineItem} className="btn-ghost text-stellar-600 text-sm">
+          <button type="button" onClick={addLineItem} className="btn-ghost w-full text-sm text-stellar-600 sm:w-auto">
             + {copy.addItem}
           </button>
         </div>
 
-        <div className="grid grid-cols-12 gap-3 mb-2 px-1">
+        <div className="mb-2 hidden grid-cols-12 gap-3 px-1 sm:grid">
           <div className="col-span-5 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.description}</div>
           <div className="col-span-2 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.qty}</div>
           <div className="col-span-2 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.rate}</div>
@@ -396,8 +396,11 @@ export default function InvoiceForm() {
 
         <div className="space-y-2">
           {lineItems.map((item, index) => (
-            <div key={index} className="grid grid-cols-12 gap-3 items-center">
-              <div className="col-span-5">
+            <div key={index} className="rounded-lg border border-surface-3 p-3 sm:grid sm:grid-cols-12 sm:items-center sm:gap-3 sm:rounded-none sm:border-0 sm:p-0">
+              <div className="sm:col-span-5">
+                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-3 sm:hidden">
+                  {copy.description}
+                </label>
                 <input
                   type="text"
                   className="input"
@@ -407,7 +410,10 @@ export default function InvoiceForm() {
                   required
                 />
               </div>
-              <div className="col-span-2">
+              <div className="mt-3 sm:col-span-2 sm:mt-0">
+                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-3 sm:hidden">
+                  {copy.qty}
+                </label>
                 <input
                   type="number"
                   className="input text-center"
@@ -418,7 +424,10 @@ export default function InvoiceForm() {
                   required
                 />
               </div>
-              <div className="col-span-2">
+              <div className="mt-3 sm:col-span-2 sm:mt-0">
+                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-3 sm:hidden">
+                  {copy.rate}
+                </label>
                 <input
                   type="number"
                   className="input"
@@ -430,8 +439,13 @@ export default function InvoiceForm() {
                   required
                 />
               </div>
-              <div className="col-span-2 text-right text-sm font-mono text-ink-1">{(item.quantity * item.rate).toFixed(2)}</div>
-              <div className="col-span-1 text-center">
+              <div className="mt-3 flex items-center justify-between text-sm sm:col-span-2 sm:mt-0 sm:block sm:text-right">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-ink-3 sm:hidden">
+                  {copy.amount}
+                </span>
+                <span className="font-mono text-ink-1">{(item.quantity * item.rate).toFixed(2)}</span>
+              </div>
+              <div className="mt-3 text-right sm:col-span-1 sm:mt-0 sm:text-center">
                 {lineItems.length > 1 && (
                   <button
                     type="button"
@@ -448,15 +462,15 @@ export default function InvoiceForm() {
 
         <div className="mt-6 pt-4 border-t border-surface-3">
           <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-4 text-sm">
+            <div className="flex w-full items-center justify-between gap-4 text-sm sm:w-auto sm:justify-end">
               <span className="text-ink-3">{copy.subtotal}</span>
-              <span className="font-mono w-28 text-right">{subtotal.toFixed(2)} {currency}</span>
+              <span className="font-mono w-24 text-right sm:w-28">{subtotal.toFixed(2)} {currency}</span>
             </div>
-            <div className="flex items-center gap-4 text-sm">
+            <div className="flex w-full items-center justify-between gap-4 text-sm sm:w-auto sm:justify-end">
               <span className="text-ink-3">{copy.taxRate}</span>
               <input
                 type="number"
-                className="input w-28 text-right"
+                className="input w-24 text-right sm:w-28"
                 min="0"
                 max="100"
                 step="0.1"
@@ -466,20 +480,20 @@ export default function InvoiceForm() {
               />
             </div>
             {taxAmount > 0 && (
-              <div className="flex items-center gap-4 text-sm">
+              <div className="flex w-full items-center justify-between gap-4 text-sm sm:w-auto sm:justify-end">
                 <span className="text-ink-3">{copy.taxAmount}</span>
-                <span className="font-mono w-28 text-right">{taxAmount.toFixed(2)} {currency}</span>
+                <span className="font-mono w-24 text-right sm:w-28">{taxAmount.toFixed(2)} {currency}</span>
               </div>
             )}
-            <div className="flex items-center gap-4 text-base font-semibold pt-2 border-t border-surface-3">
+            <div className="flex w-full items-center justify-between gap-4 border-t border-surface-3 pt-2 text-base font-semibold sm:w-auto sm:justify-end">
               <span>{copy.total}</span>
-              <span className="font-mono w-28 text-right text-stellar-700">{total.toFixed(2)} {currency}</span>
+              <span className="font-mono w-24 text-right text-stellar-700 sm:w-28">{total.toFixed(2)} {currency}</span>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="card p-6">
+      <section className="card p-5 sm:p-6">
         <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.notes}</h3>
         <textarea
           className="input min-h-[80px] resize-y"
@@ -489,11 +503,11 @@ export default function InvoiceForm() {
         />
       </section>
 
-      <div className="flex items-center justify-end gap-3 pt-2">
-        <button type="button" onClick={() => navigate('/invoices')} className="btn-secondary">
+      <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:items-center sm:justify-end">
+        <button type="button" onClick={() => navigate('/invoices')} className="btn-secondary w-full sm:w-auto">
           {copy.cancel}
         </button>
-        <button type="submit" disabled={isSubmitting} className="btn-primary">
+        <button type="submit" disabled={isSubmitting} className="btn-primary w-full sm:w-auto">
           {isSubmitting ? (
             <span className="flex items-center gap-2">
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">

@@ -17,8 +17,8 @@ export default function WalletConnect({ variant = 'compact' }: WalletConnectProp
     if (variant === 'large') return null;
 
     return (
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-1 border border-surface-3">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="hidden items-center gap-2 rounded-lg border border-surface-3 bg-surface-1 px-3 py-1.5 sm:flex">
           <span className="w-2 h-2 rounded-full bg-emerald-400" />
           <span className="text-sm font-mono text-ink-1">
             {truncateAddress(publicKey)}
@@ -65,7 +65,7 @@ export default function WalletConnect({ variant = 'compact' }: WalletConnectProp
     <button
       onClick={connect}
       disabled={isConnecting}
-      className="btn-primary text-sm"
+      className="btn-primary text-xs sm:text-sm"
     >
       {isConnecting ? t('wallet.connecting') : t('wallet.connectWallet')}
     </button>

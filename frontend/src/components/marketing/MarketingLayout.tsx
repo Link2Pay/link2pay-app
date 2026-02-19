@@ -43,7 +43,7 @@ export default function MarketingLayout() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="flex h-16 items-center justify-between gap-3">
+          <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 py-2">
             <Link to="/" className="flex items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <Zap className="h-4 w-4" />
@@ -70,12 +70,12 @@ export default function MarketingLayout() {
               ))}
             </nav>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               <LanguageToggle />
               <ThemeToggle />
 
               {connected && publicKey && (
-                <span className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-1.5 text-[11px] font-mono text-foreground sm:text-xs">
+                <span className="hidden items-center gap-2 rounded-lg border border-border bg-muted px-3 py-1.5 text-[11px] font-mono text-foreground sm:flex sm:text-xs">
                   <span className="h-2 w-2 rounded-full bg-emerald-500" />
                   {truncateAddress(publicKey)}
                 </span>

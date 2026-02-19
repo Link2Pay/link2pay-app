@@ -22,12 +22,14 @@ export default function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className="btn-ghost rounded-lg border border-border bg-card px-3 py-2 text-xs sm:text-sm"
+      className="btn-ghost rounded-lg border border-border bg-card px-2.5 py-2 text-xs sm:px-3 sm:text-sm"
       aria-label={theme === 'dark' ? t('theme.switchToWhite') : t('theme.switchToDark')}
       title={theme === 'dark' ? t('theme.switchToWhite') : t('theme.switchToDark')}
     >
       {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      {theme === 'dark' ? t('theme.white') : t('theme.dark')}
+      <span className="hidden min-[420px]:inline">
+        {theme === 'dark' ? t('theme.white') : t('theme.dark')}
+      </span>
     </button>
   );
 }

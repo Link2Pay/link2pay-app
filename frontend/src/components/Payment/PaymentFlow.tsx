@@ -6,6 +6,7 @@ import { useWalletStore } from '../../store/walletStore';
 import InvoiceStatusBadge from '../Invoice/InvoiceStatusBadge';
 import WalletConnect from '../Wallet/WalletConnect';
 import LanguageToggle from '../LanguageToggle';
+import ThemeToggle from '../ThemeToggle';
 import type { PublicInvoice, InvoiceStatus } from '../../types';
 import { CURRENCY_SYMBOLS, config } from '../../config';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -103,7 +104,7 @@ export default function PaymentFlow() {
 
   if (step === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface-1">
+      <div className="min-h-screen bg-surface-1 flex items-center justify-center p-4">
         <div className="text-ink-3 text-sm">{t('payment.loadingInvoice')}</div>
       </div>
     );
@@ -111,8 +112,8 @@ export default function PaymentFlow() {
 
   if (!invoice) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface-1">
-        <div className="card p-8 text-center max-w-md">
+      <div className="min-h-screen bg-surface-1 flex items-center justify-center p-4">
+        <div className="card p-6 text-center max-w-md">
           <p className="text-danger text-sm">{error || t('payment.invoiceNotFound')}</p>
         </div>
       </div>
@@ -120,12 +121,13 @@ export default function PaymentFlow() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-1 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg animate-in">
-        <div className="mb-4 flex justify-end">
+    <div className="min-h-screen bg-surface-1 p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-lg animate-in">
+        <div className="mb-4 flex justify-end gap-2">
           <LanguageToggle />
+          <ThemeToggle />
         </div>
-        <div className="text-center mb-6">
+        <div className="mb-6 text-center">
           <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-stellar-600 flex items-center justify-center">
             <span className="text-white text-sm font-bold">S</span>
           </div>
@@ -134,7 +136,7 @@ export default function PaymentFlow() {
         </div>
 
         <div className="card overflow-hidden">
-          <div className="p-6 border-b border-surface-3">
+          <div className="border-b border-surface-3 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-mono text-ink-3">{invoice.invoiceNumber}</span>
               <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
@@ -143,7 +145,7 @@ export default function PaymentFlow() {
             {invoice.description && <p className="text-sm text-ink-3">{invoice.description}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 p-6 border-b border-surface-3 bg-surface-1">
+          <div className="grid grid-cols-1 gap-4 border-b border-surface-3 bg-surface-1 p-4 sm:grid-cols-2 sm:p-6">
             <div>
               <p className="text-[10px] uppercase tracking-wider text-ink-3 mb-1">{t('payment.from')}</p>
               <p className="text-sm font-medium text-ink-0">
@@ -158,12 +160,12 @@ export default function PaymentFlow() {
             </div>
           </div>
 
-          <div className="p-6 border-b border-surface-3">
+          <div className="border-b border-surface-3 p-4 sm:p-6">
             <div className="space-y-2">
               {invoice.lineItems.map((item, index) => (
                 <div key={index} className="flex items-center justify-between text-sm">
-                  <div>
-                    <p className="text-ink-1">{item.description}</p>
+                  <div className="pr-3">
+                    <p className="text-ink-1 break-words">{item.description}</p>
                     <p className="text-xs text-ink-3">
                       {parseFloat(String(item.quantity))} x {parseFloat(String(item.rate)).toFixed(2)}
                     </p>
@@ -187,16 +189,16 @@ export default function PaymentFlow() {
             </div>
           </div>
 
-          <div className="p-6 bg-stellar-50 border-b border-stellar-100">
+          <div className="bg-stellar-50 border-b border-stellar-100 p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-stellar-700">{t('payment.totalDue')}</span>
-              <span className="text-2xl font-bold font-mono text-stellar-700">
+              <span className="text-xl font-bold font-mono text-stellar-700 sm:text-2xl">
                 {formatAmount(invoice.total, invoice.currency)}
               </span>
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {step === 'connect' && (
               <div className="text-center space-y-4">
                 <p className="text-sm text-ink-2">{t('payment.connectWalletPrompt')}</p>

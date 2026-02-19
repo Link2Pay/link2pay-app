@@ -260,7 +260,7 @@ export default function ClientsPage() {
 
   return (
     <div className="space-y-6 animate-in">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-foreground">{copy.title}</h2>
           <p className="text-sm text-muted-foreground">{copy.subtitle}</p>
@@ -271,7 +271,7 @@ export default function ClientsPage() {
             setShowClientForm((prev) => !prev);
             setError(null);
           }}
-          className="btn-primary text-sm"
+          className="btn-primary w-full text-sm sm:w-auto"
         >
           {showClientForm ? (
             <>
@@ -357,12 +357,12 @@ export default function ClientsPage() {
             placeholder={copy.searchPlaceholder}
           />
         </div>
-        <button type="submit" className="btn-secondary text-sm">
+        <button type="submit" className="btn-secondary w-full text-sm sm:w-auto">
           <Search className="h-4 w-4" />
           {copy.search}
         </button>
         {searchQuery && (
-          <button type="button" onClick={handleClearSearch} className="btn-ghost text-sm">
+          <button type="button" onClick={handleClearSearch} className="btn-ghost w-full text-sm sm:w-auto">
             {copy.clear}
           </button>
         )}

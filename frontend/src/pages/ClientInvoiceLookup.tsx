@@ -81,51 +81,53 @@ export default function ClientInvoiceLookup() {
   };
 
   return (
-    <div className="min-h-screen gradient-bg flex items-center justify-center p-6">
-      <div className="fixed right-4 top-4 z-20 flex items-center gap-2">
-        <LanguageToggle />
-        <ThemeToggle />
-      </div>
-
-      <div className="w-full max-w-md animate-in">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground text-lg font-bold font-display">S</span>
-          </div>
-          <h1 className="text-2xl font-bold text-foreground font-display mb-1">{copy.title}</h1>
-          <p className="text-sm text-muted-foreground">{copy.subtitle}</p>
+    <div className="min-h-screen gradient-bg p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-md">
+        <div className="mb-4 flex justify-end gap-2">
+          <LanguageToggle />
+          <ThemeToggle />
         </div>
 
-        <div className="card p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="label">{copy.inputLabel}</label>
-              <input
-                type="text"
-                className="input font-mono text-sm"
-                placeholder={copy.inputPlaceholder}
-                value={input}
-                onChange={(e) => {
-                  setInput(e.target.value);
-                  setError(null);
-                }}
-                autoFocus
-              />
-              <p className="text-xs text-muted-foreground mt-2">{copy.inputHint}</p>
+        <div className="animate-in">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground text-lg font-bold font-display">S</span>
             </div>
+            <h1 className="text-xl font-bold text-foreground font-display mb-1 sm:text-2xl">{copy.title}</h1>
+            <p className="text-sm text-muted-foreground">{copy.subtitle}</p>
+          </div>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+          <div className="card p-5 sm:p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="label">{copy.inputLabel}</label>
+                <input
+                  type="text"
+                  className="input font-mono text-sm"
+                  placeholder={copy.inputPlaceholder}
+                  value={input}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    setError(null);
+                  }}
+                  autoFocus
+                />
+                <p className="text-xs text-muted-foreground mt-2">{copy.inputHint}</p>
+              </div>
 
-            <button type="submit" className="btn-primary w-full py-3 text-base">
-              {copy.viewInvoice}
-            </button>
-          </form>
-        </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <div className="text-center mt-6">
-          <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            {'<-'} {copy.backHome}
-          </Link>
+              <button type="submit" className="btn-primary w-full py-3 text-base">
+                {copy.viewInvoice}
+              </button>
+            </form>
+          </div>
+
+          <div className="text-center mt-6">
+            <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              {'<-'} {copy.backHome}
+            </Link>
+          </div>
         </div>
       </div>
     </div>

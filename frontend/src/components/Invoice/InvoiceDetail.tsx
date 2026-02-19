@@ -215,7 +215,7 @@ export default function InvoiceDetail() {
 
   return (
     <div className="animate-in space-y-6">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <h2 className="text-lg font-semibold text-ink-0">{invoice.invoiceNumber}</h2>
@@ -223,14 +223,14 @@ export default function InvoiceDetail() {
           </div>
           <p className="text-sm text-ink-3">{invoice.title}</p>
         </div>
-        <div className="text-right">
+        <div className="sm:text-right">
           <p className="text-2xl font-semibold font-mono text-ink-0">{formatAmount(invoice.total, invoice.currency)}</p>
           <p className="text-xs text-ink-3 mt-1">{invoice.currency === 'XLM' ? copy.stellarLumens : invoice.currency}</p>
         </div>
       </div>
 
       {isOwner && (
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {invoice.status === 'DRAFT' && (
             <>
               <button onClick={handleSend} disabled={actionLoading} className="btn-primary text-sm">
@@ -252,7 +252,7 @@ export default function InvoiceDetail() {
       {isOwner && ['PENDING', 'DRAFT'].includes(invoice.status) && (
         <div className="card p-4">
           <label className="label">{copy.paymentLink}</label>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <code className="flex-1 px-3 py-2 rounded-lg bg-surface-1 text-xs font-mono text-ink-2 overflow-x-auto">
               {paymentLink}
             </code>
@@ -281,46 +281,48 @@ export default function InvoiceDetail() {
       </div>
 
       <div className="card overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-surface-1 border-b border-surface-3">
-              <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase">{copy.description}</th>
-              <th className="text-center px-4 py-3 text-xs font-medium text-ink-3 uppercase">{copy.qty}</th>
-              <th className="text-right px-4 py-3 text-xs font-medium text-ink-3 uppercase">{copy.rate}</th>
-              <th className="text-right px-4 py-3 text-xs font-medium text-ink-3 uppercase">{copy.amount}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-surface-3">
-            {invoice.lineItems.map((item, index) => (
-              <tr key={index}>
-                <td className="px-4 py-3 text-sm text-ink-0">{item.description}</td>
-                <td className="px-4 py-3 text-sm text-ink-2 text-center">{parseFloat(String(item.quantity))}</td>
-                <td className="px-4 py-3 text-sm font-mono text-ink-2 text-right">{parseFloat(String(item.rate)).toFixed(2)}</td>
-                <td className="px-4 py-3 text-sm font-mono text-ink-0 text-right">{parseFloat(String(item.amount)).toFixed(2)}</td>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[680px]">
+            <thead>
+              <tr className="bg-surface-1 border-b border-surface-3">
+                <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase">{copy.description}</th>
+                <th className="text-center px-4 py-3 text-xs font-medium text-ink-3 uppercase">{copy.qty}</th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-ink-3 uppercase">{copy.rate}</th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-ink-3 uppercase">{copy.amount}</th>
               </tr>
-            ))}
-          </tbody>
-          <tfoot className="border-t-2 border-surface-3">
-            <tr>
-              <td colSpan={3} className="px-4 py-2 text-sm text-ink-3 text-right">{copy.subtotal}</td>
-              <td className="px-4 py-2 text-sm font-mono text-right">{parseFloat(invoice.subtotal).toFixed(2)}</td>
-            </tr>
-            {invoice.taxRate && parseFloat(invoice.taxRate) > 0 && (
+            </thead>
+            <tbody className="divide-y divide-surface-3">
+              {invoice.lineItems.map((item, index) => (
+                <tr key={index}>
+                  <td className="px-4 py-3 text-sm text-ink-0">{item.description}</td>
+                  <td className="px-4 py-3 text-sm text-ink-2 text-center">{parseFloat(String(item.quantity))}</td>
+                  <td className="px-4 py-3 text-sm font-mono text-ink-2 text-right">{parseFloat(String(item.rate)).toFixed(2)}</td>
+                  <td className="px-4 py-3 text-sm font-mono text-ink-0 text-right">{parseFloat(String(item.amount)).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot className="border-t-2 border-surface-3">
               <tr>
-                <td colSpan={3} className="px-4 py-2 text-sm text-ink-3 text-right">
-                  {copy.tax} ({invoice.taxRate}%)
-                </td>
-                <td className="px-4 py-2 text-sm font-mono text-right">{parseFloat(invoice.taxAmount || '0').toFixed(2)}</td>
+                <td colSpan={3} className="px-4 py-2 text-sm text-ink-3 text-right">{copy.subtotal}</td>
+                <td className="px-4 py-2 text-sm font-mono text-right">{parseFloat(invoice.subtotal).toFixed(2)}</td>
               </tr>
-            )}
-            <tr>
-              <td colSpan={3} className="px-4 py-3 text-base font-semibold text-right">{copy.total}</td>
-              <td className="px-4 py-3 text-base font-semibold font-mono text-stellar-700 text-right">
-                {formatAmount(invoice.total, invoice.currency)}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
+              {invoice.taxRate && parseFloat(invoice.taxRate) > 0 && (
+                <tr>
+                  <td colSpan={3} className="px-4 py-2 text-sm text-ink-3 text-right">
+                    {copy.tax} ({invoice.taxRate}%)
+                  </td>
+                  <td className="px-4 py-2 text-sm font-mono text-right">{parseFloat(invoice.taxAmount || '0').toFixed(2)}</td>
+                </tr>
+              )}
+              <tr>
+                <td colSpan={3} className="px-4 py-3 text-base font-semibold text-right">{copy.total}</td>
+                <td className="px-4 py-3 text-base font-semibold font-mono text-stellar-700 text-right">
+                  {formatAmount(invoice.total, invoice.currency)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </div>
 
       {(invoice.description || invoice.notes) && (
@@ -344,19 +346,19 @@ export default function InvoiceDetail() {
         <div className="card p-5 bg-emerald-50 border-emerald-200">
           <h4 className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-3">{copy.paymentConfirmed}</h4>
           <div className="space-y-2 text-sm">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-emerald-600">{copy.transactionHash}</span>
               <a
                 href={`https://stellar.expert/explorer/${config.stellarNetwork === 'testnet' ? 'testnet' : 'public'}/tx/${invoice.transactionHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono text-xs text-stellar-600 hover:underline"
+                className="font-mono text-xs text-stellar-600 hover:underline break-all"
               >
                 {invoice.transactionHash.slice(0, 16)}...
               </a>
             </div>
             {invoice.paidAt && (
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-emerald-600">{copy.paidAt}</span>
                 <span className="text-emerald-700">
                   {new Date(invoice.paidAt).toLocaleString(LOCALE_BY_LANGUAGE[language])}
@@ -364,7 +366,7 @@ export default function InvoiceDetail() {
               </div>
             )}
             {invoice.payerWallet && (
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-emerald-600">{copy.payer}</span>
                 <span className="font-mono text-xs text-emerald-700">
                   {invoice.payerWallet.slice(0, 8)}...{invoice.payerWallet.slice(-4)}

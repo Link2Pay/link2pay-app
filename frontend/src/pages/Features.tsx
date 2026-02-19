@@ -370,24 +370,26 @@ export default function Features() {
           <p className="mt-3 text-base text-muted-foreground">{copy.comparisonSubtitle}</p>
         </div>
         <div className="mt-14 overflow-hidden rounded-xl border border-border">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">{copy.colFeature}</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-primary">Link2Pay</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">{copy.colTraditional}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {comparisonRows.map((row, index) => (
-                <tr key={row.feature} className={`border-b border-border last:border-0 ${index % 2 === 0 ? 'bg-card' : 'bg-background'}`}>
-                  <td className="px-6 py-4 text-sm font-medium text-foreground">{row.feature}</td>
-                  <td className="px-6 py-4 text-sm text-primary font-medium">{row.stellarPay}</td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">{row.traditional}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px]">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">{copy.colFeature}</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-primary">Link2Pay</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-muted-foreground">{copy.colTraditional}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {comparisonRows.map((row, index) => (
+                  <tr key={row.feature} className={`border-b border-border last:border-0 ${index % 2 === 0 ? 'bg-card' : 'bg-background'}`}>
+                    <td className="px-6 py-4 text-sm font-medium text-foreground">{row.feature}</td>
+                    <td className="px-6 py-4 text-sm text-primary font-medium">{row.stellarPay}</td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{row.traditional}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 

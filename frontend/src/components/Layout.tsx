@@ -17,9 +17,14 @@ export default function Layout() {
     { path: '/dashboard/create', label: t('layout.nav.createInvoice'), icon: '+' },
   ];
 
+  const isActivePath = (path: string) =>
+    path === '/dashboard'
+      ? location.pathname === '/dashboard'
+      : location.pathname.startsWith(path);
+
   return (
-    <div className="flex min-h-screen">
-      <aside className="fixed z-10 flex h-full w-64 flex-col border-r border-sidebar-border bg-sidebar">
+    <div className="min-h-screen md:flex">
+      <aside className="hidden border-r border-sidebar-border bg-sidebar md:fixed md:z-10 md:flex md:h-full md:w-64 md:flex-col">
         <div className="border-b border-sidebar-border px-6 py-5">
           <Link to="/dashboard" className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
@@ -37,10 +42,7 @@ export default function Layout() {
         <nav className="flex-1 px-3 py-4">
           <div className="space-y-1">
             {navItems.map((item) => {
-              const isActive =
-                item.path === '/dashboard'
-                  ? location.pathname === '/dashboard'
-                  : location.pathname.startsWith(item.path);
+              const isActive = isActivePath(item.path);
 
               return (
                 <Link
@@ -70,19 +72,43 @@ export default function Layout() {
         </div>
       </aside>
 
-      <main className="ml-64 flex-1">
-        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/80 px-8 py-3 backdrop-blur-md">
-          <Link to="/" className="text-sm text-muted-foreground transition-colors hover:text-primary">
-            {t('layout.backToSite')}
-          </Link>
-          <div className="flex items-center gap-2">
-            <LanguageToggle />
-            <ThemeToggle />
-            <WalletConnect />
+      <main className="flex-1 md:ml-64">
+        <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-6 md:px-8">
+            <Link to="/" className="text-sm text-muted-foreground transition-colors hover:text-primary">
+              {t('layout.backToSite')}
+            </Link>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <LanguageToggle />
+              <ThemeToggle />
+              <WalletConnect />
+            </div>
           </div>
         </header>
 
-        <div className="max-w-5xl px-8 py-6">
+        <div className="border-b border-border bg-background/70 px-3 py-2 backdrop-blur md:hidden">
+          <nav className="flex items-center gap-1 overflow-x-auto">
+            {navItems.map((item) => {
+              const isActive = isActivePath(item.path);
+
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                    isActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 md:px-8">
           {connected ? (
             <Outlet />
           ) : (

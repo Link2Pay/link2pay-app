@@ -128,14 +128,14 @@ export default function InvoiceList() {
 
   return (
     <div className="animate-in">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
-        <Link to="/dashboard/create" className="btn-primary text-sm">
+        <Link to="/dashboard/create" className="btn-primary w-full text-sm sm:w-auto">
           + {copy.newInvoice}
         </Link>
       </div>
 
-      <div className="flex items-center gap-2 mb-4">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         {statusFilters.map((statusFilter) => (
           <button
             key={statusFilter.value}
@@ -162,40 +162,42 @@ export default function InvoiceList() {
         </div>
       ) : (
         <div className="card overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-surface-3 bg-surface-1">
-                <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colInvoice}</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colClient}</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colStatus}</th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colAmount}</th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colDate}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-surface-3">
-              {invoices.map((invoice) => (
-                <tr key={invoice.id} className="hover:bg-surface-1 transition-colors">
-                  <td className="px-4 py-3">
-                    <Link to={`/dashboard/invoices/${invoice.id}`} className="text-sm font-medium text-stellar-600 hover:text-stellar-700">
-                      {invoice.invoiceNumber}
-                    </Link>
-                    <p className="text-xs text-ink-3 mt-0.5">{invoice.title}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="text-sm text-ink-1">{invoice.clientName}</p>
-                    <p className="text-xs text-ink-3">{invoice.clientEmail}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className="text-sm font-mono font-medium text-ink-0">{formatAmount(invoice.total, invoice.currency)}</span>
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm text-ink-3">{formatDate(invoice.createdAt)}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px]">
+              <thead>
+                <tr className="border-b border-surface-3 bg-surface-1">
+                  <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colInvoice}</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colClient}</th>
+                  <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colStatus}</th>
+                  <th className="text-right px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colAmount}</th>
+                  <th className="text-right px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colDate}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-surface-3">
+                {invoices.map((invoice) => (
+                  <tr key={invoice.id} className="hover:bg-surface-1 transition-colors">
+                    <td className="px-4 py-3">
+                      <Link to={`/dashboard/invoices/${invoice.id}`} className="text-sm font-medium text-stellar-600 hover:text-stellar-700">
+                        {invoice.invoiceNumber}
+                      </Link>
+                      <p className="text-xs text-ink-3 mt-0.5">{invoice.title}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-sm text-ink-1">{invoice.clientName}</p>
+                      <p className="text-xs text-ink-3">{invoice.clientEmail}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="text-sm font-mono font-medium text-ink-0">{formatAmount(invoice.total, invoice.currency)}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm text-ink-3">{formatDate(invoice.createdAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

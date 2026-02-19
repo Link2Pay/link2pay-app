@@ -123,13 +123,13 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="space-y-8 animate-in">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 animate-in sm:space-y-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
           <p className="text-sm text-ink-3">{copy.subtitle}</p>
         </div>
-        <Link to="/dashboard/create" className="btn-primary text-sm">
+        <Link to="/dashboard/create" className="btn-primary w-full text-sm sm:w-auto">
           + {copy.newInvoice}
         </Link>
       </div>
@@ -148,12 +148,12 @@ export default function Dashboard() {
 
       {stats && parseFloat(stats.pendingAmount) > 0 && (
         <div className="card p-5 bg-amber-50 border-amber-200">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs text-amber-600 font-medium mb-1">{copy.awaitingPayment}</p>
               <p className="text-xl font-semibold font-mono text-amber-700">{stats.pendingAmount}</p>
             </div>
-            <Link to="/dashboard/invoices?status=PENDING" className="btn-secondary text-xs">
+            <Link to="/dashboard/invoices?status=PENDING" className="btn-secondary w-full text-xs sm:w-auto">
               {copy.viewPending}
             </Link>
           </div>
@@ -161,7 +161,7 @@ export default function Dashboard() {
       )}
 
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h3 className="text-sm font-semibold text-ink-0">{copy.recentInvoices}</h3>
           <Link to="/dashboard/invoices" className="text-xs text-stellar-600 hover:text-stellar-700">
             {copy.viewAll} -&gt;
@@ -181,17 +181,17 @@ export default function Dashboard() {
               <Link
                 key={invoice.id}
                 to={`/dashboard/invoices/${invoice.id}`}
-                className="flex items-center justify-between p-4 hover:bg-surface-1 transition-colors"
+                className="flex flex-col gap-3 p-4 transition-colors hover:bg-surface-1 sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="flex items-center gap-4">
+                <div className="flex min-w-0 items-center gap-4">
                   <div>
-                    <p className="text-sm font-medium text-ink-0">{invoice.title}</p>
+                    <p className="text-sm font-medium text-ink-0 break-words">{invoice.title}</p>
                     <p className="text-xs text-ink-3">
                       {invoice.clientName} | {invoice.invoiceNumber}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between gap-4 sm:justify-end">
                   <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
                   <span className="text-sm font-mono font-medium text-ink-0 w-24 text-right">
                     {parseFloat(invoice.total).toFixed(2)}{' '}
