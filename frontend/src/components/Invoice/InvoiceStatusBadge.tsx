@@ -1,13 +1,15 @@
 import type { InvoiceStatus } from '../../types';
+import { useI18n } from '../../i18n/I18nProvider';
+import type { TranslationKey } from '../../i18n/translations';
 
-const STATUS_CONFIG: Record<InvoiceStatus, { label: string; className: string }> = {
-  DRAFT: { label: 'Draft', className: 'badge-draft' },
-  PENDING: { label: 'Pending', className: 'badge-pending' },
-  PROCESSING: { label: 'Processing', className: 'badge-processing' },
-  PAID: { label: 'Paid', className: 'badge-paid' },
-  FAILED: { label: 'Failed', className: 'badge-failed' },
-  EXPIRED: { label: 'Expired', className: 'badge-cancelled' },
-  CANCELLED: { label: 'Cancelled', className: 'badge-cancelled' },
+const STATUS_CONFIG: Record<InvoiceStatus, { labelKey: TranslationKey; className: string }> = {
+  DRAFT: { labelKey: 'invoiceStatus.draft', className: 'badge-draft' },
+  PENDING: { labelKey: 'invoiceStatus.pending', className: 'badge-pending' },
+  PROCESSING: { labelKey: 'invoiceStatus.processing', className: 'badge-processing' },
+  PAID: { labelKey: 'invoiceStatus.paid', className: 'badge-paid' },
+  FAILED: { labelKey: 'invoiceStatus.failed', className: 'badge-failed' },
+  EXPIRED: { labelKey: 'invoiceStatus.expired', className: 'badge-cancelled' },
+  CANCELLED: { labelKey: 'invoiceStatus.cancelled', className: 'badge-cancelled' },
 };
 
 interface Props {
@@ -15,7 +17,8 @@ interface Props {
 }
 
 export default function InvoiceStatusBadge({ status }: Props) {
+  const { t } = useI18n();
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.DRAFT;
 
-  return <span className={config.className}>{config.label}</span>;
+  return <span className={config.className}>{t(config.labelKey)}</span>;
 }

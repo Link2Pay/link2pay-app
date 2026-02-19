@@ -2,17 +2,20 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useWalletStore } from '../store/walletStore';
 import WalletConnect from './Wallet/WalletConnect';
 import ThemeToggle from './ThemeToggle';
-
-const NAV_ITEMS = [
-  { path: '/dashboard', label: 'Dashboard', icon: 'D' },
-  { path: '/dashboard/clients', label: 'Clients', icon: 'C' },
-  { path: '/dashboard/invoices', label: 'Invoices', icon: 'I' },
-  { path: '/dashboard/create', label: 'Create Invoice', icon: '+' },
-];
+import LanguageToggle from './LanguageToggle';
+import { useI18n } from '../i18n/I18nProvider';
 
 export default function Layout() {
   const location = useLocation();
   const { connected } = useWalletStore();
+  const { t } = useI18n();
+
+  const navItems = [
+    { path: '/dashboard', label: t('layout.nav.dashboard'), icon: 'D' },
+    { path: '/dashboard/clients', label: t('layout.nav.clients'), icon: 'C' },
+    { path: '/dashboard/invoices', label: t('layout.nav.invoices'), icon: 'I' },
+    { path: '/dashboard/create', label: t('layout.nav.createInvoice'), icon: '+' },
+  ];
 
   return (
     <div className="flex min-h-screen">
@@ -24,14 +27,16 @@ export default function Layout() {
             </div>
             <div>
               <h1 className="leading-none text-base font-semibold text-foreground">Link2Pay</h1>
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Invoice Platform</span>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                {t('layout.invoicePlatform')}
+              </span>
             </div>
           </Link>
         </div>
 
         <nav className="flex-1 px-3 py-4">
           <div className="space-y-1">
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               const isActive =
                 item.path === '/dashboard'
                   ? location.pathname === '/dashboard'
@@ -60,7 +65,7 @@ export default function Layout() {
         <div className="border-t border-sidebar-border px-4 py-3">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse-slow" />
-            Stellar Testnet
+            {t('layout.stellarTestnet')}
           </div>
         </div>
       </aside>
@@ -68,9 +73,10 @@ export default function Layout() {
       <main className="ml-64 flex-1">
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/80 px-8 py-3 backdrop-blur-md">
           <Link to="/" className="text-sm text-muted-foreground transition-colors hover:text-primary">
-            Back to site
+            {t('layout.backToSite')}
           </Link>
           <div className="flex items-center gap-2">
+            <LanguageToggle />
             <ThemeToggle />
             <WalletConnect />
           </div>
@@ -85,10 +91,11 @@ export default function Layout() {
                 <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
                   <span className="text-3xl text-primary">S</span>
                 </div>
-                <h2 className="mb-2 text-xl font-semibold text-foreground">Connect Your Wallet</h2>
+                <h2 className="mb-2 text-xl font-semibold text-foreground">
+                  {t('layout.connectWalletTitle')}
+                </h2>
                 <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-                  Connect your Freighter wallet to start creating invoices and receiving payments on
-                  Stellar.
+                  {t('layout.connectWalletDescription')}
                 </p>
                 <WalletConnect variant="large" />
               </div>

@@ -1,9 +1,11 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Building2, Mail, MapPin, Plus, Search, Star, Users, X } from 'lucide-react';
-import { useWalletStore } from '../store/walletStore';
 import { listSavedClients, saveClient, updateClientFavorite } from '../services/api';
+import { useI18n } from '../i18n/I18nProvider';
+import { useWalletStore } from '../store/walletStore';
 import type { SavedClient } from '../types';
+import type { Language } from '../i18n/translations';
 
 interface ClientFormState {
   name: string;
@@ -19,6 +21,124 @@ const initialClientForm: ClientFormState = {
   company: '',
   address: '',
   isFavorite: false,
+};
+
+const COPY: Record<Language, {
+  loadingClients: string;
+  title: string;
+  subtitle: string;
+  close: string;
+  addClient: string;
+  newClient: string;
+  clientName: string;
+  clientEmail: string;
+  company: string;
+  address: string;
+  clientNamePlaceholder: string;
+  clientEmailPlaceholder: string;
+  optional: string;
+  markAsFavorite: string;
+  saving: string;
+  saveClient: string;
+  searchPlaceholder: string;
+  search: string;
+  clear: string;
+  noClientsSearch: string;
+  noClientsEmpty: string;
+  removeFavorite: string;
+  markFavorite: string;
+  useInInvoice: string;
+  failedLoadClients: string;
+  failedSaveClient: string;
+  failedUpdateFavorite: string;
+}> = {
+  en: {
+    loadingClients: 'Loading clients...',
+    title: 'Clients',
+    subtitle: 'Save, search, and reuse your clients while creating invoices.',
+    close: 'Close',
+    addClient: 'Add Client',
+    newClient: 'New Client',
+    clientName: 'Client Name',
+    clientEmail: 'Client Email',
+    company: 'Company',
+    address: 'Address',
+    clientNamePlaceholder: 'Client name',
+    clientEmailPlaceholder: 'client@example.com',
+    optional: 'Optional',
+    markAsFavorite: 'Mark as favorite',
+    saving: 'Saving...',
+    saveClient: 'Save Client',
+    searchPlaceholder: 'Search by name, email, company, or address',
+    search: 'Search',
+    clear: 'Clear',
+    noClientsSearch: 'No clients found for your search.',
+    noClientsEmpty: 'No clients yet. Add one now or save clients while creating invoices.',
+    removeFavorite: 'Remove favorite',
+    markFavorite: 'Mark as favorite',
+    useInInvoice: 'Use in Invoice',
+    failedLoadClients: 'Failed to load clients',
+    failedSaveClient: 'Failed to save client',
+    failedUpdateFavorite: 'Failed to update favorite',
+  },
+  es: {
+    loadingClients: 'Cargando clientes...',
+    title: 'Clientes',
+    subtitle: 'Guarda, busca y reutiliza clientes al crear facturas.',
+    close: 'Cerrar',
+    addClient: 'Agregar cliente',
+    newClient: 'Nuevo cliente',
+    clientName: 'Nombre del cliente',
+    clientEmail: 'Email del cliente',
+    company: 'Empresa',
+    address: 'Direccion',
+    clientNamePlaceholder: 'Nombre del cliente',
+    clientEmailPlaceholder: 'cliente@email.com',
+    optional: 'Opcional',
+    markAsFavorite: 'Marcar como favorito',
+    saving: 'Guardando...',
+    saveClient: 'Guardar cliente',
+    searchPlaceholder: 'Buscar por nombre, email, empresa o direccion',
+    search: 'Buscar',
+    clear: 'Limpiar',
+    noClientsSearch: 'No se encontraron clientes para tu busqueda.',
+    noClientsEmpty: 'Aun no hay clientes. Agrega uno o guardalos al crear facturas.',
+    removeFavorite: 'Quitar favorito',
+    markFavorite: 'Marcar favorito',
+    useInInvoice: 'Usar en factura',
+    failedLoadClients: 'No se pudieron cargar los clientes',
+    failedSaveClient: 'No se pudo guardar el cliente',
+    failedUpdateFavorite: 'No se pudo actualizar favorito',
+  },
+  pt: {
+    loadingClients: 'Carregando clientes...',
+    title: 'Clientes',
+    subtitle: 'Salve, busque e reutilize clientes ao criar faturas.',
+    close: 'Fechar',
+    addClient: 'Adicionar cliente',
+    newClient: 'Novo cliente',
+    clientName: 'Nome do cliente',
+    clientEmail: 'Email do cliente',
+    company: 'Empresa',
+    address: 'Endereco',
+    clientNamePlaceholder: 'Nome do cliente',
+    clientEmailPlaceholder: 'cliente@email.com',
+    optional: 'Opcional',
+    markAsFavorite: 'Marcar como favorito',
+    saving: 'Salvando...',
+    saveClient: 'Salvar cliente',
+    searchPlaceholder: 'Buscar por nome, email, empresa ou endereco',
+    search: 'Buscar',
+    clear: 'Limpar',
+    noClientsSearch: 'Nenhum cliente encontrado para sua busca.',
+    noClientsEmpty: 'Ainda nao ha clientes. Adicione agora ou salve ao criar faturas.',
+    removeFavorite: 'Remover favorito',
+    markFavorite: 'Marcar favorito',
+    useInInvoice: 'Usar na fatura',
+    failedLoadClients: 'Falha ao carregar clientes',
+    failedSaveClient: 'Falha ao salvar cliente',
+    failedUpdateFavorite: 'Falha ao atualizar favorito',
+  },
 };
 
 function sortClients(clients: SavedClient[]): SavedClient[] {
@@ -45,6 +165,9 @@ function matchesSearch(client: SavedClient, query: string): boolean {
 
 export default function ClientsPage() {
   const { publicKey } = useWalletStore();
+  const { language } = useI18n();
+  const copy = COPY[language];
+
   const [savedClients, setSavedClients] = useState<SavedClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,9 +187,9 @@ export default function ClientsPage() {
 
     listSavedClients(publicKey)
       .then((clients) => setSavedClients(sortClients(clients)))
-      .catch((err: any) => setError(err.message || 'Failed to load clients'))
+      .catch((err: any) => setError(err.message || copy.failedLoadClients))
       .finally(() => setLoading(false));
-  }, [publicKey]);
+  }, [publicKey, copy.failedLoadClients]);
 
   const filteredClients = useMemo(
     () => savedClients.filter((client) => matchesSearch(client, searchQuery)),
@@ -100,7 +223,7 @@ export default function ClientsPage() {
       setClientForm(initialClientForm);
       setShowClientForm(false);
     } catch (err: any) {
-      setError(err.message || 'Failed to save client');
+      setError(err.message || copy.failedSaveClient);
     } finally {
       setSavingClient(false);
     }
@@ -117,7 +240,7 @@ export default function ClientsPage() {
         sortClients(prev.map((item) => (item.id === updated.id ? updated : item)))
       );
     } catch (err: any) {
-      setError(err.message || 'Failed to update favorite');
+      setError(err.message || copy.failedUpdateFavorite);
     }
   };
 
@@ -132,17 +255,15 @@ export default function ClientsPage() {
   };
 
   if (loading) {
-    return <div className="py-20 text-center text-sm text-muted-foreground">Loading clients...</div>;
+    return <div className="py-20 text-center text-sm text-muted-foreground">{copy.loadingClients}</div>;
   }
 
   return (
     <div className="space-y-6 animate-in">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Clients</h2>
-          <p className="text-sm text-muted-foreground">
-            Save, search, and reuse your clients while creating invoices.
-          </p>
+          <h2 className="text-lg font-semibold text-foreground">{copy.title}</h2>
+          <p className="text-sm text-muted-foreground">{copy.subtitle}</p>
         </div>
         <button
           type="button"
@@ -155,12 +276,12 @@ export default function ClientsPage() {
           {showClientForm ? (
             <>
               <X className="h-4 w-4" />
-              Close
+              {copy.close}
             </>
           ) : (
             <>
               <Plus className="h-4 w-4" />
-              Add Client
+              {copy.addClient}
             </>
           )}
         </button>
@@ -168,45 +289,45 @@ export default function ClientsPage() {
 
       {showClientForm && (
         <form onSubmit={handleAddClient} className="card space-y-4 p-5">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">New Client</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">{copy.newClient}</h3>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div>
-              <label className="label">Client Name</label>
+              <label className="label">{copy.clientName}</label>
               <input
                 className="input"
                 value={clientForm.name}
                 onChange={(event) => handleClientField('name', event.target.value)}
-                placeholder="Client name"
+                placeholder={copy.clientNamePlaceholder}
                 required
               />
             </div>
             <div>
-              <label className="label">Client Email</label>
+              <label className="label">{copy.clientEmail}</label>
               <input
                 type="email"
                 className="input"
                 value={clientForm.email}
                 onChange={(event) => handleClientField('email', event.target.value)}
-                placeholder="client@example.com"
+                placeholder={copy.clientEmailPlaceholder}
                 required
               />
             </div>
             <div>
-              <label className="label">Company</label>
+              <label className="label">{copy.company}</label>
               <input
                 className="input"
                 value={clientForm.company}
                 onChange={(event) => handleClientField('company', event.target.value)}
-                placeholder="Optional"
+                placeholder={copy.optional}
               />
             </div>
             <div>
-              <label className="label">Address</label>
+              <label className="label">{copy.address}</label>
               <input
                 className="input"
                 value={clientForm.address}
                 onChange={(event) => handleClientField('address', event.target.value)}
-                placeholder="Optional"
+                placeholder={copy.optional}
               />
             </div>
           </div>
@@ -216,11 +337,11 @@ export default function ClientsPage() {
               checked={clientForm.isFavorite}
               onChange={(event) => handleClientField('isFavorite', event.target.checked)}
             />
-            Mark as favorite
+            {copy.markAsFavorite}
           </label>
           <div className="flex justify-end">
             <button type="submit" className="btn-primary text-sm" disabled={savingClient}>
-              {savingClient ? 'Saving...' : 'Save Client'}
+              {savingClient ? copy.saving : copy.saveClient}
             </button>
           </div>
         </form>
@@ -233,16 +354,16 @@ export default function ClientsPage() {
             className="input pl-10"
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="Search by name, email, company, or address"
+            placeholder={copy.searchPlaceholder}
           />
         </div>
         <button type="submit" className="btn-secondary text-sm">
           <Search className="h-4 w-4" />
-          Search
+          {copy.search}
         </button>
         {searchQuery && (
           <button type="button" onClick={handleClearSearch} className="btn-ghost text-sm">
-            Clear
+            {copy.clear}
           </button>
         )}
       </form>
@@ -257,9 +378,7 @@ export default function ClientsPage() {
         <div className="card p-12 text-center">
           <Users className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            {searchQuery
-              ? 'No clients found for your search.'
-              : 'No clients yet. Add one now or save clients while creating invoices.'}
+            {searchQuery ? copy.noClientsSearch : copy.noClientsEmpty}
           </p>
         </div>
       ) : (
@@ -278,7 +397,7 @@ export default function ClientsPage() {
                   type="button"
                   onClick={() => toggleFavorite(client)}
                   className="btn-ghost px-2 py-1"
-                  title={client.isFavorite ? 'Remove favorite' : 'Mark as favorite'}
+                  title={client.isFavorite ? copy.removeFavorite : copy.markFavorite}
                 >
                   <Star
                     className={`h-4 w-4 ${client.isFavorite ? 'fill-current text-warning' : 'text-muted-foreground'}`}
@@ -301,11 +420,8 @@ export default function ClientsPage() {
               )}
 
               <div className="flex items-center justify-end">
-                <Link
-                  to={`/dashboard/create?client=${client.id}`}
-                  className="btn-secondary px-2.5 py-1.5 text-xs"
-                >
-                  Use in Invoice
+                <Link to={`/dashboard/create?client=${client.id}`} className="btn-secondary px-2.5 py-1.5 text-xs">
+                  {copy.useInInvoice}
                 </Link>
               </div>
             </div>

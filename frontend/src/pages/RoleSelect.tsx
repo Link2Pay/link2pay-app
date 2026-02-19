@@ -1,12 +1,70 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useWalletStore } from '../store/walletStore';
 import ThemeToggle from '../components/ThemeToggle';
+import LanguageToggle from '../components/LanguageToggle';
+import { useWalletStore } from '../store/walletStore';
+import { useI18n } from '../i18n/I18nProvider';
+import type { Language } from '../i18n/translations';
+
+const COPY: Record<Language, {
+  tagline: string;
+  freelancerTitle: string;
+  freelancerDescription: string;
+  connectingWallet: string;
+  connectWalletEnter: string;
+  clientTitle: string;
+  clientDescription: string;
+  payInvoice: string;
+  failedConnectWallet: string;
+}> = {
+  en: {
+    tagline: 'Instant invoicing and payments on the Stellar network',
+    freelancerTitle: 'Freelancer',
+    freelancerDescription:
+      'Create and send invoices, track payments, and manage your business with your Stellar wallet.',
+    connectingWallet: 'Connecting wallet...',
+    connectWalletEnter: 'Connect Wallet and Enter',
+    clientTitle: 'Client',
+    clientDescription:
+      'Pay an invoice using a link or code shared by your freelancer. Quick, secure, and borderless.',
+    payInvoice: 'Pay an Invoice',
+    failedConnectWallet: 'Failed to connect wallet',
+  },
+  es: {
+    tagline: 'Facturacion y pagos instantaneos en la red Stellar',
+    freelancerTitle: 'Freelancer',
+    freelancerDescription:
+      'Crea y envia facturas, sigue pagos y gestiona tu negocio con tu wallet Stellar.',
+    connectingWallet: 'Conectando wallet...',
+    connectWalletEnter: 'Conectar wallet y entrar',
+    clientTitle: 'Cliente',
+    clientDescription:
+      'Paga una factura con un link o codigo compartido por tu freelancer. Rapido, seguro y sin fronteras.',
+    payInvoice: 'Pagar factura',
+    failedConnectWallet: 'No se pudo conectar la wallet',
+  },
+  pt: {
+    tagline: 'Faturamento e pagamentos instantaneos na rede Stellar',
+    freelancerTitle: 'Freelancer',
+    freelancerDescription:
+      'Crie e envie faturas, acompanhe pagamentos e gerencie seu negocio com sua wallet Stellar.',
+    connectingWallet: 'Conectando wallet...',
+    connectWalletEnter: 'Conectar wallet e entrar',
+    clientTitle: 'Cliente',
+    clientDescription:
+      'Pague uma fatura com um link ou codigo compartilhado pelo freelancer. Rapido, seguro e sem fronteiras.',
+    payInvoice: 'Pagar fatura',
+    failedConnectWallet: 'Nao foi possivel conectar a wallet',
+  },
+};
 
 export default function RoleSelect() {
   const navigate = useNavigate();
   const { connected, isConnecting, error, connect } = useWalletStore();
+  const { language } = useI18n();
   const [walletError, setWalletError] = useState<string | null>(null);
+
+  const copy = COPY[language];
 
   const handleFreelancer = async () => {
     if (connected) {
@@ -19,31 +77,27 @@ export default function RoleSelect() {
       await connect();
       navigate('/dashboard');
     } catch (err: any) {
-      setWalletError(err.message || 'Failed to connect wallet');
+      setWalletError(err.message || copy.failedConnectWallet);
     }
   };
 
   return (
     <div className="min-h-screen gradient-bg flex flex-col items-center justify-center p-6">
-      <div className="fixed right-4 top-4 z-20">
+      <div className="fixed right-4 top-4 z-20 flex items-center gap-2">
+        <LanguageToggle />
         <ThemeToggle />
       </div>
 
       <div className="w-full max-w-3xl animate-in">
-        {/* Logo */}
         <div className="text-center mb-12">
           <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
             <span className="text-primary-foreground text-xl font-bold font-display">S</span>
           </div>
           <h1 className="text-3xl font-bold text-foreground font-display mb-2">Link2Pay</h1>
-          <p className="text-muted-foreground text-sm">
-            Instant invoicing & payments on the Stellar network
-          </p>
+          <p className="text-muted-foreground text-sm">{copy.tagline}</p>
         </div>
 
-        {/* Role Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          {/* Freelancer Card */}
           <button
             onClick={handleFreelancer}
             disabled={isConnecting}
@@ -54,10 +108,8 @@ export default function RoleSelect() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-foreground font-display mb-2">Freelancer</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Create and send invoices, track payments, and manage your business — all powered by your Stellar wallet.
-            </p>
+            <h2 className="text-xl font-semibold text-foreground font-display mb-2">{copy.freelancerTitle}</h2>
+            <p className="text-sm text-muted-foreground mb-4">{copy.freelancerDescription}</p>
             <div className="flex items-center gap-2 text-primary text-sm font-medium">
               {isConnecting ? (
                 <span className="flex items-center gap-2">
@@ -65,18 +117,17 @@ export default function RoleSelect() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Connecting wallet...
+                  {copy.connectingWallet}
                 </span>
               ) : (
                 <>
-                  Connect Wallet & Enter
-                  <span className="transition-transform group-hover:translate-x-1">{'→'}</span>
+                  {copy.connectWalletEnter}
+                  <span className="transition-transform group-hover:translate-x-1">-&gt;</span>
                 </>
               )}
             </div>
           </button>
 
-          {/* Client Card */}
           <button
             onClick={() => navigate('/client')}
             className="glass-card group p-8 text-left transition-all duration-300 hover:scale-[1.02] neon-border hover:shadow-lg hover:shadow-primary/10"
@@ -86,18 +137,15 @@ export default function RoleSelect() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-foreground font-display mb-2">Client</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Pay an invoice using a link or code shared by your freelancer. Quick, secure, and borderless.
-            </p>
+            <h2 className="text-xl font-semibold text-foreground font-display mb-2">{copy.clientTitle}</h2>
+            <p className="text-sm text-muted-foreground mb-4">{copy.clientDescription}</p>
             <div className="flex items-center gap-2 text-primary text-sm font-medium">
-              Pay an Invoice
-              <span className="transition-transform group-hover:translate-x-1">{'→'}</span>
+              {copy.payInvoice}
+              <span className="transition-transform group-hover:translate-x-1">-&gt;</span>
             </div>
           </button>
         </div>
 
-        {/* Error */}
         {(walletError || error) && (
           <div className="mb-8 p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm text-center max-w-md mx-auto">
             {walletError || error}

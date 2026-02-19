@@ -2,31 +2,34 @@ import { Link, NavLink, Outlet } from 'react-router-dom';
 import { ArrowRight, Globe2, Heart, Wallet, Zap } from 'lucide-react';
 import { useWalletStore } from '../../store/walletStore';
 import ThemeToggle from '../ThemeToggle';
-
-const NAV_ITEMS = [
-  { path: '/', label: 'Home', end: true },
-  { path: '/features', label: 'Features' },
-  { path: '/pricing', label: 'Pricing' },
-  { path: '/about', label: 'About' },
-];
-
-const FOOTER_PRODUCT = [
-  { label: 'Features', to: '/features' },
-  { label: 'Pricing', to: '/pricing' },
-  { label: 'Dashboard', to: '/get-started' },
-];
-
-const FOOTER_COMPANY = [
-  { label: 'About', to: '/about' },
-  { label: 'Terms', to: '#' },
-  { label: 'Privacy', to: '#' },
-];
+import LanguageToggle from '../LanguageToggle';
+import { useI18n } from '../../i18n/I18nProvider';
 
 const truncateAddress = (address: string) =>
   `${address.slice(0, 6)}...${address.slice(-3)}`;
 
 export default function MarketingLayout() {
   const { connected, publicKey, isConnecting, connect, disconnect } = useWalletStore();
+  const { t } = useI18n();
+
+  const navItems = [
+    { path: '/', label: t('marketing.nav.home'), end: true },
+    { path: '/features', label: t('marketing.nav.features') },
+    { path: '/pricing', label: t('marketing.nav.pricing') },
+    { path: '/about', label: t('marketing.nav.about') },
+  ];
+
+  const footerProduct = [
+    { label: t('marketing.nav.features'), to: '/features' },
+    { label: t('marketing.nav.pricing'), to: '/pricing' },
+    { label: t('marketing.dashboard'), to: '/get-started' },
+  ];
+
+  const footerCompany = [
+    { label: t('marketing.nav.about'), to: '/about' },
+    { label: t('marketing.terms'), to: '#' },
+    { label: t('marketing.privacy'), to: '#' },
+  ];
 
   const handleConnect = async () => {
     try {
@@ -49,7 +52,7 @@ export default function MarketingLayout() {
             </Link>
 
             <nav className="hidden items-center gap-1 md:flex">
-              {NAV_ITEMS.map((item) => (
+              {navItems.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
@@ -68,6 +71,7 @@ export default function MarketingLayout() {
             </nav>
 
             <div className="flex items-center gap-2">
+              <LanguageToggle />
               <ThemeToggle />
 
               {connected && publicKey && (
@@ -84,26 +88,26 @@ export default function MarketingLayout() {
                   className="btn-primary px-3 py-2 text-xs sm:text-sm"
                 >
                   <Wallet className="h-4 w-4" />
-                  {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+                  {isConnecting ? t('marketing.connecting') : t('marketing.connectWallet')}
                 </button>
               ) : (
                 <button
                   onClick={disconnect}
                   className="btn-ghost px-3 py-2 text-xs sm:text-sm"
                 >
-                  Disconnect
+                  {t('marketing.disconnect')}
                 </button>
               )}
 
               <Link to="/get-started" className="btn-secondary px-3 py-2 text-xs sm:text-sm">
-                Dashboard
+                {t('marketing.dashboard')}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
 
           <nav className="flex items-center gap-1 overflow-x-auto pb-3 md:hidden">
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
@@ -139,20 +143,19 @@ export default function MarketingLayout() {
                 <span className="font-semibold text-foreground">Link2Pay</span>
               </div>
               <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-                The simplest way to invoice clients and get paid anywhere in the world.
-                Built on the Stellar network for speed, low cost, and full control over your money.
+                {t('marketing.footerDescription')}
               </p>
               <div className="mt-4 flex items-center gap-1 text-xs text-muted-foreground">
                 <Globe2 className="h-3.5 w-3.5" />
-                <span>Available worldwide on Stellar Testnet</span>
+                <span>{t('marketing.availableWorldwide')}</span>
               </div>
             </div>
 
             {/* Product links */}
             <div>
-              <h4 className="mb-3 text-sm font-semibold text-foreground">Product</h4>
+              <h4 className="mb-3 text-sm font-semibold text-foreground">{t('marketing.product')}</h4>
               <ul className="space-y-2">
-                {FOOTER_PRODUCT.map((item) => (
+                {footerProduct.map((item) => (
                   <li key={item.label}>
                     <Link
                       to={item.to}
@@ -167,9 +170,9 @@ export default function MarketingLayout() {
 
             {/* Company links */}
             <div>
-              <h4 className="mb-3 text-sm font-semibold text-foreground">Company</h4>
+              <h4 className="mb-3 text-sm font-semibold text-foreground">{t('marketing.company')}</h4>
               <ul className="space-y-2">
-                {FOOTER_COMPANY.map((item) =>
+                {footerCompany.map((item) =>
                   item.to.startsWith('/') ? (
                     <li key={item.label}>
                       <Link
@@ -196,10 +199,10 @@ export default function MarketingLayout() {
 
           <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 sm:flex-row">
             <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              Made with <Heart className="h-3 w-3 text-destructive" /> for freelancers worldwide
+              {t('marketing.madeWith')} <Heart className="h-3 w-3 text-destructive" /> {t('marketing.forFreelancers')}
             </p>
             <p className="text-xs text-muted-foreground">
-              Link2Pay &mdash; Stellar Testnet
+              {t('marketing.stellarTestnet')}
             </p>
           </div>
         </div>

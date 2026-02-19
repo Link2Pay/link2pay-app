@@ -1,4 +1,5 @@
 import { useWalletStore } from '../../store/walletStore';
+import { useI18n } from '../../i18n/I18nProvider';
 
 interface WalletConnectProps {
   variant?: 'compact' | 'large';
@@ -7,6 +8,7 @@ interface WalletConnectProps {
 export default function WalletConnect({ variant = 'compact' }: WalletConnectProps) {
   const { connected, publicKey, isConnecting, error, connect, disconnect } =
     useWalletStore();
+  const { t } = useI18n();
 
   const truncateAddress = (addr: string) =>
     `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -26,7 +28,7 @@ export default function WalletConnect({ variant = 'compact' }: WalletConnectProp
           onClick={disconnect}
           className="btn-ghost text-xs px-2 py-1"
         >
-          Disconnect
+          {t('wallet.disconnect')}
         </button>
       </div>
     );
@@ -46,10 +48,10 @@ export default function WalletConnect({ variant = 'compact' }: WalletConnectProp
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Connecting...
+              {t('wallet.connecting')}
             </span>
           ) : (
-            'Connect Freighter Wallet'
+            t('wallet.connectFreighter')
           )}
         </button>
         {error && (
@@ -65,7 +67,7 @@ export default function WalletConnect({ variant = 'compact' }: WalletConnectProp
       disabled={isConnecting}
       className="btn-primary text-sm"
     >
-      {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+      {isConnecting ? t('wallet.connecting') : t('wallet.connectWallet')}
     </button>
   );
 }
