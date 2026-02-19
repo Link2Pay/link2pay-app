@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { createInvoice } from '../../services/api';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
@@ -240,9 +241,12 @@ export default function InvoiceForm() {
         publicKey
       );
 
-      navigate(`/invoices/${invoice.id}`);
+      toast.success(`Invoice ${invoice.invoiceNumber} created`);
+      navigate(`/dashboard/invoices/${invoice.id}`);
     } catch (err: any) {
-      setError(err.message || copy.failedCreateInvoice);
+      const msg = err.message || copy.failedCreateInvoice;
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -258,8 +262,9 @@ export default function InvoiceForm() {
         <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.yourInformation}</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="label">{copy.name}</label>
+            <label htmlFor="freelancer-name" className="label">{copy.name}</label>
             <input
+              id="freelancer-name"
               type="text"
               className="input"
               placeholder={copy.yourNamePlaceholder}
@@ -268,8 +273,9 @@ export default function InvoiceForm() {
             />
           </div>
           <div>
-            <label className="label">{copy.email}</label>
+            <label htmlFor="freelancer-email" className="label">{copy.email}</label>
             <input
+              id="freelancer-email"
               type="email"
               className="input"
               placeholder={copy.yourEmailPlaceholder}
@@ -278,8 +284,9 @@ export default function InvoiceForm() {
             />
           </div>
           <div>
-            <label className="label">{copy.company}</label>
+            <label htmlFor="freelancer-company" className="label">{copy.company}</label>
             <input
+              id="freelancer-company"
               type="text"
               className="input"
               placeholder={copy.optional}
@@ -298,10 +305,11 @@ export default function InvoiceForm() {
         <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.clientInformation}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="label">
+            <label htmlFor="client-name" className="label">
               {copy.clientName} <span className="text-danger">*</span>
             </label>
             <input
+              id="client-name"
               type="text"
               className="input"
               placeholder={copy.clientNamePlaceholder}

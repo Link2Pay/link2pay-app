@@ -6,6 +6,8 @@ import { config } from './config';
 import invoiceRoutes from './routes/invoices';
 import paymentRoutes from './routes/payments';
 import clientRoutes from './routes/clients';
+import authRoutes from './routes/auth';
+import priceRoutes from './routes/prices';
 import { watcherService } from './services/watcherService';
 
 const app = express();
@@ -14,9 +16,15 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: [config.frontendUrl, 'http://localhost:5173', 'http://localhost:3000'],
+    origin: [config.frontendUrl, 'http://localhost:5173', 'http://localhost:4173', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'x-wallet-address', 'Authorization'],
+    allowedHeaders: [
+      'Content-Type',
+      'x-wallet-address',
+      'x-auth-nonce',
+      'x-auth-signature',
+      'Authorization',
+    ],
     credentials: true,
   })
 );
@@ -54,6 +62,12 @@ app.get('/api/health', (_req, res) => {
     version: '1.0.0',
   });
 });
+
+// Auth routes (nonce issuance)
+app.use('/api/auth', authRoutes);
+
+// Price feed
+app.use('/api/prices', priceRoutes);
 
 // Invoice routes
 app.use('/api/invoices', invoiceRoutes);

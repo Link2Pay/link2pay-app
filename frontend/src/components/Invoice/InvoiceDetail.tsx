@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { deleteInvoice, getOwnerInvoice, sendInvoice } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -169,8 +170,11 @@ export default function InvoiceDetail() {
     try {
       const updated = await sendInvoice(invoice.id, publicKey);
       setInvoice(updated);
+      toast.success(`Invoice ${invoice.invoiceNumber} sent to client`);
     } catch (err: any) {
-      setError(err.message);
+      const msg = err.message || 'Failed to send invoice';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setActionLoading(false);
     }
@@ -183,9 +187,12 @@ export default function InvoiceDetail() {
     setActionLoading(true);
     try {
       await deleteInvoice(invoice.id, publicKey);
-      navigate('/invoices');
+      toast.success(`Invoice ${invoice.invoiceNumber} deleted`);
+      navigate('/dashboard/invoices');
     } catch (err: any) {
-      setError(err.message);
+      const msg = err.message || 'Failed to delete invoice';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setActionLoading(false);
     }

@@ -11,6 +11,8 @@ interface WalletState {
   connect: () => Promise<void>;
   disconnect: () => void;
   signTransaction: (xdr: string) => Promise<string>;
+  /** Sign an arbitrary UTF-8 message (used for auth nonce). Returns hex signature. */
+  signMessage: (message: string) => Promise<string>;
 }
 
 const LANGUAGE_STORAGE_KEY = 'link2pay-language';
@@ -34,6 +36,8 @@ const MESSAGES: Record<
     unexpectedFreighterResponse: string;
     signTransactionUnavailable: string;
     signTransactionFailed: string;
+    signMessageUnavailable: string;
+    signMessageFailed: string;
   }
 > = {
   en: {
@@ -44,6 +48,8 @@ const MESSAGES: Record<
     unexpectedFreighterResponse: 'Unexpected response from Freighter',
     signTransactionUnavailable: 'Freighter signTransaction not available',
     signTransactionFailed: 'Transaction signing failed',
+    signMessageUnavailable: 'Freighter signMessage not available',
+    signMessageFailed: 'Message signing failed',
   },
   es: {
     freighterNotDetected: 'No se detecto Freighter. Instala la extension de Freighter en tu navegador.',
@@ -53,6 +59,8 @@ const MESSAGES: Record<
     unexpectedFreighterResponse: 'Respuesta inesperada de Freighter',
     signTransactionUnavailable: 'Freighter signTransaction no esta disponible',
     signTransactionFailed: 'Fallo al firmar la transaccion',
+    signMessageUnavailable: 'Freighter signMessage no esta disponible',
+    signMessageFailed: 'Fallo al firmar el mensaje',
   },
   pt: {
     freighterNotDetected: 'Freighter nao foi detectado. Instale a extensao Freighter no navegador.',
@@ -62,6 +70,8 @@ const MESSAGES: Record<
     unexpectedFreighterResponse: 'Resposta inesperada do Freighter',
     signTransactionUnavailable: 'Freighter signTransaction nao esta disponivel',
     signTransactionFailed: 'Falha ao assinar a transacao',
+    signMessageUnavailable: 'Freighter signMessage nao esta disponivel',
+    signMessageFailed: 'Falha ao assinar a mensagem',
   },
 };
 
@@ -141,6 +151,40 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       isConnecting: false,
       error: null,
     });
+  },
+
+  signMessage: async (message: string) => {
+    const state = get();
+    if (!state.connected) {
+      throw new Error(getMessage('walletNotConnected'));
+    }
+
+    try {
+      const freighter = await import('@stellar/freighter-api');
+      const f = freighter as any;
+
+      // Freighter v5+ exposes signMessage which signs arbitrary bytes.
+      // It returns the signature as a Uint8Array.
+      if (f.signMessage) {
+        const messageBytes = new TextEncoder().encode(message);
+        const result = await f.signMessage(messageBytes);
+
+        let sigBytes: Uint8Array;
+        if (result instanceof Uint8Array) {
+          sigBytes = result;
+        } else if (result && 'signature' in result) {
+          sigBytes = result.signature as Uint8Array;
+        } else {
+          throw new Error(getMessage('unexpectedFreighterResponse'));
+        }
+
+        return Array.from(sigBytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      throw new Error(getMessage('signMessageUnavailable'));
+    } catch (error: any) {
+      throw new Error(error.message || getMessage('signMessageFailed'));
+    }
   },
 
   signTransaction: async (xdr: string) => {

@@ -63,9 +63,11 @@ router.get('/', requireWallet, async (req: Request, res: Response) => {
   try {
     const walletAddress = (req as any).walletAddress;
     const status = req.query.status as InvoiceStatus | undefined;
+    const limit = Math.min(parseInt((req.query.limit as string) || '50', 10), 100);
+    const offset = Math.max(parseInt((req.query.offset as string) || '0', 10), 0);
 
-    const invoices = await invoiceService.listInvoices(walletAddress, status);
-    res.json(invoices);
+    const result = await invoiceService.listInvoices(walletAddress, status, limit, offset);
+    res.json(result);
   } catch (error: any) {
     console.error('List invoices error:', error);
     res.status(500).json({ error: error.message });
@@ -161,10 +163,13 @@ router.post('/:id/send', requireWallet, async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invoice must be in DRAFT status' });
     }
 
-    const updated = await invoiceService.updateStatus(
-      req.params.id,
-      'PENDING'
-    );
+    const updated = await invoiceService.updateStatus(req.params.id, 'PENDING');
+    // Fire-and-forget audit log — non-fatal
+    invoiceService
+      .addAuditLog(req.params.id, 'SENT', (req as any).walletAddress, {
+        status: { from: 'DRAFT', to: 'PENDING' },
+      })
+      .catch(() => {});
     res.json(updated);
   } catch (error: any) {
     console.error('Send invoice error:', error);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Check, X } from 'lucide-react';
-import { getInvoice, createPayIntent, submitPayment, getPaymentStatus } from '../../services/api';
+import { getInvoice, createPayIntent, submitPayment, getPaymentStatus, getXlmPrice } from '../../services/api';
 import { useWalletStore } from '../../store/walletStore';
 import InvoiceStatusBadge from '../Invoice/InvoiceStatusBadge';
 import WalletConnect from '../Wallet/WalletConnect';
@@ -21,6 +21,7 @@ export default function PaymentFlow() {
   const [step, setStep] = useState<PayStep>('loading');
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [xlmPriceUsd, setXlmPriceUsd] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -48,25 +49,77 @@ export default function PaymentFlow() {
     }
   }, [connected, step]);
 
+  // Fetch XLM price for USD equivalent display
+  useEffect(() => {
+    if (!invoice || invoice.currency !== 'XLM') return;
+    getXlmPrice()
+      .then((price) => setXlmPriceUsd(price.usd))
+      .catch(() => { /* silently ignore — USD equivalent is non-critical */ });
+  }, [invoice]);
+
+  // Elapsed seconds counter shown during confirming step
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    if (step !== 'confirming') {
+      setElapsedSeconds(0);
+      return;
+    }
+    const timer = setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
+    return () => clearInterval(timer);
+  }, [step]);
+
+  // Exponential-backoff polling: 3s, 5s, 10s, 20s, 30s, then 60s
+  const BACKOFF_INTERVALS = [3000, 5000, 10000, 20000, 30000, 60000];
+
   useEffect(() => {
     if (step !== 'confirming' || !id) return;
 
-    const interval = setInterval(async () => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    let attemptIndex = 0;
+    let cancelled = false;
+
+    const poll = async () => {
+      if (cancelled) return;
       try {
         const status = await getPaymentStatus(id);
         if (status.status === 'PAID') {
           setTxHash(status.transactionHash);
           setStep('success');
-          const updated = await getInvoice(id);
-          setInvoice(updated);
+          getInvoice(id).then(setInvoice).catch(() => {});
+          return;
         }
       } catch {
-        // Keep polling while payment is not finalized.
+        // Keep polling on error
       }
-    }, 3000);
+      if (cancelled) return;
+      const delay = BACKOFF_INTERVALS[Math.min(attemptIndex, BACKOFF_INTERVALS.length - 1)];
+      attemptIndex++;
+      timeoutId = setTimeout(poll, delay);
+    };
 
-    return () => clearInterval(interval);
+    poll();
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, id]);
+
+  const handleManualRefresh = async () => {
+    if (!id) return;
+    try {
+      const status = await getPaymentStatus(id);
+      if (status.status === 'PAID') {
+        setTxHash(status.transactionHash);
+        setStep('success');
+        const updated = await getInvoice(id);
+        setInvoice(updated);
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   const handlePay = async () => {
     if (!invoice || !publicKey || !id) return;
@@ -100,6 +153,12 @@ export default function PaymentFlow() {
     const number = parseFloat(amount);
     if (currency === 'XLM') return `${number.toFixed(2)} ${symbol}`;
     return `${symbol}${number.toFixed(2)}`;
+  };
+
+  const formatUsdEquivalent = (amount: string): string | null => {
+    if (!xlmPriceUsd) return null;
+    const usd = parseFloat(amount) * xlmPriceUsd;
+    return usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
   if (step === 'loading') {
@@ -192,9 +251,16 @@ export default function PaymentFlow() {
           <div className="bg-stellar-50 border-b border-stellar-100 p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-stellar-700">{t('payment.totalDue')}</span>
-              <span className="text-xl font-bold font-mono text-stellar-700 sm:text-2xl">
-                {formatAmount(invoice.total, invoice.currency)}
-              </span>
+              <div className="text-right">
+                <span className="text-xl font-bold font-mono text-stellar-700 sm:text-2xl">
+                  {formatAmount(invoice.total, invoice.currency)}
+                </span>
+                {invoice.currency === 'XLM' && formatUsdEquivalent(invoice.total) && (
+                  <p className="text-xs text-stellar-500 mt-0.5">
+                    {t('payment.usdEquivalent', { amount: formatUsdEquivalent(invoice.total)! })}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -266,6 +332,18 @@ export default function PaymentFlow() {
                 </svg>
                 <p className="text-sm text-ink-1">{t('payment.confirmingNetwork')}</p>
                 <p className="text-xs text-ink-3">{t('payment.usuallyTakes')}</p>
+                <p className="text-xs text-ink-4 font-mono">
+                  {String(Math.floor(elapsedSeconds / 60)).padStart(2, '0')}:
+                  {String(elapsedSeconds % 60).padStart(2, '0')}
+                </p>
+                {elapsedSeconds >= 30 && (
+                  <button
+                    onClick={handleManualRefresh}
+                    className="text-xs text-stellar-600 hover:underline"
+                  >
+                    {t('payment.refreshStatus')}
+                  </button>
+                )}
               </div>
             )}
 

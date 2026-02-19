@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client';
 import { stellarService } from './stellarService';
 import { config } from '../config';
-
-const prisma = new PrismaClient();
+import prisma from '../db';
+import { log } from '../utils/logger';
 
 /**
  * WatcherService monitors the Stellar network for incoming payments
@@ -22,9 +21,7 @@ export class WatcherService {
     }
 
     this.isRunning = true;
-    console.log(
-      `[Watcher] Started. Polling every ${config.watcherPollInterval}ms`
-    );
+    log.info('[Watcher] Started', { pollIntervalMs: config.watcherPollInterval });
 
     // Initial check
     await this.checkPendingInvoices();
@@ -48,13 +45,33 @@ export class WatcherService {
       clearInterval(this.pollInterval);
       this.pollInterval = null;
     }
-    console.log('[Watcher] Stopped');
+    log.info('[Watcher] Stopped');
+  }
+
+  /**
+   * Expire invoices whose dueDate has passed and are still awaiting payment.
+   */
+  private async expireOverdueInvoices() {
+    const now = new Date();
+    const result = await prisma.invoice.updateMany({
+      where: {
+        status: { in: ['PENDING', 'PROCESSING'] },
+        dueDate: { lt: now },
+      },
+      data: { status: 'EXPIRED' },
+    });
+    if (result.count > 0) {
+      log.info('[Watcher] Expired overdue invoices', { count: result.count });
+    }
   }
 
   /**
    * Check all pending/processing invoices for on-chain payments
    */
   async checkPendingInvoices() {
+    // Run expiry check on every poll cycle
+    await this.expireOverdueInvoices();
+
     const pendingInvoices = await prisma.invoice.findMany({
       where: {
         status: { in: ['PENDING', 'PROCESSING'] },
@@ -81,11 +98,11 @@ export class WatcherService {
     for (const [wallet, invoices] of walletInvoices) {
       try {
         await this.checkWalletPayments(wallet, invoices);
-      } catch (error) {
-        console.error(
-          `[Watcher] Error checking wallet ${wallet.substring(0, 8)}...:`,
-          error
-        );
+      } catch (error: any) {
+        log.error('[Watcher] Error checking wallet', {
+          wallet: wallet.substring(0, 8),
+          error: error?.message,
+        });
       }
     }
   }
@@ -169,14 +186,17 @@ export class WatcherService {
           });
         });
 
-        console.log(
-          `[Watcher] Invoice ${matchingInvoice.invoiceNumber} marked PAID. TX: ${txDetails.hash}`
-        );
-      } catch (error) {
-        console.error(
-          `[Watcher] Failed to update invoice ${matchingInvoice.id}:`,
-          error
-        );
+        log.info('[Watcher] Invoice marked PAID', {
+          invoiceNumber: matchingInvoice.invoiceNumber,
+          txHash: txDetails.hash,
+        });
+      } catch (error: any) {
+        // Already paid is expected if submit and watcher race — not an error
+        if (error?.message === 'Invoice already paid') return;
+        log.error('[Watcher] Failed to mark invoice as paid', {
+          invoiceId: matchingInvoice.id,
+          error: error?.message,
+        });
       }
     }
   }

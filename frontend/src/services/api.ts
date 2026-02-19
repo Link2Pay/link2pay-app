@@ -73,10 +73,19 @@ export async function createInvoice(
 
 export async function listInvoices(
   walletAddress: string,
-  status?: string
-): Promise<Invoice[]> {
-  const query = status ? `?status=${status}` : '';
-  return request<Invoice[]>(`/invoices${query}`, {}, walletAddress);
+  status?: string,
+  limit = 50,
+  offset = 0
+): Promise<{ invoices: Invoice[]; total: number }> {
+  const params = new URLSearchParams();
+  if (status) params.set('status', status);
+  params.set('limit', String(limit));
+  params.set('offset', String(offset));
+  return request<{ invoices: Invoice[]; total: number }>(
+    `/invoices?${params.toString()}`,
+    {},
+    walletAddress
+  );
 }
 
 export async function getInvoice(id: string): Promise<PublicInvoice> {
@@ -200,6 +209,10 @@ export async function confirmPayment(
     method: 'POST',
     body: JSON.stringify({ invoiceId, transactionHash }),
   });
+}
+
+export async function getXlmPrice(): Promise<{ usd: number }> {
+  return request<{ usd: number }>('/prices/xlm');
 }
 
 export async function getPaymentStatus(
