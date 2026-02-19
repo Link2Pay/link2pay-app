@@ -46,6 +46,11 @@ export class AuthService {
    *  2. The nonce has not expired
    *  3. The ed25519 signature is valid for the message and public key
    *
+   * Supports two signing methods:
+   *  - Freighter v5+ signMessage: signs the raw UTF-8 bytes of the message
+   *  - Freighter v2 signBlob: receives base64(message) and signs those bytes
+   *    (i.e. the base64 string's UTF-8 representation)
+   *
    * The nonce is consumed on success to prevent replay attacks.
    */
   verifySignature(
@@ -66,17 +71,23 @@ export class AuthService {
 
     try {
       const keypair = StellarSdk.Keypair.fromPublicKey(walletAddress);
-      const messageBuffer = Buffer.from(message, 'utf8');
       const signatureBuffer = Buffer.from(signatureHex, 'hex');
-      const valid = keypair.verify(messageBuffer, signatureBuffer);
 
+      // Attempt 1: raw UTF-8 message (Freighter v5+ signMessage)
+      const valid = keypair.verify(Buffer.from(message, 'utf8'), signatureBuffer);
       if (valid) {
-        // Consume the nonce — cannot be reused
-        nonceStore.delete(walletAddress);
+        return true;
       }
 
-      return valid;
-    } catch {
+      // Attempt 2: base64-encoded message (Freighter v2 signBlob)
+      const messageBase64 = Buffer.from(message, 'utf8').toString('base64');
+      const validBlob = keypair.verify(Buffer.from(messageBase64, 'utf8'), signatureBuffer);
+      if (validBlob) {
+        return true;
+      }
+
+      return false;
+    } catch (e) {
       return false;
     }
   }

@@ -163,8 +163,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       const freighter = await import('@stellar/freighter-api');
       const f = freighter as any;
 
-      // Freighter v5+ exposes signMessage which signs arbitrary bytes.
-      // It returns the signature as a Uint8Array.
+      // Freighter v5+ signMessage — signs arbitrary bytes, returns Uint8Array
       if (f.signMessage) {
         const messageBytes = new TextEncoder().encode(message);
         const result = await f.signMessage(messageBytes);
@@ -179,6 +178,35 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         }
 
         return Array.from(sigBytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+      }
+
+      // Freighter v2 signBlob — takes a base64 string, returns the signature.
+      // The return type varies by Freighter extension version:
+      //   - Some versions return a binary string (each char = one signature byte)
+      //   - Some versions return a serialized Node Buffer: {type:'Buffer', data: number[]}
+      //   - Some versions return a Uint8Array
+      if (freighter.signBlob) {
+        const messageBase64 = btoa(
+          String.fromCharCode(...new TextEncoder().encode(message))
+        );
+        const rawResult = await freighter.signBlob(messageBase64);
+        const r = rawResult as any;
+
+        let sigBytes: number[];
+
+        if (r && r.type === 'Buffer' && Array.isArray(r.data)) {
+          // Serialized Node.js Buffer object: {type: 'Buffer', data: [...]}
+          sigBytes = r.data;
+        } else if (r instanceof Uint8Array) {
+          sigBytes = Array.from(r);
+        } else if (typeof r === 'string') {
+          // Binary string — each char code is one byte
+          sigBytes = Array.from(r as string).map((c) => c.charCodeAt(0));
+        } else {
+          throw new Error(getMessage('unexpectedFreighterResponse'));
+        }
+
+        return sigBytes.map((b) => b.toString(16).padStart(2, '0')).join('');
       }
 
       throw new Error(getMessage('signMessageUnavailable'));

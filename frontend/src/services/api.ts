@@ -1,4 +1,6 @@
 import { config } from '../config';
+import { getAuthHeaders } from './auth';
+import { useWalletStore } from '../store/walletStore';
 import type {
   Invoice,
   PublicInvoice,
@@ -23,6 +25,14 @@ class ApiError extends Error {
   }
 }
 
+/**
+ * Core fetch wrapper.
+ *
+ * When `walletAddress` is provided the request is authenticated:
+ *   1. Fetches a nonce from POST /api/auth/nonce  (cached ~5 min)
+ *   2. Signs the nonce message via Freighter       (cached ~5 min)
+ *   3. Injects x-wallet-address, x-auth-nonce, x-auth-signature
+ */
 async function request<T>(
   path: string,
   options: RequestInit = {},
@@ -34,7 +44,9 @@ async function request<T>(
   };
 
   if (walletAddress) {
-    headers['x-wallet-address'] = walletAddress;
+    const { signMessage } = useWalletStore.getState();
+    const authHeaders = await getAuthHeaders(walletAddress, signMessage);
+    Object.assign(headers, authHeaders);
   }
 
   const response = await fetch(`${API_BASE}${path}`, {
