@@ -149,15 +149,15 @@ flowchart TB
 stateDiagram-v2
     [*] --> DRAFT : POST /api/invoices
 
-    DRAFT --> PENDING : POST /api/invoices/:id/send\n(freelancer sends to client)
-    DRAFT --> CANCELLED : DELETE /api/invoices/:id
+    DRAFT --> PENDING : POST /invoices/{id}/send
+    DRAFT --> CANCELLED : DELETE /invoices/{id}
 
-    PENDING --> PROCESSING : POST /api/payments/:id/pay-intent\n(client initiates payment)
+    PENDING --> PROCESSING : POST /payments/{id}/pay-intent
     PENDING --> EXPIRED : due date passed
 
-    PROCESSING --> PAID : Watcher detects on-chain payment\n→ tx hash stored + audit log written
+    PROCESSING --> PAID : Watcher detects on-chain payment
 
-    PAID --> [*] : immutable — soft delete only
+    PAID --> [*] : immutable
     CANCELLED --> [*]
     EXPIRED --> [*]
 
