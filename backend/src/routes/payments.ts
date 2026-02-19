@@ -9,6 +9,8 @@ import {
 } from '../middleware/validation';
 import { getAssetIssuer } from '../config';
 import { formatStellarAmount } from '../utils/generators';
+import { mapStellarError } from '../utils/stellarErrors';
+import { log } from '../utils/logger';
 
 const router = Router();
 
@@ -83,15 +85,10 @@ router.post(
         timeout: 300,
       });
     } catch (error: any) {
-      console.error('Pay intent error:', error);
-
-      if (error.message === 'ACCOUNT_NOT_FOUND') {
-        return res.status(400).json({
-          error: 'Sender account not found on the Stellar network',
-        });
-      }
-
-      res.status(500).json({ error: error.message });
+      log.error('Pay intent error', { invoiceId: req.params.invoiceId, error: error?.message });
+      res.status(error.message?.includes('not found') ? 400 : 500).json({
+        error: mapStellarError(error),
+      });
     }
   }
 );
@@ -134,8 +131,12 @@ router.post(
         ledger: result.ledger,
       });
     } catch (error: any) {
-      console.error('Submit payment error:', error);
-      res.status(500).json({ error: error.message });
+      // "already paid" is idempotent — not an error to surface
+      if (error?.message === 'Invoice already paid') {
+        return res.json({ success: true, alreadyPaid: true });
+      }
+      log.error('Submit payment error', { error: error?.message });
+      res.status(500).json({ error: mapStellarError(error) });
     }
   }
 );
@@ -213,8 +214,8 @@ router.post(
         paidAt: txDetails.createdAt,
       });
     } catch (error: any) {
-      console.error('Confirm payment error:', error);
-      res.status(500).json({ error: error.message });
+      log.error('Confirm payment error', { error: error?.message });
+      res.status(500).json({ error: mapStellarError(error) });
     }
   }
 );

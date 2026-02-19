@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
 import { SaveClientInput } from '../types';
-
-const prisma = new PrismaClient();
+import prisma from '../db';
 
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();

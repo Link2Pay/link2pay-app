@@ -85,17 +85,49 @@ export default function Dashboard() {
   useEffect(() => {
     if (!publicKey) return;
 
-    Promise.all([getDashboardStats(publicKey), listInvoices(publicKey)])
-      .then(([dashboardStats, invoices]) => {
+    Promise.all([getDashboardStats(publicKey), listInvoices(publicKey, undefined, 5, 0)])
+      .then(([dashboardStats, { invoices }]) => {
         setStats(dashboardStats);
-        setRecentInvoices(invoices.slice(0, 5));
+        setRecentInvoices(invoices);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [publicKey]);
 
   if (loading) {
-    return <div className="text-center py-20 text-ink-3 text-sm">{copy.loading}</div>;
+    return (
+      <div className="space-y-6 animate-pulse sm:space-y-8">
+        {/* Header skeleton */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="h-5 w-32 bg-surface-2 rounded mb-2" />
+            <div className="h-4 w-56 bg-surface-2 rounded" />
+          </div>
+          <div className="h-9 w-32 bg-surface-2 rounded-lg" />
+        </div>
+        {/* Stat cards skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="card p-5">
+              <div className="h-3 w-20 bg-surface-2 rounded mb-3" />
+              <div className="h-7 w-12 bg-surface-2 rounded" />
+            </div>
+          ))}
+        </div>
+        {/* Recent invoices skeleton */}
+        <div className="card divide-y divide-surface-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between p-4">
+              <div className="space-y-2">
+                <div className="h-4 w-40 bg-surface-2 rounded" />
+                <div className="h-3 w-28 bg-surface-2 rounded" />
+              </div>
+              <div className="h-4 w-20 bg-surface-2 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   const statCards = [

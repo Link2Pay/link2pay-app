@@ -85,18 +85,53 @@ export function validateBody(schema: z.ZodSchema) {
 }
 
 /**
- * Middleware for wallet authentication (simple version)
- * In production, this should verify a signed message
+ * Middleware for cryptographic wallet authentication.
+ *
+ * Expects these HTTP headers:
+ *   x-wallet-address  — Stellar public key (G...)
+ *   x-auth-nonce      — Nonce previously issued by POST /api/auth/nonce
+ *   x-auth-signature  — Hex-encoded ed25519 signature over the canonical
+ *                       message "link2pay-auth:{wallet}:{nonce}"
+ *
+ * The signature proves the requester controls the private key corresponding
+ * to the public wallet address, preventing impersonation attacks.
+ *
+ * All three headers are required. Requests missing nonce or signature are
+ * rejected with 401 — the legacy address-only fallback has been removed
+ * to close the Spoofing (Spoof.1) and Elevation of Privilege (EoP.2) vectors.
  */
 export function requireWallet(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
-  const walletAddress = req.headers['x-wallet-address'] as string;
+  const walletAddress = req.headers['x-wallet-address'] as string | undefined;
+  const nonce = req.headers['x-auth-nonce'] as string | undefined;
+  const signature = req.headers['x-auth-signature'] as string | undefined;
+
   if (!walletAddress || !/^G[A-Z2-7]{55}$/.test(walletAddress)) {
-    return res.status(401).json({ error: 'Valid wallet address required' });
+    return res
+      .status(401)
+      .json({ error: 'Valid wallet address required (x-wallet-address)' });
   }
+
+  if (!nonce || !signature) {
+    return res.status(401).json({
+      error: 'Authentication required. Provide x-auth-nonce and x-auth-signature headers. Request a nonce from POST /api/auth/nonce',
+    });
+  }
+
+  // Full cryptographic verification — no unauthenticated fallback.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { authService } = require('../services/authService');
+  const valid = authService.verifySignature(walletAddress, nonce, signature);
+  if (!valid) {
+    return res.status(401).json({
+      error: 'Invalid or expired signature. Request a new nonce from POST /api/auth/nonce',
+    });
+  }
+
   (req as any).walletAddress = walletAddress;
+  (req as any).authVerified = true;
   next();
 }

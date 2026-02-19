@@ -63,6 +63,7 @@ const en = {
   'payment.pleaseApprove': 'Please approve in your Freighter wallet',
   'payment.confirmingNetwork': 'Confirming on Stellar network...',
   'payment.usuallyTakes': 'This usually takes 3-5 seconds',
+  'payment.refreshStatus': 'Refresh status',
   'payment.paymentSuccessful': 'Payment Successful',
   'payment.amountSent': '{amount} has been sent',
   'payment.viewExplorer': 'View on Stellar Explorer ->',
@@ -71,6 +72,7 @@ const en = {
   'payment.poweredBy': 'Powered by Link2Pay | Payments on the Stellar Network',
   'payment.txSubmissionFailed': 'Transaction submission failed',
   'payment.paymentFailedDefault': 'Payment failed',
+  'payment.usdEquivalent': '≈ ${amount} USD',
 
   'invoiceStatus.draft': 'Draft',
   'invoiceStatus.pending': 'Pending',
@@ -146,6 +148,7 @@ const es: Record<TranslationKey, string> = {
   'payment.pleaseApprove': 'Por favor aprueba en tu wallet Freighter',
   'payment.confirmingNetwork': 'Confirmando en la red Stellar...',
   'payment.usuallyTakes': 'Esto suele tardar de 3 a 5 segundos',
+  'payment.refreshStatus': 'Actualizar estado',
   'payment.paymentSuccessful': 'Pago exitoso',
   'payment.amountSent': 'Se envio {amount}',
   'payment.viewExplorer': 'Ver en Stellar Explorer ->',
@@ -154,6 +157,7 @@ const es: Record<TranslationKey, string> = {
   'payment.poweredBy': 'Impulsado por Link2Pay | Pagos en la red Stellar',
   'payment.txSubmissionFailed': 'Fallo el envio de la transaccion',
   'payment.paymentFailedDefault': 'El pago fallo',
+  'payment.usdEquivalent': '≈ ${amount} USD',
 
   'invoiceStatus.draft': 'Borrador',
   'invoiceStatus.pending': 'Pendiente',
@@ -227,6 +231,7 @@ const pt: Record<TranslationKey, string> = {
   'payment.pleaseApprove': 'Por favor aprove na sua wallet Freighter',
   'payment.confirmingNetwork': 'Confirmando na rede Stellar...',
   'payment.usuallyTakes': 'Isso normalmente leva de 3 a 5 segundos',
+  'payment.refreshStatus': 'Atualizar status',
   'payment.paymentSuccessful': 'Pagamento concluido',
   'payment.amountSent': '{amount} foi enviado',
   'payment.viewExplorer': 'Ver no Stellar Explorer ->',
@@ -235,6 +240,7 @@ const pt: Record<TranslationKey, string> = {
   'payment.poweredBy': 'Powered by Link2Pay | Pagamentos na rede Stellar',
   'payment.txSubmissionFailed': 'Falha ao enviar a transacao',
   'payment.paymentFailedDefault': 'Falha no pagamento',
+  'payment.usdEquivalent': '≈ ${amount} USD',
 
   'invoiceStatus.draft': 'Rascunho',
   'invoiceStatus.pending': 'Pendente',

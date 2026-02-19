@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { invoiceService } from '../services/invoiceService';
 import { clientService } from '../services/clientService';
 import {
@@ -11,12 +12,27 @@ import { InvoiceStatus } from '@prisma/client';
 const router = Router();
 
 /**
+ * Per-wallet invoice creation rate limiter — DoS.2 mitigation.
+ * Limits each authenticated wallet to 20 invoice creations per hour.
+ * Keyed on wallet address so each user has an independent quota.
+ */
+const createInvoiceLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20,
+  keyGenerator: (req) => (req as any).walletAddress || req.ip || 'unknown',
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Invoice creation limit reached. Maximum 20 invoices per hour per wallet.' },
+});
+
+/**
  * POST /api/invoices
  * Create a new invoice (requires wallet auth)
  */
 router.post(
   '/',
   requireWallet,
+  createInvoiceLimiter,
   validateBody(createInvoiceSchema),
   async (req: Request, res: Response) => {
     try {
@@ -63,9 +79,11 @@ router.get('/', requireWallet, async (req: Request, res: Response) => {
   try {
     const walletAddress = (req as any).walletAddress;
     const status = req.query.status as InvoiceStatus | undefined;
+    const limit = Math.min(parseInt((req.query.limit as string) || '50', 10), 100);
+    const offset = Math.max(parseInt((req.query.offset as string) || '0', 10), 0);
 
-    const invoices = await invoiceService.listInvoices(walletAddress, status);
-    res.json(invoices);
+    const result = await invoiceService.listInvoices(walletAddress, status, limit, offset);
+    res.json(result);
   } catch (error: any) {
     console.error('List invoices error:', error);
     res.status(500).json({ error: error.message });
@@ -161,10 +179,13 @@ router.post('/:id/send', requireWallet, async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invoice must be in DRAFT status' });
     }
 
-    const updated = await invoiceService.updateStatus(
-      req.params.id,
-      'PENDING'
-    );
+    const updated = await invoiceService.updateStatus(req.params.id, 'PENDING');
+    // Fire-and-forget audit log — non-fatal
+    invoiceService
+      .addAuditLog(req.params.id, 'SENT', (req as any).walletAddress, {
+        status: { from: 'DRAFT', to: 'PENDING' },
+      })
+      .catch(() => {});
     res.json(updated);
   } catch (error: any) {
     console.error('Send invoice error:', error);

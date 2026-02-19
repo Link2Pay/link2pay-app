@@ -1,8 +1,7 @@
-import { PrismaClient, InvoiceStatus, Prisma } from '@prisma/client';
+import { InvoiceStatus, Prisma } from '@prisma/client';
 import { CreateInvoiceInput, InvoicePublicView } from '../types';
 import { generateInvoiceNumber } from '../utils/generators';
-
-const prisma = new PrismaClient();
+import prisma from '../db';
 
 export class InvoiceService {
   /**
@@ -36,32 +35,42 @@ export class InvoiceService {
 
     const total = subtotal.plus(taxAmount).minus(discount);
 
-    const invoice = await prisma.invoice.create({
-      data: {
-        invoiceNumber,
-        freelancerWallet: input.freelancerWallet,
-        freelancerName: input.freelancerName,
-        freelancerEmail: input.freelancerEmail,
-        freelancerCompany: input.freelancerCompany,
-        clientName: input.clientName,
-        clientEmail: input.clientEmail,
-        clientCompany: input.clientCompany,
-        clientAddress: input.clientAddress,
-        title: input.title,
-        description: input.description,
-        notes: input.notes,
-        subtotal,
-        taxRate,
-        taxAmount,
-        discount,
-        total,
-        currency: input.currency,
-        dueDate: input.dueDate ? new Date(input.dueDate) : null,
-        lineItems: {
-          create: lineItems,
+    const invoice = await prisma.$transaction(async (tx) => {
+      const created = await tx.invoice.create({
+        data: {
+          invoiceNumber,
+          freelancerWallet: input.freelancerWallet,
+          freelancerName: input.freelancerName,
+          freelancerEmail: input.freelancerEmail,
+          freelancerCompany: input.freelancerCompany,
+          clientName: input.clientName,
+          clientEmail: input.clientEmail,
+          clientCompany: input.clientCompany,
+          clientAddress: input.clientAddress,
+          title: input.title,
+          description: input.description,
+          notes: input.notes,
+          subtotal,
+          taxRate,
+          taxAmount,
+          discount,
+          total,
+          currency: input.currency,
+          dueDate: input.dueDate ? new Date(input.dueDate) : null,
+          lineItems: {
+            create: lineItems,
+          },
         },
-      },
-      include: { lineItems: true },
+        include: { lineItems: true },
+      });
+      await tx.invoiceAuditLog.create({
+        data: {
+          invoiceId: created.id,
+          action: 'CREATED',
+          actorWallet: input.freelancerWallet,
+        },
+      });
+      return created;
     });
 
     return invoice;
@@ -129,17 +138,34 @@ export class InvoiceService {
   }
 
   /**
-   * List invoices for a freelancer wallet
+   * List invoices for a freelancer wallet with optional pagination.
+   * Excludes soft-deleted invoices.
+   * Returns { invoices, total } so the frontend can display page info.
    */
-  async listInvoices(freelancerWallet: string, status?: InvoiceStatus) {
-    return prisma.invoice.findMany({
-      where: {
-        freelancerWallet,
-        ...(status && { status }),
-      },
-      include: { lineItems: true },
-      orderBy: { createdAt: 'desc' },
-    });
+  async listInvoices(
+    freelancerWallet: string,
+    status?: InvoiceStatus,
+    limit = 50,
+    offset = 0
+  ) {
+    const where = {
+      freelancerWallet,
+      deletedAt: null, // exclude soft-deleted
+      ...(status && { status }),
+    };
+
+    const [invoices, total] = await Promise.all([
+      prisma.invoice.findMany({
+        where,
+        include: { lineItems: true },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+      prisma.invoice.count({ where }),
+    ]);
+
+    return { invoices, total };
   }
 
   /**
@@ -153,7 +179,12 @@ export class InvoiceService {
   }
 
   /**
-   * Mark invoice as paid with blockchain reference
+   * Mark invoice as paid with blockchain reference.
+   *
+   * Uses SERIALIZABLE isolation to prevent the race condition where the
+   * watcher and the /submit endpoint both try to mark the same invoice as
+   * PAID simultaneously. The first writer wins; the second gets a
+   * "Invoice already paid" error which callers should handle gracefully.
    */
   async markAsPaid(
     id: string,
@@ -161,36 +192,63 @@ export class InvoiceService {
     ledgerNumber: number,
     payerWallet: string
   ) {
-    return prisma.$transaction(async (tx) => {
-      // Update invoice
-      const invoice = await tx.invoice.update({
-        where: { id },
-        data: {
-          status: 'PAID',
-          transactionHash,
-          ledgerNumber,
-          payerWallet,
-          clientWallet: payerWallet,
-          paidAt: new Date(),
-        },
-        include: { lineItems: true },
-      });
+    return prisma.$transaction(
+      async (tx) => {
+        // Re-read inside the transaction to get a fresh, locked view.
+        const current = await tx.invoice.findUnique({ where: { id } });
+        if (!current) throw new Error('Invoice not found');
+        if (current.status === 'PAID') throw new Error('Invoice already paid');
 
-      // Create payment record
-      await tx.payment.create({
-        data: {
-          invoiceId: id,
-          transactionHash,
-          ledgerNumber,
-          fromWallet: payerWallet,
-          toWallet: invoice.freelancerWallet,
-          amount: invoice.total,
-          asset: invoice.currency,
-        },
-      });
+        // Check idempotency: same transactionHash already recorded?
+        const existing = await tx.payment.findUnique({
+          where: { transactionHash },
+        });
+        if (existing) throw new Error('Invoice already paid');
 
-      return invoice;
-    });
+        // Update invoice
+        const invoice = await tx.invoice.update({
+          where: { id },
+          data: {
+            status: 'PAID',
+            transactionHash,
+            ledgerNumber,
+            payerWallet: payerWallet || current.payerWallet,
+            clientWallet: payerWallet || current.clientWallet,
+            paidAt: new Date(),
+          },
+          include: { lineItems: true },
+        });
+
+        // Create payment record
+        await tx.payment.create({
+          data: {
+            invoiceId: id,
+            transactionHash,
+            ledgerNumber,
+            fromWallet: payerWallet || '',
+            toWallet: invoice.freelancerWallet,
+            amount: invoice.total,
+            asset: invoice.currency,
+          },
+        });
+
+        // Audit log
+        await tx.invoiceAuditLog.create({
+          data: {
+            invoiceId: id,
+            action: 'PAID',
+            actorWallet: payerWallet || 'unknown',
+            changes: {
+              status: { from: 'PROCESSING', to: 'PAID' },
+              transactionHash: { from: null, to: transactionHash },
+            },
+          },
+        });
+
+        return invoice;
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    );
   }
 
   /**
@@ -268,7 +326,8 @@ export class InvoiceService {
   }
 
   /**
-   * Delete invoice (only for DRAFT status)
+   * Soft-delete invoice (only for DRAFT status).
+   * Sets deletedAt instead of removing the row, preserving the audit trail.
    */
   async deleteInvoice(id: string, freelancerWallet: string) {
     const invoice = await prisma.invoice.findUnique({ where: { id } });
@@ -280,7 +339,39 @@ export class InvoiceService {
       throw new Error('Can only delete invoices in DRAFT status');
     }
 
-    return prisma.invoice.delete({ where: { id } });
+    return prisma.$transaction(async (tx) => {
+      const deleted = await tx.invoice.update({
+        where: { id },
+        data: { deletedAt: new Date() },
+      });
+      await tx.invoiceAuditLog.create({
+        data: {
+          invoiceId: id,
+          action: 'DELETED',
+          actorWallet: freelancerWallet,
+        },
+      });
+      return deleted;
+    });
+  }
+
+  /**
+   * Write an audit log entry for an invoice action.
+   */
+  async addAuditLog(
+    invoiceId: string,
+    action: 'CREATED' | 'UPDATED' | 'SENT' | 'PAID' | 'EXPIRED' | 'CANCELLED' | 'DELETED',
+    actorWallet: string,
+    changes?: Record<string, { from: unknown; to: unknown }>
+  ) {
+    return prisma.invoiceAuditLog.create({
+      data: {
+        invoiceId,
+        action,
+        actorWallet,
+        changes: changes as Prisma.InputJsonValue | undefined,
+      },
+    });
   }
 
   /**

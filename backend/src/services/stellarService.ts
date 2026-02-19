@@ -23,11 +23,39 @@ export class StellarService {
   }
 
   /**
+   * Exponential backoff helper for Horizon calls.
+   * Retries on 429 (rate limit) and network errors, not on 4xx client errors.
+   */
+  private async withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        return await fn();
+      } catch (error: any) {
+        const status = error?.response?.status;
+        const isRetryable =
+          status === 429 ||
+          status === 503 ||
+          status === 502 ||
+          error?.code === 'ECONNREFUSED' ||
+          error?.code === 'ECONNRESET' ||
+          error?.code === 'ETIMEDOUT';
+
+        if (!isRetryable || attempt === retries - 1) throw error;
+
+        const delayMs = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
+    // TypeScript needs this even though the loop always throws or returns
+    throw new Error('Unreachable');
+  }
+
+  /**
    * Load account details from Horizon
    */
   async loadAccount(publicKey: string) {
     try {
-      return await this.server.loadAccount(publicKey);
+      return await this.withRetry(() => this.server.loadAccount(publicKey));
     } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new Error('ACCOUNT_NOT_FOUND');
@@ -138,16 +166,14 @@ export class StellarService {
    */
   async verifyTransaction(transactionHash: string) {
     try {
-      const tx = await this.server
-        .transactions()
-        .transaction(transactionHash)
-        .call();
+      const tx = await this.withRetry(() =>
+        this.server.transactions().transaction(transactionHash).call()
+      );
 
       // Get the operations for this transaction
-      const operations = await this.server
-        .operations()
-        .forTransaction(transactionHash)
-        .call();
+      const operations = await this.withRetry(() =>
+        this.server.operations().forTransaction(transactionHash).call()
+      );
 
       const paymentOps = operations.records.filter(
         (op: any) => op.type === 'payment'

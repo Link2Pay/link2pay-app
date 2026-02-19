@@ -90,6 +90,9 @@ export default function InvoiceList() {
   const copy = COPY[language];
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 20;
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
 
@@ -101,15 +104,23 @@ export default function InvoiceList() {
     { label: copy.failed, value: 'FAILED' },
   ];
 
+  // Reset to page 0 when filter changes
+  useEffect(() => {
+    setPage(0);
+  }, [filter]);
+
   useEffect(() => {
     if (!publicKey) return;
 
     setLoading(true);
-    listInvoices(publicKey, filter || undefined)
-      .then(setInvoices)
+    listInvoices(publicKey, filter || undefined, PAGE_SIZE, page * PAGE_SIZE)
+      .then(({ invoices: fetched, total: fetchedTotal }) => {
+        setInvoices(fetched);
+        setTotal(fetchedTotal);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [publicKey, filter]);
+  }, [publicKey, filter, page]);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString(LOCALE_BY_LANGUAGE[language], {
@@ -197,6 +208,31 @@ export default function InvoiceList() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {total > PAGE_SIZE && (
+        <div className="mt-4 flex items-center justify-between text-xs text-ink-3">
+          <span>
+            {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} / {total}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="px-3 py-1.5 rounded-lg border border-surface-3 disabled:opacity-40 hover:bg-surface-1 transition-colors"
+            >
+              ← Prev
+            </button>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              disabled={(page + 1) * PAGE_SIZE >= total}
+              className="px-3 py-1.5 rounded-lg border border-surface-3 disabled:opacity-40 hover:bg-surface-1 transition-colors"
+            >
+              Next →
+            </button>
           </div>
         </div>
       )}

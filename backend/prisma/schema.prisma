@@ -68,13 +68,21 @@ model Invoice {
   ledgerNumber    Int?    @map("ledger_number")
   payerWallet     String? @map("payer_wallet")
 
+  // Soft delete — set instead of hard DELETE
+  deletedAt DateTime? @map("deleted_at")
+
   // Relations
-  lineItems LineItem[]
-  payments  Payment[]
+  lineItems  LineItem[]
+  payments   Payment[]
+  auditLogs  InvoiceAuditLog[]
 
   @@index([freelancerWallet])
   @@index([status])
   @@index([invoiceNumber])
+  // Composite indexes for common filtered queries
+  @@index([freelancerWallet, status])
+  @@index([freelancerWallet, deletedAt])
+  @@index([dueDate])
   @@map("invoices")
 }
 
@@ -108,21 +116,55 @@ model LineItem {
   @@map("line_items")
 }
 
+enum PaymentStatus {
+  CONFIRMED
+  FAILED
+  REFUNDED
+}
+
 model Payment {
-  id              String   @id @default(cuid())
-  invoiceId       String   @map("invoice_id")
-  transactionHash String   @unique @map("transaction_hash")
-  ledgerNumber    Int      @map("ledger_number")
-  fromWallet      String   @map("from_wallet")
-  toWallet        String   @map("to_wallet")
-  amount          Decimal  @db.Decimal(18, 7)
+  id              String        @id @default(cuid())
+  invoiceId       String        @map("invoice_id")
+  transactionHash String        @unique @map("transaction_hash")
+  ledgerNumber    Int           @map("ledger_number")
+  fromWallet      String        @map("from_wallet")
+  toWallet        String        @map("to_wallet")
+  amount          Decimal       @db.Decimal(18, 7)
   asset           String
-  status          String   @default("confirmed")
-  confirmedAt     DateTime @default(now()) @map("confirmed_at")
+  status          PaymentStatus @default(CONFIRMED)
+  confirmedAt     DateTime      @default(now()) @map("confirmed_at")
 
   invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([invoiceId])
   @@index([transactionHash])
   @@map("payments")
+}
+
+// ─── Audit Trail ─────────────────────────────────────────────────────────────
+
+enum AuditAction {
+  CREATED
+  UPDATED
+  SENT
+  PAID
+  EXPIRED
+  CANCELLED
+  DELETED
+}
+
+model InvoiceAuditLog {
+  id        String      @id @default(cuid())
+  invoiceId String      @map("invoice_id")
+  action    AuditAction
+  actorWallet String    @map("actor_wallet")
+  // JSON snapshot of changed fields: { "status": { "from": "DRAFT", "to": "PENDING" } }
+  changes   Json?
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([createdAt])
+  @@map("invoice_audit_logs")
 }

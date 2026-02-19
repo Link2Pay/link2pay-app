@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="${ROOT_DIR}/backend"
 FRONTEND_DIR="${ROOT_DIR}/frontend"
 COMPOSE_FILE="${ROOT_DIR}/docker-compose.yml"
-DEFAULT_DATABASE_URL="postgresql://link2pay:link2pay@localhost:5432/link2pay?schema=public"
+DEFAULT_DATABASE_URL="postgresql://link2pay:link2pay@localhost:5433/link2pay?schema=public"
 EXAMPLE_DATABASE_URL="postgresql://user:password@localhost:5432/link2pay?schema=public"
 
 log() {

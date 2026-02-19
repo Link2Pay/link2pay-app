@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { deleteInvoice, getOwnerInvoice, sendInvoice } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -7,6 +8,7 @@ import { useWalletStore } from '../../store/walletStore';
 import type { Invoice, InvoiceStatus } from '../../types';
 import { CURRENCY_SYMBOLS, config } from '../../config';
 import type { Language } from '../../i18n/translations';
+import { downloadInvoicePDF } from './InvoicePDF';
 
 const COPY: Record<Language, {
   loadingInvoice: string;
@@ -35,6 +37,12 @@ const COPY: Record<Language, {
   paidAt: string;
   payer: string;
   confirmDelete: string;
+  downloadPdf: string;
+  sendByEmail: string;
+  generatingPdf: string;
+  pdfDownloaded: string;
+  emailSubject: string;
+  emailBody: string;
 }> = {
   en: {
     loadingInvoice: 'Loading invoice...',
@@ -63,6 +71,12 @@ const COPY: Record<Language, {
     paidAt: 'Paid At',
     payer: 'Payer',
     confirmDelete: 'Are you sure you want to delete this invoice?',
+    downloadPdf: 'Download PDF',
+    sendByEmail: 'Send by Email',
+    generatingPdf: 'Generating PDF...',
+    pdfDownloaded: 'PDF downloaded',
+    emailSubject: 'Invoice',
+    emailBody: 'Please find the attached invoice. You can also view and pay it online at',
   },
   es: {
     loadingInvoice: 'Cargando factura...',
@@ -91,6 +105,12 @@ const COPY: Record<Language, {
     paidAt: 'Pagado en',
     payer: 'Pagador',
     confirmDelete: 'Seguro que quieres eliminar esta factura?',
+    downloadPdf: 'Descargar PDF',
+    sendByEmail: 'Enviar por correo',
+    generatingPdf: 'Generando PDF...',
+    pdfDownloaded: 'PDF descargado',
+    emailSubject: 'Factura',
+    emailBody: 'Adjunto encontraras la factura. Tambien puedes verla y pagarla en linea en',
   },
   pt: {
     loadingInvoice: 'Carregando fatura...',
@@ -119,6 +139,12 @@ const COPY: Record<Language, {
     paidAt: 'Pago em',
     payer: 'Pagador',
     confirmDelete: 'Tem certeza que deseja excluir esta fatura?',
+    downloadPdf: 'Baixar PDF',
+    sendByEmail: 'Enviar por email',
+    generatingPdf: 'Gerando PDF...',
+    pdfDownloaded: 'PDF baixado',
+    emailSubject: 'Fatura',
+    emailBody: 'Em anexo voce encontra a fatura. Voce tambem pode visualiza-la e paga-la online em',
   },
 };
 
@@ -140,6 +166,7 @@ export default function InvoiceDetail() {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     if (!id || !publicKey) return;
@@ -169,8 +196,11 @@ export default function InvoiceDetail() {
     try {
       const updated = await sendInvoice(invoice.id, publicKey);
       setInvoice(updated);
+      toast.success(`Invoice ${invoice.invoiceNumber} sent to client`);
     } catch (err: any) {
-      setError(err.message);
+      const msg = err.message || 'Failed to send invoice';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setActionLoading(false);
     }
@@ -183,11 +213,48 @@ export default function InvoiceDetail() {
     setActionLoading(true);
     try {
       await deleteInvoice(invoice.id, publicKey);
-      navigate('/invoices');
+      toast.success(`Invoice ${invoice.invoiceNumber} deleted`);
+      navigate('/dashboard/invoices');
     } catch (err: any) {
-      setError(err.message);
+      const msg = err.message || 'Failed to delete invoice';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!invoice) return;
+    setPdfLoading(true);
+    try {
+      await downloadInvoicePDF(invoice, paymentLink);
+      toast.success(copy.pdfDownloaded);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to generate PDF');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handleSendByEmail = async () => {
+    if (!invoice) return;
+    setPdfLoading(true);
+    try {
+      // First download the PDF so the user has it ready to attach
+      await downloadInvoicePDF(invoice, paymentLink);
+      toast.success(copy.pdfDownloaded);
+
+      // Then open mailto with pre-filled subject and body
+      const subject = encodeURIComponent(`${copy.emailSubject} ${invoice.invoiceNumber}`);
+      const body = encodeURIComponent(
+        `${copy.emailBody}\n${paymentLink}\n\n—\nLink2Pay`
+      );
+      window.open(`mailto:${invoice.clientEmail}?subject=${subject}&body=${body}`, '_blank');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to generate PDF');
+    } finally {
+      setPdfLoading(false);
     }
   };
 
@@ -246,6 +313,12 @@ export default function InvoiceDetail() {
               {copied ? copy.copied : copy.copyPaymentLink}
             </button>
           )}
+          <button onClick={handleDownloadPdf} disabled={pdfLoading} className="btn-secondary text-sm">
+            {pdfLoading ? copy.generatingPdf : copy.downloadPdf}
+          </button>
+          <button onClick={handleSendByEmail} disabled={pdfLoading} className="btn-secondary text-sm">
+            {pdfLoading ? copy.generatingPdf : copy.sendByEmail}
+          </button>
         </div>
       )}
 
