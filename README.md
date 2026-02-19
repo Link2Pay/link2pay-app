@@ -1,253 +1,182 @@
-# Link2Pay — Decentralized Invoice & Payment Platform
+# Link2Pay
 
-A full-stack decentralized invoice management system built on the Stellar blockchain network. Freelancers create invoices, share payment links, and receive instant cryptocurrency payments with near-zero fees.
+Link2Pay is a Stellar-based invoicing app for freelancers and small teams. Create an invoice, share a payment link, and receive on-chain payment with status tracking from `DRAFT` to `PAID`.
 
-## Architecture
+## Highlights
 
-```
-┌─────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│   Frontend   │────▶│   Backend API    │────▶│   PostgreSQL     │
-│  React+Vite  │     │  Node+Express    │     │   (Supabase)     │
-│  Tailwind    │     │  Prisma ORM      │     │                  │
-└──────┬───────┘     └────────┬─────────┘     └──────────────────┘
-       │                      │
-       │                      │
-       ▼                      ▼
-┌──────────────┐     ┌──────────────────┐
-│   Freighter  │     │  Stellar Network │
-│   Wallet     │     │  Horizon API     │
-│   (signing)  │     │  Soroban RPC     │
-└──────────────┘     └──────────────────┘
-```
+- Shareable invoice links with line items, taxes, and multiple assets (`XLM`, `USDC`, `EURC`).
+- Non-custodial payments through Freighter wallet signing.
+- Real-time invoice/payment lifecycle tracking in the dashboard.
+- One-command Linux setup: `./setup.sh`.
+- Local run launcher (binary-like executable): `./link2pay`.
+- Local PostgreSQL is provisioned with Docker (`docker compose`).
 
-## Tech Stack
+## Overview
 
-| Layer      | Technology                                    |
-|------------|-----------------------------------------------|
-| Frontend   | React 18, TypeScript, Vite, TailwindCSS       |
-| State      | Zustand, React Query                          |
-| Backend    | Node.js, Express, TypeScript                  |
-| Database   | PostgreSQL + Prisma ORM                       |
-| Blockchain | Stellar SDK, Horizon API, Freighter Wallet    |
-| Validation | Zod (backend), HTML5 (frontend)               |
+Link2Pay is a full-stack TypeScript monorepo:
 
-## Features
+- Frontend: React + Vite
+- Backend: Express + Prisma
+- Database: PostgreSQL
+- Blockchain: Stellar SDK + Horizon API
 
-- **Invoice Creation** — Professional invoices with line items, tax, and currency selection (XLM, USDC, EURC)
-- **Shareable Payment Links** — Unique URLs clients can open to view and pay invoices
-- **Wallet Integration** — Non-custodial Freighter wallet connection for signing transactions
-- **Instant Payments** — 3-5 second settlement on the Stellar network
-- **Real-time Status** — Live payment tracking (Draft → Pending → Processing → Paid)
-- **Payment Verification** — On-chain transaction verification via Horizon API
-- **Dashboard** — Overview of invoice stats, revenue, and recent activity
-- **Payment Watcher** — Background service that monitors the Stellar network for incoming payments
+### Who is this for?
 
-## Project Structure
+- Freelancers that want fast crypto-native invoice settlement.
+- Teams validating Stellar payment flows end to end.
+- Developers looking for a practical full-stack Stellar reference project.
 
-```
-link2pay/
-├── backend/
-│   ├── prisma/
-│   │   └── schema.prisma          # Database schema
-│   ├── src/
-│   │   ├── index.ts               # Express server entry
-│   │   ├── config/                 # Environment config
-│   │   ├── routes/
-│   │   │   ├── invoices.ts        # Invoice CRUD endpoints
-│   │   │   └── payments.ts        # Payment flow endpoints
-│   │   ├── services/
-│   │   │   ├── invoiceService.ts  # Invoice business logic
-│   │   │   ├── stellarService.ts  # Stellar blockchain integration
-│   │   │   └── watcherService.ts  # Payment monitoring
-│   │   ├── middleware/
-│   │   │   └── validation.ts      # Zod schemas + middleware
-│   │   ├── types/                 # TypeScript interfaces
-│   │   └── utils/                 # Helpers
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── frontend/
-│   ├── src/
-│   │   ├── App.tsx                # Routes + providers
-│   │   ├── main.tsx               # Entry point
-│   │   ├── index.css              # Tailwind + custom styles
-│   │   ├── components/
-│   │   │   ├── Layout.tsx         # Sidebar + top bar
-│   │   │   ├── Invoice/
-│   │   │   │   ├── InvoiceForm.tsx       # Create invoice form
-│   │   │   │   ├── InvoiceList.tsx       # Invoice table with filters
-│   │   │   │   ├── InvoiceDetail.tsx     # Single invoice view
-│   │   │   │   └── InvoiceStatusBadge.tsx
-│   │   │   ├── Wallet/
-│   │   │   │   └── WalletConnect.tsx     # Freighter integration
-│   │   │   └── Payment/
-│   │   │       └── PaymentFlow.tsx       # Client payment page
-│   │   ├── services/
-│   │   │   └── api.ts             # Backend API client
-│   │   ├── store/
-│   │   │   └── walletStore.ts     # Zustand wallet state
-│   │   ├── pages/
-│   │   │   ├── Dashboard.tsx
-│   │   │   └── CreateInvoice.tsx
-│   │   ├── types/
-│   │   │   └── index.ts
-│   │   └── config/
-│   │       └── index.ts
-│   ├── index.html
-│   ├── vite.config.ts
-│   ├── tailwind.config.js
-│   └── package.json
-│
-└── README.md
-```
+### Project status
 
-## Getting Started
+Hackathon project. Ready for demos and local deployments; production hardening is still in progress.
 
-### Prerequisites
+## Usage
 
-- Node.js 18+
-- PostgreSQL (or Supabase account)
-- Freighter browser extension (https://freighter.app)
-
-### 1. Clone and Install
+### 1. Prepare everything
 
 ```bash
-# Backend
-cd backend
-cp .env.example .env
-# Edit .env with your database URL
-npm install
-
-# Frontend
-cd ../frontend
-cp .env.example .env
-npm install
+./setup.sh
 ```
 
-### 2. Set Up Database
+### 2. Run the web locally
 
 ```bash
-cd backend
-npx prisma migrate dev --name init
-npx prisma generate
+./link2pay
 ```
 
-### 3. Run Development Servers
+This command starts:
+
+- Backend API on `http://localhost:3001`
+- Frontend preview on `http://localhost:4173`
+
+Health check:
+
+- `http://localhost:3001/api/health`
+
+### 3. Business flow
+
+1. Freelancer connects Freighter wallet.
+2. Freelancer creates and shares an invoice link.
+3. Client opens `/pay/:invoiceId`, connects wallet, signs payment.
+4. Invoice status updates after on-chain confirmation.
+
+## Installation
+
+Install requirements first:
+
+- Linux
+- Node.js `18+`
+- npm
+- Docker Engine + Docker Compose plugin
+
+Useful links:
+
+- Docker Engine install: `https://docs.docker.com/engine/install/`
+- Docker Compose install (Linux): `https://docs.docker.com/compose/install/linux/`
+- Docker post-install (non-root Docker usage): `https://docs.docker.com/engine/install/linux-postinstall/`
+- Node.js download: `https://nodejs.org/en/download`
+- Freighter wallet: `https://www.freighter.app/`
+
+Run this setup flow:
 
 ```bash
-# Terminal 1: Backend
+# 1) clone (skip if you already have the repo)
+git clone <your-repo-url>
+cd link2pay-app
+
+# 2) prepare and build everything
+chmod +x setup.sh link2pay
+./setup.sh
+
+# 3) run locally
+./link2pay
+```
+
+`./setup.sh` automates env file preparation, Docker PostgreSQL startup, dependency install, Prisma sync, and backend/frontend builds.
+
+Default local database URL configured by setup:
+
+- `postgresql://link2pay:link2pay@localhost:5432/link2pay?schema=public`
+
+Stop local app with `Ctrl+C`.
+
+## Configuration
+
+Use `.env.example` in each app as the source of truth.
+
+### Backend (`backend/.env`)
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `PORT` | No | API port (default `3001`) |
+| `FRONTEND_URL` | No | CORS origin for frontend |
+| `STELLAR_NETWORK` | No | `testnet` or `mainnet` |
+| `HORIZON_URL` | No | Stellar Horizon endpoint |
+| `NETWORK_PASSPHRASE` | No | Stellar network passphrase |
+
+### Frontend (`frontend/.env`)
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `VITE_API_URL` | No | Backend base URL |
+| `VITE_STELLAR_NETWORK` | No | Network mode in UI |
+| `VITE_HORIZON_URL` | No | Horizon endpoint |
+| `VITE_NETWORK_PASSPHRASE` | No | Network passphrase |
+
+## API At A Glance
+
+- Health: `GET /api/health`
+- Invoices: `backend/src/routes/invoices.ts`
+- Payments: `backend/src/routes/payments.ts`
+- Saved clients: `backend/src/routes/clients.ts`
+
+## Development
+
+```bash
+# Backend dev server (watch mode)
 cd backend
 npm run dev
-# Runs on http://localhost:3001
 
-# Terminal 2: Frontend
+# Frontend dev server
 cd frontend
 npm run dev
-# Runs on http://localhost:5173
 ```
 
-### 4. Connect Wallet
+Useful backend commands:
 
-1. Install Freighter wallet extension
-2. Switch to Stellar Testnet in Freighter settings
-3. Fund your testnet account via Friendbot
-4. Connect wallet in the app
+| Command | Purpose |
+| --- | --- |
+| `cd backend && npm run dev` | Start backend in watch mode for development |
+| `cd backend && npm run build` | Compile TypeScript into `dist/` |
+| `cd backend && npm start` | Run compiled backend from `dist/index.js` |
+| `cd backend && npm run prisma:generate` | Regenerate Prisma client after schema changes |
+| `cd backend && npx prisma db push` | Sync schema directly to database (current repo default) |
+| `cd backend && npm run prisma:migrate` | Create/apply a development migration |
+| `cd backend && npx prisma migrate deploy` | Apply existing migrations in deployment environments |
+| `cd backend && npm run prisma:studio` | Open Prisma Studio UI |
+| `cd backend && npm run test` | Run backend tests with Vitest |
 
-## API Endpoints
+Useful local infrastructure commands:
 
-### Invoices
+| Command | Purpose |
+| --- | --- |
+| `docker compose up -d postgres` | Start local PostgreSQL container |
+| `docker compose ps` | Check local container status |
+| `docker compose down` | Stop local containers |
 
-| Method | Path                         | Description                    | Auth     |
-|--------|------------------------------|--------------------------------|----------|
-| POST   | `/api/invoices`              | Create invoice                 | Wallet   |
-| GET    | `/api/invoices`              | List user's invoices           | Wallet   |
-| GET    | `/api/invoices/stats`        | Dashboard statistics           | Wallet   |
-| GET    | `/api/invoices/:id`          | Get invoice (public)           | None     |
-| PATCH  | `/api/invoices/:id`          | Update draft invoice           | Wallet   |
-| POST   | `/api/invoices/:id/send`     | Mark as PENDING                | Wallet   |
-| DELETE | `/api/invoices/:id`          | Delete draft invoice           | Wallet   |
+## Repository Layout
 
-### Payments
-
-| Method | Path                                  | Description                     |
-|--------|---------------------------------------|---------------------------------|
-| POST   | `/api/payments/:id/pay-intent`        | Build payment transaction       |
-| POST   | `/api/payments/submit`                | Submit signed transaction       |
-| POST   | `/api/payments/confirm`               | Manually confirm by tx hash     |
-| GET    | `/api/payments/:id/status`            | Check payment status            |
-| POST   | `/api/payments/verify-tx`             | Verify transaction on-chain     |
-
-## Payment Flow
-
-```
-1. Freelancer creates invoice        → POST /api/invoices
-2. Freelancer sends to client        → POST /api/invoices/:id/send
-3. Freelancer shares payment link    → /pay/:invoiceId
-4. Client opens link, connects wallet
-5. Client clicks Pay                 → POST /api/payments/:id/pay-intent
-6. Backend builds Stellar transaction with memo=invoiceNumber
-7. Client signs transaction in Freighter wallet
-8. Signed TX submitted to network    → POST /api/payments/submit
-9. Stellar network confirms (3-5s)
-10. Watcher detects payment, updates status to PAID
-11. Both parties see confirmation
+```text
+link2pay-app/
+|- backend/
+|- frontend/
+|- docker-compose.yml
+|- setup.sh
+|- link2pay
+`- README.md
 ```
 
-## Environment Variables
+## Feedback and Contributions
 
-### Backend
-
-| Variable                   | Description                          | Default                              |
-|----------------------------|--------------------------------------|--------------------------------------|
-| `PORT`                     | Server port                          | `3001`                               |
-| `DATABASE_URL`             | PostgreSQL connection string         | Required                             |
-| `STELLAR_NETWORK`          | `testnet` or `mainnet`               | `testnet`                            |
-| `HORIZON_URL`              | Stellar Horizon API URL              | Testnet URL                          |
-| `NETWORK_PASSPHRASE`       | Stellar network passphrase           | Testnet passphrase                   |
-| `FRONTEND_URL`             | Frontend origin for CORS             | `http://localhost:5173`              |
-| `WATCHER_POLL_INTERVAL_MS` | Payment watcher poll interval        | `5000`                               |
-
-### Frontend
-
-| Variable                  | Description                | Default                             |
-|---------------------------|----------------------------|-------------------------------------|
-| `VITE_API_URL`            | Backend API base URL       | `http://localhost:3001`             |
-| `VITE_STELLAR_NETWORK`    | Stellar network            | `testnet`                           |
-| `VITE_HORIZON_URL`        | Horizon API URL            | Testnet URL                         |
-| `VITE_NETWORK_PASSPHRASE` | Network passphrase         | Testnet passphrase                  |
-
-## Security
-
-- **Non-custodial**: Private keys never leave the user's wallet
-- **Input validation**: All inputs validated with Zod schemas
-- **Rate limiting**: Pay-intent and general API rate limits
-- **HTTPS**: Enforced via Helmet middleware with HSTS headers
-- **CSP**: Content Security Policy headers configured
-- **No sensitive storage**: No keys or seeds stored server-side
-- **Transaction verification**: On-chain validation of all payments
-
-## Deployment
-
-### Frontend → Vercel
-
-```bash
-cd frontend
-npm run build
-# Deploy dist/ to Vercel
-```
-
-### Backend → Render / Railway / VPS
-
-```bash
-cd backend
-npm run build
-npm start
-```
-
-### Database → Supabase / Railway PostgreSQL
-
-Use the `DATABASE_URL` from your provider.
-
-## License
-
-Internal project — all rights reserved.
+Feedback, bug reports, and pull requests are welcome. Open an issue describing the use case, problem, and expected behavior.
