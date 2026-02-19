@@ -95,6 +95,10 @@ export function validateBody(schema: z.ZodSchema) {
  *
  * The signature proves the requester controls the private key corresponding
  * to the public wallet address, preventing impersonation attacks.
+ *
+ * All three headers are required. Requests missing nonce or signature are
+ * rejected with 401 — the legacy address-only fallback has been removed
+ * to close the Spoofing (Spoof.1) and Elevation of Privilege (EoP.2) vectors.
  */
 export function requireWallet(
   req: Request,
@@ -111,25 +115,23 @@ export function requireWallet(
       .json({ error: 'Valid wallet address required (x-wallet-address)' });
   }
 
-  // If nonce + signature are provided, do full cryptographic verification.
-  if (nonce && signature) {
-    // Lazy-import to avoid circular dependency
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { authService } = require('../services/authService');
-    const valid = authService.verifySignature(walletAddress, nonce, signature);
-    if (!valid) {
-      return res.status(401).json({
-        error: 'Invalid or expired signature. Request a new nonce from POST /api/auth/nonce',
-      });
-    }
-    (req as any).walletAddress = walletAddress;
-    (req as any).authVerified = true;
-    return next();
+  if (!nonce || !signature) {
+    return res.status(401).json({
+      error: 'Authentication required. Provide x-auth-nonce and x-auth-signature headers. Request a nonce from POST /api/auth/nonce',
+    });
   }
 
-  // Fallback: accept address-only header (legacy / unverified).
-  // TODO: Remove this fallback once all frontend clients send signatures.
+  // Full cryptographic verification — no unauthenticated fallback.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { authService } = require('../services/authService');
+  const valid = authService.verifySignature(walletAddress, nonce, signature);
+  if (!valid) {
+    return res.status(401).json({
+      error: 'Invalid or expired signature. Request a new nonce from POST /api/auth/nonce',
+    });
+  }
+
   (req as any).walletAddress = walletAddress;
-  (req as any).authVerified = false;
+  (req as any).authVerified = true;
   next();
 }

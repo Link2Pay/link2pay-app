@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { invoiceService } from '../services/invoiceService';
 import { clientService } from '../services/clientService';
 import {
@@ -11,12 +12,27 @@ import { InvoiceStatus } from '@prisma/client';
 const router = Router();
 
 /**
+ * Per-wallet invoice creation rate limiter — DoS.2 mitigation.
+ * Limits each authenticated wallet to 20 invoice creations per hour.
+ * Keyed on wallet address so each user has an independent quota.
+ */
+const createInvoiceLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20,
+  keyGenerator: (req) => (req as any).walletAddress || req.ip || 'unknown',
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Invoice creation limit reached. Maximum 20 invoices per hour per wallet.' },
+});
+
+/**
  * POST /api/invoices
  * Create a new invoice (requires wallet auth)
  */
 router.post(
   '/',
   requireWallet,
+  createInvoiceLimiter,
   validateBody(createInvoiceSchema),
   async (req: Request, res: Response) => {
     try {

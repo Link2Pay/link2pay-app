@@ -13,7 +13,43 @@ import { watcherService } from './services/watcherService';
 const app = express();
 
 // ─── Security Middleware ─────────────────────────────────────────────
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'none'"],
+        frameSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        formAction: ["'self'"],
+        baseUri: ["'self'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+    // Enforce HTTPS — prevents protocol downgrade attacks (HSTS)
+    strictTransportSecurity: {
+      maxAge: 31536000, // 1 year
+      includeSubDomains: true,
+      preload: true,
+    },
+    // Prevent MIME-type sniffing
+    xContentTypeOptions: true,
+    // Deny framing — clickjacking protection
+    frameguard: { action: 'deny' },
+    // Disable X-Powered-By to avoid fingerprinting
+    hidePoweredBy: true,
+    // Referrer policy — don't leak origin on cross-origin requests
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    // Restrict access to browser features
+    permittedCrossDomainPolicies: false,
+  })
+);
 app.use(
   cors({
     origin: [config.frontendUrl, 'http://localhost:5173', 'http://localhost:4173', 'http://localhost:3000'],
