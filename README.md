@@ -86,7 +86,7 @@ Reuse client details across invoices with an optional favorites system and quick
 
 ---
 
-## Architecture
+## Highlights
 
 ```mermaid
 flowchart TB
@@ -268,7 +268,7 @@ sequenceDiagram
 
 ## Quick Start
 
-### Prerequisites
+Hackathon project. Ready for demos and local deployments; production hardening is still in progress.
 
 - **Node.js** v18+ ([nodejs.org](https://nodejs.org/))
 - **Docker** + Docker Compose (for local PostgreSQL)
@@ -391,7 +391,10 @@ link2pay-app/
 
 ---
 
-## API Endpoints
+1. Freelancer connects Freighter wallet.
+2. Freelancer creates and shares an invoice link.
+3. Client opens `/pay/:invoiceId`, connects wallet, signs payment.
+4. Invoice status updates after on-chain confirmation.
 
 All endpoints are prefixed with `/api`. Authenticated endpoints require three request headers:
 
@@ -420,7 +423,10 @@ x-auth-signature    Hex-encoded ed25519 signature of the nonce message
 | `POST` | `/invoices/:id/send` | Mark invoice PENDING | Wallet |
 | `DELETE` | `/invoices/:id` | Soft-delete DRAFT invoice | Wallet |
 
-### Payments
+- Linux
+- Node.js `18+`
+- npm
+- Docker Engine + Docker Compose plugin
 
 | Method | Path | Description | Auth |
 |---|---|---|---|
@@ -447,7 +453,7 @@ x-auth-signature    Hex-encoded ed25519 signature of the nonce message
 
 ---
 
-## Environment Variables
+`./setup.sh` automates env file preparation, Docker PostgreSQL startup, dependency install, Prisma sync, and backend/frontend builds.
 
 ### Backend — `backend/.env`
 
@@ -475,7 +481,7 @@ x-auth-signature    Hex-encoded ed25519 signature of the nonce message
 
 ## Technology Stack
 
-### Frontend
+Stop local app with `Ctrl+C`.
 
 | Layer | Technology |
 |---|---|
@@ -556,9 +562,16 @@ Link2Pay applies **STRIDE threat modeling** (see [`SECURITY.md`](./SECURITY.md))
 
 ---
 
-## Deployment
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `PORT` | No | API port (default `3001`) |
+| `FRONTEND_URL` | No | CORS origin for frontend |
+| `STELLAR_NETWORK` | No | `testnet` or `mainnet` |
+| `HORIZON_URL` | No | Stellar Horizon endpoint |
+| `NETWORK_PASSPHRASE` | No | Stellar network passphrase |
 
-### Frontend → Vercel
+### Frontend (`frontend/.env`)
 
 ```bash
 cd frontend
@@ -570,6 +583,7 @@ vercel --prod
 ### Backend → Render
 
 ```bash
+# Backend dev server (watch mode)
 cd backend
 npm run build
 # Set all environment variables in the Render dashboard
