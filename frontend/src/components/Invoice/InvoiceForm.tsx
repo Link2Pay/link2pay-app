@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { createInvoice } from '../../services/api';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
+import { useNetworkStore } from '../../store/networkStore';
 import type { Currency } from '../../types';
 import type { Language } from '../../i18n/translations';
 
@@ -174,6 +175,7 @@ const COPY: Record<Language, {
 export default function InvoiceForm() {
   const navigate = useNavigate();
   const { publicKey } = useWalletStore();
+  const { networkPassphrase } = useNetworkStore();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -236,6 +238,7 @@ export default function InvoiceForm() {
           currency,
           taxRate: taxRate ? parseFloat(taxRate) : undefined,
           dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+          networkPassphrase,
           lineItems: lineItems.filter((item) => item.description && item.rate > 0),
         },
         publicKey

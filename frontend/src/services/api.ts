@@ -1,6 +1,7 @@
 import { config } from '../config';
 import { getAuthHeaders } from './auth';
 import { useWalletStore } from '../store/walletStore';
+import { useNetworkStore } from '../store/networkStore';
 import type {
   Invoice,
   PublicInvoice,
@@ -195,11 +196,13 @@ export async function updateClientFavorite(
 
 export async function createPayIntent(
   invoiceId: string,
-  senderPublicKey: string
+  senderPublicKey: string,
+  networkPassphraseOverride?: string
 ): Promise<PayIntentResponse> {
+  const networkPassphrase = networkPassphraseOverride || useNetworkStore.getState().networkPassphrase;
   return request<PayIntentResponse>(`/payments/${invoiceId}/pay-intent`, {
     method: 'POST',
-    body: JSON.stringify({ senderPublicKey }),
+    body: JSON.stringify({ senderPublicKey, networkPassphrase }),
   });
 }
 

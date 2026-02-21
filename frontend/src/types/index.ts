@@ -70,6 +70,7 @@ export interface PublicInvoice {
   dueDate?: string | null;
   paidAt?: string | null;
   transactionHash?: string | null;
+  networkPassphrase: string;
   lineItems: {
     description: string;
     quantity: string;
@@ -94,6 +95,7 @@ export interface CreateInvoiceData {
   taxRate?: number;
   discount?: number;
   dueDate?: string;
+  networkPassphrase?: string;
   saveClient?: boolean;
   favoriteClient?: boolean;
   lineItems: { description: string; quantity: number; rate: number }[];

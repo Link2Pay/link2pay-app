@@ -24,7 +24,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { invoiceId } = req.params;
-      const { senderPublicKey } = req.body;
+      const { senderPublicKey, networkPassphrase } = req.body;
 
       // Get invoice
       const invoice = await invoiceService.getInvoice(invoiceId);
@@ -47,17 +47,20 @@ router.post(
 
       const amount = formatStellarAmount(invoice.total.toString());
       const assetCode = invoice.currency;
-      const assetIssuer = getAssetIssuer(assetCode);
 
-      // Build the unsigned transaction
-      const { transactionXdr, networkPassphrase } =
+      // Build the unsigned transaction with the client's network passphrase
+      const { transactionXdr, networkPassphrase: effectiveNetworkPassphrase } =
         await stellarService.buildPaymentTransaction({
           senderPublicKey,
           recipientPublicKey: invoice.freelancerWallet,
           amount,
           assetCode,
           invoiceId: invoice.invoiceNumber, // Use invoice number as memo
+          networkPassphrase, // Pass the client's network passphrase
         });
+
+      // Get asset issuer for the detected network
+      const assetIssuer = getAssetIssuer(assetCode, effectiveNetworkPassphrase);
 
       // Generate SEP-7 URI
       const sep7Uri = stellarService.generateSEP7Uri({
@@ -81,7 +84,7 @@ router.post(
           issuer: assetIssuer || null,
         },
         memo: invoice.invoiceNumber,
-        networkPassphrase,
+        networkPassphrase: effectiveNetworkPassphrase,
         timeout: 300,
       });
     } catch (error: any) {

@@ -1,5 +1,5 @@
 import * as StellarSdk from '@stellar/stellar-sdk';
-import { config, getAssetIssuer } from '../config';
+import { config, getAssetIssuer, getHorizonUrl, NETWORK_CONFIG } from '../config';
 
 export class StellarService {
   private server: StellarSdk.Horizon.Server;
@@ -8,6 +8,17 @@ export class StellarService {
   constructor() {
     this.server = new StellarSdk.Horizon.Server(config.stellar.horizonUrl);
     this.networkPassphrase = config.stellar.networkPassphrase;
+  }
+
+  /**
+   * Get Horizon server for a specific network
+   */
+  private getServerForNetwork(networkPassphrase?: string): StellarSdk.Horizon.Server {
+    if (!networkPassphrase) {
+      return this.server;
+    }
+    const horizonUrl = getHorizonUrl(networkPassphrase);
+    return new StellarSdk.Horizon.Server(horizonUrl);
   }
 
   /**
@@ -89,6 +100,7 @@ export class StellarService {
     amount: string;
     assetCode: string;
     invoiceId: string;
+    networkPassphrase?: string;
   }) {
     const {
       senderPublicKey,
@@ -96,7 +108,11 @@ export class StellarService {
       amount,
       assetCode,
       invoiceId,
+      networkPassphrase,
     } = params;
+
+    // Use provided networkPassphrase or fall back to default
+    const effectiveNetworkPassphrase = networkPassphrase || this.networkPassphrase;
 
     // Validate addresses
     if (!this.isValidAddress(senderPublicKey)) {
@@ -106,16 +122,17 @@ export class StellarService {
       throw new Error('INVALID_RECIPIENT_ADDRESS');
     }
 
-    // Load sender account for sequence number
-    const senderAccount = await this.loadAccount(senderPublicKey);
+    // Load sender account for sequence number (use appropriate Horizon server)
+    const server = this.getServerForNetwork(effectiveNetworkPassphrase);
+    const senderAccount = await this.withRetry(() => server.loadAccount(senderPublicKey));
 
-    // Determine asset
-    const asset = this.getAsset(assetCode);
+    // Determine asset based on network
+    const asset = this.getAsset(assetCode, effectiveNetworkPassphrase);
 
     // Build transaction
     const transaction = new StellarSdk.TransactionBuilder(senderAccount, {
       fee: StellarSdk.BASE_FEE,
-      networkPassphrase: this.networkPassphrase,
+      networkPassphrase: effectiveNetworkPassphrase,
     })
       .addOperation(
         StellarSdk.Operation.payment({
@@ -130,7 +147,7 @@ export class StellarService {
 
     return {
       transactionXdr: transaction.toXDR(),
-      networkPassphrase: this.networkPassphrase,
+      networkPassphrase: effectiveNetworkPassphrase,
     };
   }
 
@@ -205,17 +222,33 @@ export class StellarService {
 
   /**
    * Submit a signed transaction to the network
+   * Automatically detects the network from the transaction XDR
    */
   async submitTransaction(signedXdr: string) {
     try {
-      const transaction = StellarSdk.TransactionBuilder.fromXDR(
-        signedXdr,
-        this.networkPassphrase
-      );
+      // Try to parse with testnet passphrase first
+      let transaction: StellarSdk.Transaction;
+      let detectedNetworkPassphrase: string;
 
-      const result = await this.server.submitTransaction(
-        transaction as StellarSdk.Transaction
-      );
+      try {
+        transaction = StellarSdk.TransactionBuilder.fromXDR(
+          signedXdr,
+          NETWORK_CONFIG.testnet.networkPassphrase
+        ) as StellarSdk.Transaction;
+        detectedNetworkPassphrase = NETWORK_CONFIG.testnet.networkPassphrase;
+      } catch {
+        // If testnet fails, try mainnet
+        transaction = StellarSdk.TransactionBuilder.fromXDR(
+          signedXdr,
+          NETWORK_CONFIG.mainnet.networkPassphrase
+        ) as StellarSdk.Transaction;
+        detectedNetworkPassphrase = NETWORK_CONFIG.mainnet.networkPassphrase;
+      }
+
+      // Get the appropriate Horizon server for the detected network
+      const server = this.getServerForNetwork(detectedNetworkPassphrase);
+
+      const result = await server.submitTransaction(transaction);
       return {
         hash: result.hash,
         ledger: result.ledger,
@@ -266,14 +299,14 @@ export class StellarService {
   }
 
   /**
-   * Get the appropriate Stellar asset object
+   * Get the appropriate Stellar asset object for the specified network
    */
-  private getAsset(code: string): StellarSdk.Asset {
+  private getAsset(code: string, networkPassphrase?: string): StellarSdk.Asset {
     if (code === 'XLM') {
       return StellarSdk.Asset.native();
     }
 
-    const issuer = getAssetIssuer(code);
+    const issuer = getAssetIssuer(code, networkPassphrase);
     if (!issuer) {
       throw new Error(`Unknown asset: ${code}`);
     }

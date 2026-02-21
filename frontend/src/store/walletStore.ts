@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { config } from '../config';
+import { useNetworkStore } from './networkStore';
 
 type AppLanguage = 'en' | 'es' | 'pt';
 
@@ -11,7 +11,7 @@ interface WalletState {
   error: string | null;
   connect: () => Promise<void>;
   disconnect: () => void;
-  signTransaction: (xdr: string) => Promise<string>;
+  signTransaction: (xdr: string, networkPassphrase?: string) => Promise<string>;
   /** Sign an arbitrary UTF-8 message (used for auth nonce). Returns hex signature. */
   signMessage: (message: string) => Promise<string>;
   /** Restore connection from persisted state */
@@ -273,7 +273,7 @@ export const useWalletStore = create<WalletState>()(
     }
   },
 
-  signTransaction: async (xdr: string) => {
+  signTransaction: async (xdr: string, networkPassphraseOverride?: string) => {
     const state = get();
     if (!state.connected) {
       throw new Error(getMessage('walletNotConnected'));
@@ -285,8 +285,11 @@ export const useWalletStore = create<WalletState>()(
       let signedXdr: string;
 
       if (freighter.signTransaction) {
+        // Use provided networkPassphrase or fall back to the store value
+        const networkPassphrase = networkPassphraseOverride || useNetworkStore.getState().networkPassphrase;
+        console.log('[WalletStore] Signing transaction with networkPassphrase:', networkPassphrase);
         const result = await freighter.signTransaction(xdr, {
-          networkPassphrase: config.networkPassphrase,
+          networkPassphrase,
         });
         // New API returns an object, legacy returns a string
         if (typeof result === 'string') {
@@ -302,6 +305,7 @@ export const useWalletStore = create<WalletState>()(
 
       return signedXdr;
     } catch (error: any) {
+      console.error('[WalletStore] Transaction signing error:', error);
       throw new Error(error.message || getMessage('signTransactionFailed'));
     }
   },

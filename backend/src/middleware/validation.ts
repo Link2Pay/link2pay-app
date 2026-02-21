@@ -52,6 +52,15 @@ export const payIntentSchema = z.object({
     .min(56)
     .max(56)
     .regex(/^G[A-Z2-7]{55}$/, 'Invalid Stellar address'),
+  networkPassphrase: z
+    .string()
+    .min(1)
+    .refine(
+      (val) =>
+        val === 'Test SDF Network ; September 2015' ||
+        val === 'Public Global Stellar Network ; September 2015',
+      { message: 'Invalid network passphrase' }
+    ),
 });
 
 export const submitPaymentSchema = z.object({

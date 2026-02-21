@@ -1,6 +1,7 @@
 import { InvoiceStatus, Prisma } from '@prisma/client';
 import { CreateInvoiceInput, InvoicePublicView } from '../types';
 import { generateInvoiceNumber } from '../utils/generators';
+import { config } from '../config';
 import prisma from '../db';
 
 export class InvoiceService {
@@ -57,6 +58,7 @@ export class InvoiceService {
           total,
           currency: input.currency,
           dueDate: input.dueDate ? new Date(input.dueDate) : null,
+          networkPassphrase: input.networkPassphrase || config.stellar.networkPassphrase,
           lineItems: {
             create: lineItems,
           },
@@ -128,6 +130,7 @@ export class InvoiceService {
       dueDate: invoice.dueDate?.toISOString() ?? null,
       paidAt: invoice.paidAt?.toISOString() ?? null,
       transactionHash: invoice.transactionHash,
+      networkPassphrase: invoice.networkPassphrase,
       lineItems: invoice.lineItems.map((item) => ({
         description: item.description,
         quantity: item.quantity.toString(),
