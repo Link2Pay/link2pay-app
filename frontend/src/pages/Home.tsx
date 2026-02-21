@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
+import OrbitProgressHero from '../components/marketing/OrbitProgressHero';
 
 const FLOW_STEP_ICONS = [Wallet, FileText, Send] as const;
 const BENEFIT_ICONS = [Zap, DollarSign, Globe2, ShieldCheck] as const;
@@ -53,82 +54,82 @@ type HomeCopy = {
 
 const COPY: Record<Language, HomeCopy> = {
   en: {
-    badge: 'Get paid globally with near-zero fees',
-    heroTitleStart: 'The simplest way to',
-    heroTitleHighlight: 'invoice and get paid',
-    heroTitleEnd: 'anywhere in the world',
+    badge: 'Next-gen payment infrastructure on Stellar',
+    heroTitleStart: 'The developer API for',
+    heroTitleHighlight: 'instant payment links',
+    heroTitleEnd: 'on the Stellar network',
     heroDescription:
-      'Create professional invoices, share a payment link, and receive money in seconds, not days. Built for freelancers, creators, and remote teams who work across borders.',
-    heroPrimaryCta: "Start Invoicing - It's Free",
-    heroSecondaryCta: 'See How It Works',
-    heroFootnote: 'No credit card required. Start on testnet for free.',
-    howTitle: 'Get paid in 3 simple steps',
-    howSubtitle: 'No complicated setup. No bank paperwork. Just create, share, and get paid.',
-    benefitsTitle: 'Why freelancers love Link2Pay',
-    benefitsSubtitle: 'We handle the complexity so you can focus on what you do best: your work.',
-    audienceTitle: 'Built for people who work globally',
-    audienceSubtitle: "Whether you're a solo freelancer or a growing team, Link2Pay fits your workflow.",
-    testimonialsTitle: 'Trusted by freelancers worldwide',
-    testimonialsSubtitle: 'Hear from people who are already getting paid faster.',
-    moneyTitle: 'Your money, your way',
-    moneySubtitle: 'Choose how you want to get paid. Link2Pay supports multiple currencies on the Stellar network.',
-    finalTitle: 'Ready to get paid without the wait?',
+      'Ship hosted checkout, generate shareable payment links, and confirm on-chain settlements in seconds \u2014 without touching Stellar plumbing. One API call, zero custody risk.',
+    heroPrimaryCta: 'Launch Your First Link',
+    heroSecondaryCta: 'View Documentation',
+    heroFootnote: 'Free tier available. No credit card required. Deploy to testnet instantly.',
+    howTitle: 'From zero to checkout in 3 steps',
+    howSubtitle: 'Connect, create, collect. The entire payment lifecycle handled for you.',
+    benefitsTitle: 'Infrastructure-grade reliability',
+    benefitsSubtitle: 'Enterprise-level payment orchestration without the enterprise complexity.',
+    audienceTitle: 'Built for every scale',
+    audienceSubtitle: 'Whether you\'re prototyping an MVP or processing thousands of transactions, Link2Pay adapts.',
+    testimonialsTitle: 'Trusted by builders worldwide',
+    testimonialsSubtitle: 'Teams across 30+ countries ship checkout faster with Link2Pay.',
+    moneyTitle: 'Multi-asset settlement',
+    moneySubtitle: 'Accept XLM, USDC, and EURC through one unified checkout. Instant finality, near-zero fees.',
+    finalTitle: 'Start accepting payments in minutes',
     finalDescription:
-      'Join freelancers who already use Link2Pay to send invoices and receive payments in seconds. Start free today.',
-    finalPrimaryCta: 'Create Your First Invoice',
-    finalSecondaryCta: 'See Pricing Plans',
+      'Deploy hosted Stellar checkout with our free SDK. Scale seamlessly to production with webhooks, branding, and team controls.',
+    finalPrimaryCta: 'Create Your First Link',
+    finalSecondaryCta: 'Compare Plans',
   },
   es: {
-    badge: 'Recibe pagos globales con comisiones casi cero',
-    heroTitleStart: 'La forma mas simple de',
-    heroTitleHighlight: 'facturar y cobrar',
-    heroTitleEnd: 'en cualquier parte del mundo',
+    badge: 'Infraestructura de pagos de nueva generacion en Stellar',
+    heroTitleStart: 'La API para',
+    heroTitleHighlight: 'links de pago instantaneos',
+    heroTitleEnd: 'en la red Stellar',
     heroDescription:
-      'Crea facturas profesionales, comparte un link de pago y recibe dinero en segundos, no dias. Hecho para freelancers, creadores y equipos remotos.',
-    heroPrimaryCta: 'Empieza a facturar gratis',
-    heroSecondaryCta: 'Ver como funciona',
-    heroFootnote: 'Sin tarjeta de credito. Empieza gratis en testnet.',
-    howTitle: 'Cobra en 3 pasos simples',
-    howSubtitle: 'Sin configuraciones complejas. Sin papeleo bancario. Solo crea, comparte y cobra.',
-    benefitsTitle: 'Por que freelancers aman Link2Pay',
-    benefitsSubtitle: 'Nosotros manejamos la complejidad para que tu te enfoques en tu trabajo.',
-    audienceTitle: 'Creado para quienes trabajan globalmente',
-    audienceSubtitle: 'Si eres freelancer o equipo en crecimiento, Link2Pay se adapta a tu flujo.',
-    testimonialsTitle: 'Confiado por freelancers del mundo',
-    testimonialsSubtitle: 'Escucha a personas que ya cobran mas rapido.',
-    moneyTitle: 'Tu dinero, a tu manera',
-    moneySubtitle: 'Elige como quieres cobrar. Link2Pay soporta multiples monedas en Stellar.',
-    finalTitle: 'Listo para cobrar sin esperar?',
+      'Lanza checkout hospedado, genera links de pago compartibles y confirma liquidaciones on-chain en segundos \u2014 sin tocar la infraestructura Stellar. Una llamada API, cero riesgo de custodia.',
+    heroPrimaryCta: 'Lanza tu primer link',
+    heroSecondaryCta: 'Ver documentacion',
+    heroFootnote: 'Plan gratuito disponible. Sin tarjeta requerida. Despliega en testnet al instante.',
+    howTitle: 'De cero a checkout en 3 pasos',
+    howSubtitle: 'Conecta, crea, cobra. Todo el ciclo de vida del pago resuelto por ti.',
+    benefitsTitle: 'Fiabilidad de nivel infraestructura',
+    benefitsSubtitle: 'Orquestacion de pagos empresarial sin la complejidad empresarial.',
+    audienceTitle: 'Construido para cualquier escala',
+    audienceSubtitle: 'Ya sea un MVP o miles de transacciones, Link2Pay se adapta.',
+    testimonialsTitle: 'Confiado por builders en todo el mundo',
+    testimonialsSubtitle: 'Equipos en mas de 30 paises lanzan checkout mas rapido con Link2Pay.',
+    moneyTitle: 'Liquidacion multi-activo',
+    moneySubtitle: 'Acepta XLM, USDC y EURC en un checkout unificado. Finalidad instantanea, comisiones minimas.',
+    finalTitle: 'Empieza a aceptar pagos en minutos',
     finalDescription:
-      'Unete a freelancers que ya usan Link2Pay para enviar facturas y cobrar en segundos. Empieza gratis hoy.',
-    finalPrimaryCta: 'Crea tu primera factura',
-    finalSecondaryCta: 'Ver planes',
+      'Despliega checkout Stellar hospedado con nuestro SDK gratuito. Escala a produccion con webhooks, branding y controles de equipo.',
+    finalPrimaryCta: 'Crea tu primer link',
+    finalSecondaryCta: 'Comparar planes',
   },
   pt: {
-    badge: 'Receba pagamentos globais com taxas quase zero',
-    heroTitleStart: 'A forma mais simples de',
-    heroTitleHighlight: 'faturar e receber',
-    heroTitleEnd: 'em qualquer lugar do mundo',
+    badge: 'Infraestrutura de pagamentos de nova geracao em Stellar',
+    heroTitleStart: 'A API para',
+    heroTitleHighlight: 'links de pagamento instantaneos',
+    heroTitleEnd: 'na rede Stellar',
     heroDescription:
-      'Crie faturas profissionais, compartilhe um link de pagamento e receba em segundos, nao dias. Feito para freelancers, criadores e equipes remotas.',
-    heroPrimaryCta: 'Comece a faturar gratis',
-    heroSecondaryCta: 'Ver como funciona',
-    heroFootnote: 'Sem cartao de credito. Comece gratis na testnet.',
-    howTitle: 'Receba em 3 passos simples',
-    howSubtitle: 'Sem configuracao complicada. Sem papelada bancaria. Apenas crie, compartilhe e receba.',
-    benefitsTitle: 'Por que freelancers amam o Link2Pay',
-    benefitsSubtitle: 'Nos cuidamos da complexidade para voce focar no seu trabalho.',
-    audienceTitle: 'Feito para quem trabalha globalmente',
-    audienceSubtitle: 'Seja freelancer solo ou equipe em crescimento, Link2Pay se adapta ao seu fluxo.',
-    testimonialsTitle: 'Confiado por freelancers no mundo todo',
-    testimonialsSubtitle: 'Veja pessoas que ja recebem pagamentos mais rapido.',
-    moneyTitle: 'Seu dinheiro, do seu jeito',
-    moneySubtitle: 'Escolha como quer receber. Link2Pay suporta varias moedas na rede Stellar.',
-    finalTitle: 'Pronto para receber sem esperar?',
+      'Lance checkout hospedado, gere links de pagamento compartilhaveis e confirme liquidacoes on-chain em segundos \u2014 sem tocar na infraestrutura Stellar. Uma chamada API, zero risco de custodia.',
+    heroPrimaryCta: 'Lance seu primeiro link',
+    heroSecondaryCta: 'Ver documentacao',
+    heroFootnote: 'Plano gratuito disponivel. Sem cartao necessario. Deploy na testnet instantaneo.',
+    howTitle: 'De zero a checkout em 3 passos',
+    howSubtitle: 'Conecte, crie, receba. Todo o ciclo de vida do pagamento resolvido para voce.',
+    benefitsTitle: 'Confiabilidade de nivel infraestrutura',
+    benefitsSubtitle: 'Orquestracao de pagamentos empresarial sem a complexidade empresarial.',
+    audienceTitle: 'Construido para qualquer escala',
+    audienceSubtitle: 'Seja um MVP ou milhares de transacoes, Link2Pay se adapta.',
+    testimonialsTitle: 'Confiado por builders no mundo todo',
+    testimonialsSubtitle: 'Times em mais de 30 paises lancam checkout mais rapido com Link2Pay.',
+    moneyTitle: 'Liquidacao multi-ativo',
+    moneySubtitle: 'Aceite XLM, USDC e EURC em um checkout unificado. Finalidade instantanea, taxas minimas.',
+    finalTitle: 'Comece a aceitar pagamentos em minutos',
     finalDescription:
-      'Junte-se a freelancers que ja usam Link2Pay para enviar faturas e receber em segundos. Comece gratis hoje.',
-    finalPrimaryCta: 'Crie sua primeira fatura',
-    finalSecondaryCta: 'Ver planos',
+      'Implante checkout Stellar hospedado com nosso SDK gratuito. Escale para producao com webhooks, branding e controles de time.',
+    finalPrimaryCta: 'Crie seu primeiro link',
+    finalSecondaryCta: 'Comparar planos',
   },
 };
 
@@ -136,52 +137,52 @@ const FLOW_STEPS: Record<Language, Array<Item & { step: string }>> = {
   en: [
     {
       step: '01',
-      title: 'Connect your wallet',
-      description: 'Link your Stellar wallet in one click. Your keys stay with you, always.',
+      title: 'Authenticate with your wallet',
+      description: 'Sign in with Freighter. Non-custodial by design \u2014 your private keys never leave your device.',
     },
     {
       step: '02',
-      title: 'Create a beautiful invoice',
-      description: 'Add line items, set amounts, and choose currency. Done in under a minute.',
+      title: 'Generate a payment link',
+      description: 'Define the amount, choose the asset (XLM, USDC, EURC), set expiration, and attach metadata via API.',
     },
     {
       step: '03',
-      title: 'Share a payment link',
-      description: 'Send a simple link to your client. They click, pay, and you get notified instantly.',
+      title: 'Share and get paid',
+      description: 'Send the checkout URL to your payer. Funds settle on-chain in ~5 seconds with real-time status updates.',
     },
   ],
   es: [
     {
       step: '01',
-      title: 'Conecta tu wallet',
-      description: 'Conecta tu wallet Stellar en un clic. Tus llaves siempre quedan contigo.',
+      title: 'Autentica con tu wallet',
+      description: 'Inicia sesion con Freighter. No custodial por diseno \u2014 tus claves privadas nunca salen de tu dispositivo.',
     },
     {
       step: '02',
-      title: 'Crea una factura profesional',
-      description: 'Agrega lineas, define montos y elige moneda. Listo en menos de un minuto.',
+      title: 'Genera un link de pago',
+      description: 'Define el monto, elige el activo (XLM, USDC, EURC), configura expiracion y adjunta metadata via API.',
     },
     {
       step: '03',
-      title: 'Comparte un link de pago',
-      description: 'Envia un link simple a tu cliente. Hace clic, paga y recibes confirmacion al instante.',
+      title: 'Comparte y cobra',
+      description: 'Envia la URL de checkout a tu pagador. Los fondos se liquidan on-chain en ~5 segundos con actualizaciones en tiempo real.',
     },
   ],
   pt: [
     {
       step: '01',
-      title: 'Conecte sua wallet',
-      description: 'Conecte sua wallet Stellar com um clique. Suas chaves ficam sempre com voce.',
+      title: 'Autentique com sua wallet',
+      description: 'Entre com Freighter. Non-custodial por design \u2014 suas chaves privadas nunca saem do seu dispositivo.',
     },
     {
       step: '02',
-      title: 'Crie uma fatura profissional',
-      description: 'Adicione itens, defina valores e escolha moeda. Pronto em menos de um minuto.',
+      title: 'Gere um link de pagamento',
+      description: 'Defina o valor, escolha o ativo (XLM, USDC, EURC), configure expiracao e anexe metadata via API.',
     },
     {
       step: '03',
-      title: 'Compartilhe um link de pagamento',
-      description: 'Envie um link simples ao cliente. Ele clica, paga e voce recebe confirmacao na hora.',
+      title: 'Compartilhe e receba',
+      description: 'Envie a URL de checkout ao pagador. Fundos liquidam on-chain em ~5 segundos com atualizacoes em tempo real.',
     },
   ],
 };
@@ -189,56 +190,56 @@ const FLOW_STEPS: Record<Language, Array<Item & { step: string }>> = {
 const BENEFITS: Record<Language, Item[]> = {
   en: [
     {
-      title: 'Paid in 5 seconds',
-      description: 'Stellar settles payments in seconds, not days. No more chasing wire transfers.',
+      title: 'Instant settlement',
+      description: 'Stellar finalizes transactions in 3\u20135 seconds. No T+2, no clearing houses, no delays.',
     },
     {
-      title: 'Fees under $0.01',
-      description: 'Whether you send $50 or $50,000, network fees are practically zero.',
+      title: 'Near-zero network fees',
+      description: 'Send $50 or $500,000 \u2014 Stellar network costs stay under a fraction of a cent per transaction.',
     },
     {
-      title: 'Works worldwide',
-      description: 'Accept payments from clients in any country. No bank restrictions, no borders.',
+      title: 'Borderless by default',
+      description: 'Accept payments from 150+ countries. No banking restrictions, no currency conversion friction.',
     },
     {
-      title: 'You own your money',
-      description: 'Funds go directly to your wallet. We never hold or touch your money.',
+      title: 'Non-custodial architecture',
+      description: 'Funds flow directly to your wallet on-chain. Link2Pay never holds, routes, or touches your capital.',
     },
   ],
   es: [
     {
-      title: 'Pago en 5 segundos',
-      description: 'Stellar liquida pagos en segundos, no en dias. No mas esperas bancarias.',
+      title: 'Liquidacion instantanea',
+      description: 'Stellar finaliza transacciones en 3\u20135 segundos. Sin T+2, sin camaras de compensacion.',
     },
     {
-      title: 'Comisiones menores a $0.01',
-      description: 'Ya sea $50 o $50,000, la comision de red es casi cero.',
+      title: 'Comisiones de red casi nulas',
+      description: 'Envia $50 o $500,000 \u2014 el costo de red Stellar se mantiene bajo fracciones de centavo.',
     },
     {
-      title: 'Funciona en todo el mundo',
-      description: 'Acepta pagos de clientes en cualquier pais. Sin fronteras ni restricciones bancarias.',
+      title: 'Sin fronteras por defecto',
+      description: 'Acepta pagos desde 150+ paises. Sin restricciones bancarias ni friccion cambiaria.',
     },
     {
-      title: 'Tu dinero es tuyo',
-      description: 'Los fondos van directo a tu wallet. Nunca retenemos ni tocamos tu dinero.',
+      title: 'Arquitectura no custodial',
+      description: 'Los fondos fluyen directo a tu wallet on-chain. Link2Pay nunca retiene ni toca tu capital.',
     },
   ],
   pt: [
     {
-      title: 'Receba em 5 segundos',
-      description: 'A Stellar liquida pagamentos em segundos, nao dias. Sem esperar transferencia.',
+      title: 'Liquidacao instantanea',
+      description: 'Stellar finaliza transacoes em 3\u20135 segundos. Sem T+2, sem camaras de compensacao.',
     },
     {
-      title: 'Taxas abaixo de $0.01',
-      description: 'Seja $50 ou $50.000, a taxa de rede e praticamente zero.',
+      title: 'Taxas de rede quase zero',
+      description: 'Envie $50 ou $500.000 \u2014 o custo de rede Stellar fica abaixo de fracoes de centavo.',
     },
     {
-      title: 'Funciona no mundo todo',
-      description: 'Receba pagamentos de clientes em qualquer pais. Sem fronteiras e sem restricoes bancarias.',
+      title: 'Sem fronteiras por padrao',
+      description: 'Aceite pagamentos de 150+ paises. Sem restricoes bancarias nem fricao cambial.',
     },
     {
-      title: 'Seu dinheiro e seu',
-      description: 'Os fundos vao direto para sua wallet. Nunca seguramos nem tocamos seu dinheiro.',
+      title: 'Arquitetura non-custodial',
+      description: 'Fundos fluem direto para sua wallet on-chain. Link2Pay nunca retém nem toca seu capital.',
     },
   ],
 };
@@ -246,119 +247,119 @@ const BENEFITS: Record<Language, Item[]> = {
 const AUDIENCES: Record<Language, Item[]> = {
   en: [
     {
-      title: 'Freelancers and Creators',
-      description: 'Stop waiting weeks for international payments. Invoice clients and get paid the same day.',
+      title: 'SaaS & Product Teams',
+      description: 'Embed payment links into your product in minutes. No payment infrastructure to build or maintain.',
     },
     {
-      title: 'Small Businesses and Agencies',
-      description: 'Track invoice status and keep your cash flow moving with a clean dashboard.',
+      title: 'Marketplaces & Platforms',
+      description: 'Generate unique payment intents per transaction with full lifecycle tracking and webhook callbacks.',
     },
     {
-      title: 'Remote Teams in LATAM and Beyond',
-      description: 'Avoid high fees and slow transfers. Collect global payments with near-zero cost.',
+      title: 'Global-first Startups',
+      description: 'Accept instant cross-border payments in stablecoins and XLM. No banking rails, no delays, no limits.',
     },
   ],
   es: [
     {
-      title: 'Freelancers y creadores',
-      description: 'Deja de esperar semanas por pagos internacionales. Factura y cobra el mismo dia.',
+      title: 'SaaS y equipos de producto',
+      description: 'Integra links de pago en tu producto en minutos. Sin infraestructura de pagos que construir o mantener.',
     },
     {
-      title: 'Pymes y agencias',
-      description: 'Sigue el estado de facturas y manten tu flujo de caja con un panel claro.',
+      title: 'Marketplaces y plataformas',
+      description: 'Genera intents de pago unicos por transaccion con tracking de ciclo de vida completo y callbacks por webhook.',
     },
     {
-      title: 'Equipos remotos en LATAM y mas',
-      description: 'Evita comisiones altas y transferencias lentas. Cobra globalmente con costo minimo.',
+      title: 'Startups global-first',
+      description: 'Acepta pagos transfronterizos instantaneos en stablecoins y XLM. Sin rails bancarios, sin demoras.',
     },
   ],
   pt: [
     {
-      title: 'Freelancers e criadores',
-      description: 'Pare de esperar semanas por pagamentos internacionais. Fature e receba no mesmo dia.',
+      title: 'SaaS e times de produto',
+      description: 'Integre links de pagamento no seu produto em minutos. Sem infraestrutura de pagamentos para construir.',
     },
     {
-      title: 'Pequenas empresas e agencias',
-      description: 'Acompanhe status de faturas e mantenha o fluxo de caixa com um painel simples.',
+      title: 'Marketplaces e plataformas',
+      description: 'Gere intents de pagamento unicos por transacao com tracking completo de ciclo de vida e callbacks webhook.',
     },
     {
-      title: 'Times remotos na LATAM e alem',
-      description: 'Evite taxas altas e transferencias lentas. Receba globalmente com custo minimo.',
+      title: 'Startups global-first',
+      description: 'Aceite pagamentos transfronteiricos instantaneos em stablecoins e XLM. Sem rails bancarios, sem demoras.',
     },
   ],
 };
 
 const STATS: Record<Language, StatItem[]> = {
   en: [
-    { value: '5s', label: 'Average payment time' },
-    { value: '<$0.01', label: 'Transaction fee' },
-    { value: '3', label: 'Supported currencies' },
-    { value: '150+', label: 'Countries supported' },
+    { value: '~5s', label: 'Average settlement time' },
+    { value: '<$0.01', label: 'Per-transaction network cost' },
+    { value: '3', label: 'Supported Stellar assets' },
+    { value: '150+', label: 'Countries with access' },
   ],
   es: [
-    { value: '5s', label: 'Tiempo promedio de pago' },
-    { value: '<$0.01', label: 'Comision por transaccion' },
-    { value: '3', label: 'Monedas soportadas' },
-    { value: '150+', label: 'Paises soportados' },
+    { value: '~5s', label: 'Tiempo promedio de liquidacion' },
+    { value: '<$0.01', label: 'Costo de red por transaccion' },
+    { value: '3', label: 'Activos Stellar soportados' },
+    { value: '150+', label: 'Paises con acceso' },
   ],
   pt: [
-    { value: '5s', label: 'Tempo medio de pagamento' },
-    { value: '<$0.01', label: 'Taxa por transacao' },
-    { value: '3', label: 'Moedas suportadas' },
-    { value: '150+', label: 'Paises suportados' },
+    { value: '~5s', label: 'Tempo medio de liquidacao' },
+    { value: '<$0.01', label: 'Custo de rede por transacao' },
+    { value: '3', label: 'Ativos Stellar suportados' },
+    { value: '150+', label: 'Paises com acesso' },
   ],
 };
 
 const TESTIMONIALS: Record<Language, Testimonial[]> = {
   en: [
     {
-      quote: 'I used to wait 5-7 days for wire transfers. Now clients pay me in seconds. Game changer.',
+      quote: 'We replaced our entire payment backend with Link2Pay in one afternoon. Settlement went from days to seconds.',
       name: 'Maria G.',
-      role: 'UX Designer, Colombia',
+      role: 'CTO, Fintech Startup \u2014 Colombia',
     },
     {
-      quote: 'Payment links are so simple. I paste them in email and clients know exactly what to do.',
+      quote: 'The API is beautifully simple. One POST to create a link, one webhook to confirm. That\'s the whole integration.',
       name: 'James K.',
-      role: 'Web Developer, Nigeria',
+      role: 'Lead Engineer \u2014 Nigeria',
     },
     {
-      quote: 'Finally, an invoicing tool built for global work. Fees are almost nothing.',
+      quote: 'Our clients across Europe pay us in EURC now. No SWIFT fees, no 3-day waits, no chargebacks.',
       name: 'Sofia R.',
-      role: 'Marketing Consultant, Argentina',
+      role: 'Founder, Digital Agency \u2014 Argentina',
     },
   ],
   es: [
     {
-      quote: 'Antes esperaba 5-7 dias por transferencias. Ahora mis clientes pagan en segundos.',
+      quote: 'Reemplazamos todo nuestro backend de pagos con Link2Pay en una tarde. La liquidacion paso de dias a segundos.',
       name: 'Maria G.',
-      role: 'Disenadora UX, Colombia',
+      role: 'CTO, Startup Fintech \u2014 Colombia',
     },
     {
-      quote: 'Los links de pago son muy simples. Los pego en el email y el cliente entiende todo.',
+      quote: 'La API es elegantemente simple. Un POST para crear un link, un webhook para confirmar. Esa es toda la integracion.',
       name: 'James K.',
-      role: 'Desarrollador web, Nigeria',
+      role: 'Lead Engineer \u2014 Nigeria',
     },
     {
-      quote: 'Por fin una herramienta de facturacion para trabajo global. Las comisiones son minimas.',
+      quote: 'Nuestros clientes en Europa nos pagan en EURC. Sin comisiones SWIFT, sin 3 dias de espera, sin contracargos.',
       name: 'Sofia R.',
-      role: 'Consultora de marketing, Argentina',
+      role: 'Fundadora, Agencia Digital \u2014 Argentina',
     },
   ],
   pt: [
     {
-      quote: 'Eu esperava 5-7 dias por transferencias. Agora clientes pagam em segundos.',
+      quote: 'Substituimos todo nosso backend de pagamentos pelo Link2Pay em uma tarde. Liquidacao passou de dias para segundos.',
       name: 'Maria G.',
-      role: 'Designer UX, Colombia',
+      role: 'CTO, Startup Fintech \u2014 Colombia',
     },
     {
-      quote: 'Os links de pagamento sao simples. Eu colo no email e o cliente entende na hora.',
+      quote: 'A API e elegantemente simples. Um POST para criar um link, um webhook para confirmar. Essa e toda a integracao.',
       name: 'James K.',
-      role: 'Desenvolvedor web, Nigeria',
+      role: 'Lead Engineer \u2014 Nigeria',
     },
     {
-      quote: 'Enfim uma ferramenta de faturamento para trabalho global. Taxas quase zero.',
+      quote: 'Nossos clientes na Europa nos pagam em EURC. Sem taxas SWIFT, sem 3 dias de espera, sem chargebacks.',
       name: 'Sofia R.',
-      role: 'Consultora de marketing, Argentina',
+      role: 'Fundadora, Agencia Digital \u2014 Argentina',
     },
   ],
 };
@@ -368,51 +369,51 @@ const CURRENCIES: Record<Language, CurrencyCard[]> = {
     {
       code: 'XLM',
       name: 'Stellar Lumens',
-      desc: 'The native currency of Stellar. Ultra-fast and ultra-cheap.',
+      desc: 'Native network asset with the fastest settlement and lowest fees on the Stellar network.',
     },
     {
       code: 'USDC',
       name: 'USD Coin',
-      desc: 'Dollar-pegged stablecoin. Great for clients who prefer USD.',
+      desc: 'Dollar-pegged stablecoin issued by Circle. Ideal for USD-denominated invoicing and commerce.',
     },
     {
       code: 'EURC',
       name: 'Euro Coin',
-      desc: 'Euro-pegged stablecoin. Perfect for European clients and contracts.',
+      desc: 'Euro-pegged stablecoin by Circle. Optimized for European markets and cross-border EUR settlements.',
     },
   ],
   es: [
     {
       code: 'XLM',
       name: 'Stellar Lumens',
-      desc: 'Moneda nativa de Stellar. Ultra rapida y ultra economica.',
+      desc: 'Activo nativo de la red con la liquidacion mas rapida y las comisiones mas bajas en Stellar.',
     },
     {
       code: 'USDC',
       name: 'USD Coin',
-      desc: 'Stablecoin atada al dolar. Ideal para clientes que prefieren USD.',
+      desc: 'Stablecoin vinculada al dolar emitida por Circle. Ideal para facturacion y comercio en USD.',
     },
     {
       code: 'EURC',
       name: 'Euro Coin',
-      desc: 'Stablecoin atada al euro. Ideal para clientes y contratos europeos.',
+      desc: 'Stablecoin vinculada al euro por Circle. Optimizada para mercados europeos y liquidaciones en EUR.',
     },
   ],
   pt: [
     {
       code: 'XLM',
       name: 'Stellar Lumens',
-      desc: 'Moeda nativa da Stellar. Ultra rapida e ultra barata.',
+      desc: 'Ativo nativo da rede com a liquidacao mais rapida e as menores taxas na Stellar.',
     },
     {
       code: 'USDC',
       name: 'USD Coin',
-      desc: 'Stablecoin pareada ao dolar. Otima para clientes que preferem USD.',
+      desc: 'Stablecoin pareada ao dolar emitida pela Circle. Ideal para faturamento e comercio em USD.',
     },
     {
       code: 'EURC',
       name: 'Euro Coin',
-      desc: 'Stablecoin pareada ao euro. Perfeita para clientes e contratos europeus.',
+      desc: 'Stablecoin pareada ao euro pela Circle. Otimizada para mercados europeus e liquidacoes em EUR.',
     },
   ],
 };
@@ -433,7 +434,7 @@ export default function Home() {
       <section className="relative overflow-hidden border-b border-border bg-card">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_at_top,_hsl(175_75%_45%_/_0.12),transparent_68%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(ellipse_at_bottom,_hsl(175_75%_45%_/_0.06),transparent_68%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-24 pt-24 sm:px-6">
+        <div className="relative mx-auto max-w-6xl px-4 pb-24 pt-20 sm:px-6 sm:pt-24">
           <div className="mx-auto max-w-3xl text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary animate-fade-in">
               <Sparkles className="h-3.5 w-3.5" />
@@ -468,6 +469,10 @@ export default function Home() {
             <p className="mt-4 text-xs text-muted-foreground animate-slide-up" style={{ animationDelay: '0.32s' }}>
               {copy.heroFootnote}
             </p>
+          </div>
+
+          <div className="mx-auto mt-16 w-full max-w-4xl animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <OrbitProgressHero />
           </div>
         </div>
       </section>

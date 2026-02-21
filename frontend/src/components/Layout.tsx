@@ -4,6 +4,7 @@ import { useWalletStore } from '../store/walletStore';
 import WalletConnect from './Wallet/WalletConnect';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
+import NetworkToggle from './NetworkToggle';
 import { useI18n } from '../i18n/I18nProvider';
 
 export default function Layout() {
@@ -65,10 +66,7 @@ export default function Layout() {
         </nav>
 
         <div className="border-t border-sidebar-border px-4 py-3">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse-slow" />
-            {t('layout.stellarTestnet')}
-          </div>
+          <NetworkToggle />
         </div>
       </aside>
 
@@ -79,6 +77,7 @@ export default function Layout() {
               {t('layout.backToSite')}
             </Link>
             <div className="flex flex-wrap items-center justify-end gap-2">
+              <NetworkToggle compact />
               <LanguageToggle />
               <ThemeToggle />
               <WalletConnect />

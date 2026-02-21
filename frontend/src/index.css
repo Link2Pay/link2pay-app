@@ -278,6 +278,240 @@
       0 2px 8px hsl(175 75% 45% / 0.1);
     transform: translateY(-1px);
   }
+
+  /* ── Horizontal Orbit Flow Hero ── */
+  .ohero {
+    width: 100%;
+  }
+
+  .ohero-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .ohero-caption {
+    margin-top: 0.75rem;
+    text-align: center;
+    font-size: 0.7rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* ── connectors ── */
+  .ohero-connector-bg {
+    stroke: hsl(var(--border) / 0.5);
+    stroke-width: 2;
+    stroke-dasharray: 8 10;
+  }
+
+  .ohero-connector {
+    stroke: hsl(var(--primary) / 0);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    transition: stroke 0.6s ease;
+  }
+
+  .ohero-connector.is-lit {
+    stroke: hsl(var(--primary) / 0.6);
+    stroke-dasharray: none;
+    animation: ohConnectorPulse 2.4s ease-in-out infinite;
+  }
+
+  .ohero-arrow {
+    fill: hsl(var(--border) / 0.4);
+    transition: fill 0.6s ease;
+  }
+
+  .ohero-arrow.is-lit {
+    fill: hsl(var(--primary) / 0.7);
+  }
+
+  .ohero-traveler {
+    fill: hsl(var(--primary));
+    opacity: 0.9;
+  }
+
+  /* ── node group ── */
+  .ohero-ambient {
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .ohero-node.is-reached .ohero-ambient {
+    opacity: 1;
+    animation: ohPulse 3.6s ease-in-out infinite;
+  }
+
+  .ohero-orbit-ring {
+    fill: none;
+    stroke: hsl(var(--border) / 0.6);
+    stroke-width: 1.2;
+    stroke-dasharray: 4 6;
+    transition: stroke 0.5s ease, stroke-width 0.5s ease;
+    animation: ohRingSpin 20s linear infinite;
+  }
+
+  .ohero-node.is-reached .ohero-orbit-ring {
+    stroke: hsl(var(--primary) / 0.4);
+    stroke-width: 1.6;
+    stroke-dasharray: 3 5;
+  }
+
+  .ohero-node.is-active .ohero-orbit-ring {
+    stroke: hsl(var(--primary) / 0.65);
+    stroke-width: 2;
+    animation: ohRingSpin 12s linear infinite, ohRingPulse 2s ease-in-out infinite;
+  }
+
+  /* particles orbiting each node */
+  .ohero-particle {
+    fill: hsl(var(--primary) / 0.35);
+    animation: ohParticleOrbit 12s linear infinite;
+    transition: fill 0.5s ease;
+  }
+
+  .ohero-node.is-reached .ohero-particle {
+    fill: hsl(var(--primary) / 0.6);
+  }
+
+  .ohero-node.is-active .ohero-particle {
+    fill: hsl(var(--primary) / 0.85);
+  }
+
+  /* inner circle layers */
+  .ohero-inner-ring {
+    fill: hsl(var(--card) / 0.5);
+    stroke: hsl(var(--border) / 0.4);
+    stroke-width: 1;
+    transition: stroke 0.5s ease, fill 0.5s ease;
+  }
+
+  .ohero-node.is-reached .ohero-inner-ring {
+    stroke: hsl(var(--primary) / 0.35);
+    fill: hsl(var(--card) / 0.7);
+  }
+
+  .ohero-node.is-active .ohero-inner-ring {
+    stroke: hsl(var(--primary) / 0.55);
+    fill: hsl(var(--card) / 0.85);
+  }
+
+  .ohero-icon-bg {
+    fill: hsl(var(--muted));
+    stroke: hsl(var(--border));
+    stroke-width: 1.2;
+    transition: fill 0.5s ease, stroke 0.5s ease;
+  }
+
+  .ohero-node.is-reached .ohero-icon-bg {
+    fill: hsl(var(--card));
+    stroke: hsl(var(--primary) / 0.5);
+  }
+
+  .ohero-node.is-active .ohero-icon-bg {
+    fill: hsl(var(--card));
+    stroke: hsl(var(--primary) / 0.8);
+    filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.3));
+  }
+
+  /* step badge */
+  .ohero-step-badge {
+    fill: hsl(var(--muted));
+    stroke: hsl(var(--border));
+    stroke-width: 1;
+    transition: fill 0.4s ease, stroke 0.4s ease;
+  }
+
+  .ohero-node.is-reached .ohero-step-badge {
+    fill: hsl(var(--primary) / 0.15);
+    stroke: hsl(var(--primary) / 0.5);
+  }
+
+  .ohero-node.is-active .ohero-step-badge {
+    fill: hsl(var(--primary));
+    stroke: hsl(var(--primary));
+  }
+
+  .ohero-step-num {
+    fill: hsl(var(--muted-foreground));
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    transition: fill 0.4s ease;
+  }
+
+  .ohero-node.is-active .ohero-step-num {
+    fill: hsl(var(--primary-foreground));
+  }
+
+  /* text labels */
+  .ohero-label {
+    fill: hsl(var(--muted-foreground));
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: fill 0.5s ease;
+  }
+
+  .ohero-node.is-reached .ohero-label {
+    fill: hsl(var(--foreground));
+  }
+
+  .ohero-sublabel {
+    fill: hsl(var(--muted-foreground) / 0.6);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+    transition: fill 0.5s ease;
+  }
+
+  .ohero-node.is-reached .ohero-sublabel {
+    fill: hsl(var(--muted-foreground));
+  }
+
+  .ohero-node.is-active .ohero-sublabel {
+    fill: hsl(var(--primary) / 0.8);
+  }
+
+  /* ── keyframes ── */
+  @keyframes ohRingSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes ohRingPulse {
+    0%, 100% { stroke-opacity: 0.5; }
+    50% { stroke-opacity: 1; }
+  }
+
+  @keyframes ohPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  @keyframes ohConnectorPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  @keyframes ohParticleOrbit {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ohero-orbit-ring,
+    .ohero-particle,
+    .ohero-connector.is-lit,
+    .ohero-node.is-reached .ohero-ambient,
+    .ohero-node.is-active .ohero-orbit-ring,
+    .ohero-traveler {
+      animation: none !important;
+    }
+  }
 }
 
 /* Scrollbar */

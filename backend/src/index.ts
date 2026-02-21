@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import invoiceRoutes from './routes/invoices';
+import linkRoutes from './routes/links';
 import paymentRoutes from './routes/payments';
 import clientRoutes from './routes/clients';
 import authRoutes from './routes/auth';
@@ -115,6 +116,9 @@ app.use('/api/prices', priceRoutes);
 
 // Invoice routes
 app.use('/api/invoices', invoiceRoutes);
+
+// Payment link routes (pivot-friendly API aliases)
+app.use('/api/links', linkRoutes);
 
 // Payment routes
 app.use('/api/payments', paymentRoutes);

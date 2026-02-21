@@ -3,6 +3,7 @@ import { ArrowRight, Globe2, Heart, Wallet, Zap } from 'lucide-react';
 import { useWalletStore } from '../../store/walletStore';
 import ThemeToggle from '../ThemeToggle';
 import LanguageToggle from '../LanguageToggle';
+import NetworkToggle from '../NetworkToggle';
 import { useI18n } from '../../i18n/I18nProvider';
 
 const truncateAddress = (address: string) =>
@@ -71,6 +72,7 @@ export default function MarketingLayout() {
             </nav>
 
             <div className="flex items-center gap-2">
+              <NetworkToggle compact />
               <LanguageToggle />
               <ThemeToggle />
 
@@ -228,9 +230,9 @@ export default function MarketingLayout() {
             <p className="flex items-center gap-1 text-xs text-muted-foreground">
               {t('marketing.madeWith')} <Heart className="h-3 w-3 text-destructive" /> {t('marketing.forFreelancers')}
             </p>
-            <p className="text-xs text-muted-foreground">
-              {t('marketing.stellarTestnet')}
-            </p>
+            <div className="text-xs text-muted-foreground">
+              <NetworkToggle compact />
+            </div>
           </div>
         </div>
       </footer>

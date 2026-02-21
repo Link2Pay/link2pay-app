@@ -34,6 +34,27 @@ export const createInvoiceSchema = z.object({
   lineItems: z.array(lineItemSchema).min(1).max(50),
 });
 
+export const createPaymentLinkSchema = z.object({
+  amount: z.coerce.number().positive().max(999999999),
+  asset: z.enum(['XLM', 'USDC', 'EURC']),
+  recipientWallet: z
+    .string()
+    .min(56)
+    .max(56)
+    .regex(/^G[A-Z2-7]{55}$/, 'Invalid Stellar address')
+    .optional(),
+  expiresAt: z.string().datetime().optional(),
+  metadata: z
+    .object({
+      title: z.string().min(1).max(300).optional(),
+      description: z.string().max(2000).optional(),
+      reference: z.string().max(120).optional(),
+      payerName: z.string().max(200).optional(),
+      payerEmail: z.string().email().optional(),
+    })
+    .optional(),
+});
+
 export const saveClientSchema = z.object({
   name: z.string().min(1).max(200),
   email: z.string().email(),

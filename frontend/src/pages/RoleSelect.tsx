@@ -18,43 +18,43 @@ const COPY: Record<Language, {
   failedConnectWallet: string;
 }> = {
   en: {
-    tagline: 'Instant invoicing and payments on the Stellar network',
-    freelancerTitle: 'Freelancer',
+    tagline: 'Instant payment links powered by the Stellar network',
+    freelancerTitle: 'Builder',
     freelancerDescription:
-      'Create and send invoices, track payments, and manage your business with your Stellar wallet.',
-    connectingWallet: 'Connecting wallet...',
-    connectWalletEnter: 'Connect Wallet and Enter',
-    clientTitle: 'Client',
+      'Create payment links, manage hosted checkout, and track on-chain settlements from your dashboard.',
+    connectingWallet: 'Authenticating...',
+    connectWalletEnter: 'Connect Wallet & Enter Dashboard',
+    clientTitle: 'Payer',
     clientDescription:
-      'Pay an invoice using a link or code shared by your freelancer. Quick, secure, and borderless.',
-    payInvoice: 'Pay an Invoice',
-    failedConnectWallet: 'Failed to connect wallet',
+      'Complete a payment through a secure, hosted checkout link. Instant settlement, no account required.',
+    payInvoice: 'Open Payment Link',
+    failedConnectWallet: 'Wallet connection failed',
   },
   es: {
-    tagline: 'Facturacion y pagos instantaneos en la red Stellar',
-    freelancerTitle: 'Freelancer',
+    tagline: 'Links de pago instantaneos impulsados por la red Stellar',
+    freelancerTitle: 'Builder',
     freelancerDescription:
-      'Crea y envia facturas, sigue pagos y gestiona tu negocio con tu wallet Stellar.',
-    connectingWallet: 'Conectando wallet...',
-    connectWalletEnter: 'Conectar wallet y entrar',
-    clientTitle: 'Cliente',
+      'Crea links de pago, gestiona checkout hospedado y rastrea liquidaciones on-chain desde tu panel.',
+    connectingWallet: 'Autenticando...',
+    connectWalletEnter: 'Conectar wallet y entrar al panel',
+    clientTitle: 'Pagador',
     clientDescription:
-      'Paga una factura con un link o codigo compartido por tu freelancer. Rapido, seguro y sin fronteras.',
-    payInvoice: 'Pagar factura',
-    failedConnectWallet: 'No se pudo conectar la wallet',
+      'Completa un pago a traves de un link de checkout seguro y hospedado. Liquidacion instantanea, sin cuenta requerida.',
+    payInvoice: 'Abrir link de pago',
+    failedConnectWallet: 'Fallo la conexion de wallet',
   },
   pt: {
-    tagline: 'Faturamento e pagamentos instantaneos na rede Stellar',
-    freelancerTitle: 'Freelancer',
+    tagline: 'Links de pagamento instantaneos na rede Stellar',
+    freelancerTitle: 'Builder',
     freelancerDescription:
-      'Crie e envie faturas, acompanhe pagamentos e gerencie seu negocio com sua wallet Stellar.',
-    connectingWallet: 'Conectando wallet...',
-    connectWalletEnter: 'Conectar wallet e entrar',
-    clientTitle: 'Cliente',
+      'Crie links de pagamento, gerencie checkout hospedado e acompanhe liquidacoes on-chain no seu painel.',
+    connectingWallet: 'Autenticando...',
+    connectWalletEnter: 'Conectar wallet e entrar no painel',
+    clientTitle: 'Pagador',
     clientDescription:
-      'Pague uma fatura com um link ou codigo compartilhado pelo freelancer. Rapido, seguro e sem fronteiras.',
-    payInvoice: 'Pagar fatura',
-    failedConnectWallet: 'Nao foi possivel conectar a wallet',
+      'Complete um pagamento atraves de um link de checkout seguro e hospedado. Liquidacao instantanea, sem conta necessaria.',
+    payInvoice: 'Abrir link de pagamento',
+    failedConnectWallet: 'Falha na conexao da wallet',
   },
 };
 

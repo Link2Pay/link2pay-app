@@ -39,111 +39,111 @@ type AboutCopy = {
 
 const COPY: Record<Language, AboutCopy> = {
   en: {
-    heroTitleStart: "We're making it easier for",
-    heroTitleHighlight: 'freelancers to get paid',
+    heroTitleStart: 'The payment infrastructure primitive for',
+    heroTitleHighlight: 'the Stellar ecosystem',
     heroDescription:
-      'Link2Pay was born from a simple frustration: why does it take so long and cost so much to get paid for work already done?',
-    storyTitle: 'Our Story',
-    storySubtitle: 'From frustration to solution, this is why we built Link2Pay.',
-    valuesTitle: 'What we believe in',
-    valuesSubtitle: 'The principles that guide everything we build.',
-    journeyTitle: 'Our journey',
-    journeySubtitle: "We're just getting started, and every step gets us closer to our mission.",
-    poweredTitle: 'Powered by the Stellar Network',
+      'Link2Pay is a non-custodial payment links API purpose-built for the Stellar network. One integration, complete payment lifecycle management, production-grade reliability.',
+    storyTitle: 'Why Link2Pay Exists',
+    storySubtitle: 'We identified a critical gap in the Stellar payment stack and built the definitive solution.',
+    valuesTitle: 'Core Principles',
+    valuesSubtitle: 'The engineering convictions behind every design decision we make.',
+    journeyTitle: 'Product Timeline',
+    journeySubtitle: 'Each phase sharpens our focus on developer experience, operational reliability, and ecosystem impact.',
+    poweredTitle: 'Built on the Stellar Network',
     poweredDescription:
-      'We chose Stellar because it was built for payments. Transactions settle in seconds, cost fractions of a penny, and work across borders.',
-    finalTitle: 'Join us on this journey',
-    finalDescription: 'We are building the future of freelance payments. Try Link2Pay today.',
-    finalCta: 'Get Started Free',
+      'Stellar was purpose-built for payments. Sub-five-second finality, negligible transaction costs, and native multi-currency support make it the ideal settlement layer for Link2Pay.',
+    finalTitle: 'Build payment flows with confidence',
+    finalDescription: 'The payment links primitive your Stellar application deserves. Ship in minutes, scale without limits.',
+    finalCta: 'Start Integrating',
   },
   es: {
-    heroTitleStart: 'Estamos haciendo mas facil que',
-    heroTitleHighlight: 'freelancers cobren',
+    heroTitleStart: 'La infraestructura de pagos primitiva para',
+    heroTitleHighlight: 'el ecosistema Stellar',
     heroDescription:
-      'Link2Pay nacio de una frustracion simple: por que tardan tanto y cuestan tanto los pagos por trabajo ya entregado?',
-    storyTitle: 'Nuestra historia',
-    storySubtitle: 'De la frustracion a la solucion, por eso construimos Link2Pay.',
-    valuesTitle: 'En que creemos',
-    valuesSubtitle: 'Los principios que guian todo lo que construimos.',
-    journeyTitle: 'Nuestro camino',
-    journeySubtitle: 'Estamos empezando, y cada paso nos acerca a nuestra mision.',
-    poweredTitle: 'Impulsado por la red Stellar',
+      'Link2Pay es una API de enlaces de pago no custodial disenada para la red Stellar. Una integracion, gestion completa del ciclo de vida de pagos, fiabilidad de nivel produccion.',
+    storyTitle: 'Por que existe Link2Pay',
+    storySubtitle: 'Identificamos una brecha critica en la infraestructura de pagos de Stellar y construimos la solucion definitiva.',
+    valuesTitle: 'Principios fundamentales',
+    valuesSubtitle: 'Las convicciones de ingenieria detras de cada decision de diseno.',
+    journeyTitle: 'Linea de tiempo del producto',
+    journeySubtitle: 'Cada fase refina nuestro enfoque en la experiencia developer, la fiabilidad operativa y el impacto en el ecosistema.',
+    poweredTitle: 'Construido sobre la red Stellar',
     poweredDescription:
-      'Elegimos Stellar porque fue creada para pagos. Las transacciones se confirman en segundos, cuestan casi nada y funcionan sin fronteras.',
-    finalTitle: 'Unete a este camino',
-    finalDescription: 'Estamos construyendo el futuro de pagos freelance. Prueba Link2Pay hoy.',
-    finalCta: 'Comenzar gratis',
+      'Stellar fue disenada para pagos. Finalidad en menos de cinco segundos, costos de transaccion insignificantes y soporte nativo multi-moneda la convierten en la capa de liquidacion ideal para Link2Pay.',
+    finalTitle: 'Construye flujos de pago con confianza',
+    finalDescription: 'El primitivo de enlaces de pago que tu aplicacion Stellar merece. Lanza en minutos, escala sin limites.',
+    finalCta: 'Comenzar a integrar',
   },
   pt: {
-    heroTitleStart: 'Estamos tornando mais facil para',
-    heroTitleHighlight: 'freelancers receberem',
+    heroTitleStart: 'A infraestrutura de pagamentos primitiva para',
+    heroTitleHighlight: 'o ecossistema Stellar',
     heroDescription:
-      'Link2Pay nasceu de uma frustracao simples: por que receber por um trabalho entregue leva tanto tempo e custa tanto?',
-    storyTitle: 'Nossa historia',
-    storySubtitle: 'Da frustracao para a solucao, foi por isso que criamos Link2Pay.',
-    valuesTitle: 'No que acreditamos',
-    valuesSubtitle: 'Os principios que orientam tudo o que construimos.',
-    journeyTitle: 'Nossa jornada',
-    journeySubtitle: 'Estamos apenas comecando, e cada passo nos aproxima da nossa missao.',
-    poweredTitle: 'Movido pela rede Stellar',
+      'Link2Pay e uma API de links de pagamento non-custodial projetada para a rede Stellar. Uma integracao, gestao completa do ciclo de vida de pagamentos, confiabilidade de nivel producao.',
+    storyTitle: 'Por que Link2Pay existe',
+    storySubtitle: 'Identificamos uma lacuna critica na infraestrutura de pagamentos Stellar e construimos a solucao definitiva.',
+    valuesTitle: 'Principios fundamentais',
+    valuesSubtitle: 'As conviccoes de engenharia por tras de cada decisao de design.',
+    journeyTitle: 'Linha do tempo do produto',
+    journeySubtitle: 'Cada fase refina nosso foco em experiencia developer, confiabilidade operacional e impacto no ecossistema.',
+    poweredTitle: 'Construido sobre a rede Stellar',
     poweredDescription:
-      'Escolhemos Stellar porque foi feita para pagamentos. Transacoes confirmam em segundos, custam quase nada e funcionam sem fronteiras.',
-    finalTitle: 'Junte-se a essa jornada',
-    finalDescription: 'Estamos construindo o futuro dos pagamentos freelancer. Teste Link2Pay hoje.',
-    finalCta: 'Comecar gratis',
+      'Stellar foi projetada para pagamentos. Finalidade em menos de cinco segundos, custos de transacao insignificantes e suporte nativo multi-moeda a tornam a camada de liquidacao ideal para Link2Pay.',
+    finalTitle: 'Construa fluxos de pagamento com confianca',
+    finalDescription: 'O primitivo de links de pagamento que sua aplicacao Stellar merece. Lance em minutos, escale sem limites.',
+    finalCta: 'Comecar a integrar',
   },
 };
 
 const STORY_BLOCKS: Record<Language, Item[]> = {
   en: [
     {
-      title: 'The problem we saw',
+      title: 'The Problem',
       description:
-        'Freelancers in LATAM and around the world wait days or weeks for international payments. Wires are expensive and slow.',
+        'Every Stellar application rebuilds the same payment infrastructure from scratch: intent creation, expiration handling, status synchronization, transaction monitoring, retry logic, and audit trails. This fragmented approach wastes engineering cycles and introduces inconsistent payment experiences across the ecosystem.',
     },
     {
-      title: 'The solution we built',
+      title: 'The Solution',
       description:
-        'Link2Pay removes middlemen. You create an invoice, share a link, and get paid directly through Stellar in seconds.',
+        'Link2Pay abstracts the entire payment lifecycle into a single API call. Create a payment link, direct payers to a hosted checkout, and track settlement status programmatically. No wallet custody, no blockchain plumbing, no operational overhead.',
     },
     {
-      title: 'Our vision',
+      title: 'The Vision',
       description:
-        'Getting paid for work should be as easy as sending a text. That is the future we are building.',
+        'We are building the canonical payment links layer for Stellar. The same way Stripe defined card payment DX, Link2Pay will define how Stellar-native payments are created, managed, and settled at scale.',
     },
   ],
   es: [
     {
-      title: 'El problema que vimos',
+      title: 'El Problema',
       description:
-        'Freelancers en LATAM y el mundo esperan dias o semanas para pagos internacionales. Las transferencias son caras y lentas.',
+        'Cada aplicacion Stellar reconstruye la misma infraestructura de pagos desde cero: creacion de intents, manejo de expiracion, sincronizacion de estados, monitoreo de transacciones, logica de reintentos y registros de auditoria. Este enfoque fragmentado desperdicia ciclos de ingenieria e introduce experiencias de pago inconsistentes en todo el ecosistema.',
     },
     {
-      title: 'La solucion que construimos',
+      title: 'La Solucion',
       description:
-        'Link2Pay elimina intermediarios. Creas una factura, compartes un link y cobras directo por Stellar en segundos.',
+        'Link2Pay abstrae todo el ciclo de vida de pagos en una sola llamada API. Crea un enlace de pago, redirige a los pagadores a un checkout hospedado y rastrea el estado de liquidacion programaticamente. Sin custodia de wallets, sin plomeria blockchain, sin overhead operativo.',
     },
     {
-      title: 'Nuestra vision',
+      title: 'La Vision',
       description:
-        'Cobrar por tu trabajo deberia ser tan facil como enviar un mensaje. Ese es el futuro que construimos.',
+        'Estamos construyendo la capa canonica de enlaces de pago para Stellar. De la misma forma que Stripe definio la DX de pagos con tarjeta, Link2Pay definira como se crean, gestionan y liquidan pagos nativos de Stellar a escala.',
     },
   ],
   pt: [
     {
-      title: 'O problema que vimos',
+      title: 'O Problema',
       description:
-        'Freelancers na LATAM e no mundo esperam dias ou semanas para pagamentos internacionais. Transferencias sao caras e lentas.',
+        'Cada aplicacao Stellar reconstroi a mesma infraestrutura de pagamentos do zero: criacao de intents, tratamento de expiracao, sincronizacao de status, monitoramento de transacoes, logica de retentativas e trilhas de auditoria. Essa abordagem fragmentada desperica ciclos de engenharia e gera experiencias de pagamento inconsistentes em todo o ecossistema.',
     },
     {
-      title: 'A solucao que criamos',
+      title: 'A Solucao',
       description:
-        'Link2Pay remove intermediarios. Voce cria uma fatura, compartilha um link e recebe direto pela Stellar em segundos.',
+        'Link2Pay abstrai todo o ciclo de vida de pagamentos em uma unica chamada API. Crie um link de pagamento, direcione pagadores para um checkout hospedado e acompanhe o status de liquidacao programaticamente. Sem custodia de wallets, sem infraestrutura blockchain, sem overhead operacional.',
     },
     {
-      title: 'Nossa visao',
+      title: 'A Visao',
       description:
-        'Receber por um trabalho deveria ser tao facil quanto enviar uma mensagem. Esse e o futuro que estamos criando.',
+        'Estamos construindo a camada canonica de links de pagamento para Stellar. Da mesma forma que Stripe definiu a DX de pagamentos com cartao, Link2Pay definira como pagamentos nativos Stellar sao criados, gerenciados e liquidados em escala.',
     },
   ],
 };
@@ -151,85 +151,85 @@ const STORY_BLOCKS: Record<Language, Item[]> = {
 const VALUES: Record<Language, Item[]> = {
   en: [
     {
-      title: 'Your money stays yours',
-      description: 'We are non-custodial. We never hold funds, and every payment goes directly to your wallet.',
+      title: 'Non-Custodial Architecture',
+      description: 'Link2Pay never touches your funds. Every payment settles directly to the merchant wallet. Zero counterparty risk, full regulatory clarity, complete sovereign control over assets.',
     },
     {
-      title: 'Simple by design',
-      description: 'You should not need deep technical knowledge to invoice clients and get paid.',
+      title: 'Developer-First Design',
+      description: 'A single API call creates a payment link. Hosted checkout, status polling, and settlement confirmation are handled out of the box. Integration measured in minutes, not sprints.',
     },
     {
-      title: 'Built for global work',
-      description: 'Freelancers have no borders, so payments should work globally with low fees.',
+      title: 'Operational Reliability',
+      description: 'Payment lifecycle management, automatic expiration, structured logging, and webhook delivery are first-class concerns engineered into the core, not bolted on as afterthoughts.',
     },
     {
-      title: 'Transparent and trustworthy',
-      description: 'Every payment is verifiable on-chain. No black boxes and no guesswork.',
+      title: 'On-Chain Transparency',
+      description: 'Every transaction is independently verifiable on the Stellar ledger. Full auditability, deterministic settlement, and cryptographic proof of payment at every step.',
     },
   ],
   es: [
     {
-      title: 'Tu dinero sigue siendo tuyo',
-      description: 'Somos no custodial. Nunca retenemos fondos y cada pago va directo a tu wallet.',
+      title: 'Arquitectura No Custodial',
+      description: 'Link2Pay nunca toca tus fondos. Cada pago se liquida directamente en la wallet del comerciante. Cero riesgo de contraparte, claridad regulatoria total, control soberano completo sobre los activos.',
     },
     {
-      title: 'Simple por diseno',
-      description: 'No deberias necesitar conocimientos tecnicos profundos para facturar y cobrar.',
+      title: 'Diseno Developer-First',
+      description: 'Una sola llamada API crea un enlace de pago. Checkout hospedado, consulta de estado y confirmacion de liquidacion se manejan de forma nativa. Integracion medida en minutos, no en sprints.',
     },
     {
-      title: 'Creado para trabajo global',
-      description: 'Los freelancers no tienen fronteras, y los pagos tampoco deberian tenerlas.',
+      title: 'Fiabilidad Operativa',
+      description: 'Gestion del ciclo de vida de pagos, expiracion automatica, logging estructurado y entrega de webhooks son preocupaciones de primera clase disenadas en el nucleo, no anadidas como parches.',
     },
     {
-      title: 'Transparente y confiable',
-      description: 'Cada pago se verifica on-chain. Sin cajas negras ni dudas.',
+      title: 'Transparencia On-Chain',
+      description: 'Cada transaccion es verificable de forma independiente en el ledger de Stellar. Auditabilidad completa, liquidacion deterministica y prueba criptografica de pago en cada paso.',
     },
   ],
   pt: [
     {
-      title: 'Seu dinheiro continua seu',
-      description: 'Somos non-custodial. Nunca seguramos fundos e cada pagamento vai direto para sua wallet.',
+      title: 'Arquitetura Non-Custodial',
+      description: 'Link2Pay nunca toca seus fundos. Cada pagamento e liquidado diretamente na wallet do comerciante. Zero risco de contraparte, clareza regulatoria total, controle soberano completo sobre os ativos.',
     },
     {
-      title: 'Simples por design',
-      description: 'Voce nao deveria precisar de conhecimento tecnico profundo para faturar e receber.',
+      title: 'Design Developer-First',
+      description: 'Uma unica chamada API cria um link de pagamento. Checkout hospedado, consulta de status e confirmacao de liquidacao sao tratados nativamente. Integracao medida em minutos, nao em sprints.',
     },
     {
-      title: 'Feito para trabalho global',
-      description: 'Freelancers nao tem fronteiras, e pagamentos tambem nao deveriam ter.',
+      title: 'Confiabilidade Operacional',
+      description: 'Gestao do ciclo de vida de pagamentos, expiracao automatica, logging estruturado e entrega de webhooks sao preocupacoes de primeira classe projetadas no nucleo, nao adicionadas como remendos.',
     },
     {
-      title: 'Transparente e confiavel',
-      description: 'Cada pagamento pode ser verificado on-chain. Sem caixa-preta e sem duvidas.',
+      title: 'Transparencia On-Chain',
+      description: 'Cada transacao e verificavel de forma independente no ledger Stellar. Auditabilidade completa, liquidacao deterministica e prova criptografica de pagamento em cada etapa.',
     },
   ],
 };
 
 const MILESTONES: Record<Language, Milestone[]> = {
   en: [
-    { label: 'Idea born', detail: 'Identified payment pain points for LATAM freelancers' },
-    { label: 'MVP launched', detail: 'First working prototype on Stellar Testnet' },
-    { label: 'Early users', detail: 'Freelancers and agencies started testing the platform' },
-    { label: "What's next", detail: 'Mobile app, recurring invoices, and more currencies' },
+    { label: 'Problem Identified', detail: 'Mapped the recurring infrastructure gap across Stellar payment integrations' },
+    { label: 'Core API Shipped', detail: 'Delivered end-to-end payment link creation, hosted checkout, and settlement tracking' },
+    { label: 'Infrastructure Focus', detail: 'Architected the product as a composable payment primitive with full API and SDK surface' },
+    { label: 'Scaling Forward', detail: 'Webhook delivery, team management, multi-asset support, and ecosystem partnerships' },
   ],
   es: [
-    { label: 'Nace la idea', detail: 'Identificamos dolor de pagos para freelancers LATAM' },
-    { label: 'MVP lanzado', detail: 'Primer prototipo funcional en Stellar Testnet' },
-    { label: 'Usuarios iniciales', detail: 'Freelancers y agencias empezaron pruebas' },
-    { label: 'Lo que sigue', detail: 'App movil, facturas recurrentes y mas monedas' },
+    { label: 'Problema Identificado', detail: 'Mapeamos la brecha recurrente de infraestructura en integraciones de pago Stellar' },
+    { label: 'API Core Lanzada', detail: 'Entregamos creacion de enlaces de pago, checkout hospedado y rastreo de liquidacion de extremo a extremo' },
+    { label: 'Enfoque en Infraestructura', detail: 'Producto arquitecturado como primitivo de pago componible con superficie completa de API y SDK' },
+    { label: 'Escalando', detail: 'Entrega de webhooks, gestion de equipos, soporte multi-activo y alianzas en el ecosistema' },
   ],
   pt: [
-    { label: 'Ideia nasceu', detail: 'Identificamos dor de pagamentos para freelancers LATAM' },
-    { label: 'MVP lancado', detail: 'Primeiro prototipo funcional na Stellar Testnet' },
-    { label: 'Usuarios iniciais', detail: 'Freelancers e agencias iniciaram testes' },
-    { label: 'Proximo passo', detail: 'App mobile, faturas recorrentes e mais moedas' },
+    { label: 'Problema Identificado', detail: 'Mapeamos a lacuna recorrente de infraestrutura em integracoes de pagamento Stellar' },
+    { label: 'API Core Lancada', detail: 'Entregamos criacao de links de pagamento, checkout hospedado e rastreamento de liquidacao de ponta a ponta' },
+    { label: 'Foco em Infraestrutura', detail: 'Produto arquitetado como primitivo de pagamento componivel com superficie completa de API e SDK' },
+    { label: 'Escalando', detail: 'Entrega de webhooks, gestao de equipes, suporte multi-ativo e parcerias no ecossistema' },
   ],
 };
 
 const POWERED_TAGS: Record<Language, string[]> = {
-  en: ['5-second settlement', 'Fees under $0.01', '150+ countries', 'Multi-currency native', 'Energy efficient'],
-  es: ['Liquidacion en 5 segundos', 'Comisiones menores a $0.01', '150+ paises', 'Soporte multi-moneda', 'Eficiente en energia'],
-  pt: ['Liquidacao em 5 segundos', 'Taxas abaixo de $0.01', '150+ paises', 'Suporte multi-moeda', 'Energeticamente eficiente'],
+  en: ['Sub-5s finality', 'Fees < $0.01', 'Global reach, 150+ countries', 'Native multi-asset support', 'Carbon-neutral consensus'],
+  es: ['Finalidad < 5s', 'Comisiones < $0.01', 'Alcance global, 150+ paises', 'Soporte nativo multi-activo', 'Consenso carbono-neutral'],
+  pt: ['Finalidade < 5s', 'Taxas < $0.01', 'Alcance global, 150+ paises', 'Suporte nativo multi-ativo', 'Consenso carbono-neutro'],
 };
 
 export default function About() {

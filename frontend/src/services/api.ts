@@ -6,6 +6,9 @@ import type {
   PublicInvoice,
   CreateInvoiceData,
   PayIntentResponse,
+  CreatePaymentLinkData,
+  PaymentLink,
+  PaymentLinkStatus,
   DashboardStats,
   SavedClient,
   SaveClientData,
@@ -152,6 +155,30 @@ export async function getDashboardStats(
   walletAddress: string
 ): Promise<DashboardStats> {
   return request<DashboardStats>('/invoices/stats', {}, walletAddress);
+}
+
+// Payment Link API ---------------------------------------------------
+
+export async function createLink(
+  data: CreatePaymentLinkData,
+  walletAddress: string
+): Promise<PaymentLink> {
+  return request<PaymentLink>(
+    '/links',
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    },
+    walletAddress
+  );
+}
+
+export async function getLink(id: string): Promise<PaymentLink> {
+  return request<PaymentLink>(`/links/${id}`);
+}
+
+export async function getLinkStatus(id: string): Promise<PaymentLinkStatus> {
+  return request<PaymentLinkStatus>(`/links/${id}/status`);
 }
 
 // Client API ---------------------------------------------------

@@ -56,6 +56,7 @@ export default function App() {
 
           {/* Public payment page (no sidebar layout) */}
           <Route path="/pay/:id" element={<PaymentFlow />} />
+          <Route path="/links/:id" element={<PaymentFlow />} />
 
           {/* Public marketing pages */}
           <Route element={<MarketingLayout />}>
