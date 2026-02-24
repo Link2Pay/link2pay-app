@@ -16,6 +16,8 @@ interface WalletState {
   signMessage: (message: string) => Promise<string>;
   /** Restore connection from persisted state */
   restoreConnection: () => Promise<void>;
+  /** Get the current network from Freighter wallet */
+  getFreighterNetwork: () => Promise<string | null>;
 }
 
 const LANGUAGE_STORAGE_KEY = 'link2pay-language';
@@ -307,6 +309,35 @@ export const useWalletStore = create<WalletState>()(
     } catch (error: any) {
       console.error('[WalletStore] Transaction signing error:', error);
       throw new Error(error.message || getMessage('signTransactionFailed'));
+    }
+  },
+
+  getFreighterNetwork: async () => {
+    try {
+      const freighter = await import('@stellar/freighter-api');
+      const f = freighter as any;
+
+      if (f.getNetworkDetails) {
+        const networkDetails = await f.getNetworkDetails();
+        if (networkDetails && networkDetails.networkPassphrase) {
+          return networkDetails.networkPassphrase;
+        }
+      }
+
+      if (f.getNetwork) {
+        const network = await f.getNetwork();
+        if (typeof network === 'string') {
+          return network;
+        }
+        if (network && network.networkPassphrase) {
+          return network.networkPassphrase;
+        }
+      }
+
+      return null;
+    } catch (error: any) {
+      console.error('[WalletStore] Failed to get Freighter network:', error);
+      return null;
     }
   },
 }),

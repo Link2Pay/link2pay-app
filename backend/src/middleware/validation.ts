@@ -29,6 +29,15 @@ export const createInvoiceSchema = z.object({
   taxRate: z.number().min(0).max(100).optional(),
   discount: z.number().min(0).optional(),
   dueDate: z.string().datetime().optional(),
+  networkPassphrase: z
+    .string()
+    .refine(
+      (val) =>
+        val === 'Test SDF Network ; September 2015' ||
+        val === 'Public Global Stellar Network ; September 2015',
+      { message: 'Invalid network passphrase' }
+    )
+    .optional(),
   saveClient: z.boolean().optional(),
   favoriteClient: z.boolean().optional(),
   lineItems: z.array(lineItemSchema).min(1).max(50),

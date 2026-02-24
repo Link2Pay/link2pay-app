@@ -114,6 +114,9 @@ export class StellarService {
     // Use provided networkPassphrase or fall back to default
     const effectiveNetworkPassphrase = networkPassphrase || this.networkPassphrase;
 
+    console.log('[buildPaymentTransaction] Network:', effectiveNetworkPassphrase);
+    console.log('[buildPaymentTransaction] Sender:', senderPublicKey);
+
     // Validate addresses
     if (!this.isValidAddress(senderPublicKey)) {
       throw new Error('INVALID_SENDER_ADDRESS');
@@ -124,7 +127,11 @@ export class StellarService {
 
     // Load sender account for sequence number (use appropriate Horizon server)
     const server = this.getServerForNetwork(effectiveNetworkPassphrase);
+    const horizonUrl = getHorizonUrl(effectiveNetworkPassphrase);
+    console.log('[buildPaymentTransaction] Horizon URL:', horizonUrl);
+
     const senderAccount = await this.withRetry(() => server.loadAccount(senderPublicKey));
+    console.log('[buildPaymentTransaction] Loaded account, sequence:', senderAccount.sequence);
 
     // Determine asset based on network
     const asset = this.getAsset(assetCode, effectiveNetworkPassphrase);
@@ -222,33 +229,60 @@ export class StellarService {
 
   /**
    * Submit a signed transaction to the network
-   * Automatically detects the network from the transaction XDR
+   * Validates that the signed transaction matches the expected network
    */
-  async submitTransaction(signedXdr: string) {
+  async submitTransaction(signedXdr: string, expectedNetworkPassphrase?: string) {
     try {
-      // Try to parse with testnet passphrase first
       let transaction: StellarSdk.Transaction;
-      let detectedNetworkPassphrase: string;
+      let networkToUse: string;
 
-      try {
-        transaction = StellarSdk.TransactionBuilder.fromXDR(
-          signedXdr,
-          NETWORK_CONFIG.testnet.networkPassphrase
-        ) as StellarSdk.Transaction;
-        detectedNetworkPassphrase = NETWORK_CONFIG.testnet.networkPassphrase;
-      } catch {
-        // If testnet fails, try mainnet
-        transaction = StellarSdk.TransactionBuilder.fromXDR(
-          signedXdr,
-          NETWORK_CONFIG.mainnet.networkPassphrase
-        ) as StellarSdk.Transaction;
-        detectedNetworkPassphrase = NETWORK_CONFIG.mainnet.networkPassphrase;
+      if (expectedNetworkPassphrase) {
+        // Parse with the expected network passphrase from the invoice
+        console.log('[submitTransaction] Expected network from invoice:', expectedNetworkPassphrase);
+        try {
+          transaction = StellarSdk.TransactionBuilder.fromXDR(
+            signedXdr,
+            expectedNetworkPassphrase
+          ) as StellarSdk.Transaction;
+          networkToUse = expectedNetworkPassphrase;
+          console.log('[submitTransaction] Successfully parsed with invoice network');
+        } catch (parseError: any) {
+          // Parsing failed - Freighter signed with wrong network
+          const expectedName = expectedNetworkPassphrase === NETWORK_CONFIG.testnet.networkPassphrase ? 'TESTNET' : 'MAINNET';
+          const wrongName = expectedNetworkPassphrase === NETWORK_CONFIG.testnet.networkPassphrase ? 'MAINNET' : 'TESTNET';
+          console.log('[submitTransaction] Parse failed - Freighter signed with wrong network');
+          throw new Error(
+            `Network mismatch: This invoice requires ${expectedName} but your Freighter wallet signed with ${wrongName}. Please switch your Freighter wallet to ${expectedName}, disconnect and reconnect, then try again.`
+          );
+        }
+      } else {
+        // Fallback: auto-detect for backwards compatibility
+        let detectedNetworkPassphrase: string;
+        try {
+          transaction = StellarSdk.TransactionBuilder.fromXDR(
+            signedXdr,
+            NETWORK_CONFIG.testnet.networkPassphrase
+          ) as StellarSdk.Transaction;
+          detectedNetworkPassphrase = NETWORK_CONFIG.testnet.networkPassphrase;
+        } catch {
+          transaction = StellarSdk.TransactionBuilder.fromXDR(
+            signedXdr,
+            NETWORK_CONFIG.mainnet.networkPassphrase
+          ) as StellarSdk.Transaction;
+          detectedNetworkPassphrase = NETWORK_CONFIG.mainnet.networkPassphrase;
+        }
+        networkToUse = detectedNetworkPassphrase;
+        console.log('[submitTransaction] Auto-detected network:', detectedNetworkPassphrase);
       }
 
-      // Get the appropriate Horizon server for the detected network
-      const server = this.getServerForNetwork(detectedNetworkPassphrase);
+      console.log('[submitTransaction] Transaction sequence:', transaction.sequence);
+      console.log('[submitTransaction] Source account:', transaction.source);
+      const server = this.getServerForNetwork(networkToUse);
+      const horizonUrl = getHorizonUrl(networkToUse);
+      console.log('[submitTransaction] Submitting to Horizon:', horizonUrl);
 
       const result = await server.submitTransaction(transaction);
+      console.log('[submitTransaction] Success! Hash:', result.hash);
       return {
         hash: result.hash,
         ledger: result.ledger,
@@ -256,6 +290,7 @@ export class StellarService {
       };
     } catch (error: any) {
       const resultCodes = error?.response?.data?.extras?.result_codes;
+      console.log('[submitTransaction] FAILED:', resultCodes || error.message);
       throw new Error(
         `Transaction failed: ${JSON.stringify(resultCodes || error.message)}`
       );

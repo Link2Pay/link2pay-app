@@ -52,6 +52,7 @@ const COPY: Record<Language, {
   serviceDescriptionPlaceholder: string;
   taxPlaceholder: string;
   notesPlaceholder: string;
+  networkMismatch: string;
 }> = {
   en: {
     failedCreateInvoice: 'Failed to create invoice',
@@ -91,6 +92,7 @@ const COPY: Record<Language, {
     serviceDescriptionPlaceholder: 'Service description',
     taxPlaceholder: '0',
     notesPlaceholder: 'Payment terms, additional notes...',
+    networkMismatch: 'Network mismatch: You selected {selected} but Freighter wallet is on {freighter}. Please switch your Freighter wallet to {selected}, disconnect and reconnect your wallet.',
   },
   es: {
     failedCreateInvoice: 'No se pudo crear la factura',
@@ -130,6 +132,7 @@ const COPY: Record<Language, {
     serviceDescriptionPlaceholder: 'Descripcion del servicio',
     taxPlaceholder: '0',
     notesPlaceholder: 'Terminos de pago, notas adicionales...',
+    networkMismatch: 'Red incorrecta: Seleccionaste {selected} pero Freighter esta en {freighter}. Por favor cambia tu wallet Freighter a {selected}, desconecta y reconecta tu wallet.',
   },
   pt: {
     failedCreateInvoice: 'Falha ao criar fatura',
@@ -169,12 +172,13 @@ const COPY: Record<Language, {
     serviceDescriptionPlaceholder: 'Descricao do servico',
     taxPlaceholder: '0',
     notesPlaceholder: 'Termos de pagamento, notas adicionais...',
+    networkMismatch: 'Rede incorreta: Voce selecionou {selected} mas Freighter esta em {freighter}. Por favor, mude sua carteira Freighter para {selected}, desconecte e reconecte sua carteira.',
   },
 };
 
 export default function InvoiceForm() {
   const navigate = useNavigate();
-  const { publicKey } = useWalletStore();
+  const { publicKey, getFreighterNetwork } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
   const { language } = useI18n();
   const copy = COPY[language];
@@ -223,6 +227,24 @@ export default function InvoiceForm() {
     setError(null);
 
     try {
+      // Validate that Freighter network matches the selected network
+      const freighterNetwork = await getFreighterNetwork();
+
+      if (freighterNetwork && freighterNetwork !== networkPassphrase) {
+        const selectedName = networkPassphrase.includes('Test') ? 'TESTNET' : 'MAINNET';
+        const freighterName = freighterNetwork.includes('Test') ? 'TESTNET' : 'MAINNET';
+
+        const errorMsg = copy.networkMismatch
+          .replace('{selected}', selectedName)
+          .replace('{freighter}', freighterName)
+          .replace('{selected}', selectedName); // Replace the second occurrence
+
+        setError(errorMsg);
+        toast.error(errorMsg, { duration: 6000 });
+        setIsSubmitting(false);
+        return;
+      }
+
       const invoice = await createInvoice(
         {
           freelancerWallet: publicKey,

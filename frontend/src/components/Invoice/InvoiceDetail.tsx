@@ -422,7 +422,7 @@ export default function InvoiceDetail() {
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-emerald-600">{copy.transactionHash}</span>
               <a
-                href={`https://stellar.expert/explorer/${config.stellarNetwork === 'testnet' ? 'testnet' : 'public'}/tx/${invoice.transactionHash}`}
+                href={`https://stellar.expert/explorer/${invoice.networkPassphrase?.includes('Test') ? 'testnet' : 'public'}/tx/${invoice.transactionHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-mono text-xs text-stellar-600 hover:underline break-all"

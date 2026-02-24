@@ -46,6 +46,7 @@ export interface Invoice {
   transactionHash?: string | null;
   ledgerNumber?: number | null;
   payerWallet?: string | null;
+  networkPassphrase?: string | null;
   lineItems: LineItem[];
 }
 

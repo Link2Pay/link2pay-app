@@ -113,9 +113,13 @@ router.post(
         return res.status(404).json({ error: 'Invoice not found' });
       }
 
-      // Submit to Stellar
+      console.log('[/submit] Invoice network:', invoice.networkPassphrase);
+      console.log('[/submit] Invoice ID:', invoiceId);
+
+      // Submit to Stellar with network validation
       const result = await stellarService.submitTransaction(
-        signedTransactionXdr
+        signedTransactionXdr,
+        invoice.networkPassphrase
       );
 
       if (result.successful) {

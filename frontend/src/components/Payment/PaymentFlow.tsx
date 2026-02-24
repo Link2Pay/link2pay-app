@@ -90,6 +90,11 @@ export default function PaymentFlow() {
         if (detectedPassphrase && invoice.networkPassphrase && detectedPassphrase !== invoice.networkPassphrase) {
           setHasNetworkMismatch(true);
         } else {
+          // Network matches now - if there was a mismatch before, disconnect and reload
+          if (hasNetworkMismatch && detectedPassphrase && invoice.networkPassphrase && detectedPassphrase === invoice.networkPassphrase) {
+            disconnect();
+            setTimeout(() => window.location.reload(), 500);
+          }
           setHasNetworkMismatch(false);
         }
       } catch (err) {
@@ -300,7 +305,11 @@ export default function PaymentFlow() {
                 </div>
 
                 <button
-                  onClick={() => { disconnect(); setHasNetworkMismatch(false); }}
+                  onClick={() => {
+                    disconnect();
+                    setHasNetworkMismatch(false);
+                    setTimeout(() => window.location.reload(), 300);
+                  }}
                   className="btn-secondary text-xs py-1.5 px-3 w-full"
                 >
                   Disconnect wallet and reconnect on correct network
@@ -480,7 +489,7 @@ export default function PaymentFlow() {
                 </div>
                 {txHash && (
                   <a
-                    href={`https://stellar.expert/explorer/${config.stellarNetwork === 'testnet' ? 'testnet' : 'public'}/tx/${txHash}`}
+                    href={`https://stellar.expert/explorer/${invoice.networkPassphrase?.includes('Test') ? 'testnet' : 'public'}/tx/${txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-block text-xs text-stellar-600 hover:underline"
