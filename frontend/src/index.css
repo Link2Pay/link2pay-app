@@ -4,100 +4,129 @@
 
 @layer base {
   :root {
-    --background: 220 60% 6%;
-    --foreground: 210 20% 92%;
+    --background: 219 23% 12%;
+    --foreground: 220 27% 98%;
 
-    --card: 220 45% 10%;
-    --card-foreground: 210 20% 92%;
+    --card: 215 19% 17%;
+    --card-foreground: 220 27% 98%;
 
-    --popover: 220 45% 10%;
-    --popover-foreground: 210 20% 92%;
+    --popover: 215 19% 17%;
+    --popover-foreground: 220 27% 98%;
 
-    --primary: 175 75% 45%;
-    --primary-foreground: 220 60% 6%;
+    --primary: 190 70% 55%;
+    --primary-foreground: 218 24% 9%;
 
-    --secondary: 220 35% 16%;
-    --secondary-foreground: 210 20% 85%;
+    --secondary: 220 23% 15%;
+    --secondary-foreground: 220 27% 98%;
 
-    --muted: 220 30% 14%;
-    --muted-foreground: 215 15% 55%;
+    --muted: 220 23% 15%;
+    --muted-foreground: 214 12% 53%;
 
-    --accent: 175 75% 45%;
-    --accent-foreground: 220 60% 6%;
+    --accent: 199 65% 50%;
+    --accent-foreground: 220 27% 98%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 220 30% 18%;
-    --input: 220 30% 18%;
-    --ring: 175 75% 45%;
+    --border: 215 19% 24%;
+    --input: 215 19% 24%;
+    --ring: 190 70% 55%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 220 50% 8%;
-    --sidebar-foreground: 210 20% 85%;
-    --sidebar-primary: 175 75% 45%;
-    --sidebar-primary-foreground: 220 60% 6%;
-    --sidebar-accent: 220 35% 14%;
-    --sidebar-accent-foreground: 210 20% 92%;
-    --sidebar-border: 220 30% 15%;
-    --sidebar-ring: 175 75% 45%;
+    --sidebar-background: 219 23% 12%;
+    --sidebar-foreground: 220 27% 98%;
+    --sidebar-primary: 190 70% 55%;
+    --sidebar-primary-foreground: 218 24% 9%;
+    --sidebar-accent: 215 19% 17%;
+    --sidebar-accent-foreground: 220 27% 98%;
+    --sidebar-border: 215 19% 24%;
+    --sidebar-ring: 190 70% 55%;
 
     /* Custom tokens */
-    --neon-glow: 175 75% 45%;
-    --neon-glow-subtle: 175 60% 35%;
-    --surface-elevated: 220 40% 12%;
+    --neon-glow: 190 70% 55%;
+    --neon-glow-subtle: 204 64% 51%;
+    --surface-elevated: 215 19% 17%;
+    --surface-strong: 220 23% 15%;
+    --text-secondary: 210 20% 85%;
+    --text-muted: 214 12% 68%;
     --success: 155 70% 45%;
     --success-foreground: 155 90% 95%;
     --warning: 45 90% 55%;
     --warning-foreground: 45 90% 10%;
+
+    /* Brand logo palette (dark mode) */
+    --logo-badge-start: 220 23% 15%;
+    --logo-badge-end: 215 19% 17%;
+    --logo-badge-accent: 190 70% 55%;
+    --logo-ring: 190 70% 55%;
+    --logo-mark-shield: 0 0% 100%;
+    --logo-mark-link: 190 70% 55%;
+    --logo-text-left: 0 0% 100%;
+    --logo-text-right: 190 70% 55%;
+    --logo-text-solid: 0 0% 100%;
+    --logo-text-stroke: 199 65% 50%;
   }
 
   .light {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    --background: 220 27% 98%;
+    --foreground: 219 23% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 219 23% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 219 23% 12%;
 
-    --primary: 175 72% 34%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 190 70% 55%;
+    --primary-foreground: 218 24% 9%;
 
-    --secondary: 210 32% 95%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 204 17% 94%;
+    --secondary-foreground: 219 23% 12%;
 
-    --muted: 210 30% 96%;
-    --muted-foreground: 215 16% 38%;
+    --muted: 204 17% 94%;
+    --muted-foreground: 214 12% 53%;
 
-    --accent: 175 72% 34%;
+    --accent: 199 65% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 26% 88%;
-    --input: 214 26% 88%;
-    --ring: 175 72% 34%;
+    --border: 207 19% 89%;
+    --input: 207 19% 89%;
+    --ring: 199 65% 50%;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 175 72% 34%;
+    --sidebar-foreground: 219 23% 12%;
+    --sidebar-primary: 199 65% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 32% 95%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 26% 88%;
-    --sidebar-ring: 175 72% 34%;
+    --sidebar-accent: 204 17% 94%;
+    --sidebar-accent-foreground: 219 23% 12%;
+    --sidebar-border: 207 19% 89%;
+    --sidebar-ring: 199 65% 50%;
 
-    --neon-glow: 175 72% 34%;
-    --neon-glow-subtle: 175 55% 34%;
-    --surface-elevated: 210 32% 95%;
+    --neon-glow: 190 70% 55%;
+    --neon-glow-subtle: 204 64% 51%;
+    --surface-elevated: 204 17% 94%;
+    --surface-strong: 207 19% 89%;
+    --text-secondary: 214 14% 34%;
+    --text-muted: 214 12% 53%;
     --success: 155 70% 38%;
     --success-foreground: 155 90% 95%;
     --warning: 42 92% 45%;
     --warning-foreground: 42 90% 12%;
+
+    --logo-badge-start: 0 0% 100%;
+    --logo-badge-end: 204 17% 94%;
+    --logo-badge-accent: 199 65% 50%;
+    --logo-ring: 207 19% 89%;
+    --logo-mark-shield: 218 24% 9%;
+    --logo-mark-link: 199 65% 50%;
+    --logo-text-left: 219 23% 12%;
+    --logo-text-right: 199 65% 50%;
+    --logo-text-solid: 219 23% 12%;
+    --logo-text-stroke: 204 64% 51%;
   }
 
   * {
@@ -185,23 +214,23 @@
 
 @layer utilities {
   .neon-border {
-    border: 1px solid hsl(175 75% 45% / 0.3);
+    border: 1px solid hsl(var(--primary) / 0.3);
     box-shadow:
-      0 0 10px hsl(175 75% 45% / 0.05),
-      inset 0 0 10px hsl(175 75% 45% / 0.02);
+      0 0 10px hsl(var(--primary) / 0.06),
+      inset 0 0 10px hsl(var(--primary) / 0.03);
   }
 
   .neon-border-strong {
-    border: 1px solid hsl(175 75% 45% / 0.5);
+    border: 1px solid hsl(var(--primary) / 0.5);
     box-shadow:
-      0 0 20px hsl(175 75% 45% / 0.1),
-      0 0 40px hsl(175 75% 45% / 0.05),
-      inset 0 0 15px hsl(175 75% 45% / 0.03);
+      0 0 20px hsl(var(--primary) / 0.12),
+      0 0 40px hsl(var(--primary) / 0.06),
+      inset 0 0 15px hsl(var(--primary) / 0.04);
   }
 
   .neon-text {
-    color: hsl(175 75% 45%);
-    text-shadow: 0 0 20px hsl(175 75% 45% / 0.4);
+    color: hsl(var(--primary));
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.35);
   }
 
   .glass-card {
@@ -213,13 +242,13 @@
   .gradient-bg {
     background: radial-gradient(
       ellipse at 50% 0%,
-      hsl(175 75% 45% / 0.08) 0%,
+      hsl(var(--primary) / 0.12) 0%,
       transparent 60%
     );
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, hsl(175 75% 55%), hsl(175 75% 40%));
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -272,11 +301,65 @@
   }
 
   .hover-glow:hover {
-    border-color: hsl(175 75% 45% / 0.45);
+    border-color: hsl(var(--primary) / 0.45);
     box-shadow:
-      0 10px 20px hsl(175 75% 45% / 0.08),
-      0 2px 8px hsl(175 75% 45% / 0.1);
+      0 10px 20px hsl(var(--primary) / 0.1),
+      0 2px 8px hsl(var(--primary) / 0.12);
     transform: translateY(-1px);
+  }
+
+  .brand-mark-badge {
+    background: hsl(var(--logo-badge-end));
+    border: 1px solid hsl(var(--logo-ring) / 0.65);
+    box-shadow:
+      0 1px 2px hsl(220 40% 2% / 0.25),
+      inset 0 1px 0 hsl(var(--foreground) / 0.14);
+  }
+
+  .light .brand-mark-badge {
+    background: hsl(var(--logo-badge-start));
+    border-color: hsl(var(--logo-ring) / 0.8);
+    box-shadow:
+      0 1px 2px hsl(210 20% 45% / 0.14),
+      inset 0 1px 0 hsl(0 0% 100% / 0.16);
+  }
+
+  .brand-mark-part {
+    position: absolute;
+    inset: 8%;
+    display: block;
+    pointer-events: none;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    filter: none;
+  }
+
+  .brand-mark-part-shield {
+    background: hsl(var(--logo-mark-shield));
+  }
+
+  .brand-mark-part-link {
+    background: hsl(var(--logo-mark-link));
+  }
+
+  .brand-wordmark {
+    display: inline-flex;
+    align-items: baseline;
+    line-height: 1.08;
+    padding-bottom: 0.03em;
+    gap: 0;
+  }
+
+  .brand-wordmark-left {
+    color: hsl(var(--logo-text-left));
+  }
+
+  .brand-wordmark-right {
+    color: hsl(var(--logo-text-right));
   }
 
   /* ── Horizontal Orbit Flow Hero ── */

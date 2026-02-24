@@ -242,7 +242,7 @@ export default function InvoiceForm() {
       );
 
       toast.success(`Invoice ${invoice.invoiceNumber} created`);
-      navigate(`/dashboard/invoices/${invoice.id}`);
+      navigate(`/dashboard/links/${invoice.id}`);
     } catch (err: any) {
       const msg = err.message || copy.failedCreateInvoice;
       setError(msg);

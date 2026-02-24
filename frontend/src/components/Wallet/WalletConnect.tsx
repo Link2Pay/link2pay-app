@@ -10,27 +10,13 @@ export default function WalletConnect({ variant = 'compact' }: WalletConnectProp
     useWalletStore();
   const { t } = useI18n();
 
-  const truncateAddress = (addr: string) =>
-    `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-
   if (connected && publicKey) {
     if (variant === 'large') return null;
 
     return (
-      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-        <div className="hidden items-center gap-2 rounded-lg border border-surface-3 bg-surface-1 px-3 py-1.5 sm:flex">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
-          <span className="text-sm font-mono text-ink-1">
-            {truncateAddress(publicKey)}
-          </span>
-        </div>
-        <button
-          onClick={disconnect}
-          className="btn-ghost text-xs px-2 py-1"
-        >
-          {t('wallet.disconnect')}
-        </button>
-      </div>
+      <button onClick={disconnect} className="btn-ghost px-2 py-1 text-xs">
+        {t('wallet.disconnect')}
+      </button>
     );
   }
 

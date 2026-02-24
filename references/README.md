@@ -26,6 +26,22 @@ Use this file to track design references for the `frontend/` implementation.
 - `priority`: `high`
 - `notes`: `<extra constraints or observations>`
 
+### 3) link2pay-stellar-dash
+- `path`: `references/link2pay-stellar-dash`
+- `source_url`: `https://github.com/r0bops/link2pay-stellar-dash`
+- `use_for`: `dashboard structure, checkout flow framing, navigation hierarchy`
+- `avoid`: `direct 1:1 UI cloning and non-brand-consistent color choices`
+- `priority`: `high`
+- `notes`: `Treat as visual/UX inspiration and adapt to Link2Pay brand tokens and existing IA.`
+
+### 4) stellar-pay-links
+- `path`: `references/stellar-pay-links`
+- `source_url`: `https://github.com/r0bops/stellar-pay-links`
+- `use_for`: `payment link generation UX, public checkout states, transaction feedback patterns`
+- `avoid`: `copying visual identity directly or deviating from Link2Pay naming and theme tokens`
+- `priority`: `high`
+- `notes`: `Use as product-flow reference while preserving current Link2Pay component style and IA.`
+
 ## Quick Template (Copy/Paste)
 
 ### N) <reference-name>

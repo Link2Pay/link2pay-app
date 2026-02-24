@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
 import LanguageToggle from '../components/LanguageToggle';
+import BrandMark from '../components/BrandMark';
+import BrandWordmark from '../components/BrandWordmark';
 import { useWalletStore } from '../store/walletStore';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
@@ -91,10 +93,10 @@ export default function RoleSelect() {
 
         <div className="animate-in">
           <div className="mb-8 text-center sm:mb-12">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/25">
-              <span className="text-primary-foreground text-xl font-bold font-display">S</span>
-            </div>
-            <h1 className="mb-2 text-2xl font-bold text-foreground font-display sm:text-3xl">Link2Pay</h1>
+            <BrandMark className="mx-auto mb-4 h-14 w-14 rounded-2xl p-2.5 shadow-lg shadow-primary/25" />
+            <h1 className="mb-2 text-2xl font-bold font-display sm:text-3xl">
+              <BrandWordmark />
+            </h1>
             <p className="text-sm text-muted-foreground">{copy.tagline}</p>
           </div>
           <div className="mb-8 grid grid-cols-1 gap-4 md:mb-12 md:grid-cols-2 md:gap-6">
@@ -129,7 +131,7 @@ export default function RoleSelect() {
             </button>
 
             <button
-              onClick={() => navigate('/client')}
+              onClick={() => navigate('/checkout')}
               className="glass-card group p-5 text-left transition-all duration-300 hover:scale-[1.02] neon-border hover:shadow-lg hover:shadow-primary/10 sm:p-8"
             >
               <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center mb-5 group-hover:bg-primary/25 transition-colors">

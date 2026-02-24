@@ -7,21 +7,57 @@ import InvoiceStatusBadge from '../Invoice/InvoiceStatusBadge';
 import WalletConnect from '../Wallet/WalletConnect';
 import LanguageToggle from '../LanguageToggle';
 import ThemeToggle from '../ThemeToggle';
+import BrandMark from '../BrandMark';
+import BrandWordmark from '../BrandWordmark';
 import type { PublicInvoice, InvoiceStatus } from '../../types';
 import { CURRENCY_SYMBOLS, config } from '../../config';
 import { useI18n } from '../../i18n/I18nProvider';
+import type { Language } from '../../i18n/translations';
 
 type PayStep = 'loading' | 'view' | 'connect' | 'paying' | 'confirming' | 'success' | 'error';
+
+type CheckoutStepLabels = {
+  progress: string;
+  loaded: string;
+  wallet: string;
+  signed: string;
+  settled: string;
+};
+
+const CHECKOUT_STEP_LABELS: Record<Language, CheckoutStepLabels> = {
+  en: {
+    progress: 'Checkout progress',
+    loaded: 'Link loaded',
+    wallet: 'Wallet connected',
+    signed: 'Transaction signed',
+    settled: 'Settlement confirmed',
+  },
+  es: {
+    progress: 'Progreso del checkout',
+    loaded: 'Link cargado',
+    wallet: 'Wallet conectada',
+    signed: 'Transaccion firmada',
+    settled: 'Liquidacion confirmada',
+  },
+  pt: {
+    progress: 'Progresso do checkout',
+    loaded: 'Link carregado',
+    wallet: 'Wallet conectada',
+    signed: 'Transacao assinada',
+    settled: 'Liquidacao confirmada',
+  },
+};
 
 export default function PaymentFlow() {
   const { id } = useParams<{ id: string }>();
   const { connected, publicKey, signTransaction } = useWalletStore();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [invoice, setInvoice] = useState<PublicInvoice | null>(null);
   const [step, setStep] = useState<PayStep>('loading');
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [xlmPriceUsd, setXlmPriceUsd] = useState<number | null>(null);
+  const stepLabels = CHECKOUT_STEP_LABELS[language];
 
   useEffect(() => {
     if (!id) return;
@@ -161,6 +197,13 @@ export default function PaymentFlow() {
     return usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
+  const checkoutStage = (() => {
+    if (step === 'success' || invoice?.status === 'PAID') return 3;
+    if (step === 'confirming' || step === 'paying') return 2;
+    if (connected || step === 'view' || step === 'error') return 1;
+    return 0;
+  })();
+
   if (step === 'loading') {
     return (
       <div className="min-h-screen bg-surface-1 flex items-center justify-center p-4">
@@ -187,10 +230,10 @@ export default function PaymentFlow() {
           <ThemeToggle />
         </div>
         <div className="mb-6 text-center">
-          <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-stellar-600 flex items-center justify-center">
-            <span className="text-white text-sm font-bold">S</span>
-          </div>
-          <h1 className="text-lg font-semibold text-ink-0">Link2Pay</h1>
+          <BrandMark className="mx-auto mb-3 h-10 w-10 rounded-xl" />
+          <h1 className="text-lg font-semibold">
+            <BrandWordmark />
+          </h1>
           <p className="text-xs text-ink-3">{t('payment.invoicePayment')}</p>
         </div>
 
@@ -202,6 +245,40 @@ export default function PaymentFlow() {
             </div>
             <h2 className="text-base font-semibold text-ink-0 mb-1">{invoice.title}</h2>
             {invoice.description && <p className="text-sm text-ink-3">{invoice.description}</p>}
+
+            <div className="mt-4 rounded-lg border border-surface-3 bg-surface-1 p-3">
+              <p className="text-[10px] uppercase tracking-wider text-ink-3">{stepLabels.progress}</p>
+              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {[stepLabels.loaded, stepLabels.wallet, stepLabels.signed, stepLabels.settled].map((label, index) => {
+                  const complete = checkoutStage >= index;
+                  return (
+                    <div
+                      key={label}
+                      className={`rounded-md border px-2.5 py-2 ${
+                        complete
+                          ? 'border-emerald-200 bg-emerald-50'
+                          : 'border-surface-3 bg-card'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ${
+                            complete
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-surface-2 text-ink-3'
+                          }`}
+                        >
+                          {complete ? <Check className="h-3 w-3" /> : index + 1}
+                        </span>
+                        <span className={`text-[11px] leading-tight ${complete ? 'text-emerald-700' : 'text-ink-3'}`}>
+                          {label}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 border-b border-surface-3 bg-surface-1 p-4 sm:grid-cols-2 sm:p-6">

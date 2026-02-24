@@ -420,7 +420,7 @@ export default function ClientsPage() {
               )}
 
               <div className="flex items-center justify-end">
-                <Link to={`/dashboard/create?client=${client.id}`} className="btn-secondary px-2.5 py-1.5 text-xs">
+                <Link to={`/dashboard/create-link?client=${client.id}`} className="btn-secondary px-2.5 py-1.5 text-xs">
                   {copy.useInInvoice}
                 </Link>
               </div>

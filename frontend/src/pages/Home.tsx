@@ -17,6 +17,7 @@ import {
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import OrbitProgressHero from '../components/marketing/OrbitProgressHero';
+import InteractiveLinkBuilder from '../components/marketing/InteractiveLinkBuilder';
 
 const FLOW_STEP_ICONS = [Wallet, FileText, Send] as const;
 const BENEFIT_ICONS = [Zap, DollarSign, Globe2, ShieldCheck] as const;
@@ -458,11 +459,11 @@ export default function Home() {
               className="mt-10 flex flex-wrap items-center justify-center gap-4 animate-slide-up"
               style={{ animationDelay: '0.24s' }}
             >
-              <Link to="/get-started" className="btn-primary px-6 py-3.5 text-sm">
+              <Link to="/app" className="btn-primary px-6 py-3.5 text-sm">
                 {copy.heroPrimaryCta}
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link to="/features" className="btn-secondary px-6 py-3.5 text-sm">
+              <Link to="/payment-links" className="btn-secondary px-6 py-3.5 text-sm">
                 {copy.heroSecondaryCta}
               </Link>
             </div>
@@ -488,6 +489,10 @@ export default function Home() {
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <InteractiveLinkBuilder />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
@@ -610,11 +615,11 @@ export default function Home() {
               <h3 className="text-3xl font-semibold text-primary-foreground">{copy.finalTitle}</h3>
               <p className="mt-4 text-base text-primary-foreground/80">{copy.finalDescription}</p>
               <div className="mt-8 flex flex-wrap justify-center gap-4">
-                <Link to="/get-started" className="btn bg-background text-primary hover:bg-muted font-semibold px-6 py-3">
+                <Link to="/app" className="btn bg-background text-primary hover:bg-muted font-semibold px-6 py-3">
                   {copy.finalPrimaryCta}
                   <Rocket className="h-4 w-4" />
                 </Link>
-                <Link to="/pricing" className="btn border border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 px-6 py-3">
+                <Link to="/plans" className="btn border border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 px-6 py-3">
                   {copy.finalSecondaryCta}
                 </Link>
               </div>

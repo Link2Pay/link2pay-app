@@ -344,7 +344,7 @@ export default function About() {
               <h3 className="text-3xl font-semibold text-primary-foreground">{copy.finalTitle}</h3>
               <p className="mt-4 text-base text-primary-foreground/80">{copy.finalDescription}</p>
               <div className="mt-8">
-                <Link to="/get-started" className="btn bg-background text-primary hover:bg-muted font-semibold px-6 py-3">
+                <Link to="/app" className="btn bg-background text-primary hover:bg-muted font-semibold px-6 py-3">
                   {copy.finalCta}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
