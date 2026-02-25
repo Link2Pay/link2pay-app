@@ -38,6 +38,7 @@ const MESSAGES: Record<
   AppLanguage,
   {
     freighterNotDetected: string;
+    siteNotConnected: string;
     publicKeyMissing: string;
     failedConnectWallet: string;
     walletNotConnected: string;
@@ -50,6 +51,7 @@ const MESSAGES: Record<
 > = {
   en: {
     freighterNotDetected: 'Freighter wallet not detected. Please install the Freighter browser extension.',
+    siteNotConnected: 'This site is not connected to Freighter. Open Freighter and allow access, then try again.',
     publicKeyMissing: 'Could not get public key. Please unlock Freighter and try again.',
     failedConnectWallet: 'Failed to connect wallet',
     walletNotConnected: 'Wallet not connected',
@@ -61,6 +63,7 @@ const MESSAGES: Record<
   },
   es: {
     freighterNotDetected: 'No se detecto Freighter. Instala la extension de Freighter en tu navegador.',
+    siteNotConnected: 'Este sitio no esta conectado a Freighter. Abre Freighter y permite el acceso, luego intenta de nuevo.',
     publicKeyMissing: 'No se pudo obtener la clave publica. Desbloquea Freighter e intenta de nuevo.',
     failedConnectWallet: 'No se pudo conectar la wallet',
     walletNotConnected: 'Wallet no conectada',
@@ -72,6 +75,7 @@ const MESSAGES: Record<
   },
   pt: {
     freighterNotDetected: 'Freighter nao foi detectado. Instale a extensao Freighter no navegador.',
+    siteNotConnected: 'Este site nao esta conectado ao Freighter. Abra o Freighter e permita o acesso, depois tente novamente.',
     publicKeyMissing: 'Nao foi possivel obter a chave publica. Desbloqueie o Freighter e tente novamente.',
     failedConnectWallet: 'Falha ao conectar a wallet',
     walletNotConnected: 'Wallet nao conectada',
@@ -115,6 +119,100 @@ function normalizeFreighterNetwork(value: unknown): string | null {
   return null;
 }
 
+function extractFreighterAddress(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return /^G[A-Z2-7]{55}$/.test(trimmed) ? trimmed : null;
+  }
+
+  if (typeof value === 'object' && value !== null && 'address' in value) {
+    const address = (value as { address?: unknown }).address;
+    return typeof address === 'string' && /^G[A-Z2-7]{55}$/.test(address)
+      ? address
+      : null;
+  }
+
+  return null;
+}
+
+async function isFreighterInstalled(f: any): Promise<boolean> {
+  if (typeof f.isConnected !== 'function') return true;
+  try {
+    return Boolean(await f.isConnected());
+  } catch {
+    return false;
+  }
+}
+
+async function hasFreighterSiteAccess(f: any): Promise<boolean> {
+  const installed = await isFreighterInstalled(f);
+  if (!installed) return false;
+
+  if (typeof f.isAllowed !== 'function') {
+    return true;
+  }
+
+  try {
+    return Boolean(await f.isAllowed());
+  } catch {
+    return false;
+  }
+}
+
+async function ensureFreighterSiteAccess(f: any): Promise<void> {
+  const installed = await isFreighterInstalled(f);
+  if (!installed) {
+    throw new Error(getMessage('freighterNotDetected'));
+  }
+
+  if (typeof f.isAllowed === 'function') {
+    const alreadyAllowed = await hasFreighterSiteAccess(f);
+    if (alreadyAllowed) return;
+
+    if (typeof f.setAllowed === 'function') {
+      try {
+        const granted = await f.setAllowed();
+        if (granted) return;
+      } catch {
+        // Fall through to requestAccess
+      }
+    }
+
+    if (typeof f.requestAccess === 'function') {
+      await f.requestAccess();
+    }
+
+    const allowedAfterPrompt = await hasFreighterSiteAccess(f);
+    if (!allowedAfterPrompt) {
+      throw new Error(getMessage('siteNotConnected'));
+    }
+    return;
+  }
+
+  if (typeof f.requestAccess === 'function') {
+    await f.requestAccess();
+  }
+}
+
+async function getFreighterPublicKey(f: any): Promise<string | null> {
+  if (typeof f.getAddress === 'function') {
+    const addressResult = await f.getAddress();
+    const parsed = extractFreighterAddress(addressResult);
+    if (parsed) return parsed;
+  }
+
+  if (typeof f.getPublicKey === 'function') {
+    const publicKeyResult = await f.getPublicKey();
+    const parsed = extractFreighterAddress(publicKeyResult);
+    if (parsed) return parsed;
+    if (typeof publicKeyResult === 'string' && /^G[A-Z2-7]{55}$/.test(publicKeyResult)) {
+      return publicKeyResult;
+    }
+  }
+
+  return null;
+}
+
 export const useWalletStore = create<WalletState>()(
   persist(
     (set, get) => ({
@@ -132,29 +230,15 @@ export const useWalletStore = create<WalletState>()(
           const freighter = await import('@stellar/freighter-api');
           const f = freighter as any;
 
-          // Check if Freighter is still accessible
-          const isConnected = await freighter.isConnected();
-          if (!isConnected) {
+          // Restore only when this site still has access in Freighter.
+          const hasAccess = await hasFreighterSiteAccess(f);
+          if (!hasAccess) {
             // Freighter not available, clear stored state
             set({ publicKey: null, connected: false });
             return;
           }
 
-          // Try to get the current address from Freighter
-          let currentPublicKey: string | null = null;
-
-          if (f.getAddress) {
-            const addressResult = await f.getAddress();
-            if (addressResult && typeof addressResult === 'object' && 'address' in addressResult) {
-              currentPublicKey = addressResult.address;
-            } else if (typeof addressResult === 'string') {
-              currentPublicKey = addressResult;
-            }
-          }
-
-          if (!currentPublicKey && f.getPublicKey) {
-            currentPublicKey = await f.getPublicKey();
-          }
+          const currentPublicKey = await getFreighterPublicKey(f);
 
           // If the current Freighter account matches our stored one, restore the connection
           if (currentPublicKey === state.publicKey) {
@@ -173,37 +257,10 @@ export const useWalletStore = create<WalletState>()(
     set({ isConnecting: true, error: null });
     try {
       const freighter = await import('@stellar/freighter-api');
-
-      // Check if Freighter is installed
-      const isConnected = await freighter.isConnected();
-      if (!isConnected) {
-        throw new Error(getMessage('freighterNotDetected'));
-      }
-
-      // Request access first (this triggers the Freighter popup)
       const f = freighter as any;
 
-      if (f.requestAccess) {
-        await f.requestAccess();
-      }
-
-      // Get the public key - try the new API first, fall back to legacy
-      let publicKey: string | null = null;
-
-      if (f.getAddress) {
-        // New API (Freighter v5+)
-        const addressResult = await f.getAddress();
-        if (addressResult && typeof addressResult === 'object' && 'address' in addressResult) {
-          publicKey = addressResult.address;
-        } else if (typeof addressResult === 'string') {
-          publicKey = addressResult;
-        }
-      }
-
-      if (!publicKey && f.getPublicKey) {
-        // Legacy API (Freighter v2)
-        publicKey = await f.getPublicKey();
-      }
+      await ensureFreighterSiteAccess(f);
+      const publicKey = await getFreighterPublicKey(f);
 
       if (!publicKey) {
         throw new Error(getMessage('publicKeyMissing'));
@@ -245,14 +302,18 @@ export const useWalletStore = create<WalletState>()(
   },
 
   signMessage: async (message: string) => {
-    const state = get();
-    if (!state.connected) {
+    if (!get().connected || !get().publicKey) {
+      await get().connect();
+    }
+
+    if (!get().connected || !get().publicKey) {
       throw new Error(getMessage('walletNotConnected'));
     }
 
     try {
       const freighter = await import('@stellar/freighter-api');
       const f = freighter as any;
+      await ensureFreighterSiteAccess(f);
 
       // Freighter v5+ signMessage — signs arbitrary bytes, returns Uint8Array
       if (f.signMessage) {
@@ -307,13 +368,17 @@ export const useWalletStore = create<WalletState>()(
   },
 
   signTransaction: async (xdr: string, networkPassphraseOverride?: string) => {
-    const state = get();
-    if (!state.connected) {
+    if (!get().connected || !get().publicKey) {
+      await get().connect();
+    }
+
+    if (!get().connected || !get().publicKey) {
       throw new Error(getMessage('walletNotConnected'));
     }
 
     try {
       const freighter = await import('@stellar/freighter-api');
+      await ensureFreighterSiteAccess(freighter as any);
 
       let signedXdr: string;
 
@@ -375,7 +440,6 @@ export const useWalletStore = create<WalletState>()(
       name: 'link2pay-wallet-storage',
       partialize: (state) => ({
         publicKey: state.publicKey,
-        connected: state.connected,
       }),
     }
   )
