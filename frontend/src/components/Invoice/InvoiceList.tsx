@@ -26,51 +26,51 @@ const COPY: Record<Language, {
   colDate: string;
 }> = {
   en: {
-    title: 'Invoices',
-    newInvoice: 'New Invoice',
+    title: 'Payment Links',
+    newInvoice: 'New Link',
     all: 'All',
     draft: 'Draft',
     pending: 'Pending',
     paid: 'Paid',
     failed: 'Failed',
-    loadingInvoices: 'Loading invoices...',
-    noInvoicesFound: 'No invoices found',
-    createFirstInvoice: 'Create Your First Invoice',
-    colInvoice: 'Invoice',
+    loadingInvoices: 'Loading payment links...',
+    noInvoicesFound: 'No payment links found',
+    createFirstInvoice: 'Create Your First Link',
+    colInvoice: 'Link',
     colClient: 'Client',
     colStatus: 'Status',
     colAmount: 'Amount',
     colDate: 'Date',
   },
   es: {
-    title: 'Facturas',
-    newInvoice: 'Nueva factura',
+    title: 'Links de pago',
+    newInvoice: 'Nuevo link',
     all: 'Todas',
     draft: 'Borrador',
     pending: 'Pendiente',
     paid: 'Pagada',
     failed: 'Fallida',
-    loadingInvoices: 'Cargando facturas...',
-    noInvoicesFound: 'No se encontraron facturas',
-    createFirstInvoice: 'Crear primera factura',
-    colInvoice: 'Factura',
+    loadingInvoices: 'Cargando links de pago...',
+    noInvoicesFound: 'No se encontraron links de pago',
+    createFirstInvoice: 'Crear primer link',
+    colInvoice: 'Link',
     colClient: 'Cliente',
     colStatus: 'Estado',
     colAmount: 'Monto',
     colDate: 'Fecha',
   },
   pt: {
-    title: 'Faturas',
-    newInvoice: 'Nova fatura',
+    title: 'Links de pagamento',
+    newInvoice: 'Novo link',
     all: 'Todas',
     draft: 'Rascunho',
     pending: 'Pendente',
     paid: 'Paga',
     failed: 'Falhou',
-    loadingInvoices: 'Carregando faturas...',
-    noInvoicesFound: 'Nenhuma fatura encontrada',
-    createFirstInvoice: 'Criar primeira fatura',
-    colInvoice: 'Fatura',
+    loadingInvoices: 'Carregando links de pagamento...',
+    noInvoicesFound: 'Nenhum link de pagamento encontrado',
+    createFirstInvoice: 'Criar primeiro link',
+    colInvoice: 'Link',
     colClient: 'Cliente',
     colStatus: 'Status',
     colAmount: 'Valor',
@@ -141,7 +141,7 @@ export default function InvoiceList() {
     <div className="animate-in">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
-        <Link to="/dashboard/create" className="btn-primary w-full text-sm sm:w-auto">
+        <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
           + {copy.newInvoice}
         </Link>
       </div>
@@ -167,7 +167,7 @@ export default function InvoiceList() {
       ) : invoices.length === 0 ? (
         <div className="card p-12 text-center">
           <p className="text-ink-3 text-sm mb-3">{copy.noInvoicesFound}</p>
-          <Link to="/dashboard/create" className="btn-primary text-sm">
+          <Link to="/dashboard/create-link" className="btn-primary text-sm">
             {copy.createFirstInvoice}
           </Link>
         </div>
@@ -188,7 +188,7 @@ export default function InvoiceList() {
                 {invoices.map((invoice) => (
                   <tr key={invoice.id} className="hover:bg-surface-1 transition-colors">
                     <td className="px-4 py-3">
-                      <Link to={`/dashboard/invoices/${invoice.id}`} className="text-sm font-medium text-stellar-600 hover:text-stellar-700">
+                      <Link to={`/dashboard/links/${invoice.id}`} className="text-sm font-medium text-stellar-600 hover:text-stellar-700">
                         {invoice.invoiceNumber}
                       </Link>
                       <p className="text-xs text-ink-3 mt-0.5">{invoice.title}</p>

@@ -214,7 +214,7 @@ export default function InvoiceDetail() {
     try {
       await deleteInvoice(invoice.id, publicKey);
       toast.success(`Invoice ${invoice.invoiceNumber} deleted`);
-      navigate('/dashboard/invoices');
+      navigate('/dashboard/links');
     } catch (err: any) {
       const msg = err.message || 'Failed to delete invoice';
       setError(msg);
@@ -273,7 +273,7 @@ export default function InvoiceDetail() {
     return (
       <div className="text-center py-20">
         <p className="text-danger text-sm mb-3">{error || copy.invoiceNotFound}</p>
-        <Link to="/dashboard/invoices" className="btn-secondary text-sm">
+        <Link to="/dashboard/links" className="btn-secondary text-sm">
           {copy.backToInvoices}
         </Link>
       </div>

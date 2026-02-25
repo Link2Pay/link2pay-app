@@ -4,16 +4,16 @@ import type { Language } from '../i18n/translations';
 
 const COPY: Record<Language, { title: string; subtitle: string }> = {
   en: {
-    title: 'Create Invoice',
-    subtitle: 'Fill in the details below to create a new invoice',
+    title: 'Create Payment Link',
+    subtitle: 'Fill in the details below to create a new payment link',
   },
   es: {
-    title: 'Crear factura',
-    subtitle: 'Completa los detalles para crear una nueva factura',
+    title: 'Crear link de pago',
+    subtitle: 'Completa los detalles para crear un nuevo link de pago',
   },
   pt: {
-    title: 'Criar fatura',
-    subtitle: 'Preencha os detalhes abaixo para criar uma nova fatura',
+    title: 'Criar link de pagamento',
+    subtitle: 'Preencha os detalhes abaixo para criar um novo link de pagamento',
   },
 };
 

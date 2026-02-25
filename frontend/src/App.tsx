@@ -4,6 +4,9 @@ import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Clients from './pages/Clients';
+import Transactions from './pages/Transactions';
+import ApiKeys from './pages/ApiKeys';
+import Analytics from './pages/Analytics';
 import CreateInvoice from './pages/CreateInvoice';
 import InvoiceList from './components/Invoice/InvoiceList';
 import InvoiceDetail from './components/Invoice/InvoiceDetail';
@@ -29,7 +32,7 @@ const queryClient = new QueryClient({
 
 function LegacyInvoiceRedirect() {
   const { id } = useParams<{ id: string }>();
-  return <Navigate to={id ? `/dashboard/invoices/${id}` : '/dashboard/invoices'} replace />;
+  return <Navigate to={id ? `/dashboard/links/${id}` : '/dashboard/links'} replace />;
 }
 
 export default function App() {
@@ -48,39 +51,55 @@ export default function App() {
       />
       <BrowserRouter>
         <Routes>
-          {/* Role selection (gateway to dashboard) */}
-          <Route path="/get-started" element={<RoleSelect />} />
+          {/* Role selection (gateway to app) */}
+          <Route path="/app" element={<RoleSelect />} />
 
-          {/* Client invoice lookup */}
-          <Route path="/client" element={<ClientInvoiceLookup />} />
+          {/* Checkout lookup */}
+          <Route path="/checkout" element={<ClientInvoiceLookup />} />
 
           {/* Freelancer registration */}
           <Route path="/register" element={<Register />} />
 
           {/* Public payment page (no sidebar layout) */}
           <Route path="/pay/:id" element={<PaymentFlow />} />
+          <Route path="/links/:id" element={<PaymentFlow />} />
 
           {/* Public marketing pages */}
           <Route element={<MarketingLayout />}>
             <Route path="/" element={<Home />} />
-            <Route path="/features" element={<Features />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/about" element={<About />} />
+            <Route path="/payment-links" element={<Features />} />
+            <Route path="/plans" element={<Pricing />} />
+            <Route path="/why-link2pay" element={<About />} />
           </Route>
 
           {/* App routes with sidebar layout */}
           <Route path="/dashboard" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="clients" element={<Clients />} />
-            <Route path="invoices" element={<InvoiceList />} />
-            <Route path="invoices/:id" element={<InvoiceDetail />} />
-            <Route path="create" element={<CreateInvoice />} />
+            <Route path="transactions" element={<Transactions />} />
+            <Route path="links" element={<InvoiceList />} />
+            <Route path="links/:id" element={<InvoiceDetail />} />
+            <Route path="api-keys" element={<ApiKeys />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="profile-options" element={<Navigate to="/dashboard" replace />} />
+            <Route path="create-link" element={<CreateInvoice />} />
+
+            {/* Backward-compatible nested redirects */}
+            <Route path="invoices" element={<Navigate to="/dashboard/links" replace />} />
+            <Route path="invoices/:id" element={<LegacyInvoiceRedirect />} />
+            <Route path="create" element={<Navigate to="/dashboard/create-link" replace />} />
           </Route>
 
           {/* Backward-compatible redirects */}
-          <Route path="/invoices" element={<Navigate to="/dashboard/invoices" replace />} />
+          <Route path="/features" element={<Navigate to="/payment-links" replace />} />
+          <Route path="/pricing" element={<Navigate to="/plans" replace />} />
+          <Route path="/about" element={<Navigate to="/why-link2pay" replace />} />
+          <Route path="/get-started" element={<Navigate to="/app" replace />} />
+          <Route path="/payer" element={<Navigate to="/checkout" replace />} />
+          <Route path="/client" element={<Navigate to="/checkout" replace />} />
+          <Route path="/invoices" element={<Navigate to="/dashboard/links" replace />} />
           <Route path="/invoices/:id" element={<LegacyInvoiceRedirect />} />
-          <Route path="/create" element={<Navigate to="/dashboard/create" replace />} />
+          <Route path="/create" element={<Navigate to="/dashboard/create-link" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

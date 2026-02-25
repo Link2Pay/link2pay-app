@@ -2,10 +2,9 @@
 
 # Link2Pay
 
-**Decentralized Invoice & Payment Platform on Stellar**
+**Payment Links Infrastructure on Stellar**
 
-Create professional invoices, share payment links, and receive instant crypto payments —
-non-custodial, settled natively on the Stellar network.
+Create hosted crypto checkout links, embed payment flows in your app, and receive instant on-chain confirmation.
 
 [![Stellar](https://img.shields.io/badge/Stellar-Testnet%20%2F%20Mainnet-blue?logo=stellar)](https://stellar.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6?logo=typescript)](https://www.typescriptlang.org/)
@@ -40,7 +39,7 @@ non-custodial, settled natively on the Stellar network.
 
 ## Overview
 
-**Link2Pay** is a full-stack decentralized invoicing platform built on the Stellar blockchain. A freelancer creates an invoice, shares a payment link, and the client pays directly using their Freighter wallet. Payments settle natively on Stellar in 3–5 seconds with near-zero fees — no intermediary, no custodial risk, no chargebacks.
+**Link2Pay** is a full-stack payment-link infrastructure platform built on Stellar. Builders create a payment link (payment intent), redirect users to hosted checkout, and track confirmation through API status polling. Payments settle in 3–5 seconds with near-zero network fees.
 
 ### The Problem
 

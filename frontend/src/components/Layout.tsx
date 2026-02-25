@@ -1,24 +1,35 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { FilePlus2, LayoutDashboard, Receipt, Users } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  BarChart3,
+  FilePlus2,
+  KeyRound,
+  LayoutDashboard,
+  Receipt,
+} from 'lucide-react';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
 import WalletConnect from './Wallet/WalletConnect';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 import NetworkToggle from './NetworkToggle';
+import BrandMark from './BrandMark';
+import BrandWordmark from './BrandWordmark';
 import { useI18n } from '../i18n/I18nProvider';
 
 export default function Layout() {
   const location = useLocation();
-  const { connected } = useWalletStore();
+  const { connected, publicKey } = useWalletStore();
   const { network } = useNetworkStore();
   const { t } = useI18n();
 
   const navItems = [
     { path: '/dashboard', label: t('layout.nav.dashboard'), icon: LayoutDashboard },
-    { path: '/dashboard/clients', label: t('layout.nav.clients'), icon: Users },
-    { path: '/dashboard/invoices', label: t('layout.nav.invoices'), icon: Receipt },
-    { path: '/dashboard/create', label: t('layout.nav.createInvoice'), icon: FilePlus2 },
+    { path: '/dashboard/transactions', label: t('layout.nav.transactions'), icon: ArrowLeftRight },
+    { path: '/dashboard/links', label: t('layout.nav.invoices'), icon: Receipt },
+    { path: '/dashboard/api-keys', label: t('layout.nav.apiKeys'), icon: KeyRound },
+    { path: '/dashboard/analytics', label: t('layout.nav.analytics'), icon: BarChart3 },
+    { path: '/dashboard/create-link', label: t('layout.nav.createInvoice'), icon: FilePlus2 },
   ];
 
   const isActivePath = (path: string) =>
@@ -26,21 +37,22 @@ export default function Layout() {
       ? location.pathname === '/dashboard'
       : location.pathname.startsWith(path);
 
+  const shortenAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
+  const profileInitial = (publicKey?.[0] || 'L').toUpperCase();
+
   return (
     <div className="min-h-screen md:flex">
       <aside className="hidden border-r border-sidebar-border bg-sidebar md:fixed md:z-10 md:flex md:h-full md:w-64 md:flex-col">
         <div className="border-b border-sidebar-border px-6 py-5">
-          <Link to="/dashboard" className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <span className="text-sm font-bold text-primary-foreground">S</span>
-            </div>
-            <div>
-              <h1 className="leading-none text-base font-semibold text-foreground">Link2Pay</h1>
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                {t('layout.invoicePlatform')}
-              </span>
-            </div>
-          </Link>
+          <div>
+            <Link to="/dashboard" className="inline-flex items-center gap-2">
+              <BrandMark className="h-9 w-9 rounded-lg" />
+              <BrandWordmark className="text-lg font-semibold leading-snug" />
+            </Link>
+            <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">
+              {t('layout.invoicePlatform')}
+            </span>
+          </div>
         </div>
 
         <nav className="flex-1 px-3 py-4">
@@ -69,7 +81,11 @@ export default function Layout() {
 
         <div className="border-t border-sidebar-border px-4 py-3">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className={`h-2 w-2 rounded-full animate-pulse-slow ${network === 'testnet' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+            <span
+              className={`h-2 w-2 rounded-full animate-pulse-slow ${
+                network === 'testnet' ? 'bg-emerald-400' : 'bg-amber-400'
+              }`}
+            />
             {network === 'testnet' ? 'Stellar Testnet' : 'Stellar Mainnet'}
           </div>
         </div>
@@ -77,12 +93,19 @@ export default function Layout() {
 
       <main className="flex-1 md:ml-64">
         <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md">
-          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-6 md:px-8">
-            <Link to="/" className="text-sm text-muted-foreground transition-colors hover:text-primary">
-              {t('layout.backToSite')}
-            </Link>
+          <div className="flex flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-6 md:px-8">
             <div className="flex flex-wrap items-center justify-end gap-2">
-              <NetworkToggle />
+              {connected && publicKey && (
+                <div className="flex items-center gap-2 rounded-full border border-surface-3 bg-surface-1 px-2 py-1">
+                  <span className="hidden font-mono text-xs text-ink-2 min-[420px]:inline">
+                    {shortenAddress(publicKey)}
+                  </span>
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+                    {profileInitial}
+                  </span>
+                </div>
+              )}
+              <NetworkToggle compact />
               <LanguageToggle />
               <ThemeToggle />
               <WalletConnect />
