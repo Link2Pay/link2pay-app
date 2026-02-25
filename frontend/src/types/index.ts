@@ -146,6 +146,7 @@ export interface CreatePaymentLinkData {
   asset: Currency;
   recipientWallet?: string;
   expiresAt?: string;
+  networkPassphrase?: string;
   metadata?: {
     title?: string;
     description?: string;

@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import { config } from '../config';
 import { invoiceService } from '../services/invoiceService';
 import {
@@ -49,17 +50,31 @@ function extractReference(notes?: string | null): string | null {
 const router = Router();
 
 /**
+ * Per-wallet payment link creation rate limiter.
+ * Keeps link creation abuse in check while preserving normal traffic.
+ */
+const createLinkLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 60,
+  keyGenerator: (req) => (req as any).walletAddress || req.ip || 'unknown',
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Payment link creation limit reached. Maximum 60 links per hour per wallet.' },
+});
+
+/**
  * POST /api/links
  * Create a payment link (payment intent) and return hosted checkout URL.
  */
 router.post(
   '/',
   requireWallet,
+  createLinkLimiter,
   validateBody(createPaymentLinkSchema),
   async (req: Request, res: Response) => {
     try {
       const walletAddress = (req as any).walletAddress as string;
-      const { amount, asset, recipientWallet, expiresAt, metadata } = req.body;
+      const { amount, asset, recipientWallet, expiresAt, metadata, networkPassphrase } = req.body;
 
       const targetWallet = recipientWallet ?? walletAddress;
       if (targetWallet !== walletAddress) {
@@ -93,6 +108,7 @@ router.post(
         description,
         notes: reference ? `Reference: ${reference}` : undefined,
         currency: asset,
+        networkPassphrase,
         dueDate: expirationDate.toISOString(),
         lineItems: [
           {

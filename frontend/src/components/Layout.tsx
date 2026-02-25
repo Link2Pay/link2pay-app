@@ -55,7 +55,7 @@ export default function Layout() {
           </div>
         </div>
 
-        <nav className="flex-1 px-3 py-4">
+        <nav aria-label="Main navigation" className="flex-1 px-3 py-4">
           <div className="space-y-1">
             {navItems.map((item) => {
               const isActive = isActivePath(item.path);
@@ -71,7 +71,7 @@ export default function Layout() {
                       : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
                   }`}
                 >
-                  <Icon className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <Icon aria-hidden="true" className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                   {item.label}
                 </Link>
               );
@@ -114,7 +114,7 @@ export default function Layout() {
         </header>
 
         <div className="border-b border-border bg-background/70 px-3 py-2 backdrop-blur md:hidden">
-          <nav className="flex items-center gap-1 overflow-x-auto">
+          <nav aria-label="Mobile navigation" className="flex items-center gap-1 overflow-x-auto">
             {navItems.map((item) => {
               const isActive = isActivePath(item.path);
               const Icon = item.icon;
@@ -130,7 +130,7 @@ export default function Layout() {
                   }`}
                 >
                   <span className="inline-flex items-center gap-1.5">
-                    <Icon className="h-3.5 w-3.5" />
+                    <Icon aria-hidden="true" className="h-3.5 w-3.5" />
                     {item.label}
                   </span>
                 </Link>

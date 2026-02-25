@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Check, X, AlertCircle } from 'lucide-react';
+import { Check, X, AlertCircle, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { getInvoice, createPayIntent, submitPayment, getPaymentStatus, getXlmPrice } from '../../services/api';
 import { useWalletStore } from '../../store/walletStore';
 import InvoiceStatusBadge from '../Invoice/InvoiceStatusBadge';
@@ -37,15 +37,15 @@ const CHECKOUT_STEP_LABELS: Record<Language, CheckoutStepLabels> = {
     progress: 'Progreso del checkout',
     loaded: 'Link cargado',
     wallet: 'Wallet conectada',
-    signed: 'Transaccion firmada',
-    settled: 'Liquidacion confirmada',
+    signed: 'Transacción firmada',
+    settled: 'Liquidación confirmada',
   },
   pt: {
     progress: 'Progresso do checkout',
     loaded: 'Link carregado',
     wallet: 'Wallet conectada',
-    signed: 'Transacao assinada',
-    settled: 'Liquidacao confirmada',
+    signed: 'Transação assinada',
+    settled: 'Liquidação confirmada',
   },
 };
 
@@ -60,6 +60,7 @@ export default function PaymentFlow() {
   const [xlmPriceUsd, setXlmPriceUsd] = useState<number | null>(null);
   const [freighterNetwork, setFreighterNetwork] = useState<string | null>(null);
   const [hasNetworkMismatch, setHasNetworkMismatch] = useState(false);
+  const [showMismatchDetails, setShowMismatchDetails] = useState(false);
   const stepLabels = CHECKOUT_STEP_LABELS[language];
 
   useEffect(() => {
@@ -309,33 +310,52 @@ export default function PaymentFlow() {
         {hasNetworkMismatch && freighterNetwork && invoice && (
           <div className="mb-4 rounded-lg border-2 border-red-300 bg-red-50 p-4 shadow-lg">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-bold text-red-900 mb-2">
-                  ⚠️ Network Mismatch - Payment Blocked
+                  {t('payment.networkMismatchTitle')}
                 </h3>
                 <p className="text-xs text-red-800 mb-3">
-                  Your <span className="font-bold">Freighter wallet</span> is connected to{' '}
-                  <span className="font-bold bg-red-200 px-1.5 py-0.5 rounded">
-                    {freighterNetwork === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet'}
-                  </span>
-                  , but this invoice requires{' '}
-                  <span className="font-bold bg-red-200 px-1.5 py-0.5 rounded">
-                    {invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet'}
-                  </span>.
+                  {t('payment.networkMismatchDesc', {
+                    current: freighterNetwork === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet',
+                    required: invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet',
+                  })}
                 </p>
 
-                <div className="bg-white border border-red-200 rounded-lg p-3 mb-3">
+                {/* Collapsible instructions — always visible on md+, toggle on mobile */}
+                <div className="hidden md:block bg-white border border-red-200 rounded-lg p-3 mb-3">
                   <p className="text-xs font-semibold text-red-900 mb-2">
-                    📋 How to switch Freighter to {invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet'}:
+                    {t('payment.switchInstructions', { network: invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet' })}
                   </p>
                   <ol className="text-xs text-red-800 space-y-1.5 ml-4 list-decimal">
-                    <li>Click the <span className="font-semibold">Freighter extension</span> in your browser</li>
-                    <li>Click the <span className="font-semibold">Settings icon</span> (gear/cog) in the top right</li>
-                    <li>Find <span className="font-semibold">"Network"</span> section</li>
-                    <li>Select <span className="font-bold bg-red-100 px-1 rounded">{invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet'}</span></li>
-                    <li>This page will detect the change automatically and allow payment</li>
+                    <li>{t('payment.switchStep1')}</li>
+                    <li>{t('payment.switchStep2')}</li>
+                    <li>{t('payment.switchStep3')}</li>
+                    <li>{t('payment.switchStep4', { network: invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet' })}</li>
+                    <li>{t('payment.switchStep5')}</li>
                   </ol>
+                </div>
+
+                {/* Mobile: collapsible */}
+                <div className="md:hidden mb-3">
+                  <button
+                    onClick={() => setShowMismatchDetails(!showMismatchDetails)}
+                    className="flex items-center gap-1 text-xs font-semibold text-red-700 hover:text-red-900"
+                  >
+                    {showMismatchDetails ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                    {t('payment.showInstructions')}
+                  </button>
+                  {showMismatchDetails && (
+                    <div className="mt-2 bg-white border border-red-200 rounded-lg p-3">
+                      <ol className="text-xs text-red-800 space-y-1.5 ml-4 list-decimal">
+                        <li>{t('payment.switchStep1')}</li>
+                        <li>{t('payment.switchStep2')}</li>
+                        <li>{t('payment.switchStep3')}</li>
+                        <li>{t('payment.switchStep4', { network: invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet' })}</li>
+                        <li>{t('payment.switchStep5')}</li>
+                      </ol>
+                    </div>
+                  )}
                 </div>
 
                 <button
@@ -346,7 +366,7 @@ export default function PaymentFlow() {
                   }}
                   className="btn-secondary text-xs py-1.5 px-3 w-full"
                 >
-                  Disconnect wallet and reconnect on correct network
+                  {t('payment.disconnectReconnect')}
                 </button>
               </div>
             </div>
@@ -461,6 +481,14 @@ export default function PaymentFlow() {
             {step === 'connect' && (
               <div className="text-center space-y-4">
                 <p className="text-sm text-ink-2">{t('payment.connectWalletPrompt')}</p>
+                {invoice.networkPassphrase && (
+                  <div className="inline-flex items-center gap-1.5 rounded-md border border-surface-3 bg-surface-1 px-3 py-1.5 text-xs text-ink-2">
+                    <Info className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                    {invoice.networkPassphrase === 'Test SDF Network ; September 2015'
+                      ? t('payment.requiresTestnet')
+                      : t('payment.requiresMainnet')}
+                  </div>
+                )}
                 <WalletConnect variant="large" />
               </div>
             )}
@@ -487,8 +515,8 @@ export default function PaymentFlow() {
             )}
 
             {step === 'paying' && (
-              <div className="text-center space-y-3 py-4">
-                <svg className="animate-spin h-8 w-8 text-stellar-500 mx-auto" viewBox="0 0 24 24">
+              <div role="status" aria-live="polite" className="text-center space-y-3 py-4">
+                <svg aria-hidden="true" className="animate-spin h-8 w-8 text-stellar-500 mx-auto" viewBox="0 0 24 24">
                   <circle
                     className="opacity-25"
                     cx="12"
@@ -510,8 +538,8 @@ export default function PaymentFlow() {
             )}
 
             {step === 'confirming' && (
-              <div className="text-center space-y-3 py-4">
-                <svg className="animate-spin h-8 w-8 text-stellar-500 mx-auto" viewBox="0 0 24 24">
+              <div role="status" aria-live="polite" className="text-center space-y-3 py-4">
+                <svg aria-hidden="true" className="animate-spin h-8 w-8 text-stellar-500 mx-auto" viewBox="0 0 24 24">
                   <circle
                     className="opacity-25"
                     cx="12"
@@ -545,9 +573,9 @@ export default function PaymentFlow() {
             )}
 
             {step === 'success' && (
-              <div className="text-center space-y-4 py-4">
+              <div role="status" aria-live="polite" className="text-center space-y-4 py-4">
                 <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 flex items-center justify-center">
-                  <Check className="h-7 w-7 text-emerald-600" />
+                  <Check aria-hidden="true" className="h-7 w-7 text-emerald-600" />
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-ink-0">{t('payment.paymentSuccessful')}</h3>
@@ -569,9 +597,9 @@ export default function PaymentFlow() {
             )}
 
             {step === 'error' && (
-              <div className="text-center space-y-4 py-4">
+              <div role="alert" className="text-center space-y-4 py-4">
                 <div className="w-14 h-14 mx-auto rounded-full bg-red-100 flex items-center justify-center">
-                  <X className="h-7 w-7 text-danger" />
+                  <X aria-hidden="true" className="h-7 w-7 text-danger" />
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-ink-0">{t('payment.paymentFailed')}</h3>

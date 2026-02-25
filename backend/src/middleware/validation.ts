@@ -46,6 +46,15 @@ export const createInvoiceSchema = z.object({
 export const createPaymentLinkSchema = z.object({
   amount: z.coerce.number().positive().max(999999999),
   asset: z.enum(['XLM', 'USDC', 'EURC']),
+  networkPassphrase: z
+    .string()
+    .refine(
+      (val) =>
+        val === 'Test SDF Network ; September 2015' ||
+        val === 'Public Global Stellar Network ; September 2015',
+      { message: 'Invalid network passphrase' }
+    )
+    .optional(),
   recipientWallet: z
     .string()
     .min(56)
