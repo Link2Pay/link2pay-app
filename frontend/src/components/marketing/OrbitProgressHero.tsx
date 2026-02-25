@@ -15,7 +15,7 @@ type StepNode = {
 const STEPS: StepNode[] = [
   {
     id: 'address',
-    label: 'Public Address',
+    label: 'Wallet Address',
     sublabel: 'GCFX...9Q2K',
     icon: Wallet,
   },
@@ -27,19 +27,19 @@ const STEPS: StepNode[] = [
   },
   {
     id: 'status',
-    label: 'Payment Status',
-    sublabel: 'Confirmed  •  5s',
+    label: 'On-chain Status',
+    sublabel: 'Confirmed | ~5s',
     icon: CheckCircle2,
   },
 ];
 
 /* ── layout constants ── */
-const W = 860;
-const H = 340;
+const W = 900;
+const H = 360;
 const CY = H / 2 + 6;
-const NODE_X = [140, 430, 720];
-const ORBIT_R = [68, 74, 68];
-const ICON_R = 28;
+const NODE_X = [150, 450, 750];
+const ORBIT_R = [72, 78, 72];
+const ICON_R = 32;
 
 /* ── orbiting particles per node ── */
 const PARTICLES = [
@@ -95,7 +95,7 @@ export default function OrbitProgressHero({ className }: OrbitProgressHeroProps)
     <figure
       className={containerClassName}
       role="img"
-      aria-label="Payment flow: Public Address to Payment Link to Payment Status"
+      aria-label="Payment flow: Wallet Address to Payment Link to On-chain Status"
     >
       <svg
         className="ohero-svg"
@@ -244,3 +244,4 @@ export default function OrbitProgressHero({ className }: OrbitProgressHeroProps)
     </figure>
   );
 }
+

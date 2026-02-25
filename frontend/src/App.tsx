@@ -14,6 +14,7 @@ import PaymentFlow from './components/Payment/PaymentFlow';
 import MarketingLayout from './components/marketing/MarketingLayout';
 import Home from './pages/Home';
 import Features from './pages/Features';
+import SDK from './pages/SDK';
 import Pricing from './pages/Pricing';
 import About from './pages/About';
 import RoleSelect from './pages/RoleSelect';
@@ -68,6 +69,7 @@ export default function App() {
           <Route element={<MarketingLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/payment-links" element={<Features />} />
+            <Route path="/sdk" element={<SDK />} />
             <Route path="/plans" element={<Pricing />} />
             <Route path="/why-link2pay" element={<About />} />
           </Route>
@@ -92,6 +94,7 @@ export default function App() {
 
           {/* Backward-compatible redirects */}
           <Route path="/features" element={<Navigate to="/payment-links" replace />} />
+          <Route path="/developers" element={<Navigate to="/sdk" replace />} />
           <Route path="/pricing" element={<Navigate to="/plans" replace />} />
           <Route path="/about" element={<Navigate to="/why-link2pay" replace />} />
           <Route path="/get-started" element={<Navigate to="/app" replace />} />
