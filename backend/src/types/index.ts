@@ -14,6 +14,7 @@ export interface CreateInvoiceInput {
   taxRate?: number;
   discount?: number;
   dueDate?: string;
+  networkPassphrase?: string;
   saveClient?: boolean;
   favoriteClient?: boolean;
   lineItems: LineItemInput[];
@@ -67,6 +68,7 @@ export interface InvoicePublicView {
   dueDate?: string | null;
   paidAt?: string | null;
   transactionHash?: string | null;
+  networkPassphrase: string;
   lineItems: {
     description: string;
     quantity: string;

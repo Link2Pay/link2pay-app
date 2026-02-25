@@ -74,13 +74,41 @@ export const config = {
   watcherPollInterval: env.WATCHER_POLL_INTERVAL_MS,
 } as const;
 
-export function getAssetIssuer(code: string): string | undefined {
+// Network configurations for both testnet and mainnet
+export const NETWORK_CONFIG = {
+  testnet: {
+    networkPassphrase: 'Test SDF Network ; September 2015',
+    horizonUrl: 'https://horizon-testnet.stellar.org',
+    usdcIssuer: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
+    eurcIssuer: 'GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2',
+  },
+  mainnet: {
+    networkPassphrase: 'Public Global Stellar Network ; September 2015',
+    horizonUrl: 'https://horizon.stellar.org',
+    usdcIssuer: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+    eurcIssuer: 'GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2',
+  },
+} as const;
+
+export function getAssetIssuer(code: string, networkPassphrase?: string): string | undefined {
+  // Determine which network based on network passphrase
+  const isTestnet = networkPassphrase === NETWORK_CONFIG.testnet.networkPassphrase;
+  const network = isTestnet ? NETWORK_CONFIG.testnet : NETWORK_CONFIG.mainnet;
+
   switch (code) {
     case 'USDC':
-      return config.stellar.usdcIssuer;
+      return network.usdcIssuer;
     case 'EURC':
-      return config.stellar.eurcIssuer;
+      return network.eurcIssuer;
     default:
       return undefined;
   }
+}
+
+export function getHorizonUrl(networkPassphrase?: string): string {
+  if (!networkPassphrase) {
+    return config.stellar.horizonUrl;
+  }
+  const isTestnet = networkPassphrase === NETWORK_CONFIG.testnet.networkPassphrase;
+  return isTestnet ? NETWORK_CONFIG.testnet.horizonUrl : NETWORK_CONFIG.mainnet.horizonUrl;
 }

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { config } from '../config';
+import { useNetworkStore } from './networkStore';
 
 type AppLanguage = 'en' | 'es' | 'pt';
 
@@ -11,14 +11,18 @@ interface WalletState {
   error: string | null;
   connect: () => Promise<void>;
   disconnect: () => void;
-  signTransaction: (xdr: string) => Promise<string>;
+  signTransaction: (xdr: string, networkPassphrase?: string) => Promise<string>;
   /** Sign an arbitrary UTF-8 message (used for auth nonce). Returns hex signature. */
   signMessage: (message: string) => Promise<string>;
   /** Restore connection from persisted state */
   restoreConnection: () => Promise<void>;
+  /** Get the current network from Freighter wallet */
+  getFreighterNetwork: () => Promise<string | null>;
 }
 
 const LANGUAGE_STORAGE_KEY = 'link2pay-language';
+const TESTNET_PASSPHRASE = 'Test SDF Network ; September 2015';
+const MAINNET_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
 
 const isAppLanguage = (value: string | null): value is AppLanguage =>
   value === 'en' || value === 'es' || value === 'pt';
@@ -82,6 +86,33 @@ const getMessage = (key: keyof (typeof MESSAGES)['en']) => {
   const language = getActiveLanguage();
   return MESSAGES[language][key];
 };
+
+function normalizeFreighterNetwork(value: unknown): string | null {
+  if (!value) return null;
+
+  if (typeof value === 'object' && value !== null && 'networkPassphrase' in value) {
+    return normalizeFreighterNetwork((value as { networkPassphrase?: unknown }).networkPassphrase);
+  }
+
+  if (typeof value !== 'string') return null;
+
+  const raw = value.trim();
+  if (!raw) return null;
+
+  if (raw === TESTNET_PASSPHRASE || raw.toUpperCase() === 'TESTNET') {
+    return TESTNET_PASSPHRASE;
+  }
+
+  if (
+    raw === MAINNET_PASSPHRASE ||
+    raw.toUpperCase() === 'PUBLIC' ||
+    raw.toUpperCase() === 'MAINNET'
+  ) {
+    return MAINNET_PASSPHRASE;
+  }
+
+  return null;
+}
 
 export const useWalletStore = create<WalletState>()(
   persist(
@@ -273,7 +304,7 @@ export const useWalletStore = create<WalletState>()(
     }
   },
 
-  signTransaction: async (xdr: string) => {
+  signTransaction: async (xdr: string, networkPassphraseOverride?: string) => {
     const state = get();
     if (!state.connected) {
       throw new Error(getMessage('walletNotConnected'));
@@ -285,8 +316,11 @@ export const useWalletStore = create<WalletState>()(
       let signedXdr: string;
 
       if (freighter.signTransaction) {
+        // Use provided networkPassphrase or fall back to the store value
+        const networkPassphrase = networkPassphraseOverride || useNetworkStore.getState().networkPassphrase;
+        console.log('[WalletStore] Signing transaction with networkPassphrase:', networkPassphrase);
         const result = await freighter.signTransaction(xdr, {
-          networkPassphrase: config.networkPassphrase,
+          networkPassphrase,
         });
         // New API returns an object, legacy returns a string
         if (typeof result === 'string') {
@@ -302,7 +336,36 @@ export const useWalletStore = create<WalletState>()(
 
       return signedXdr;
     } catch (error: any) {
+      console.error('[WalletStore] Transaction signing error:', error);
       throw new Error(error.message || getMessage('signTransactionFailed'));
+    }
+  },
+
+  getFreighterNetwork: async () => {
+    try {
+      const freighter = await import('@stellar/freighter-api');
+      const f = freighter as any;
+
+      if (f.getNetworkDetails) {
+        const networkDetails = await f.getNetworkDetails();
+        const normalized = normalizeFreighterNetwork(networkDetails);
+        if (normalized) {
+          return normalized;
+        }
+      }
+
+      if (f.getNetwork) {
+        const network = await f.getNetwork();
+        const normalized = normalizeFreighterNetwork(network);
+        if (normalized) {
+          return normalized;
+        }
+      }
+
+      return null;
+    } catch (error: any) {
+      console.error('[WalletStore] Failed to get Freighter network:', error);
+      return null;
     }
   },
 }),

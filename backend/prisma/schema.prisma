@@ -64,9 +64,10 @@ model Invoice {
   paidAt    DateTime? @map("paid_at")
 
   // Blockchain reference
-  transactionHash String? @map("transaction_hash")
-  ledgerNumber    Int?    @map("ledger_number")
-  payerWallet     String? @map("payer_wallet")
+  transactionHash   String? @map("transaction_hash")
+  ledgerNumber      Int?    @map("ledger_number")
+  payerWallet       String? @map("payer_wallet")
+  networkPassphrase String  @default("Test SDF Network ; September 2015") @map("network_passphrase")
 
   // Soft delete — set instead of hard DELETE
   deletedAt DateTime? @map("deleted_at")
