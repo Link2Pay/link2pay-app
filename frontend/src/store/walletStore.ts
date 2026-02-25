@@ -21,6 +21,8 @@ interface WalletState {
 }
 
 const LANGUAGE_STORAGE_KEY = 'link2pay-language';
+const TESTNET_PASSPHRASE = 'Test SDF Network ; September 2015';
+const MAINNET_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
 
 const isAppLanguage = (value: string | null): value is AppLanguage =>
   value === 'en' || value === 'es' || value === 'pt';
@@ -84,6 +86,33 @@ const getMessage = (key: keyof (typeof MESSAGES)['en']) => {
   const language = getActiveLanguage();
   return MESSAGES[language][key];
 };
+
+function normalizeFreighterNetwork(value: unknown): string | null {
+  if (!value) return null;
+
+  if (typeof value === 'object' && value !== null && 'networkPassphrase' in value) {
+    return normalizeFreighterNetwork((value as { networkPassphrase?: unknown }).networkPassphrase);
+  }
+
+  if (typeof value !== 'string') return null;
+
+  const raw = value.trim();
+  if (!raw) return null;
+
+  if (raw === TESTNET_PASSPHRASE || raw.toUpperCase() === 'TESTNET') {
+    return TESTNET_PASSPHRASE;
+  }
+
+  if (
+    raw === MAINNET_PASSPHRASE ||
+    raw.toUpperCase() === 'PUBLIC' ||
+    raw.toUpperCase() === 'MAINNET'
+  ) {
+    return MAINNET_PASSPHRASE;
+  }
+
+  return null;
+}
 
 export const useWalletStore = create<WalletState>()(
   persist(
@@ -319,18 +348,17 @@ export const useWalletStore = create<WalletState>()(
 
       if (f.getNetworkDetails) {
         const networkDetails = await f.getNetworkDetails();
-        if (networkDetails && networkDetails.networkPassphrase) {
-          return networkDetails.networkPassphrase;
+        const normalized = normalizeFreighterNetwork(networkDetails);
+        if (normalized) {
+          return normalized;
         }
       }
 
       if (f.getNetwork) {
         const network = await f.getNetwork();
-        if (typeof network === 'string') {
-          return network;
-        }
-        if (network && network.networkPassphrase) {
-          return network.networkPassphrase;
+        const normalized = normalizeFreighterNetwork(network);
+        if (normalized) {
+          return normalized;
         }
       }
 

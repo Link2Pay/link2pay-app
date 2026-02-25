@@ -3,22 +3,20 @@ import { useParams } from 'react-router-dom';
 import { Check, X, AlertCircle } from 'lucide-react';
 import { getInvoice, createPayIntent, submitPayment, getPaymentStatus, getXlmPrice } from '../../services/api';
 import { useWalletStore } from '../../store/walletStore';
-import { useNetworkStore } from '../../store/networkStore';
 import InvoiceStatusBadge from '../Invoice/InvoiceStatusBadge';
 import WalletConnect from '../Wallet/WalletConnect';
 import LanguageToggle from '../LanguageToggle';
 import ThemeToggle from '../ThemeToggle';
 import NetworkToggle from '../NetworkToggle';
 import type { PublicInvoice, InvoiceStatus } from '../../types';
-import { CURRENCY_SYMBOLS, config } from '../../config';
+import { CURRENCY_SYMBOLS } from '../../config';
 import { useI18n } from '../../i18n/I18nProvider';
 
 type PayStep = 'loading' | 'view' | 'connect' | 'paying' | 'confirming' | 'success' | 'error';
 
 export default function PaymentFlow() {
   const { id } = useParams<{ id: string}>();
-  const { connected, publicKey, signTransaction, disconnect } = useWalletStore();
-  const { network, networkPassphrase, setNetwork } = useNetworkStore();
+  const { connected, publicKey, signTransaction, disconnect, getFreighterNetwork } = useWalletStore();
   const { t } = useI18n();
   const [invoice, setInvoice] = useState<PublicInvoice | null>(null);
   const [step, setStep] = useState<PayStep>('loading');
@@ -64,34 +62,27 @@ export default function PaymentFlow() {
 
     const detectFreighterNetwork = async () => {
       try {
-        const freighter = await import('@stellar/freighter-api');
-        let detectedPassphrase: string | null = null;
-
-        // Try getNetworkDetails first
-        if (typeof freighter.getNetworkDetails === 'function') {
-          const details = await freighter.getNetworkDetails();
-          if (details && details.networkPassphrase) {
-            detectedPassphrase = details.networkPassphrase;
-          }
-        }
-        // Fall back to getNetwork
-        else if (typeof freighter.getNetwork === 'function') {
-          const network = await freighter.getNetwork();
-          if (network === 'PUBLIC') {
-            detectedPassphrase = 'Public Global Stellar Network ; September 2015';
-          } else if (network === 'TESTNET') {
-            detectedPassphrase = 'Test SDF Network ; September 2015';
-          }
-        }
+        const detectedPassphrase = await getFreighterNetwork();
 
         setFreighterNetwork(detectedPassphrase);
 
         // Check if Freighter matches the invoice network
-        if (detectedPassphrase && invoice.networkPassphrase && detectedPassphrase !== invoice.networkPassphrase) {
+        const hasMismatch = Boolean(
+          detectedPassphrase &&
+            invoice.networkPassphrase &&
+            detectedPassphrase !== invoice.networkPassphrase
+        );
+
+        if (hasMismatch) {
           setHasNetworkMismatch(true);
         } else {
           // Network matches now - if there was a mismatch before, disconnect and reload
-          if (hasNetworkMismatch && detectedPassphrase && invoice.networkPassphrase && detectedPassphrase === invoice.networkPassphrase) {
+          if (
+            hasNetworkMismatch &&
+            detectedPassphrase &&
+            invoice.networkPassphrase &&
+            detectedPassphrase === invoice.networkPassphrase
+          ) {
             disconnect();
             setTimeout(() => window.location.reload(), 500);
           }
@@ -107,7 +98,7 @@ export default function PaymentFlow() {
     // Poll for network changes every 2 seconds
     const interval = setInterval(detectFreighterNetwork, 2000);
     return () => clearInterval(interval);
-  }, [connected, invoice]);
+  }, [connected, disconnect, getFreighterNetwork, hasNetworkMismatch, invoice]);
 
   // Fetch XLM price for USD equivalent display
   useEffect(() => {

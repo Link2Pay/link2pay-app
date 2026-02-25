@@ -48,6 +48,12 @@ router.post(
       const amount = formatStellarAmount(invoice.total.toString());
       const assetCode = invoice.currency;
 
+      if (networkPassphrase !== invoice.networkPassphrase) {
+        return res.status(400).json({
+          error: 'Selected wallet network does not match the invoice network',
+        });
+      }
+
       // Build the unsigned transaction with the client's network passphrase
       const { transactionXdr, networkPassphrase: effectiveNetworkPassphrase } =
         await stellarService.buildPaymentTransaction({
@@ -175,7 +181,10 @@ router.post(
       }
 
       // Verify on-chain
-      const txDetails = await stellarService.verifyTransaction(transactionHash);
+      const txDetails = await stellarService.verifyTransaction(
+        transactionHash,
+        invoice.networkPassphrase
+      );
       if (!txDetails) {
         return res.status(404).json({ error: 'Transaction not found on network' });
       }

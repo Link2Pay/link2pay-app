@@ -188,15 +188,17 @@ export class StellarService {
   /**
    * Verify a transaction on the Stellar network
    */
-  async verifyTransaction(transactionHash: string) {
+  async verifyTransaction(transactionHash: string, networkPassphrase?: string) {
     try {
+      const server = this.getServerForNetwork(networkPassphrase);
+
       const tx = await this.withRetry(() =>
-        this.server.transactions().transaction(transactionHash).call()
+        server.transactions().transaction(transactionHash).call()
       );
 
       // Get the operations for this transaction
       const operations = await this.withRetry(() =>
-        this.server.operations().forTransaction(transactionHash).call()
+        server.operations().forTransaction(transactionHash).call()
       );
 
       const paymentOps = operations.records.filter(
@@ -322,8 +324,13 @@ export class StellarService {
   /**
    * Get recent transactions for an account
    */
-  async getTransactionHistory(accountId: string, limit = 10) {
-    const transactions = await this.server
+  async getTransactionHistory(
+    accountId: string,
+    limit = 10,
+    networkPassphrase?: string
+  ) {
+    const server = this.getServerForNetwork(networkPassphrase);
+    const transactions = await server
       .transactions()
       .forAccount(accountId)
       .limit(limit)
