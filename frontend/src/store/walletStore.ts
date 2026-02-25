@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { config } from '../config';
+import { persist } from 'zustand/middleware';
+import { useNetworkStore } from './networkStore';
 
 type AppLanguage = 'en' | 'es' | 'pt';
 
@@ -10,12 +11,18 @@ interface WalletState {
   error: string | null;
   connect: () => Promise<void>;
   disconnect: () => void;
-  signTransaction: (xdr: string) => Promise<string>;
+  signTransaction: (xdr: string, networkPassphrase?: string) => Promise<string>;
   /** Sign an arbitrary UTF-8 message (used for auth nonce). Returns hex signature. */
   signMessage: (message: string) => Promise<string>;
+  /** Restore connection from persisted state */
+  restoreConnection: () => Promise<void>;
+  /** Get the current network from Freighter wallet */
+  getFreighterNetwork: () => Promise<string | null>;
 }
 
 const LANGUAGE_STORAGE_KEY = 'link2pay-language';
+const TESTNET_PASSPHRASE = 'Test SDF Network ; September 2015';
+const MAINNET_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
 
 const isAppLanguage = (value: string | null): value is AppLanguage =>
   value === 'en' || value === 'es' || value === 'pt';
@@ -80,13 +87,88 @@ const getMessage = (key: keyof (typeof MESSAGES)['en']) => {
   return MESSAGES[language][key];
 };
 
-export const useWalletStore = create<WalletState>((set, get) => ({
-  connected: false,
-  publicKey: null,
-  isConnecting: false,
-  error: null,
+function normalizeFreighterNetwork(value: unknown): string | null {
+  if (!value) return null;
 
-  connect: async () => {
+  if (typeof value === 'object' && value !== null && 'networkPassphrase' in value) {
+    return normalizeFreighterNetwork((value as { networkPassphrase?: unknown }).networkPassphrase);
+  }
+
+  if (typeof value !== 'string') return null;
+
+  const raw = value.trim();
+  if (!raw) return null;
+
+  if (raw === TESTNET_PASSPHRASE || raw.toUpperCase() === 'TESTNET') {
+    return TESTNET_PASSPHRASE;
+  }
+
+  if (
+    raw === MAINNET_PASSPHRASE ||
+    raw.toUpperCase() === 'PUBLIC' ||
+    raw.toUpperCase() === 'MAINNET'
+  ) {
+    return MAINNET_PASSPHRASE;
+  }
+
+  return null;
+}
+
+export const useWalletStore = create<WalletState>()(
+  persist(
+    (set, get) => ({
+      connected: false,
+      publicKey: null,
+      isConnecting: false,
+      error: null,
+
+      restoreConnection: async () => {
+        const state = get();
+        // Only try to restore if we have a stored publicKey but are not currently connected
+        if (!state.publicKey || state.connected) return;
+
+        try {
+          const freighter = await import('@stellar/freighter-api');
+          const f = freighter as any;
+
+          // Check if Freighter is still accessible
+          const isConnected = await freighter.isConnected();
+          if (!isConnected) {
+            // Freighter not available, clear stored state
+            set({ publicKey: null, connected: false });
+            return;
+          }
+
+          // Try to get the current address from Freighter
+          let currentPublicKey: string | null = null;
+
+          if (f.getAddress) {
+            const addressResult = await f.getAddress();
+            if (addressResult && typeof addressResult === 'object' && 'address' in addressResult) {
+              currentPublicKey = addressResult.address;
+            } else if (typeof addressResult === 'string') {
+              currentPublicKey = addressResult;
+            }
+          }
+
+          if (!currentPublicKey && f.getPublicKey) {
+            currentPublicKey = await f.getPublicKey();
+          }
+
+          // If the current Freighter account matches our stored one, restore the connection
+          if (currentPublicKey === state.publicKey) {
+            set({ connected: true, error: null });
+          } else {
+            // Account changed or not available, clear stored state
+            set({ publicKey: null, connected: false });
+          }
+        } catch (error) {
+          // Silent fail - user can reconnect manually
+          set({ publicKey: null, connected: false });
+        }
+      },
+
+      connect: async () => {
     set({ isConnecting: true, error: null });
     try {
       const freighter = await import('@stellar/freighter-api');
@@ -141,6 +223,13 @@ export const useWalletStore = create<WalletState>((set, get) => ({
         error: message,
       });
       throw error;
+    } finally {
+      // Ensure isConnecting is always reset, even if state wasn't updated in catch
+      // This handles edge cases where the promise rejects in unexpected ways
+      const state = get();
+      if (state.isConnecting && !state.connected) {
+        set({ isConnecting: false });
+      }
     }
   },
 
@@ -215,7 +304,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     }
   },
 
-  signTransaction: async (xdr: string) => {
+  signTransaction: async (xdr: string, networkPassphraseOverride?: string) => {
     const state = get();
     if (!state.connected) {
       throw new Error(getMessage('walletNotConnected'));
@@ -227,8 +316,11 @@ export const useWalletStore = create<WalletState>((set, get) => ({
       let signedXdr: string;
 
       if (freighter.signTransaction) {
+        // Use provided networkPassphrase or fall back to the store value
+        const networkPassphrase = networkPassphraseOverride || useNetworkStore.getState().networkPassphrase;
+        console.log('[WalletStore] Signing transaction with networkPassphrase:', networkPassphrase);
         const result = await freighter.signTransaction(xdr, {
-          networkPassphrase: config.networkPassphrase,
+          networkPassphrase,
         });
         // New API returns an object, legacy returns a string
         if (typeof result === 'string') {
@@ -244,9 +336,47 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
       return signedXdr;
     } catch (error: any) {
+      console.error('[WalletStore] Transaction signing error:', error);
       throw new Error(error.message || getMessage('signTransactionFailed'));
     }
   },
-}));
+
+  getFreighterNetwork: async () => {
+    try {
+      const freighter = await import('@stellar/freighter-api');
+      const f = freighter as any;
+
+      if (f.getNetworkDetails) {
+        const networkDetails = await f.getNetworkDetails();
+        const normalized = normalizeFreighterNetwork(networkDetails);
+        if (normalized) {
+          return normalized;
+        }
+      }
+
+      if (f.getNetwork) {
+        const network = await f.getNetwork();
+        const normalized = normalizeFreighterNetwork(network);
+        if (normalized) {
+          return normalized;
+        }
+      }
+
+      return null;
+    } catch (error: any) {
+      console.error('[WalletStore] Failed to get Freighter network:', error);
+      return null;
+    }
+  },
+}),
+    {
+      name: 'link2pay-wallet-storage',
+      partialize: (state) => ({
+        publicKey: state.publicKey,
+        connected: state.connected,
+      }),
+    }
+  )
+);
 
 

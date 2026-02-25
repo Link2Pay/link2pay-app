@@ -19,6 +19,7 @@ import About from './pages/About';
 import RoleSelect from './pages/RoleSelect';
 import Register from './pages/Register';
 import ClientInvoiceLookup from './pages/ClientInvoiceLookup';
+import { useWalletRestore } from './hooks/useWalletRestore';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,6 +36,8 @@ function LegacyInvoiceRedirect() {
 }
 
 export default function App() {
+  useWalletRestore();
+
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster

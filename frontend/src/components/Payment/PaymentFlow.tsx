@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Check, X } from 'lucide-react';
+import { Check, X, AlertCircle } from 'lucide-react';
 import { getInvoice, createPayIntent, submitPayment, getPaymentStatus, getXlmPrice } from '../../services/api';
 import { useWalletStore } from '../../store/walletStore';
 import InvoiceStatusBadge from '../Invoice/InvoiceStatusBadge';
 import WalletConnect from '../Wallet/WalletConnect';
 import LanguageToggle from '../LanguageToggle';
 import ThemeToggle from '../ThemeToggle';
+import NetworkToggle from '../NetworkToggle';
 import BrandMark from '../BrandMark';
 import BrandWordmark from '../BrandWordmark';
 import type { PublicInvoice, InvoiceStatus } from '../../types';
-import { CURRENCY_SYMBOLS, config } from '../../config';
+import { CURRENCY_SYMBOLS } from '../../config';
 import { useI18n } from '../../i18n/I18nProvider';
 import type { Language } from '../../i18n/translations';
 
@@ -50,13 +51,15 @@ const CHECKOUT_STEP_LABELS: Record<Language, CheckoutStepLabels> = {
 
 export default function PaymentFlow() {
   const { id } = useParams<{ id: string }>();
-  const { connected, publicKey, signTransaction } = useWalletStore();
+  const { connected, publicKey, signTransaction, disconnect, getFreighterNetwork } = useWalletStore();
   const { t, language } = useI18n();
   const [invoice, setInvoice] = useState<PublicInvoice | null>(null);
   const [step, setStep] = useState<PayStep>('loading');
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [xlmPriceUsd, setXlmPriceUsd] = useState<number | null>(null);
+  const [freighterNetwork, setFreighterNetwork] = useState<string | null>(null);
+  const [hasNetworkMismatch, setHasNetworkMismatch] = useState(false);
   const stepLabels = CHECKOUT_STEP_LABELS[language];
 
   useEffect(() => {
@@ -84,6 +87,54 @@ export default function PaymentFlow() {
       setStep('view');
     }
   }, [connected, step]);
+
+  // Detect Freighter's network when connected and check against invoice network
+  useEffect(() => {
+    if (!connected || !invoice) {
+      setFreighterNetwork(null);
+      setHasNetworkMismatch(false);
+      return;
+    }
+
+    const detectFreighterNetwork = async () => {
+      try {
+        const detectedPassphrase = await getFreighterNetwork();
+
+        setFreighterNetwork(detectedPassphrase);
+
+        // Check if Freighter matches the invoice network
+        const hasMismatch = Boolean(
+          detectedPassphrase &&
+            invoice.networkPassphrase &&
+            detectedPassphrase !== invoice.networkPassphrase
+        );
+
+        if (hasMismatch) {
+          setHasNetworkMismatch(true);
+        } else {
+          // Network matches now - if there was a mismatch before, disconnect and reload
+          if (
+            hasNetworkMismatch &&
+            detectedPassphrase &&
+            invoice.networkPassphrase &&
+            detectedPassphrase === invoice.networkPassphrase
+          ) {
+            disconnect();
+            setTimeout(() => window.location.reload(), 500);
+          }
+          setHasNetworkMismatch(false);
+        }
+      } catch (err) {
+        console.error('[PaymentFlow] Error detecting Freighter network:', err);
+      }
+    };
+
+    detectFreighterNetwork();
+
+    // Poll for network changes every 2 seconds
+    const interval = setInterval(detectFreighterNetwork, 2000);
+    return () => clearInterval(interval);
+  }, [connected, disconnect, getFreighterNetwork, hasNetworkMismatch, invoice]);
 
   // Fetch XLM price for USD equivalent display
   useEffect(() => {
@@ -160,12 +211,20 @@ export default function PaymentFlow() {
   const handlePay = async () => {
     if (!invoice || !publicKey || !id) return;
 
+    // Block payment if there's a network mismatch
+    if (hasNetworkMismatch) {
+      setError('Please switch your Freighter wallet to the correct network first');
+      return;
+    }
+
     setStep('paying');
     setError(null);
 
     try {
-      const payIntent = await createPayIntent(id, publicKey);
-      const signedXdr = await signTransaction(payIntent.transactionXdr);
+      // Use the networkPassphrase from the invoice
+      console.log('[PaymentFlow] Using networkPassphrase from invoice:', invoice.networkPassphrase);
+      const payIntent = await createPayIntent(id, publicKey, invoice.networkPassphrase);
+      const signedXdr = await signTransaction(payIntent.transactionXdr, payIntent.networkPassphrase);
 
       setStep('confirming');
       const result = await submitPayment(id, signedXdr);
@@ -179,6 +238,7 @@ export default function PaymentFlow() {
         throw new Error(t('payment.txSubmissionFailed'));
       }
     } catch (err: any) {
+      console.error('[PaymentFlow] Payment error:', err);
       setError(err.message || t('payment.paymentFailedDefault'));
       setStep('error');
     }
@@ -226,6 +286,7 @@ export default function PaymentFlow() {
     <div className="min-h-screen bg-surface-1 p-4 sm:p-6">
       <div className="mx-auto w-full max-w-lg animate-in">
         <div className="mb-4 flex justify-end gap-2">
+          <NetworkToggle />
           <LanguageToggle />
           <ThemeToggle />
         </div>
@@ -235,7 +296,62 @@ export default function PaymentFlow() {
             <BrandWordmark />
           </h1>
           <p className="text-xs text-ink-3">{t('payment.invoicePayment')}</p>
+          {invoice && (
+            <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stellar-100 text-stellar-700">
+              <span className="text-[10px] font-semibold uppercase tracking-wide">
+                {invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet'} Payment
+              </span>
+            </div>
+          )}
         </div>
+
+        {/* Network Mismatch Warning Banner */}
+        {hasNetworkMismatch && freighterNetwork && invoice && (
+          <div className="mb-4 rounded-lg border-2 border-red-300 bg-red-50 p-4 shadow-lg">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-bold text-red-900 mb-2">
+                  ⚠️ Network Mismatch - Payment Blocked
+                </h3>
+                <p className="text-xs text-red-800 mb-3">
+                  Your <span className="font-bold">Freighter wallet</span> is connected to{' '}
+                  <span className="font-bold bg-red-200 px-1.5 py-0.5 rounded">
+                    {freighterNetwork === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet'}
+                  </span>
+                  , but this invoice requires{' '}
+                  <span className="font-bold bg-red-200 px-1.5 py-0.5 rounded">
+                    {invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet'}
+                  </span>.
+                </p>
+
+                <div className="bg-white border border-red-200 rounded-lg p-3 mb-3">
+                  <p className="text-xs font-semibold text-red-900 mb-2">
+                    📋 How to switch Freighter to {invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet'}:
+                  </p>
+                  <ol className="text-xs text-red-800 space-y-1.5 ml-4 list-decimal">
+                    <li>Click the <span className="font-semibold">Freighter extension</span> in your browser</li>
+                    <li>Click the <span className="font-semibold">Settings icon</span> (gear/cog) in the top right</li>
+                    <li>Find <span className="font-semibold">"Network"</span> section</li>
+                    <li>Select <span className="font-bold bg-red-100 px-1 rounded">{invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet'}</span></li>
+                    <li>This page will detect the change automatically and allow payment</li>
+                  </ol>
+                </div>
+
+                <button
+                  onClick={() => {
+                    disconnect();
+                    setHasNetworkMismatch(false);
+                    setTimeout(() => window.location.reload(), 300);
+                  }}
+                  className="btn-secondary text-xs py-1.5 px-3 w-full"
+                >
+                  Disconnect wallet and reconnect on correct network
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="card overflow-hidden">
           <div className="border-b border-surface-3 p-4 sm:p-6">
@@ -359,8 +475,12 @@ export default function PaymentFlow() {
                     </span>
                   </div>
                 )}
-                <button onClick={handlePay} className="btn-primary w-full py-3 text-base">
-                  {t('payment.payAmount', { amount: formatAmount(invoice.total, invoice.currency) })}
+                <button
+                  onClick={handlePay}
+                  disabled={hasNetworkMismatch}
+                  className={`w-full py-3 text-base ${hasNetworkMismatch ? 'btn-disabled cursor-not-allowed' : 'btn-primary'}`}
+                >
+                  {hasNetworkMismatch ? 'Payment Blocked - Wrong Network' : t('payment.payAmount', { amount: formatAmount(invoice.total, invoice.currency) })}
                 </button>
                 <p className="text-[11px] text-ink-4 text-center">{t('payment.approveTransaction')}</p>
               </div>
@@ -437,7 +557,7 @@ export default function PaymentFlow() {
                 </div>
                 {txHash && (
                   <a
-                    href={`https://stellar.expert/explorer/${config.stellarNetwork === 'testnet' ? 'testnet' : 'public'}/tx/${txHash}`}
+                    href={`https://stellar.expert/explorer/${invoice.networkPassphrase?.includes('Test') ? 'testnet' : 'public'}/tx/${txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-block text-xs text-stellar-600 hover:underline"

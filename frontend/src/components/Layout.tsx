@@ -8,6 +8,7 @@ import {
   Receipt,
 } from 'lucide-react';
 import { useWalletStore } from '../store/walletStore';
+import { useNetworkStore } from '../store/networkStore';
 import WalletConnect from './Wallet/WalletConnect';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
@@ -19,6 +20,7 @@ import { useI18n } from '../i18n/I18nProvider';
 export default function Layout() {
   const location = useLocation();
   const { connected, publicKey } = useWalletStore();
+  const { network } = useNetworkStore();
   const { t } = useI18n();
 
   const navItems = [
@@ -77,6 +79,16 @@ export default function Layout() {
           </div>
         </nav>
 
+        <div className="border-t border-sidebar-border px-4 py-3">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span
+              className={`h-2 w-2 rounded-full animate-pulse-slow ${
+                network === 'testnet' ? 'bg-emerald-400' : 'bg-amber-400'
+              }`}
+            />
+            {network === 'testnet' ? 'Stellar Testnet' : 'Stellar Mainnet'}
+          </div>
+        </div>
       </aside>
 
       <main className="flex-1 md:ml-64">

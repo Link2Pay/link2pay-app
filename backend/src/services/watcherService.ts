@@ -80,6 +80,7 @@ export class WatcherService {
         id: true,
         invoiceNumber: true,
         freelancerWallet: true,
+        networkPassphrase: true,
         total: true,
         currency: true,
       },
@@ -87,20 +88,22 @@ export class WatcherService {
 
     if (pendingInvoices.length === 0) return;
 
-    // Group by freelancer wallet to minimize API calls
+    // Group by wallet + network so we query the correct Horizon endpoint.
     const walletInvoices = new Map<string, typeof pendingInvoices>();
     for (const invoice of pendingInvoices) {
-      const existing = walletInvoices.get(invoice.freelancerWallet) || [];
+      const key = `${invoice.freelancerWallet}:${invoice.networkPassphrase}`;
+      const existing = walletInvoices.get(key) || [];
       existing.push(invoice);
-      walletInvoices.set(invoice.freelancerWallet, existing);
+      walletInvoices.set(key, existing);
     }
 
-    for (const [wallet, invoices] of walletInvoices) {
+    for (const [key, invoices] of walletInvoices) {
       try {
-        await this.checkWalletPayments(wallet, invoices);
+        const [walletAddress, networkPassphrase] = key.split(':');
+        await this.checkWalletPayments(walletAddress, networkPassphrase, invoices);
       } catch (error: any) {
         log.error('[Watcher] Error checking wallet', {
-          wallet: wallet.substring(0, 8),
+          key,
           error: error?.message,
         });
       }
@@ -112,16 +115,19 @@ export class WatcherService {
    */
   private async checkWalletPayments(
     walletAddress: string,
+    networkPassphrase: string,
     invoices: Array<{
       id: string;
       invoiceNumber: string;
       total: any;
       currency: string;
+      networkPassphrase: string;
     }>
   ) {
     const transactions = await stellarService.getTransactionHistory(
       walletAddress,
-      20
+      20,
+      networkPassphrase
     );
 
     for (const tx of transactions) {
@@ -145,7 +151,10 @@ export class WatcherService {
       if (existingPayment) continue;
 
       // Verify the transaction details
-      const txDetails = await stellarService.verifyTransaction(tx.hash);
+      const txDetails = await stellarService.verifyTransaction(
+        tx.hash,
+        networkPassphrase
+      );
       if (!txDetails || !txDetails.successful) continue;
 
       // Find the matching payment operation
