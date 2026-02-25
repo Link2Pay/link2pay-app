@@ -1,7 +1,8 @@
 import { config } from '../config';
-import { getAuthHeaders } from './auth';
+import { clearAuthToken, getAuthHeaders } from './auth';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
+import toast from 'react-hot-toast';
 import type {
   Invoice,
   PublicInvoice,
@@ -16,6 +17,9 @@ import type {
 } from '../types';
 
 const API_BASE = config.apiUrl + '/api';
+const API_REQUEST_TIMEOUT_MS = 20_000;
+const USER_TOAST_COOLDOWN_MS = 12_000;
+const lastToastAtByKey = new Map<string, number>();
 
 class ApiError extends Error {
   status: number;
@@ -29,6 +33,20 @@ class ApiError extends Error {
   }
 }
 
+function notifyUserError(key: string, message: string): void {
+  if (typeof window === 'undefined') return;
+
+  const now = Date.now();
+  const last = lastToastAtByKey.get(key);
+  if (last && now - last < USER_TOAST_COOLDOWN_MS) return;
+
+  lastToastAtByKey.set(key, now);
+  toast.error(message, {
+    id: `api-error-${key}`,
+    duration: 5500,
+  });
+}
+
 /**
  * Core fetch wrapper.
  *
@@ -40,7 +58,8 @@ class ApiError extends Error {
 async function request<T>(
   path: string,
   options: RequestInit = {},
-  walletAddress?: string
+  walletAddress?: string,
+  retryOnAuthError = true
 ): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -49,18 +68,54 @@ async function request<T>(
 
   if (walletAddress) {
     const { signMessage } = useWalletStore.getState();
-    const authHeaders = await getAuthHeaders(walletAddress, signMessage);
-    Object.assign(headers, authHeaders);
+    try {
+      const authHeaders = await getAuthHeaders(walletAddress, signMessage);
+      Object.assign(headers, authHeaders);
+    } catch (error: any) {
+      notifyUserError(
+        'wallet-auth',
+        error?.message || 'Authentication failed. Please reconnect your wallet.'
+      );
+      throw error;
+    }
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+  } catch (error: any) {
+    if (error?.name === 'AbortError') {
+      notifyUserError(
+        'request-timeout',
+        'Request timed out. Please check your connection and try again.'
+      );
+      throw new ApiError('Request timed out. Please try again.', 408);
+    }
+    notifyUserError('network-error', 'Network error. Please check your connection.');
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
 
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
+    if (response.status === 401 && walletAddress && retryOnAuthError) {
+      clearAuthToken();
+      return request<T>(path, options, walletAddress, false);
+    }
+
+    if (response.status === 401) {
+      notifyUserError('auth-expired', 'Session expired. Please reconnect your wallet.');
+    }
+
     throw new ApiError(
       data?.error || `Request failed with status ${response.status}`,
       response.status,

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useNetworkStore } from './networkStore';
+import { clearAuthToken } from '../services/auth';
 
 type AppLanguage = 'en' | 'es' | 'pt';
 
@@ -234,6 +235,7 @@ export const useWalletStore = create<WalletState>()(
   },
 
   disconnect: () => {
+    clearAuthToken();
     set({
       connected: false,
       publicKey: null,

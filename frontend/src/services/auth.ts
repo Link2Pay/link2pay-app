@@ -1,6 +1,8 @@
 import { config } from '../config';
 
 const API_BASE = config.apiUrl + '/api';
+const AUTH_REQUEST_TIMEOUT_MS = 15_000;
+const AUTH_SIGN_TIMEOUT_MS = 20_000;
 
 // ─── Token cache ──────────────────────────────────────────────────────────────
 // Stores the nonce+signature pair so we don't re-sign on every request.
@@ -25,6 +27,38 @@ let inflightPromise: Promise<AuthToken> | null = null;
 function isTokenValid(token: AuthToken | null): boolean {
   if (!token) return false;
   return Date.now() < token.expiresAt - REFRESH_BUFFER_MS;
+}
+
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  timeoutMessage: string
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 /**
@@ -57,11 +91,15 @@ export async function getAuthHeaders(
   // Start a new fetch+sign and share it with any concurrent callers
   inflightPromise = (async (): Promise<AuthToken> => {
     try {
-      const response = await fetch(`${API_BASE}/auth/nonce`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress }),
-      });
+      const response = await fetchWithTimeout(
+        `${API_BASE}/auth/nonce`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ walletAddress }),
+        },
+        AUTH_REQUEST_TIMEOUT_MS
+      );
 
       if (!response.ok) {
         throw new Error('Failed to get auth nonce');
@@ -70,7 +108,11 @@ export async function getAuthHeaders(
       const { nonce, message, expiresIn } = await response.json();
 
       // Sign the message with Freighter
-      const signature = await signMessage(message);
+      const signature = await withTimeout(
+        signMessage(message),
+        AUTH_SIGN_TIMEOUT_MS,
+        'Wallet signature timed out. Please unlock Freighter and try again.'
+      );
 
       const token: AuthToken = {
         walletAddress,
