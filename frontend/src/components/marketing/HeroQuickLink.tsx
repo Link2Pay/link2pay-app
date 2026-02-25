@@ -19,6 +19,7 @@ type CopyBlock = {
   expiresValue: string;
   fixedLabel: string;
   connectWallet: string;
+  connecting: string;
   creating: string;
   createLink: string;
   openCheckout: string;
@@ -44,6 +45,7 @@ const COPY: Record<Language, CopyBlock> = {
     expiresValue: '15 minutes',
     fixedLabel: 'Fixed',
     connectWallet: 'Connect Wallet',
+    connecting: 'Connecting...',
     creating: 'Creating...',
     createLink: 'Create Link',
     openCheckout: 'Open checkout',
@@ -68,6 +70,7 @@ const COPY: Record<Language, CopyBlock> = {
     expiresValue: '15 minutos',
     fixedLabel: 'Fijo',
     connectWallet: 'Conectar wallet',
+    connecting: 'Conectando...',
     creating: 'Creando...',
     createLink: 'Crear link',
     openCheckout: 'Abrir checkout',
@@ -92,6 +95,7 @@ const COPY: Record<Language, CopyBlock> = {
     expiresValue: '15 minutos',
     fixedLabel: 'Fixo',
     connectWallet: 'Conectar wallet',
+    connecting: 'Conectando...',
     creating: 'Criando...',
     createLink: 'Criar link',
     openCheckout: 'Abrir checkout',
@@ -133,14 +137,6 @@ export default function HeroQuickLink() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!connected || !publicKey) {
-      try {
-        await connect();
-      } catch (error: any) {
-        toast.error(error?.message || copy.connectWalletError);
-      }
-      return;
-    }
 
     const numericAmount = Number(amount);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
@@ -150,6 +146,16 @@ export default function HeroQuickLink() {
 
     setIsSubmitting(true);
     try {
+      let walletAddress = publicKey;
+      if (!connected || !walletAddress) {
+        await connect();
+        const refreshedState = useWalletStore.getState();
+        walletAddress = refreshedState.publicKey;
+        if (!refreshedState.connected || !walletAddress) {
+          throw new Error(copy.connectWalletError);
+        }
+      }
+
       const freighterNetwork = await getFreighterNetwork();
       if (freighterNetwork && freighterNetwork !== networkPassphrase) {
         const selectedName = networkPassphrase.includes('Test') ? 'TESTNET' : 'MAINNET';
@@ -171,7 +177,7 @@ export default function HeroQuickLink() {
           expiresAt,
           networkPassphrase,
         },
-        publicKey
+        walletAddress
       );
       setLinkUrl(result.checkoutUrl);
       toast.success(copy.linkCreatedToast);
@@ -266,10 +272,16 @@ export default function HeroQuickLink() {
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isConnecting}
           className="btn-primary w-full justify-center py-3.5 text-base"
         >
-          {isSubmitting ? copy.creating : connected ? copy.createLink : copy.connectWallet}
+          {isConnecting
+            ? copy.connecting
+            : isSubmitting
+              ? copy.creating
+              : connected
+                ? copy.createLink
+                : copy.connectWallet}
           <ArrowRight className="h-4 w-4" />
         </button>
       </form>
