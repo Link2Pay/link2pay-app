@@ -138,6 +138,10 @@
     font-feature-settings: 'ss01', 'ss02';
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Space Grotesk', sans-serif;
   }
@@ -147,6 +151,7 @@
   .btn {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
            font-medium text-sm transition-all duration-150 cursor-pointer
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
@@ -184,7 +189,18 @@
   }
 
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.7;
+    flex-shrink: 0;
   }
 
   .badge-draft {
@@ -559,6 +575,20 @@
     fill: hsl(var(--primary) / 0.8);
   }
 
+  @media (max-width: 640px) {
+    .ohero-label {
+      font-size: 12px;
+    }
+
+    .ohero-sublabel {
+      display: none;
+    }
+
+    .ohero-step-badge {
+      opacity: 0.85;
+    }
+  }
+
   /* ── keyframes ── */
   @keyframes ohRingSpin {
     from { transform: rotate(0deg); }
@@ -586,13 +616,34 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
     .ohero-orbit-ring,
     .ohero-particle,
     .ohero-connector.is-lit,
     .ohero-node.is-reached .ohero-ambient,
     .ohero-node.is-active .ohero-orbit-ring,
-    .ohero-traveler {
+    .ohero-traveler,
+    .animate-in,
+    .animate-fade-in,
+    .animate-slide-up,
+    .shine::after {
       animation: none !important;
+    }
+
+    .hover-glow {
+      transition: none !important;
+      transform: none !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
     }
   }
 }
@@ -611,4 +662,14 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.55);
+}
+
+/* Global focus-visible fallback for interactive elements */
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid hsl(var(--primary) / 0.5);
+  outline-offset: 2px;
 }

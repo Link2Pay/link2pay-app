@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   DollarSign,
@@ -16,12 +16,12 @@ import {
 } from 'lucide-react';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
-import OrbitProgressHero from '../components/marketing/OrbitProgressHero';
-import InteractiveLinkBuilder from '../components/marketing/InteractiveLinkBuilder';
+import HeroQuickLink from '../components/marketing/HeroQuickLink';
 
 const FLOW_STEP_ICONS = [Wallet, FileText, Send] as const;
 const BENEFIT_ICONS = [Zap, DollarSign, Globe2, ShieldCheck] as const;
 const AUDIENCE_ICONS = [Users, TrendingUp, Globe2] as const;
+const STATS_ICONS = [Rocket, TrendingUp, Wallet, Globe2] as const;
 
 type Item = { title: string; description: string };
 type StatItem = { value: string; label: string };
@@ -51,86 +51,98 @@ type HomeCopy = {
   finalDescription: string;
   finalPrimaryCta: string;
   finalSecondaryCta: string;
+  heroTag1: string;
+  heroTag2: string;
+  heroTag3: string;
 };
 
 const COPY: Record<Language, HomeCopy> = {
   en: {
-    badge: 'Next-gen payment infrastructure on Stellar',
-    heroTitleStart: 'The developer API for',
-    heroTitleHighlight: 'instant payment links',
-    heroTitleEnd: 'on the Stellar network',
+    badge: 'Global payments powered by Stellar',
+    heroTitleStart: 'Turn every invoice into',
+    heroTitleHighlight: 'an instant checkout link',
+    heroTitleEnd: 'and get paid in seconds',
     heroDescription:
-      'Ship hosted checkout, generate shareable payment links, and confirm on-chain settlements in seconds \u2014 without touching Stellar plumbing. One API call, zero custody risk.',
-    heroPrimaryCta: 'Launch Your First Link',
-    heroSecondaryCta: 'View Documentation',
-    heroFootnote: 'Free tier available. No credit card required. Deploy to testnet instantly.',
-    howTitle: 'From zero to checkout in 3 steps',
-    howSubtitle: 'Connect, create, collect. The entire payment lifecycle handled for you.',
-    benefitsTitle: 'Infrastructure-grade reliability',
-    benefitsSubtitle: 'Enterprise-level payment orchestration without the enterprise complexity.',
-    audienceTitle: 'Built for every scale',
-    audienceSubtitle: 'Whether you\'re prototyping an MVP or processing thousands of transactions, Link2Pay adapts.',
-    testimonialsTitle: 'Trusted by builders worldwide',
-    testimonialsSubtitle: 'Teams across 30+ countries ship checkout faster with Link2Pay.',
-    moneyTitle: 'Multi-asset settlement',
-    moneySubtitle: 'Accept XLM, USDC, and EURC through one unified checkout. Instant finality, near-zero fees.',
-    finalTitle: 'Start accepting payments in minutes',
+      'Link2Pay helps freelancers, agencies, and product teams collect payments without banking delays. Create a link, share it, and settle on-chain in about 5 seconds.',
+    heroPrimaryCta: 'Create Your First Link',
+    heroSecondaryCta: 'Watch The Flow',
+    heroFootnote: 'Start free on Testnet and switch to Mainnet when you are ready.',
+    howTitle: 'How teams launch in one afternoon',
+    howSubtitle: 'Connect wallet, generate a link, and confirm payment with real-time status.',
+    benefitsTitle: 'Why teams switch to Link2Pay',
+    benefitsSubtitle: 'Faster cash flow, lower friction, and a checkout your clients trust.',
+    audienceTitle: 'Made for modern payment teams',
+    audienceSubtitle: 'From solo operators to scaling platforms, Link2Pay keeps operations simple.',
+    testimonialsTitle: 'Stories from teams shipping faster',
+    testimonialsSubtitle: 'Used by teams in 30+ countries to launch checkout with less engineering effort.',
+    moneyTitle: 'Accept the assets your clients already use',
+    moneySubtitle: 'Collect XLM, USDC, and EURC in one checkout flow with fast finality.',
+    finalTitle: 'Launch your next payment flow today',
     finalDescription:
-      'Deploy hosted Stellar checkout with our free SDK. Scale seamlessly to production with webhooks, branding, and team controls.',
+      'Create a payment link in minutes, share it anywhere, and track every status update from CREATED to CONFIRMED. Upgrade when you need webhooks, branding, and team controls.',
     finalPrimaryCta: 'Create Your First Link',
     finalSecondaryCta: 'Compare Plans',
+    heroTag1: '150+ Countries',
+    heroTag2: '5s Settlement',
+    heroTag3: 'API + Webhooks',
   },
   es: {
-    badge: 'Infraestructura de pagos de nueva generacion en Stellar',
-    heroTitleStart: 'La API para',
-    heroTitleHighlight: 'links de pago instantaneos',
-    heroTitleEnd: 'en la red Stellar',
+    badge: 'Pagos globales impulsados por Stellar',
+    heroTitleStart: 'Convierte cada factura en',
+    heroTitleHighlight: 'un link de checkout instantáneo',
+    heroTitleEnd: 'y cobra en segundos',
     heroDescription:
-      'Lanza checkout hospedado, genera links de pago compartibles y confirma liquidaciones on-chain en segundos \u2014 sin tocar la infraestructura Stellar. Una llamada API, cero riesgo de custodia.',
-    heroPrimaryCta: 'Lanza tu primer link',
-    heroSecondaryCta: 'Ver documentacion',
-    heroFootnote: 'Plan gratuito disponible. Sin tarjeta requerida. Despliega en testnet al instante.',
-    howTitle: 'De cero a checkout en 3 pasos',
-    howSubtitle: 'Conecta, crea, cobra. Todo el ciclo de vida del pago resuelto por ti.',
-    benefitsTitle: 'Fiabilidad de nivel infraestructura',
-    benefitsSubtitle: 'Orquestacion de pagos empresarial sin la complejidad empresarial.',
-    audienceTitle: 'Construido para cualquier escala',
-    audienceSubtitle: 'Ya sea un MVP o miles de transacciones, Link2Pay se adapta.',
-    testimonialsTitle: 'Confiado por builders en todo el mundo',
-    testimonialsSubtitle: 'Equipos en mas de 30 paises lanzan checkout mas rapido con Link2Pay.',
-    moneyTitle: 'Liquidacion multi-activo',
-    moneySubtitle: 'Acepta XLM, USDC y EURC en un checkout unificado. Finalidad instantanea, comisiones minimas.',
-    finalTitle: 'Empieza a aceptar pagos en minutos',
+      'Link2Pay ayuda a freelancers, agencias y equipos de producto a cobrar sin demoras bancarias. Crea un link, compártelo y liquida on-chain en unos 5 segundos.',
+    heroPrimaryCta: 'Crear mi primer link',
+    heroSecondaryCta: 'Ver el flujo',
+    heroFootnote: 'Empieza gratis en Testnet y pasa a Mainnet cuando estés listo.',
+    howTitle: 'Cómo lanzar en una tarde',
+    howSubtitle: 'Conecta wallet, genera el link y confirma el pago con estado en tiempo real.',
+    benefitsTitle: 'Por qué los equipos eligen Link2Pay',
+    benefitsSubtitle: 'Mejor flujo de caja, menos fricción y checkout confiable para tus clientes.',
+    audienceTitle: 'Hecho para equipos de pagos modernos',
+    audienceSubtitle: 'Desde operadores independientes hasta plataformas en crecimiento.',
+    testimonialsTitle: 'Historias de equipos que lanzan más rápido',
+    testimonialsSubtitle: 'Equipos en 30+ países lanzan checkout con menos esfuerzo de ingeniería.',
+    moneyTitle: 'Acepta los activos que tus clientes ya usan',
+    moneySubtitle: 'Cobra XLM, USDC y EURC en un solo flujo con finalidad rápida.',
+    finalTitle: 'Lanza tu siguiente flujo de pago hoy',
     finalDescription:
-      'Despliega checkout Stellar hospedado con nuestro SDK gratuito. Escala a produccion con webhooks, branding y controles de equipo.',
-    finalPrimaryCta: 'Crea tu primer link',
+      'Crea un link de pago en minutos, compártelo en cualquier canal y sigue cada estado desde CREATED hasta CONFIRMED. Escala con webhooks, branding y control de equipo.',
+    finalPrimaryCta: 'Crear mi primer link',
     finalSecondaryCta: 'Comparar planes',
+    heroTag1: '150+ Países',
+    heroTag2: 'Liquidación en 5s',
+    heroTag3: 'API + Webhooks',
   },
   pt: {
-    badge: 'Infraestrutura de pagamentos de nova geracao em Stellar',
-    heroTitleStart: 'A API para',
-    heroTitleHighlight: 'links de pagamento instantaneos',
-    heroTitleEnd: 'na rede Stellar',
+    badge: 'Pagamentos globais com Stellar',
+    heroTitleStart: 'Transforme cada fatura em',
+    heroTitleHighlight: 'um link de checkout instantâneo',
+    heroTitleEnd: 'e receba em segundos',
     heroDescription:
-      'Lance checkout hospedado, gere links de pagamento compartilhaveis e confirme liquidacoes on-chain em segundos \u2014 sem tocar na infraestrutura Stellar. Uma chamada API, zero risco de custodia.',
-    heroPrimaryCta: 'Lance seu primeiro link',
-    heroSecondaryCta: 'Ver documentacao',
-    heroFootnote: 'Plano gratuito disponivel. Sem cartao necessario. Deploy na testnet instantaneo.',
-    howTitle: 'De zero a checkout em 3 passos',
-    howSubtitle: 'Conecte, crie, receba. Todo o ciclo de vida do pagamento resolvido para voce.',
-    benefitsTitle: 'Confiabilidade de nivel infraestrutura',
-    benefitsSubtitle: 'Orquestracao de pagamentos empresarial sem a complexidade empresarial.',
-    audienceTitle: 'Construido para qualquer escala',
-    audienceSubtitle: 'Seja um MVP ou milhares de transacoes, Link2Pay se adapta.',
-    testimonialsTitle: 'Confiado por builders no mundo todo',
-    testimonialsSubtitle: 'Times em mais de 30 paises lancam checkout mais rapido com Link2Pay.',
-    moneyTitle: 'Liquidacao multi-ativo',
-    moneySubtitle: 'Aceite XLM, USDC e EURC em um checkout unificado. Finalidade instantanea, taxas minimas.',
-    finalTitle: 'Comece a aceitar pagamentos em minutos',
+      'Link2Pay ajuda freelancers, agências e times de produto a receber sem atrasos bancários. Crie um link, compartilhe e liquide on-chain em cerca de 5 segundos.',
+    heroPrimaryCta: 'Criar meu primeiro link',
+    heroSecondaryCta: 'Ver o fluxo',
+    heroFootnote: 'Comece grátis na Testnet e mude para Mainnet quando estiver pronto.',
+    howTitle: 'Como lançar em uma tarde',
+    howSubtitle: 'Conecte a wallet, gere o link e confirme o pagamento em tempo real.',
+    benefitsTitle: 'Por que os times escolhem Link2Pay',
+    benefitsSubtitle: 'Mais velocidade de caixa, menos fricção e checkout confiável.',
+    audienceTitle: 'Feito para times de pagamentos modernos',
+    audienceSubtitle: 'De operadores independentes a plataformas em crescimento.',
+    testimonialsTitle: 'Histórias de times que lançam mais rápido',
+    testimonialsSubtitle: 'Times em 30+ países lançam checkout com menos esforço de engenharia.',
+    moneyTitle: 'Aceite os ativos que seus clientes já usam',
+    moneySubtitle: 'Receba XLM, USDC e EURC em um único fluxo com finalidade rápida.',
+    finalTitle: 'Lance seu próximo fluxo de pagamento hoje',
     finalDescription:
-      'Implante checkout Stellar hospedado com nosso SDK gratuito. Escale para producao com webhooks, branding e controles de time.',
-    finalPrimaryCta: 'Crie seu primeiro link',
+      'Crie um link de pagamento em minutos, compartilhe em qualquer canal e acompanhe cada status de CREATED a CONFIRMED. Escale com webhooks, branding e controles de equipe.',
+    finalPrimaryCta: 'Criar meu primeiro link',
     finalSecondaryCta: 'Comparar planos',
+    heroTag1: '150+ Países',
+    heroTag2: 'Liquidação em 5s',
+    heroTag3: 'API + Webhooks',
   },
 };
 
@@ -138,52 +150,52 @@ const FLOW_STEPS: Record<Language, Array<Item & { step: string }>> = {
   en: [
     {
       step: '01',
-      title: 'Authenticate with your wallet',
-      description: 'Sign in with Freighter. Non-custodial by design \u2014 your private keys never leave your device.',
+      title: 'Connect your wallet securely',
+      description: 'Sign in with Freighter. Your private keys stay on your device.',
     },
     {
       step: '02',
-      title: 'Generate a payment link',
-      description: 'Define the amount, choose the asset (XLM, USDC, EURC), set expiration, and attach metadata via API.',
+      title: 'Create a payment link in seconds',
+      description: 'Set amount, choose asset, define expiration, and add metadata when needed.',
     },
     {
       step: '03',
-      title: 'Share and get paid',
-      description: 'Send the checkout URL to your payer. Funds settle on-chain in ~5 seconds with real-time status updates.',
+      title: 'Share the link and confirm settlement',
+      description: 'Send the checkout URL and track status in real time until CONFIRMED.',
     },
   ],
   es: [
     {
       step: '01',
-      title: 'Autentica con tu wallet',
-      description: 'Inicia sesion con Freighter. No custodial por diseno \u2014 tus claves privadas nunca salen de tu dispositivo.',
+      title: 'Conecta tu wallet de forma segura',
+      description: 'Inicia sesión con Freighter. Tus llaves privadas se quedan en tu dispositivo.',
     },
     {
       step: '02',
-      title: 'Genera un link de pago',
-      description: 'Define el monto, elige el activo (XLM, USDC, EURC), configura expiracion y adjunta metadata via API.',
+      title: 'Crea un link de pago en segundos',
+      description: 'Define monto, activo, expiración y metadata cuando la necesites.',
     },
     {
       step: '03',
-      title: 'Comparte y cobra',
-      description: 'Envia la URL de checkout a tu pagador. Los fondos se liquidan on-chain en ~5 segundos con actualizaciones en tiempo real.',
+      title: 'Comparte el link y confirma la liquidación',
+      description: 'Envía la URL de checkout y sigue el estado en tiempo real hasta CONFIRMED.',
     },
   ],
   pt: [
     {
       step: '01',
-      title: 'Autentique com sua wallet',
-      description: 'Entre com Freighter. Non-custodial por design \u2014 suas chaves privadas nunca saem do seu dispositivo.',
+      title: 'Conecte sua wallet com seguranca',
+      description: 'Entre com Freighter. Suas chaves privadas ficam no seu dispositivo.',
     },
     {
       step: '02',
-      title: 'Gere um link de pagamento',
-      description: 'Defina o valor, escolha o ativo (XLM, USDC, EURC), configure expiracao e anexe metadata via API.',
+      title: 'Crie um link de pagamento em segundos',
+      description: 'Defina valor, ativo, expiração e metadata quando precisar.',
     },
     {
       step: '03',
-      title: 'Compartilhe e receba',
-      description: 'Envie a URL de checkout ao pagador. Fundos liquidam on-chain em ~5 segundos com atualizacoes em tempo real.',
+      title: 'Compartilhe o link e confirme a liquidação',
+      description: 'Envie a URL de checkout e acompanhe o status em tempo real até CONFIRMED.',
     },
   ],
 };
@@ -191,56 +203,56 @@ const FLOW_STEPS: Record<Language, Array<Item & { step: string }>> = {
 const BENEFITS: Record<Language, Item[]> = {
   en: [
     {
-      title: 'Instant settlement',
-      description: 'Stellar finalizes transactions in 3\u20135 seconds. No T+2, no clearing houses, no delays.',
+      title: 'Faster cash flow',
+      description: 'Most payments finalize on Stellar in about 5 seconds, so your team moves faster.',
     },
     {
-      title: 'Near-zero network fees',
-      description: 'Send $50 or $500,000 \u2014 Stellar network costs stay under a fraction of a cent per transaction.',
+      title: 'Low transaction costs',
+      description: 'Network fees stay near zero, from small invoices to high-value transactions.',
     },
     {
-      title: 'Borderless by default',
-      description: 'Accept payments from 150+ countries. No banking restrictions, no currency conversion friction.',
+      title: 'Global collection',
+      description: 'Accept payments across borders with one checkout flow and no banking bottlenecks.',
     },
     {
-      title: 'Non-custodial architecture',
-      description: 'Funds flow directly to your wallet on-chain. Link2Pay never holds, routes, or touches your capital.',
+      title: 'Non-custodial control',
+      description: 'Funds settle directly to your wallet. Link2Pay does not hold customer balances.',
     },
   ],
   es: [
     {
-      title: 'Liquidacion instantanea',
-      description: 'Stellar finaliza transacciones en 3\u20135 segundos. Sin T+2, sin camaras de compensacion.',
+      title: 'Flujo de caja más rápido',
+      description: 'La mayoría de pagos en Stellar se confirma en unos 5 segundos.',
     },
     {
-      title: 'Comisiones de red casi nulas',
-      description: 'Envia $50 o $500,000 \u2014 el costo de red Stellar se mantiene bajo fracciones de centavo.',
+      title: 'Costos de transacción bajos',
+      description: 'Las comisiones de red se mantienen casi en cero para montos chicos o grandes.',
     },
     {
-      title: 'Sin fronteras por defecto',
-      description: 'Acepta pagos desde 150+ paises. Sin restricciones bancarias ni friccion cambiaria.',
+      title: 'Cobro global',
+      description: 'Acepta pagos transfronterizos con un solo flujo de checkout.',
     },
     {
-      title: 'Arquitectura no custodial',
-      description: 'Los fondos fluyen directo a tu wallet on-chain. Link2Pay nunca retiene ni toca tu capital.',
+      title: 'Control non-custodial',
+      description: 'Los fondos llegan directo a tu wallet. Link2Pay no retiene balances.',
     },
   ],
   pt: [
     {
-      title: 'Liquidacao instantanea',
-      description: 'Stellar finaliza transacoes em 3\u20135 segundos. Sem T+2, sem camaras de compensacao.',
+      title: 'Fluxo de caixa mais rápido',
+      description: 'A maioria dos pagamentos na Stellar confirma em cerca de 5 segundos.',
     },
     {
-      title: 'Taxas de rede quase zero',
-      description: 'Envie $50 ou $500.000 \u2014 o custo de rede Stellar fica abaixo de fracoes de centavo.',
+      title: 'Custos de transação baixos',
+      description: 'As taxas de rede ficam quase em zero para valores pequenos ou altos.',
     },
     {
-      title: 'Sem fronteiras por padrao',
-      description: 'Aceite pagamentos de 150+ paises. Sem restricoes bancarias nem fricao cambial.',
+      title: 'Recebimento global',
+      description: 'Aceite pagamentos internacionais com um único fluxo de checkout.',
     },
     {
-      title: 'Arquitetura non-custodial',
-      description: 'Fundos fluem direto para sua wallet on-chain. Link2Pay nunca retém nem toca seu capital.',
+      title: 'Controle non-custodial',
+      description: 'Os fundos chegam direto na sua wallet. Link2Pay não retém saldos.',
     },
   ],
 };
@@ -248,119 +260,125 @@ const BENEFITS: Record<Language, Item[]> = {
 const AUDIENCES: Record<Language, Item[]> = {
   en: [
     {
-      title: 'SaaS & Product Teams',
-      description: 'Embed payment links into your product in minutes. No payment infrastructure to build or maintain.',
+      title: 'Freelancers and agencies',
+      description: 'Send one payment link per project and reduce back-and-forth on collection.',
     },
     {
-      title: 'Marketplaces & Platforms',
-      description: 'Generate unique payment intents per transaction with full lifecycle tracking and webhook callbacks.',
+      title: 'SaaS and product teams',
+      description: 'Add payment links to your app quickly without maintaining custom checkout logic.',
     },
     {
-      title: 'Global-first Startups',
-      description: 'Accept instant cross-border payments in stablecoins and XLM. No banking rails, no delays, no limits.',
+      title: 'Marketplaces and platforms',
+      description: 'Create payment intents at scale and monitor each transaction lifecycle.',
     },
   ],
   es: [
     {
+      title: 'Freelancers y agencias',
+      description: 'Comparte un link por proyecto y reduce fricción al cobrar.',
+    },
+    {
       title: 'SaaS y equipos de producto',
-      description: 'Integra links de pago en tu producto en minutos. Sin infraestructura de pagos que construir o mantener.',
+      description: 'Agrega links de pago en tu app sin mantener logica de checkout personalizada.',
     },
     {
       title: 'Marketplaces y plataformas',
-      description: 'Genera intents de pago unicos por transaccion con tracking de ciclo de vida completo y callbacks por webhook.',
-    },
-    {
-      title: 'Startups global-first',
-      description: 'Acepta pagos transfronterizos instantaneos en stablecoins y XLM. Sin rails bancarios, sin demoras.',
+      description: 'Genera intents de pago a escala y monitorea cada ciclo de transacción.',
     },
   ],
   pt: [
     {
+      title: 'Freelancers e agencias',
+      description: 'Compartilhe um link por projeto e reduza atrito na cobrança.',
+    },
+    {
       title: 'SaaS e times de produto',
-      description: 'Integre links de pagamento no seu produto em minutos. Sem infraestrutura de pagamentos para construir.',
+      description: 'Adicione links de pagamento no app sem manter checkout customizado.',
     },
     {
       title: 'Marketplaces e plataformas',
-      description: 'Gere intents de pagamento unicos por transacao com tracking completo de ciclo de vida e callbacks webhook.',
-    },
-    {
-      title: 'Startups global-first',
-      description: 'Aceite pagamentos transfronteiricos instantaneos em stablecoins e XLM. Sem rails bancarios, sem demoras.',
+      description: 'Gere intents de pagamento em escala e acompanhe cada ciclo da transação.',
     },
   ],
 };
 
+const AUDIENCE_FITS: Record<Language, string[]> = {
+  en: ['Best for project-based billing', 'Best for embedded checkout flows', 'Best for high-volume payment operations'],
+  es: ['Ideal para facturacion por proyecto', 'Ideal para checkout embebido en producto', 'Ideal para operaciones de cobro en alto volumen'],
+  pt: ['Ideal para faturamento por projeto', 'Ideal para checkout embutido no produto', 'Ideal para operacoes de pagamento em alto volume'],
+};
+
 const STATS: Record<Language, StatItem[]> = {
   en: [
-    { value: '~5s', label: 'Average settlement time' },
-    { value: '<$0.01', label: 'Per-transaction network cost' },
+    { value: '~5s', label: 'Median settlement time' },
+    { value: '<$0.01', label: 'Typical network fee' },
     { value: '3', label: 'Supported Stellar assets' },
     { value: '150+', label: 'Countries with access' },
   ],
   es: [
-    { value: '~5s', label: 'Tiempo promedio de liquidacion' },
-    { value: '<$0.01', label: 'Costo de red por transaccion' },
+    { value: '~5s', label: 'Tiempo medio de liquidación' },
+    { value: '<$0.01', label: 'Costo de red por transacción' },
     { value: '3', label: 'Activos Stellar soportados' },
-    { value: '150+', label: 'Paises con acceso' },
+    { value: '150+', label: 'Países con acceso' },
   ],
   pt: [
-    { value: '~5s', label: 'Tempo medio de liquidacao' },
-    { value: '<$0.01', label: 'Custo de rede por transacao' },
+    { value: '~5s', label: 'Tempo médio de liquidação' },
+    { value: '<$0.01', label: 'Custo de rede por transação' },
     { value: '3', label: 'Ativos Stellar suportados' },
-    { value: '150+', label: 'Paises com acesso' },
+    { value: '150+', label: 'Países com acesso' },
   ],
 };
 
 const TESTIMONIALS: Record<Language, Testimonial[]> = {
   en: [
     {
-      quote: 'We replaced our entire payment backend with Link2Pay in one afternoon. Settlement went from days to seconds.',
+      quote: 'We replaced manual bank follow-ups with one checkout link. Time to get paid dropped from days to minutes.',
       name: 'Maria G.',
-      role: 'CTO, Fintech Startup \u2014 Colombia',
+      role: 'COO, Digital Studio - Colombia',
     },
     {
-      quote: 'The API is beautifully simple. One POST to create a link, one webhook to confirm. That\'s the whole integration.',
+      quote: 'Integration was simple: create link, listen to webhook, update order status. We shipped in one sprint.',
       name: 'James K.',
-      role: 'Lead Engineer \u2014 Nigeria',
+      role: 'Lead Engineer - Nigeria',
     },
     {
-      quote: 'Our clients across Europe pay us in EURC now. No SWIFT fees, no 3-day waits, no chargebacks.',
+      quote: 'Cross-border billing became easier with USDC and EURC. Clients pay faster and support tickets dropped.',
       name: 'Sofia R.',
-      role: 'Founder, Digital Agency \u2014 Argentina',
+      role: 'Founder, Agency - Argentina',
     },
   ],
   es: [
     {
-      quote: 'Reemplazamos todo nuestro backend de pagos con Link2Pay en una tarde. La liquidacion paso de dias a segundos.',
+      quote: 'Reemplazamos seguimiento manual bancario por un solo link de checkout. Pasamos de días a minutos para cobrar.',
       name: 'Maria G.',
-      role: 'CTO, Startup Fintech \u2014 Colombia',
+      role: 'COO, Estudio Digital - Colombia',
     },
     {
-      quote: 'La API es elegantemente simple. Un POST para crear un link, un webhook para confirmar. Esa es toda la integracion.',
+      quote: 'La integración fue simple: crear link, escuchar webhook y actualizar estado de orden. Lo lanzamos en un sprint.',
       name: 'James K.',
-      role: 'Lead Engineer \u2014 Nigeria',
+      role: 'Lead Engineer - Nigeria',
     },
     {
-      quote: 'Nuestros clientes en Europa nos pagan en EURC. Sin comisiones SWIFT, sin 3 dias de espera, sin contracargos.',
+      quote: 'La facturación internacional fue más fácil con USDC y EURC. Los clientes pagan más rápido y bajaron los tickets.',
       name: 'Sofia R.',
-      role: 'Fundadora, Agencia Digital \u2014 Argentina',
+      role: 'Fundadora, Agencia - Argentina',
     },
   ],
   pt: [
     {
-      quote: 'Substituimos todo nosso backend de pagamentos pelo Link2Pay em uma tarde. Liquidacao passou de dias para segundos.',
+      quote: 'Trocamos acompanhamento manual bancário por um único link de checkout. O tempo para receber caiu de dias para minutos.',
       name: 'Maria G.',
-      role: 'CTO, Startup Fintech \u2014 Colombia',
+      role: 'COO, Estudio Digital - Colombia',
     },
     {
-      quote: 'A API e elegantemente simples. Um POST para criar um link, um webhook para confirmar. Essa e toda a integracao.',
+      quote: 'A integração foi simples: criar link, receber webhook e atualizar status do pedido. Lançamos em um sprint.',
       name: 'James K.',
-      role: 'Lead Engineer \u2014 Nigeria',
+      role: 'Lead Engineer - Nigeria',
     },
     {
-      quote: 'Nossos clientes na Europa nos pagam em EURC. Sem taxas SWIFT, sem 3 dias de espera, sem chargebacks.',
+      quote: 'A cobrança internacional ficou mais fácil com USDC e EURC. Clientes pagam mais rápido e os tickets caíram.',
       name: 'Sofia R.',
-      role: 'Fundadora, Agencia Digital \u2014 Argentina',
+      role: 'Fundadora, Agencia - Argentina',
     },
   ],
 };
@@ -370,53 +388,106 @@ const CURRENCIES: Record<Language, CurrencyCard[]> = {
     {
       code: 'XLM',
       name: 'Stellar Lumens',
-      desc: 'Native network asset with the fastest settlement and lowest fees on the Stellar network.',
+      desc: 'Native Stellar asset for fast settlement and very low network fees.',
     },
     {
       code: 'USDC',
       name: 'USD Coin',
-      desc: 'Dollar-pegged stablecoin issued by Circle. Ideal for USD-denominated invoicing and commerce.',
+      desc: 'Dollar-pegged stablecoin by Circle for USD pricing and settlement.',
     },
     {
       code: 'EURC',
       name: 'Euro Coin',
-      desc: 'Euro-pegged stablecoin by Circle. Optimized for European markets and cross-border EUR settlements.',
+      desc: 'Euro-pegged stablecoin by Circle for cross-border EUR collections.',
     },
   ],
   es: [
     {
       code: 'XLM',
       name: 'Stellar Lumens',
-      desc: 'Activo nativo de la red con la liquidacion mas rapida y las comisiones mas bajas en Stellar.',
+      desc: 'Activo nativo de Stellar para liquidación rápida y comisiones muy bajas.',
     },
     {
       code: 'USDC',
       name: 'USD Coin',
-      desc: 'Stablecoin vinculada al dolar emitida por Circle. Ideal para facturacion y comercio en USD.',
+      desc: 'Stablecoin vinculada al dólar por Circle para cobros y liquidación en USD.',
     },
     {
       code: 'EURC',
       name: 'Euro Coin',
-      desc: 'Stablecoin vinculada al euro por Circle. Optimizada para mercados europeos y liquidaciones en EUR.',
+      desc: 'Stablecoin vinculada al euro por Circle para cobros internacionales en EUR.',
     },
   ],
   pt: [
     {
       code: 'XLM',
       name: 'Stellar Lumens',
-      desc: 'Ativo nativo da rede com a liquidacao mais rapida e as menores taxas na Stellar.',
+      desc: 'Ativo nativo da Stellar para liquidação rápida e taxas muito baixas.',
     },
     {
       code: 'USDC',
       name: 'USD Coin',
-      desc: 'Stablecoin pareada ao dolar emitida pela Circle. Ideal para faturamento e comercio em USD.',
+      desc: 'Stablecoin pareada ao dólar pela Circle para cobrança e liquidação em USD.',
     },
     {
       code: 'EURC',
       name: 'Euro Coin',
-      desc: 'Stablecoin pareada ao euro pela Circle. Otimizada para mercados europeus e liquidacoes em EUR.',
+      desc: 'Stablecoin pareada ao euro pela Circle para cobrancas internacionais em EUR.',
     },
   ],
+};
+
+const HOME_EXTRAS: Record<
+  Language,
+  {
+    snapshotTitle: string;
+    snapshotSubtitle: string;
+    benefitsCta: string;
+    ratingNote: string;
+    assetsNote: string;
+    sdkCta: string;
+    sdkHint: string;
+    lifecycleCreated: string;
+    lifecyclePending: string;
+    lifecycleConfirmed: string;
+  }
+> = {
+  en: {
+    snapshotTitle: 'Payments overview at a glance',
+    snapshotSubtitle: 'Monitor settlement speed, fees, and global reach before scaling your live checkout.',
+    benefitsCta: 'Explore capabilities',
+    ratingNote: 'Average partner rating after launching live payment links.',
+    assetsNote: 'Use one integration pattern and choose the asset per payment request.',
+    sdkCta: 'Open SDK Section',
+    sdkHint: 'Need implementation details?',
+    lifecycleCreated: 'CREATED - link generated',
+    lifecyclePending: 'PENDING - waiting for payer confirmation',
+    lifecycleConfirmed: 'CONFIRMED - settlement completed on-chain',
+  },
+  es: {
+    snapshotTitle: 'Panorama de pagos en un vistazo',
+    snapshotSubtitle: 'Visualiza velocidad de liquidacion, costos y alcance global antes de escalar checkout en vivo.',
+    benefitsCta: 'Explorar capacidades',
+    ratingNote: 'Calificacion promedio de partners despues de lanzar links de pago en vivo.',
+    assetsNote: 'Usa un solo patron de integracion y elige el activo por solicitud de pago.',
+    sdkCta: 'Abrir seccion SDK',
+    sdkHint: 'Necesitas detalles de implementacion?',
+    lifecycleCreated: 'CREATED - link generado',
+    lifecyclePending: 'PENDING - esperando confirmacion del pagador',
+    lifecycleConfirmed: 'CONFIRMED - liquidacion completada on-chain',
+  },
+  pt: {
+    snapshotTitle: 'Panorama de pagamentos em um relance',
+    snapshotSubtitle: 'Visualize velocidade de liquidacao, custos e alcance global antes de escalar checkout em producao.',
+    benefitsCta: 'Explorar capacidades',
+    ratingNote: 'Nota media de parceiros apos lancar links de pagamento ao vivo.',
+    assetsNote: 'Use um unico padrao de integracao e escolha o ativo por solicitacao de pagamento.',
+    sdkCta: 'Abrir secao SDK',
+    sdkHint: 'Precisa de detalhes de implementacao?',
+    lifecycleCreated: 'CREATED - link gerado',
+    lifecyclePending: 'PENDING - aguardando confirmacao do pagador',
+    lifecycleConfirmed: 'CONFIRMED - liquidacao concluida on-chain',
+  },
 };
 
 export default function Home() {
@@ -426,163 +497,338 @@ export default function Home() {
   const flowSteps = FLOW_STEPS[language];
   const benefits = BENEFITS[language];
   const audiences = AUDIENCES[language];
+  const audienceFits = AUDIENCE_FITS[language];
   const stats = STATS[language];
   const testimonials = TESTIMONIALS[language];
   const currencies = CURRENCIES[language];
+  const extras = HOME_EXTRAS[language];
 
   return (
     <div>
       <section className="relative overflow-hidden border-b border-border bg-card">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_at_top,_hsl(175_75%_45%_/_0.12),transparent_68%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(ellipse_at_bottom,_hsl(175_75%_45%_/_0.06),transparent_68%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-24 pt-20 sm:px-6 sm:pt-24">
-          <div className="mx-auto max-w-3xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary animate-fade-in">
-              <Sparkles className="h-3.5 w-3.5" />
-              {copy.badge}
-            </span>
-            <h1
-              className="mt-8 text-4xl font-semibold tracking-tight text-foreground md:text-6xl animate-slide-up"
-              style={{ animationDelay: '0.08s' }}
-            >
-              {copy.heroTitleStart}{' '}
-              <span className="text-gradient">{copy.heroTitleHighlight}</span>{' '}
-              {copy.heroTitleEnd}
-            </h1>
-            <p
-              className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg animate-slide-up"
-              style={{ animationDelay: '0.16s' }}
-            >
-              {copy.heroDescription}
-            </p>
-            <div
-              className="mt-10 flex flex-wrap items-center justify-center gap-4 animate-slide-up"
-              style={{ animationDelay: '0.24s' }}
-            >
-              <Link to="/app" className="btn-primary px-6 py-3.5 text-sm">
-                {copy.heroPrimaryCta}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link to="/payment-links" className="btn-secondary px-6 py-3.5 text-sm">
-                {copy.heroSecondaryCta}
-              </Link>
+        <div className="relative mx-auto max-w-[1480px] px-4 pb-16 pt-20 sm:px-6 sm:pb-20 sm:pt-24">
+          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+            <div className="text-center lg:text-left">
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary animate-fade-in">
+                <Sparkles className="h-3.5 w-3.5" />
+                {copy.badge}
+              </span>
+              <h1
+                className="mt-8 text-4xl font-semibold tracking-tight leading-[1.04] text-foreground md:text-6xl md:leading-[1.04] lg:text-7xl lg:leading-[1.02] animate-slide-up"
+                style={{ animationDelay: '0.08s' }}
+              >
+                <span className="block">
+                  {copy.heroTitleStart} <span className="text-gradient">{copy.heroTitleHighlight}</span>
+                </span>
+                <span className="block">{copy.heroTitleEnd}</span>
+              </h1>
+              <p
+                className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg lg:mx-0 animate-slide-up"
+                style={{ animationDelay: '0.16s' }}
+              >
+                {copy.heroDescription}
+              </p>
+              <div
+                className="mt-10 flex flex-wrap items-center justify-center gap-4 lg:justify-start animate-slide-up"
+                style={{ animationDelay: '0.24s' }}
+              >
+                <Link to="/app" className="btn-primary px-6 py-3.5 text-sm">
+                  {copy.heroPrimaryCta}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link to="/payment-links" className="btn-secondary px-6 py-3.5 text-sm">
+                  {copy.heroSecondaryCta}
+                </Link>
+              </div>
+              <p className="mt-4 text-xs text-muted-foreground animate-slide-up" style={{ animationDelay: '0.32s' }}>
+                {copy.heroFootnote}
+              </p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-[11px] uppercase tracking-[0.24em] text-muted-foreground lg:justify-start">
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
+                  {copy.heroTag1}
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
+                  {copy.heroTag2}
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
+                  {copy.heroTag3}
+                </span>
+              </div>
             </div>
-            <p className="mt-4 text-xs text-muted-foreground animate-slide-up" style={{ animationDelay: '0.32s' }}>
-              {copy.heroFootnote}
-            </p>
-          </div>
 
-          <div className="mx-auto mt-16 w-full max-w-4xl animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <OrbitProgressHero />
-          </div>
-        </div>
-      </section>
-
-      <section className="border-b border-border bg-muted/30">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-            {stats.map((stat, index) => (
-              <div key={stat.label} className="text-center animate-fade-in" style={{ animationDelay: `${0.1 + index * 0.08}s` }}>
-                <div className="text-2xl font-semibold text-primary md:text-3xl">{stat.value}</div>
-                <div className="mt-1 text-xs text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <InteractiveLinkBuilder />
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold text-foreground">{copy.howTitle}</h2>
-          <p className="mt-3 text-base text-muted-foreground">{copy.howSubtitle}</p>
-        </div>
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
-          {flowSteps.map((step, index) => {
-            const Icon = FLOW_STEP_ICONS[index];
-            return (
-              <div key={step.title} className="card hover-glow relative p-8 animate-fade-in" style={{ animationDelay: `${0.05 + index * 0.1}s` }}>
-                <span className="absolute right-6 top-6 text-4xl font-bold text-primary/10">{step.step}</span>
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Icon className="h-6 w-6" />
+            <div className="w-full animate-fade-in lg:mt-4" style={{ animationDelay: '0.2s' }}>
+              <div className="relative h-full overflow-hidden rounded-[2.5rem] border border-border/70 bg-card/90 p-8 shadow-[0_40px_120px_hsl(var(--primary)_/_0.2)] backdrop-blur sm:p-10 lg:p-12">
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,_hsl(var(--card)),_hsl(var(--background)))]" />
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)_/_0.2),transparent_60%)]" />
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,_hsl(var(--primary)_/_0.07)_1px,transparent_1px),linear-gradient(180deg,_hsl(var(--primary)_/_0.05)_1px,transparent_1px)] bg-[size:48px_48px] opacity-60" />
+                <div className="relative">
+                  <HeroQuickLink />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
               </div>
-            );
-          })}
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="border-y border-border bg-card">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-semibold text-foreground">{copy.benefitsTitle}</h2>
-            <p className="mt-3 text-base text-muted-foreground">{copy.benefitsSubtitle}</p>
+      <section id="overview" className="scroll-mt-40 border-b border-border bg-muted/20">
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-12">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+            <article className="relative overflow-hidden rounded-2xl border border-border bg-card p-7 sm:p-8">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)_/_0.16),transparent_62%)]" />
+              <div className="relative">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-primary">
+                  <Send className="h-3.5 w-3.5" />
+                  {copy.badge}
+                </span>
+                <h2 className="mt-4 text-2xl font-semibold text-foreground sm:text-3xl">{extras.snapshotTitle}</h2>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">{extras.snapshotSubtitle}</p>
+
+                <div className="mt-7 space-y-3">
+                  {[copy.heroTag1, copy.heroTag2, copy.heroTag3].map((tag) => (
+                    <div key={tag} className="flex items-center gap-3 rounded-xl border border-border bg-background/80 px-4 py-3">
+                      <span className="h-2 w-2 rounded-full bg-primary" />
+                      <p className="text-xs font-medium text-muted-foreground">{tag}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <Link to="/app" className="btn-primary px-5 py-2.5 text-sm">
+                    {copy.heroPrimaryCta}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {extras.sdkHint}{' '}
+                  <Link to="/sdk" className="font-medium text-primary hover:underline">
+                    {extras.sdkCta}
+                  </Link>
+                </p>
+              </div>
+            </article>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {stats.map((stat, index) => {
+                const Icon = STATS_ICONS[index];
+                return (
+                  <article
+                    key={stat.label}
+                    className="relative overflow-hidden rounded-2xl border border-border bg-card p-6"
+                  >
+                    <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-[linear-gradient(180deg,_hsl(var(--primary)_/_0.10),transparent)]" />
+                    <div className="relative">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="mt-5 text-2xl font-semibold text-primary sm:text-3xl">{stat.value}</div>
+                      <p className="mt-2 text-sm text-muted-foreground">{stat.label}</p>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           </div>
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {benefits.map((benefit, index) => {
-              const Icon = BENEFIT_ICONS[index];
-              return (
-                <article
-                  key={benefit.title}
-                  className="group rounded-xl border border-border bg-background p-6 transition-all hover:border-primary/30 hover:shadow-lg animate-fade-in"
-                  style={{ animationDelay: `${0.04 + index * 0.08}s` }}
-                >
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
-                    <Icon className="h-5 w-5" />
+        </div>
+      </section>
+
+      <section id="flow" className="scroll-mt-40 mx-auto max-w-6xl px-4 py-20 sm:px-6">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="lg:sticky lg:top-24 lg:h-fit">
+            <h2 className="text-3xl font-semibold text-foreground">{copy.howTitle}</h2>
+            <p className="mt-3 text-base text-muted-foreground">{copy.howSubtitle}</p>
+
+            <div className="mt-8 rounded-2xl border border-border bg-card p-5">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{copy.heroTag2}</p>
+              <div className="mt-4 space-y-3">
+                {flowSteps.map((step) => (
+                  <div key={step.step} className="flex items-center gap-3 rounded-lg border border-border bg-background/70 px-3 py-2.5">
+                    <span className="text-sm font-semibold text-primary">{step.step}</span>
+                    <p className="text-xs text-muted-foreground">{step.title}</p>
                   </div>
-                  <h3 className="text-base font-semibold text-foreground">{benefit.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{benefit.description}</p>
-                </article>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <ol className="relative space-y-5">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-5 left-6 top-5 hidden w-px bg-gradient-to-b from-primary/0 via-primary/40 to-primary/0 md:block"
+            />
+            {flowSteps.map((step, index) => {
+              const Icon = FLOW_STEP_ICONS[index];
+              return (
+                <li
+                  key={step.title}
+                  className={`relative overflow-hidden rounded-2xl border border-border bg-card p-6 sm:p-7 ${
+                    index % 2 === 0 ? 'md:mr-10' : 'md:ml-10'
+                  }`}
+                >
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-[linear-gradient(180deg,_hsl(var(--primary)_/_0.10),transparent)]" />
+                  <div className="relative flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold tracking-[0.12em] text-primary">{step.step}</p>
+                      <h3 className="mt-1 text-lg font-semibold text-foreground">{step.title}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
+                    </div>
+                  </div>
+                </li>
               );
             })}
+          </ol>
+        </div>
+      </section>
+
+      <section id="benefits" className="scroll-mt-40 border-y border-border bg-card">
+        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
+            <div>
+              <h2 className="text-3xl font-semibold text-foreground">{copy.benefitsTitle}</h2>
+              <p className="mt-3 text-base text-muted-foreground">{copy.benefitsSubtitle}</p>
+              <Link to="/payment-links" className="btn-secondary mt-6 w-fit px-5 py-2.5 text-sm">
+                {extras.benefitsCta}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {benefits.map((benefit, index) => {
+                const Icon = BENEFIT_ICONS[index];
+                return (
+                  <article key={benefit.title} className="rounded-2xl border border-border bg-background p-6">
+                    <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <h3 className="text-base font-semibold text-foreground">{benefit.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{benefit.description}</p>
+                  </article>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <section id="teams" className="scroll-mt-40 mx-auto max-w-6xl px-4 py-20 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold text-foreground">{copy.audienceTitle}</h2>
           <p className="mt-3 text-base text-muted-foreground">{copy.audienceSubtitle}</p>
         </div>
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+
+        <div className="mt-12 grid gap-5 lg:grid-cols-3">
           {audiences.map((audience, index) => {
             const Icon = AUDIENCE_ICONS[index];
             return (
-              <article key={audience.title} className="card hover-glow p-8 animate-fade-in" style={{ animationDelay: `${0.04 + index * 0.09}s` }}>
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <article key={audience.title} className="rounded-2xl border border-border bg-card p-6">
+                <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground">{audience.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{audience.description}</p>
+                <div className="mt-6 border-t border-border pt-4 text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                  {audienceFits[index]}
+                </div>
               </article>
             );
           })}
         </div>
       </section>
 
-      <section className="border-y border-border bg-card">
+      <section id="stories" className="scroll-mt-40 border-y border-border bg-card">
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-semibold text-foreground">{copy.testimonialsTitle}</h2>
-            <p className="mt-3 text-base text-muted-foreground">{copy.testimonialsSubtitle}</p>
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)]">
+            <div>
+              <h2 className="text-3xl font-semibold text-foreground">{copy.testimonialsTitle}</h2>
+              <p className="mt-3 text-base text-muted-foreground">{copy.testimonialsSubtitle}</p>
+              <div className="mt-8 rounded-2xl border border-border bg-background p-6">
+                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{copy.heroTag1}</p>
+                <p className="mt-2 text-4xl font-semibold text-primary">4.9/5</p>
+                <p className="mt-2 text-sm text-muted-foreground">{extras.ratingNote}</p>
+              </div>
+            </div>
+
+            <div className="-mx-4 overflow-x-auto px-4">
+              <div className="flex snap-x gap-5 pb-2">
+                {testimonials.map((testimonial, index) => (
+                  <article
+                    key={testimonial.name}
+                    className={`min-w-[280px] max-w-[320px] snap-start rounded-2xl border border-border bg-background p-7 ${
+                      index === 1 ? 'sm:translate-y-3' : ''
+                    }`}
+                  >
+                    <div className="mb-4 flex gap-1">
+                      {[...Array(5)].map((_, starIndex) => (
+                        <Star key={starIndex} className="h-4 w-4 fill-primary text-primary" />
+                      ))}
+                    </div>
+                    <p className="text-sm leading-relaxed text-muted-foreground italic">"{testimonial.quote}"</p>
+                    <div className="mt-6 border-t border-border pt-4">
+                      <p className="text-sm font-medium text-foreground">{testimonial.name}</p>
+                      <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
-            {testimonials.map((testimonial, index) => (
-              <article key={testimonial.name} className="rounded-xl border border-border bg-background p-8 animate-fade-in" style={{ animationDelay: `${0.04 + index * 0.09}s` }}>
-                <div className="mb-4 flex gap-1">
-                  {[...Array(5)].map((_, starIndex) => (
-                    <Star key={starIndex} className="h-4 w-4 fill-primary text-primary" />
-                  ))}
+        </div>
+      </section>
+
+      <section id="assets" className="scroll-mt-40 mx-auto max-w-6xl px-4 py-20 sm:px-6">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)]">
+          <div>
+            <h2 className="text-3xl font-semibold text-foreground">{copy.moneyTitle}</h2>
+            <p className="mt-3 text-base text-muted-foreground">{copy.moneySubtitle}</p>
+
+            <div className="mt-7 rounded-2xl border border-border bg-card p-6">
+              <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{copy.heroTag3}</p>
+              <p className="mt-3 text-sm text-muted-foreground">{extras.assetsNote}</p>
+              <div className="mt-5 space-y-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-primary" />
+                  <span>{extras.lifecycleCreated}</span>
                 </div>
-                <p className="text-sm leading-relaxed text-muted-foreground italic">"{testimonial.quote}"</p>
-                <div className="mt-6 border-t border-border pt-4">
-                  <p className="text-sm font-medium text-foreground">{testimonial.name}</p>
-                  <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-primary/70" />
+                  <span>{extras.lifecyclePending}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-success" />
+                  <span>{extras.lifecycleConfirmed}</span>
+                </div>
+              </div>
+              <Link to="/sdk" className="btn-secondary mt-5 px-4 py-2 text-sm">
+                {extras.sdkCta}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {currencies.map((currency) => (
+              <article key={currency.code} className="relative overflow-hidden rounded-2xl border border-border bg-card p-6">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_hsl(var(--primary)_/_0.12),transparent_62%)]" />
+                <div className="relative flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-lg font-bold text-primary">
+                      {currency.code}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-base font-semibold text-foreground">{currency.name}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{currency.desc}</p>
+                    </div>
+                  </div>
+                  <span className="hidden shrink-0 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-primary sm:inline-flex">
+                    {copy.heroTag2}
+                  </span>
                 </div>
               </article>
             ))}
@@ -590,25 +836,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold text-foreground">{copy.moneyTitle}</h2>
-          <p className="mt-3 text-base text-muted-foreground">{copy.moneySubtitle}</p>
-        </div>
-        <div className="mt-14 grid gap-4 md:grid-cols-3">
-          {currencies.map((currency, index) => (
-            <div key={currency.code} className="card p-6 text-center animate-fade-in" style={{ animationDelay: `${0.05 + index * 0.08}s` }}>
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary">
-                {currency.code}
-              </div>
-              <h3 className="text-base font-semibold text-foreground">{currency.name}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{currency.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
+      <section id="start" className="scroll-mt-40 mx-auto max-w-6xl px-4 pb-20 sm:px-6">
         <div className="card overflow-hidden">
           <div className="bg-[linear-gradient(135deg,_hsl(175_75%_45%),_hsl(175_75%_35%))] p-10 sm:p-14">
             <div className="mx-auto max-w-2xl text-center">
@@ -630,3 +858,5 @@ export default function Home() {
     </div>
   );
 }
+
+
