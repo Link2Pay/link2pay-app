@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export type LinkedWallet = {
   walletAddress: string;
-  provider: 'FREIGHTER' | 'ACCESLY';
+  provider: 'FREIGHTER';
   providerEmail: string | null;
   isPrimary: boolean;
 };

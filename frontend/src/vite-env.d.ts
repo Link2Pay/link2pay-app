@@ -6,7 +6,6 @@ interface ImportMetaEnv {
   readonly VITE_STELLAR_NETWORK: string;
   readonly VITE_HORIZON_URL: string;
   readonly VITE_NETWORK_PASSPHRASE: string;
-  readonly VITE_ACCESLY_APP_ID: string;
   readonly VITE_PLAN_TIER: string;
 }
 

@@ -115,7 +115,7 @@ export default function RoleSelect() {
       displayName: string | null;
       wallets: Array<{
         walletAddress: string;
-        provider: 'FREIGHTER' | 'ACCESLY';
+        provider: 'FREIGHTER';
         providerEmail: string | null;
         isPrimary: boolean;
       }>;

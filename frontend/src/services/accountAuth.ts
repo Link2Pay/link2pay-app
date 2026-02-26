@@ -103,23 +103,6 @@ export async function loginWithFreighterWallet(params: {
   });
 }
 
-export async function loginWithAccesly(params: {
-  walletAddress: string;
-  email: string;
-  displayName?: string;
-}): Promise<AccountSession> {
-  return request<AccountSession>('/wallet-login', {
-    method: 'POST',
-    body: JSON.stringify({
-      provider: 'ACCESLY',
-      walletAddress: params.walletAddress,
-      email: params.email,
-      providerEmail: params.email,
-      displayName: params.displayName,
-    }),
-  });
-}
-
 export async function linkFreighterWallet(
   token: string,
   params: { walletAddress: string; makePrimary?: boolean }
@@ -135,25 +118,6 @@ export async function linkFreighterWallet(
         makePrimary: params.makePrimary,
         nonce: proof.nonce,
         signature: proof.signature,
-      }),
-    },
-    token
-  );
-}
-
-export async function linkAcceslyWallet(
-  token: string,
-  params: { walletAddress: string; email: string; makePrimary?: boolean }
-): Promise<{ user: AuthUser; activeWallet: string | null }> {
-  return request<{ user: AuthUser; activeWallet: string | null }>(
-    '/link-wallet',
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        provider: 'ACCESLY',
-        walletAddress: params.walletAddress,
-        providerEmail: params.email,
-        makePrimary: params.makePrimary,
       }),
     },
     token

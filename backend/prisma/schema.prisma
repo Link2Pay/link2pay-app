@@ -28,7 +28,6 @@ enum Currency {
 
 enum WalletProvider {
   FREIGHTER
-  ACCESLY
 }
 
 model User {

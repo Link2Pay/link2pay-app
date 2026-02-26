@@ -25,8 +25,6 @@ const registerSchema = z.object({
   password: z.string().min(8).max(128),
   displayName: z.string().min(1).max(120).optional(),
   walletAddress: walletAddressSchema.optional(),
-  provider: z.nativeEnum(WalletProvider).optional(),
-  providerEmail: emailSchema.optional(),
   nonce: z.string().min(1).optional(),
   signature: z.string().min(1).optional(),
 });
@@ -38,18 +36,14 @@ const loginSchema = z.object({
 
 const walletLoginSchema = z.object({
   walletAddress: walletAddressSchema,
-  provider: z.nativeEnum(WalletProvider).default(WalletProvider.FREIGHTER),
   email: emailSchema.optional(),
   displayName: z.string().min(1).max(120).optional(),
-  providerEmail: emailSchema.optional(),
   nonce: z.string().min(1).optional(),
   signature: z.string().min(1).optional(),
 });
 
 const linkWalletSchema = z.object({
   walletAddress: walletAddressSchema,
-  provider: z.nativeEnum(WalletProvider).default(WalletProvider.FREIGHTER),
-  providerEmail: emailSchema.optional(),
   nonce: z.string().min(1).optional(),
   signature: z.string().min(1).optional(),
   makePrimary: z.boolean().optional(),
@@ -123,8 +117,6 @@ router.post(
         password,
         displayName,
         walletAddress,
-        provider,
-        providerEmail,
         nonce,
         signature,
       } = req.body;
@@ -134,8 +126,7 @@ router.post(
         return res.status(409).json({ error: 'Email is already registered' });
       }
 
-      const walletProvider = provider || WalletProvider.FREIGHTER;
-      if (walletAddress && walletProvider === WalletProvider.FREIGHTER) {
+      if (walletAddress) {
         if (!nonce || !signature) {
           return res.status(400).json({
             error: 'Nonce and signature are required to link a Freighter wallet',
@@ -145,12 +136,6 @@ router.post(
         if (!valid) {
           return res.status(401).json({ error: 'Invalid or expired wallet signature' });
         }
-      }
-
-      if (walletAddress && walletProvider === WalletProvider.ACCESLY && !providerEmail && !email) {
-        return res.status(400).json({
-          error: 'Provider email is required when linking an Accesly wallet',
-        });
       }
 
       const createdUser = await accountService.createUser({
@@ -163,8 +148,8 @@ router.post(
         await accountService.linkWallet({
           userId: createdUser.id,
           walletAddress,
-          provider: walletProvider,
-          providerEmail: providerEmail || email,
+          provider: WalletProvider.FREIGHTER,
+          providerEmail: email,
           makePrimary: true,
         });
       }
@@ -210,28 +195,20 @@ router.post(
     try {
       const {
         walletAddress,
-        provider,
         email,
         displayName,
-        providerEmail,
         nonce,
         signature,
       } = req.body;
 
-      if (provider === WalletProvider.FREIGHTER) {
-        if (!nonce || !signature) {
-          return res.status(400).json({
-            error: 'Nonce and signature are required for Freighter wallet login',
-          });
-        }
-        const valid = authService.verifySignature(walletAddress, nonce, signature);
-        if (!valid) {
-          return res.status(401).json({ error: 'Invalid or expired wallet signature' });
-        }
+      if (!nonce || !signature) {
+        return res.status(400).json({
+          error: 'Nonce and signature are required for Freighter wallet login',
+        });
       }
-
-      if (provider === WalletProvider.ACCESLY && !email && !providerEmail) {
-        return res.status(400).json({ error: 'Email is required for Accesly login' });
+      const valid = authService.verifySignature(walletAddress, nonce, signature);
+      if (!valid) {
+        return res.status(401).json({ error: 'Invalid or expired wallet signature' });
       }
 
       const existingWallet = await prisma.userWallet.findUnique({
@@ -249,8 +226,8 @@ router.post(
         await prisma.userWallet.update({
           where: { walletAddress },
           data: {
-            provider,
-            providerEmail: providerEmail || email || null,
+            provider: WalletProvider.FREIGHTER,
+            providerEmail: email || null,
           },
         });
 
@@ -284,8 +261,8 @@ router.post(
         await accountService.linkWallet({
           userId: targetUserId,
           walletAddress,
-          provider,
-          providerEmail: providerEmail || email,
+          provider: WalletProvider.FREIGHTER,
+          providerEmail: email,
           makePrimary: !hasLinkedWallets,
         });
         userId = targetUserId;
@@ -332,31 +309,22 @@ router.post(
         return res.status(401).json({ error: 'Authentication required' });
       }
 
-      const { walletAddress, provider, providerEmail, nonce, signature, makePrimary } = req.body;
+      const { walletAddress, nonce, signature, makePrimary } = req.body;
 
-      if (provider === WalletProvider.FREIGHTER) {
-        if (!nonce || !signature) {
-          return res.status(400).json({
-            error: 'Nonce and signature are required to link a Freighter wallet',
-          });
-        }
-        const valid = authService.verifySignature(walletAddress, nonce, signature);
-        if (!valid) {
-          return res.status(401).json({ error: 'Invalid or expired wallet signature' });
-        }
-      }
-
-      if (provider === WalletProvider.ACCESLY && !providerEmail) {
+      if (!nonce || !signature) {
         return res.status(400).json({
-          error: 'Provider email is required to link an Accesly wallet',
+          error: 'Nonce and signature are required to link a Freighter wallet',
         });
+      }
+      const valid = authService.verifySignature(walletAddress, nonce, signature);
+      if (!valid) {
+        return res.status(401).json({ error: 'Invalid or expired wallet signature' });
       }
 
       const user = await accountService.linkWallet({
         userId,
         walletAddress,
-        provider,
-        providerEmail,
+        provider: WalletProvider.FREIGHTER,
         makePrimary,
       });
       const activeWallet = await accountService.resolveWalletForUser(userId);

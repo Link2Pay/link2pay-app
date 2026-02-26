@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "WalletProvider" AS ENUM ('FREIGHTER', 'ACCESLY');
+CREATE TYPE "WalletProvider" AS ENUM ('FREIGHTER');
 
 -- CreateTable
 CREATE TABLE "users" (
