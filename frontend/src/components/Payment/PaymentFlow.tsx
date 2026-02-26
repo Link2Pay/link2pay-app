@@ -267,10 +267,19 @@ export default function PaymentFlow() {
   const handlePay = async () => {
     if (!invoice || !id) return;
     const canSignInPage = Boolean(publicKey);
+    const mobileDevice = isLikelyMobileDevice();
 
     // Block payment if there's a network mismatch
     if (hasNetworkMismatch) {
       setError('Please switch your Freighter wallet to the correct network first');
+      return;
+    }
+
+    // On desktop, prefer in-page Freighter signing over SEP-7 deep links.
+    // This avoids "no handler registered" failures for web+stellar URIs.
+    if (!canSignInPage && !mobileDevice) {
+      setError(t('payment.desktopConnectRequired'));
+      setStep('connect');
       return;
     }
 
@@ -291,11 +300,7 @@ export default function PaymentFlow() {
         console.log('[PaymentFlow] No in-page wallet connected, opening SEP-7 URI');
         const launched = await launchSep7Uri(payIntent.sep7Uri);
         if (!launched) {
-          throw new Error(
-            isLikelyMobileDevice()
-              ? t('payment.sep7NoHandlerMobile')
-              : t('payment.sep7NoHandlerDesktop')
-          );
+          throw new Error(t('payment.sep7NoHandlerMobile'));
         }
         setStep('confirming');
         return;
@@ -305,11 +310,7 @@ export default function PaymentFlow() {
         if (payIntent.sep7Uri) {
           const launched = await launchSep7Uri(payIntent.sep7Uri);
           if (!launched) {
-            throw new Error(
-              isLikelyMobileDevice()
-                ? t('payment.sep7NoHandlerMobile')
-                : t('payment.sep7NoHandlerDesktop')
-            );
+            throw new Error(t('payment.sep7NoHandlerMobile'));
           }
           setStep('confirming');
           return;
@@ -573,6 +574,9 @@ export default function PaymentFlow() {
             {step === 'connect' && (
               <div className="text-center space-y-4">
                 <p className="text-sm text-ink-2">{t('payment.connectWalletPrompt')}</p>
+                {error && (
+                  <p className="text-xs text-danger">{error}</p>
+                )}
                 {invoice.networkPassphrase && (
                   <div className="inline-flex items-center gap-1.5 rounded-md border border-surface-3 bg-surface-1 px-3 py-1.5 text-xs text-ink-2">
                     <Info className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
