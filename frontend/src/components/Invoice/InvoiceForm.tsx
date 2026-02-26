@@ -1,275 +1,460 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  ArrowRight,
+  Check,
+  Copy,
+  ExternalLink,
+  Lock,
+  Plus,
+  QrCode,
+  X,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
-import { createInvoice } from '../../services/api';
+import { createLink } from '../../services/api';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
 import { useNetworkStore } from '../../store/networkStore';
-import type { Currency } from '../../types';
+import { useActorWallet } from '../../hooks/useActorWallet';
+import type { Currency, PaymentLink } from '../../types';
 import type { Language } from '../../i18n/translations';
 
-interface LineItemForm {
-  description: string;
-  quantity: number;
-  rate: number;
+type ProFeature =
+  | 'customExpiry'
+  | 'invoiceMode'
+  | 'redirectUrl'
+  | 'reusable'
+  | 'variable'
+  | 'webhooks';
+
+interface MetadataEntry {
+  id: string;
+  key: string;
+  value: string;
 }
 
-const COPY: Record<Language, {
-  failedCreateInvoice: string;
-  yourInformation: string;
-  clientInformation: string;
-  invoiceDetails: string;
-  lineItems: string;
-  notes: string;
-  walletAddress: string;
-  name: string;
-  email: string;
-  company: string;
-  clientName: string;
-  clientEmail: string;
-  title: string;
-  currency: string;
-  dueDate: string;
-  description: string;
-  addItem: string;
-  qty: string;
-  rate: string;
+interface CopyBlock {
+  failedCreateLink: string;
+  invalidAmount: string;
+  walletRequired: string;
+  paymentSection: string;
+  paymentHint: string;
   amount: string;
-  subtotal: string;
-  taxRate: string;
-  taxAmount: string;
-  total: string;
-  cancel: string;
-  creating: string;
-  createInvoice: string;
-  yourNamePlaceholder: string;
-  yourEmailPlaceholder: string;
-  optional: string;
-  clientNamePlaceholder: string;
-  clientEmailPlaceholder: string;
-  titlePlaceholder: string;
-  descriptionPlaceholder: string;
-  serviceDescriptionPlaceholder: string;
-  taxPlaceholder: string;
-  notesPlaceholder: string;
+  amountPlaceholder: string;
+  asset: string;
+  expiresIn: string;
+  expiresLocked: string;
+  paymentReason: string;
+  paymentReasonPlaceholder: string;
+  memo: string;
+  memoPlaceholder: string;
+  receiverSection: string;
+  payoutWallet: string;
+  payoutWalletHint: string;
+  outputSection: string;
+  outputHint: string;
+  generateLink: string;
+  generating: string;
+  checkoutLink: string;
+  statusPage: string;
+  copyLink: string;
+  copied: string;
+  openCheckout: string;
+  openStatus: string;
+  qrCode: string;
+  qrHint: string;
+  linkReady: string;
+  noLinkYet: string;
+  advancedSection: string;
+  advancedHint: string;
+  showAdvanced: string;
+  hideAdvanced: string;
+  metadata: string;
+  metadataHint: string;
+  metadataKey: string;
+  metadataValue: string;
+  metadataKeyPlaceholder: string;
+  metadataValuePlaceholder: string;
+  addMetadata: string;
+  removeMetadata: string;
+  proBadge: string;
+  unlock: string;
+  proModalTitle: string;
+  keepFree: string;
+  upgrade: string;
+  proCustomExpiry: string;
+  proInvoiceMode: string;
+  proRedirectUrl: string;
+  proReusable: string;
+  proVariable: string;
+  proWebhooks: string;
   networkMismatch: string;
-}> = {
+  createdToast: string;
+}
+
+const FREE_EXPIRY_MINUTES = 15;
+const MAX_METADATA_ENTRIES = 4;
+const MAX_REFERENCE_LENGTH = 120;
+
+const COPY: Record<Language, CopyBlock> = {
   en: {
-    failedCreateInvoice: 'Failed to create invoice',
-    yourInformation: 'Your Information',
-    clientInformation: 'Client Information',
-    invoiceDetails: 'Invoice Details',
-    lineItems: 'Line Items',
-    notes: 'Notes',
-    walletAddress: 'Wallet Address',
-    name: 'Name',
-    email: 'Email',
-    company: 'Company',
-    clientName: 'Client Name',
-    clientEmail: 'Client Email',
-    title: 'Title',
-    currency: 'Currency',
-    dueDate: 'Due Date',
-    description: 'Description',
-    addItem: 'Add Item',
-    qty: 'Qty',
-    rate: 'Rate',
+    failedCreateLink: 'Failed to create payment link',
+    invalidAmount: 'Amount must be greater than 0',
+    walletRequired: 'Connect a wallet or sign in with a linked account before creating links.',
+    paymentSection: 'Payment',
+    paymentHint: 'Minimal required fields for a fixed one-time link.',
     amount: 'Amount',
-    subtotal: 'Subtotal',
-    taxRate: 'Tax Rate (%)',
-    taxAmount: 'Tax Amount',
-    total: 'Total',
-    cancel: 'Cancel',
-    creating: 'Creating...',
-    createInvoice: 'Create Invoice',
-    yourNamePlaceholder: 'Your name',
-    yourEmailPlaceholder: 'you@example.com',
-    optional: 'Optional',
-    clientNamePlaceholder: 'Client name',
-    clientEmailPlaceholder: 'client@example.com',
-    titlePlaceholder: 'Website Development',
-    descriptionPlaceholder: 'Project description...',
-    serviceDescriptionPlaceholder: 'Service description',
-    taxPlaceholder: '0',
-    notesPlaceholder: 'Payment terms, additional notes...',
-    networkMismatch: 'Network mismatch: You selected {selected} but Freighter wallet is on {freighter}. Please switch your Freighter wallet to {selected}, disconnect and reconnect your wallet.',
+    amountPlaceholder: '0.00',
+    asset: 'Asset',
+    expiresIn: 'Expires in',
+    expiresLocked: '15 minutes (Free)',
+    paymentReason: 'Payment reason',
+    paymentReasonPlaceholder: 'Subscription renewal, service fee, etc.',
+    memo: 'Description / memo',
+    memoPlaceholder: 'Optional short memo shown in the link metadata.',
+    receiverSection: 'Receiver',
+    payoutWallet: 'Payout wallet',
+    payoutWalletHint: 'Auto-filled from your connected account. Multiple payout wallets are not enabled on Free.',
+    outputSection: 'Output',
+    outputHint: 'Generate the link, then share checkout URL, QR, or status page.',
+    generateLink: 'Generate Link',
+    generating: 'Generating...',
+    checkoutLink: 'Checkout link',
+    statusPage: 'Status page',
+    copyLink: 'Copy link',
+    copied: 'Copied',
+    openCheckout: 'Open checkout',
+    openStatus: 'Open status',
+    qrCode: 'QR code',
+    qrHint: 'Scan to open checkout on mobile.',
+    linkReady: 'Link ready',
+    noLinkYet: 'No link generated yet. Use the button above to create one.',
+    advancedSection: 'Advanced',
+    advancedHint: 'Optional metadata + Pro capabilities.',
+    showAdvanced: 'Show advanced',
+    hideAdvanced: 'Hide advanced',
+    metadata: 'Metadata (key-value)',
+    metadataHint: 'Developer metadata is packed into a reference string for this version.',
+    metadataKey: 'Key',
+    metadataValue: 'Value',
+    metadataKeyPlaceholder: 'order_id',
+    metadataValuePlaceholder: 'ord_12345',
+    addMetadata: 'Add metadata',
+    removeMetadata: 'Remove metadata',
+    proBadge: 'Pro',
+    unlock: 'Unlock',
+    proModalTitle: 'This is a Pro feature',
+    keepFree: 'Keep Free',
+    upgrade: 'Upgrade to Pro',
+    proCustomExpiry: 'Custom expiry is Pro. Free links are fixed at 15 minutes.',
+    proInvoiceMode: 'Invoice mode is Pro. Free keeps a simple payment link flow.',
+    proRedirectUrl: 'Custom redirect URL after payment is Pro.',
+    proReusable: 'Reusable links are Pro. Free supports one-time links only.',
+    proVariable: 'Variable amount links are Pro. Free uses fixed amount only.',
+    proWebhooks: 'Webhooks and retry/signing controls are Pro.',
+    networkMismatch:
+      'Network mismatch: You selected {selected} but Freighter wallet is on {freighter}. Please switch your Freighter wallet to {selected}, disconnect and reconnect your wallet.',
+    createdToast: 'Payment link created',
   },
   es: {
-    failedCreateInvoice: 'No se pudo crear la factura',
-    yourInformation: 'Tu informacion',
-    clientInformation: 'Informacion del cliente',
-    invoiceDetails: 'Detalles de la factura',
-    lineItems: 'Lineas',
-    notes: 'Notas',
-    walletAddress: 'Direccion de wallet',
-    name: 'Nombre',
-    email: 'Email',
-    company: 'Empresa',
-    clientName: 'Nombre del cliente',
-    clientEmail: 'Email del cliente',
-    title: 'Titulo',
-    currency: 'Moneda',
-    dueDate: 'Fecha de vencimiento',
-    description: 'Descripcion',
-    addItem: 'Agregar item',
-    qty: 'Cant.',
-    rate: 'Tarifa',
-    amount: 'Importe',
-    subtotal: 'Subtotal',
-    taxRate: 'Impuesto (%)',
-    taxAmount: 'Monto de impuesto',
-    total: 'Total',
-    cancel: 'Cancelar',
-    creating: 'Creando...',
-    createInvoice: 'Crear factura',
-    yourNamePlaceholder: 'Tu nombre',
-    yourEmailPlaceholder: 'tu@email.com',
-    optional: 'Opcional',
-    clientNamePlaceholder: 'Nombre del cliente',
-    clientEmailPlaceholder: 'cliente@email.com',
-    titlePlaceholder: 'Desarrollo web',
-    descriptionPlaceholder: 'Descripcion del proyecto...',
-    serviceDescriptionPlaceholder: 'Descripcion del servicio',
-    taxPlaceholder: '0',
-    notesPlaceholder: 'Terminos de pago, notas adicionales...',
-    networkMismatch: 'Red incorrecta: Seleccionaste {selected} pero Freighter esta en {freighter}. Por favor cambia tu wallet Freighter a {selected}, desconecta y reconecta tu wallet.',
+    failedCreateLink: 'No se pudo crear el link de pago',
+    invalidAmount: 'El monto debe ser mayor a 0',
+    walletRequired: 'Conecta una wallet o inicia sesion con una cuenta vinculada antes de crear links.',
+    paymentSection: 'Pago',
+    paymentHint: 'Campos minimos requeridos para un link fijo de un solo uso.',
+    amount: 'Monto',
+    amountPlaceholder: '0.00',
+    asset: 'Activo',
+    expiresIn: 'Expira en',
+    expiresLocked: '15 minutos (Free)',
+    paymentReason: 'Motivo del pago',
+    paymentReasonPlaceholder: 'Renovacion, tarifa de servicio, etc.',
+    memo: 'Descripcion / memo',
+    memoPlaceholder: 'Memo corto opcional en los metadatos del link.',
+    receiverSection: 'Receptor',
+    payoutWallet: 'Wallet de cobro',
+    payoutWalletHint: 'Se completa automaticamente desde tu cuenta conectada. Multiples wallets no estan habilitadas en Free.',
+    outputSection: 'Salida',
+    outputHint: 'Genera el link y comparte URL, QR o pagina de estado.',
+    generateLink: 'Generar Link',
+    generating: 'Generando...',
+    checkoutLink: 'Link de checkout',
+    statusPage: 'Pagina de estado',
+    copyLink: 'Copiar link',
+    copied: 'Copiado',
+    openCheckout: 'Abrir checkout',
+    openStatus: 'Abrir estado',
+    qrCode: 'Codigo QR',
+    qrHint: 'Escanea para abrir checkout en movil.',
+    linkReady: 'Link listo',
+    noLinkYet: 'Aun no hay link generado. Usa el boton para crearlo.',
+    advancedSection: 'Avanzado',
+    advancedHint: 'Metadatos opcionales + capacidades Pro.',
+    showAdvanced: 'Mostrar avanzado',
+    hideAdvanced: 'Ocultar avanzado',
+    metadata: 'Metadatos (clave-valor)',
+    metadataHint: 'En esta version, los metadatos se empaquetan en una referencia.',
+    metadataKey: 'Clave',
+    metadataValue: 'Valor',
+    metadataKeyPlaceholder: 'order_id',
+    metadataValuePlaceholder: 'ord_12345',
+    addMetadata: 'Agregar metadato',
+    removeMetadata: 'Quitar metadato',
+    proBadge: 'Pro',
+    unlock: 'Desbloquear',
+    proModalTitle: 'Esta funcion es Pro',
+    keepFree: 'Seguir en Free',
+    upgrade: 'Mejorar a Pro',
+    proCustomExpiry: 'La expiracion personalizada es Pro. Free usa 15 minutos fijos.',
+    proInvoiceMode: 'El modo factura es Pro. Free mantiene flujo simple de link.',
+    proRedirectUrl: 'La URL de redireccion personalizada es Pro.',
+    proReusable: 'Los links reutilizables son Pro. Free solo soporta un uso.',
+    proVariable: 'Monto variable es Pro. Free usa monto fijo.',
+    proWebhooks: 'Webhooks y reintentos/firma son Pro.',
+    networkMismatch:
+      'Red incorrecta: Seleccionaste {selected} pero Freighter esta en {freighter}. Cambia tu wallet Freighter a {selected}, desconecta y vuelve a conectar.',
+    createdToast: 'Link de pago creado',
   },
   pt: {
-    failedCreateInvoice: 'Falha ao criar fatura',
-    yourInformation: 'Suas informacoes',
-    clientInformation: 'Informacoes do cliente',
-    invoiceDetails: 'Detalhes da fatura',
-    lineItems: 'Itens',
-    notes: 'Notas',
-    walletAddress: 'Endereco da wallet',
-    name: 'Nome',
-    email: 'Email',
-    company: 'Empresa',
-    clientName: 'Nome do cliente',
-    clientEmail: 'Email do cliente',
-    title: 'Titulo',
-    currency: 'Moeda',
-    dueDate: 'Data de vencimento',
-    description: 'Descricao',
-    addItem: 'Adicionar item',
-    qty: 'Qtd.',
-    rate: 'Taxa',
+    failedCreateLink: 'Falha ao criar o link de pagamento',
+    invalidAmount: 'O valor deve ser maior que 0',
+    walletRequired: 'Conecte uma wallet ou entre com uma conta vinculada antes de criar links.',
+    paymentSection: 'Pagamento',
+    paymentHint: 'Campos minimos obrigatorios para um link fixo de uso unico.',
     amount: 'Valor',
-    subtotal: 'Subtotal',
-    taxRate: 'Imposto (%)',
-    taxAmount: 'Valor do imposto',
-    total: 'Total',
-    cancel: 'Cancelar',
-    creating: 'Criando...',
-    createInvoice: 'Criar fatura',
-    yourNamePlaceholder: 'Seu nome',
-    yourEmailPlaceholder: 'voce@email.com',
-    optional: 'Opcional',
-    clientNamePlaceholder: 'Nome do cliente',
-    clientEmailPlaceholder: 'cliente@email.com',
-    titlePlaceholder: 'Desenvolvimento de site',
-    descriptionPlaceholder: 'Descricao do projeto...',
-    serviceDescriptionPlaceholder: 'Descricao do servico',
-    taxPlaceholder: '0',
-    notesPlaceholder: 'Termos de pagamento, notas adicionais...',
-    networkMismatch: 'Rede incorreta: Voce selecionou {selected} mas Freighter esta em {freighter}. Por favor, mude sua carteira Freighter para {selected}, desconecte e reconecte sua carteira.',
+    amountPlaceholder: '0.00',
+    asset: 'Ativo',
+    expiresIn: 'Expira em',
+    expiresLocked: '15 minutos (Free)',
+    paymentReason: 'Motivo do pagamento',
+    paymentReasonPlaceholder: 'Renovacao, taxa de servico, etc.',
+    memo: 'Descricao / memo',
+    memoPlaceholder: 'Memo curto opcional nos metadados do link.',
+    receiverSection: 'Recebedor',
+    payoutWallet: 'Wallet de recebimento',
+    payoutWalletHint: 'Preenchida automaticamente da conta conectada. Multiplas wallets nao estao habilitadas no Free.',
+    outputSection: 'Saida',
+    outputHint: 'Gere o link e compartilhe URL, QR ou pagina de status.',
+    generateLink: 'Gerar Link',
+    generating: 'Gerando...',
+    checkoutLink: 'Link de checkout',
+    statusPage: 'Pagina de status',
+    copyLink: 'Copiar link',
+    copied: 'Copiado',
+    openCheckout: 'Abrir checkout',
+    openStatus: 'Abrir status',
+    qrCode: 'Codigo QR',
+    qrHint: 'Escaneie para abrir o checkout no celular.',
+    linkReady: 'Link pronto',
+    noLinkYet: 'Nenhum link gerado ainda. Use o botao acima para criar.',
+    advancedSection: 'Avancado',
+    advancedHint: 'Metadados opcionais + recursos Pro.',
+    showAdvanced: 'Mostrar avancado',
+    hideAdvanced: 'Ocultar avancado',
+    metadata: 'Metadados (chave-valor)',
+    metadataHint: 'Nesta versao, os metadados sao compactados em uma referencia.',
+    metadataKey: 'Chave',
+    metadataValue: 'Valor',
+    metadataKeyPlaceholder: 'order_id',
+    metadataValuePlaceholder: 'ord_12345',
+    addMetadata: 'Adicionar metadado',
+    removeMetadata: 'Remover metadado',
+    proBadge: 'Pro',
+    unlock: 'Desbloquear',
+    proModalTitle: 'Este recurso e Pro',
+    keepFree: 'Manter Free',
+    upgrade: 'Fazer upgrade para Pro',
+    proCustomExpiry: 'Expiracao customizada e Pro. Free usa 15 minutos fixos.',
+    proInvoiceMode: 'Modo fatura e Pro. Free mantem fluxo simples de link.',
+    proRedirectUrl: 'URL de redirecionamento customizada e Pro.',
+    proReusable: 'Links reutilizaveis sao Pro. Free suporta apenas uso unico.',
+    proVariable: 'Valor variavel e Pro. Free usa valor fixo.',
+    proWebhooks: 'Webhooks e controles de retry/assinatura sao Pro.',
+    networkMismatch:
+      'Rede incorreta: Voce selecionou {selected} mas o Freighter esta em {freighter}. Troque o Freighter para {selected}, desconecte e conecte novamente.',
+    createdToast: 'Link de pagamento criado',
   },
 };
 
+function buildReference(entries: MetadataEntry[]): string | undefined {
+  const parts = entries
+    .map((entry) => ({
+      key: entry.key.trim(),
+      value: entry.value.trim(),
+    }))
+    .filter((entry) => entry.key && entry.value)
+    .map((entry) => `${entry.key}:${entry.value}`);
+
+  if (!parts.length) return undefined;
+  return parts.join('|').slice(0, MAX_REFERENCE_LENGTH);
+}
+
+function getProMessage(copy: CopyBlock, feature: ProFeature): string {
+  switch (feature) {
+    case 'customExpiry':
+      return copy.proCustomExpiry;
+    case 'invoiceMode':
+      return copy.proInvoiceMode;
+    case 'redirectUrl':
+      return copy.proRedirectUrl;
+    case 'reusable':
+      return copy.proReusable;
+    case 'variable':
+      return copy.proVariable;
+    case 'webhooks':
+      return copy.proWebhooks;
+    default:
+      return copy.proCustomExpiry;
+  }
+}
+
 export default function InvoiceForm() {
   const navigate = useNavigate();
-  const { publicKey, getFreighterNetwork } = useWalletStore();
+  const { connected, publicKey, getFreighterNetwork } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
+  const actorWallet = useActorWallet();
   const { language } = useI18n();
   const copy = COPY[language];
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [amount, setAmount] = useState('1.00');
+  const [asset, setAsset] = useState<Currency>('XLM');
+  const [paymentReason, setPaymentReason] = useState('');
+  const [memo, setMemo] = useState('');
+  const [recipientWallet, setRecipientWallet] = useState(actorWallet || '');
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [metadataEntries, setMetadataEntries] = useState<MetadataEntry[]>([
+    { id: 'meta-1', key: '', value: '' },
+  ]);
+  const [createdLink, setCreatedLink] = useState<PaymentLink | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [proFeature, setProFeature] = useState<ProFeature | null>(null);
 
-  const [freelancerName, setFreelancerName] = useState('');
-  const [freelancerEmail, setFreelancerEmail] = useState('');
-  const [freelancerCompany, setFreelancerCompany] = useState('');
-  const [clientName, setClientName] = useState('');
-  const [clientEmail, setClientEmail] = useState('');
-  const [clientCompany, setClientCompany] = useState('');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [notes, setNotes] = useState('');
-  const [currency, setCurrency] = useState<Currency>('XLM');
-  const [taxRate, setTaxRate] = useState<string>('');
-  const [dueDate, setDueDate] = useState('');
-  const [lineItems, setLineItems] = useState<LineItemForm[]>([{ description: '', quantity: 1, rate: 0 }]);
+  useEffect(() => {
+    if (actorWallet) {
+      setRecipientWallet(actorWallet);
+    }
+  }, [actorWallet]);
 
-  const addLineItem = () => {
-    setLineItems([...lineItems, { description: '', quantity: 1, rate: 0 }]);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(false), 1500);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+
+  const metadataReference = useMemo(
+    () => buildReference(metadataEntries),
+    [metadataEntries]
+  );
+
+  const statusUrl = useMemo(() => {
+    if (!createdLink || typeof window === 'undefined') return null;
+    return `${window.location.origin}/app/links/${createdLink.legacyInvoiceId || createdLink.id}`;
+  }, [createdLink]);
+
+  const qrUrl = useMemo(() => {
+    if (!createdLink) return null;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=0&data=${encodeURIComponent(createdLink.checkoutUrl)}`;
+  }, [createdLink]);
+
+  const addMetadataRow = () => {
+    if (metadataEntries.length >= MAX_METADATA_ENTRIES) return;
+    const id = `meta-${Date.now()}`;
+    setMetadataEntries((prev) => [...prev, { id, key: '', value: '' }]);
   };
 
-  const removeLineItem = (index: number) => {
-    if (lineItems.length <= 1) return;
-    setLineItems(lineItems.filter((_, i) => i !== index));
+  const removeMetadataRow = (id: string) => {
+    setMetadataEntries((prev) => {
+      if (prev.length <= 1) {
+        return [{ ...prev[0], key: '', value: '' }];
+      }
+      return prev.filter((row) => row.id !== id);
+    });
   };
 
-  const updateLineItem = (index: number, field: keyof LineItemForm, value: string | number) => {
-    const updated = [...lineItems];
-    updated[index] = { ...updated[index], [field]: value };
-    setLineItems(updated);
+  const updateMetadataRow = (
+    id: string,
+    field: keyof Omit<MetadataEntry, 'id'>,
+    value: string
+  ) => {
+    setMetadataEntries((prev) =>
+      prev.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+    );
   };
 
-  const subtotal = lineItems.reduce((sum, item) => sum + item.quantity * item.rate, 0);
-  const taxAmount = taxRate ? subtotal * (parseFloat(taxRate) / 100) : 0;
-  const total = subtotal + taxAmount;
+  const handleCopyLink = async () => {
+    if (!createdLink?.checkoutUrl) return;
+    try {
+      await navigator.clipboard.writeText(createdLink.checkoutUrl);
+      setCopied(true);
+    } catch {
+      // no-op
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!publicKey) return;
+
+    if (!recipientWallet) {
+      setError(copy.walletRequired);
+      toast.error(copy.walletRequired);
+      return;
+    }
+
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      setError(copy.invalidAmount);
+      toast.error(copy.invalidAmount);
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // Validate that Freighter network matches the selected network
-      const freighterNetwork = await getFreighterNetwork();
+      if (connected && publicKey) {
+        const freighterNetwork = await getFreighterNetwork();
 
-      if (freighterNetwork && freighterNetwork !== networkPassphrase) {
-        const selectedName = networkPassphrase.includes('Test') ? 'TESTNET' : 'MAINNET';
-        const freighterName = freighterNetwork.includes('Test') ? 'TESTNET' : 'MAINNET';
+        if (freighterNetwork && freighterNetwork !== networkPassphrase) {
+          const selectedName = networkPassphrase.includes('Test') ? 'TESTNET' : 'MAINNET';
+          const freighterName = freighterNetwork.includes('Test') ? 'TESTNET' : 'MAINNET';
+          const errorMsg = copy.networkMismatch
+            .replace('{selected}', selectedName)
+            .replace('{freighter}', freighterName)
+            .replace('{selected}', selectedName);
 
-        const errorMsg = copy.networkMismatch
-          .replace('{selected}', selectedName)
-          .replace('{freighter}', freighterName)
-          .replace('{selected}', selectedName); // Replace the second occurrence
-
-        setError(errorMsg);
-        toast.error(errorMsg, { duration: 6000 });
-        setIsSubmitting(false);
-        return;
+          setError(errorMsg);
+          toast.error(errorMsg, { duration: 6000 });
+          setIsSubmitting(false);
+          return;
+        }
       }
 
-      const invoice = await createInvoice(
+      const expiresAt = new Date(
+        Date.now() + FREE_EXPIRY_MINUTES * 60 * 1000
+      ).toISOString();
+
+      const created = await createLink(
         {
-          freelancerWallet: publicKey,
-          freelancerName: freelancerName || undefined,
-          freelancerEmail: freelancerEmail || undefined,
-          freelancerCompany: freelancerCompany || undefined,
-          clientName,
-          clientEmail,
-          clientCompany: clientCompany || undefined,
-          title,
-          description: description || undefined,
-          notes: notes || undefined,
-          currency,
-          taxRate: taxRate ? parseFloat(taxRate) : undefined,
-          dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+          amount: Number(numericAmount.toFixed(2)),
+          asset,
+          recipientWallet,
+          expiresAt,
           networkPassphrase,
-          lineItems: lineItems.filter((item) => item.description && item.rate > 0),
+          metadata: {
+            title: paymentReason.trim() || 'Payment Link',
+            description: memo.trim() || undefined,
+            reference: metadataReference,
+          },
         },
-        publicKey
+        recipientWallet
       );
 
-      toast.success(`Invoice ${invoice.invoiceNumber} created`);
-      navigate(`/dashboard/links/${invoice.id}`);
+      setCreatedLink(created);
+      toast.success(copy.createdToast);
     } catch (err: any) {
-      const msg = err.message || copy.failedCreateInvoice;
+      const msg = err?.message || copy.failedCreateLink;
       setError(msg);
       toast.error(msg);
     } finally {
@@ -278,282 +463,396 @@ export default function InvoiceForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 animate-in sm:space-y-8">
-      {error && (
-        <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
-      )}
+    <>
+      <form onSubmit={handleSubmit} className="space-y-6 animate-in sm:space-y-8">
+        {error && (
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+            {error}
+          </div>
+        )}
 
-      <section className="card p-5 sm:p-6">
-        <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.yourInformation}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="freelancer-name" className="label">{copy.name}</label>
-            <input
-              id="freelancer-name"
-              type="text"
-              className="input"
-              placeholder={copy.yourNamePlaceholder}
-              value={freelancerName}
-              onChange={(e) => setFreelancerName(e.target.value)}
-            />
+        <section className="card p-5 sm:p-6">
+          <div className="mb-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-ink-0">
+              {copy.paymentSection}
+            </h3>
+            <p className="mt-1 text-xs text-ink-3">{copy.paymentHint}</p>
           </div>
-          <div>
-            <label htmlFor="freelancer-email" className="label">{copy.email}</label>
-            <input
-              id="freelancer-email"
-              type="email"
-              className="input"
-              placeholder={copy.yourEmailPlaceholder}
-              value={freelancerEmail}
-              onChange={(e) => setFreelancerEmail(e.target.value)}
-            />
-          </div>
-          <div>
-            <label htmlFor="freelancer-company" className="label">{copy.company}</label>
-            <input
-              id="freelancer-company"
-              type="text"
-              className="input"
-              placeholder={copy.optional}
-              value={freelancerCompany}
-              onChange={(e) => setFreelancerCompany(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="mt-3">
-          <label className="label">{copy.walletAddress}</label>
-          <div className="input bg-surface-1 font-mono text-xs text-ink-2 cursor-default break-all">{publicKey}</div>
-        </div>
-      </section>
 
-      <section className="card p-5 sm:p-6">
-        <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.clientInformation}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="client-name" className="label">
-              {copy.clientName} <span className="text-danger">*</span>
-            </label>
-            <input
-              id="client-name"
-              type="text"
-              className="input"
-              placeholder={copy.clientNamePlaceholder}
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="label">
-              {copy.clientEmail} <span className="text-danger">*</span>
-            </label>
-            <input
-              type="email"
-              className="input"
-              placeholder={copy.clientEmailPlaceholder}
-              value={clientEmail}
-              onChange={(e) => setClientEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="label">{copy.company}</label>
-            <input
-              type="text"
-              className="input"
-              placeholder={copy.optional}
-              value={clientCompany}
-              onChange={(e) => setClientCompany(e.target.value)}
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="card p-5 sm:p-6">
-        <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.invoiceDetails}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="label">
-              {copy.title} <span className="text-danger">*</span>
-            </label>
-            <input
-              type="text"
-              className="input"
-              placeholder={copy.titlePlaceholder}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
-              <label className="label">{copy.currency}</label>
-              <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value as Currency)}>
+              <label className="label" htmlFor="payment-amount">
+                {copy.amount}
+              </label>
+              <input
+                id="payment-amount"
+                type="number"
+                min="0.01"
+                step="0.01"
+                className="input"
+                placeholder={copy.amountPlaceholder}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="label" htmlFor="payment-asset">
+                {copy.asset}
+              </label>
+              <select
+                id="payment-asset"
+                className="input"
+                value={asset}
+                onChange={(e) => setAsset(e.target.value as Currency)}
+              >
                 <option value="XLM">XLM</option>
                 <option value="USDC">USDC</option>
                 <option value="EURC">EURC</option>
               </select>
             </div>
+
             <div>
-              <label className="label">{copy.dueDate}</label>
-              <input type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              <label className="label" htmlFor="payment-expiry">
+                {copy.expiresIn}
+              </label>
+              <div
+                id="payment-expiry"
+                className="input flex items-center justify-between bg-surface-1 text-ink-1"
+              >
+                <span>{copy.expiresLocked}</span>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 text-xs text-ink-3 hover:text-ink-1"
+                  onClick={() => setProFeature('customExpiry')}
+                >
+                  <Lock className="h-3.5 w-3.5" />
+                  {copy.proBadge}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-        <div>
-          <label className="label">{copy.description}</label>
-          <textarea
-            className="input min-h-[80px] resize-y"
-            placeholder={copy.descriptionPlaceholder}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-      </section>
 
-      <section className="card p-5 sm:p-6">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h3 className="text-sm font-semibold text-ink-0 uppercase tracking-wider">{copy.lineItems}</h3>
-          <button type="button" onClick={addLineItem} className="btn-ghost w-full text-sm text-stellar-600 sm:w-auto">
-            + {copy.addItem}
-          </button>
-        </div>
-
-        <div className="mb-2 hidden grid-cols-12 gap-3 px-1 sm:grid">
-          <div className="col-span-5 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.description}</div>
-          <div className="col-span-2 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.qty}</div>
-          <div className="col-span-2 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.rate}</div>
-          <div className="col-span-2 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">{copy.amount}</div>
-          <div className="col-span-1" />
-        </div>
-
-        <div className="space-y-2">
-          {lineItems.map((item, index) => (
-            <div key={index} className="rounded-lg border border-surface-3 p-3 sm:grid sm:grid-cols-12 sm:items-center sm:gap-3 sm:rounded-none sm:border-0 sm:p-0">
-              <div className="sm:col-span-5">
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-3 sm:hidden">
-                  {copy.description}
-                </label>
-                <input
-                  type="text"
-                  className="input"
-                  placeholder={copy.serviceDescriptionPlaceholder}
-                  value={item.description}
-                  onChange={(e) => updateLineItem(index, 'description', e.target.value)}
-                  required
-                />
-              </div>
-              <div className="mt-3 sm:col-span-2 sm:mt-0">
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-3 sm:hidden">
-                  {copy.qty}
-                </label>
-                <input
-                  type="number"
-                  className="input text-center"
-                  min="0.01"
-                  step="0.01"
-                  value={item.quantity || ''}
-                  onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)}
-                  required
-                />
-              </div>
-              <div className="mt-3 sm:col-span-2 sm:mt-0">
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-3 sm:hidden">
-                  {copy.rate}
-                </label>
-                <input
-                  type="number"
-                  className="input"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={item.rate || ''}
-                  onChange={(e) => updateLineItem(index, 'rate', parseFloat(e.target.value) || 0)}
-                  required
-                />
-              </div>
-              <div className="mt-3 flex items-center justify-between text-sm sm:col-span-2 sm:mt-0 sm:block sm:text-right">
-                <span className="text-[11px] font-medium uppercase tracking-wider text-ink-3 sm:hidden">
-                  {copy.amount}
-                </span>
-                <span className="font-mono text-ink-1">{(item.quantity * item.rate).toFixed(2)}</span>
-              </div>
-              <div className="mt-3 text-right sm:col-span-1 sm:mt-0 sm:text-center">
-                {lineItems.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeLineItem(index)}
-                    className="text-ink-4 hover:text-danger transition-colors text-lg"
-                  >
-                    X
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-6 pt-4 border-t border-surface-3">
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex w-full items-center justify-between gap-4 text-sm sm:w-auto sm:justify-end">
-              <span className="text-ink-3">{copy.subtotal}</span>
-              <span className="font-mono w-24 text-right sm:w-28">{subtotal.toFixed(2)} {currency}</span>
-            </div>
-            <div className="flex w-full items-center justify-between gap-4 text-sm sm:w-auto sm:justify-end">
-              <span className="text-ink-3">{copy.taxRate}</span>
+          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="label" htmlFor="payment-reason">
+                {copy.paymentReason}
+              </label>
               <input
-                type="number"
-                className="input w-24 text-right sm:w-28"
-                min="0"
-                max="100"
-                step="0.1"
-                placeholder={copy.taxPlaceholder}
-                value={taxRate}
-                onChange={(e) => setTaxRate(e.target.value)}
+                id="payment-reason"
+                type="text"
+                className="input"
+                placeholder={copy.paymentReasonPlaceholder}
+                value={paymentReason}
+                onChange={(e) => setPaymentReason(e.target.value)}
+                maxLength={300}
               />
             </div>
-            {taxAmount > 0 && (
-              <div className="flex w-full items-center justify-between gap-4 text-sm sm:w-auto sm:justify-end">
-                <span className="text-ink-3">{copy.taxAmount}</span>
-                <span className="font-mono w-24 text-right sm:w-28">{taxAmount.toFixed(2)} {currency}</span>
+            <div>
+              <label className="label" htmlFor="payment-memo">
+                {copy.memo}
+              </label>
+              <input
+                id="payment-memo"
+                type="text"
+                className="input"
+                placeholder={copy.memoPlaceholder}
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                maxLength={240}
+              />
+            </div>
+          </div>
+
+          <div className="mt-6 border-t border-border pt-4">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-2">
+              {copy.receiverSection}
+            </h4>
+            <div className="mt-3">
+              <label className="label" htmlFor="receiver-wallet">
+                {copy.payoutWallet}
+              </label>
+              <input
+                id="receiver-wallet"
+                type="text"
+                className="input font-mono text-xs"
+                value={recipientWallet}
+                onChange={(e) => setRecipientWallet(e.target.value.trim())}
+                readOnly
+              />
+              <p className="mt-2 text-xs text-ink-3">{copy.payoutWalletHint}</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="card p-5 sm:p-6">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-ink-0">
+                {copy.outputSection}
+              </h3>
+              <p className="mt-1 text-xs text-ink-3">{copy.outputHint}</p>
+            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="btn-primary w-full sm:w-auto"
+            >
+              {isSubmitting ? copy.generating : copy.generateLink}
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+
+          {createdLink ? (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-surface-1 p-3">
+                <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-ink-3">
+                  {copy.checkoutLink}
+                </div>
+                <code className="block break-all text-xs text-ink-1">
+                  {createdLink.checkoutUrl}
+                </code>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className="btn-secondary px-3 py-2 text-xs"
+                  >
+                    {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copied ? copy.copied : copy.copyLink}
+                  </button>
+                  <a
+                    href={createdLink.checkoutUrl}
+                    className="btn-primary px-3 py-2 text-xs"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    {copy.openCheckout}
+                  </a>
+                </div>
               </div>
-            )}
-            <div className="flex w-full items-center justify-between gap-4 border-t border-surface-3 pt-2 text-base font-semibold sm:w-auto sm:justify-end">
-              <span>{copy.total}</span>
-              <span className="font-mono w-24 text-right text-stellar-700 sm:w-28">{total.toFixed(2)} {currency}</span>
+
+              {statusUrl && (
+                <div className="rounded-lg border border-border bg-surface-1 p-3">
+                  <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-ink-3">
+                    {copy.statusPage}
+                  </div>
+                  <code className="block break-all text-xs text-ink-1">{statusUrl}</code>
+                  <a
+                    href={statusUrl}
+                    className="btn-secondary mt-3 px-3 py-2 text-xs"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    {copy.openStatus}
+                  </a>
+                </div>
+              )}
+
+              {qrUrl && (
+                <div className="rounded-lg border border-border bg-surface-1 p-3">
+                  <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-ink-3">
+                    <QrCode className="h-3.5 w-3.5" />
+                    {copy.qrCode}
+                  </div>
+                  <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+                    <img
+                      src={qrUrl}
+                      alt={copy.qrCode}
+                      className="h-32 w-32 rounded-md border border-border bg-card"
+                      loading="lazy"
+                    />
+                    <p className="text-xs text-ink-3">{copy.qrHint}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm text-ink-1">
+                {copy.linkReady}
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-border p-4 text-sm text-ink-3">
+              {copy.noLinkYet}
+            </div>
+          )}
+        </section>
+
+        <section className="card p-5 sm:p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-ink-0">
+                {copy.advancedSection}
+              </h3>
+              <p className="mt-1 text-xs text-ink-3">{copy.advancedHint}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAdvancedOpen((prev) => !prev)}
+              className="btn-secondary w-full sm:w-auto"
+            >
+              {advancedOpen ? copy.hideAdvanced : copy.showAdvanced}
+            </button>
+          </div>
+
+          {advancedOpen && (
+            <div className="mt-5 space-y-6 border-t border-border pt-5">
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-2">
+                  {copy.metadata}
+                </h4>
+                <p className="mt-1 text-xs text-ink-3">{copy.metadataHint}</p>
+
+                <div className="mt-3 space-y-2">
+                  {metadataEntries.map((entry) => (
+                    <div key={entry.id} className="grid grid-cols-1 gap-2 md:grid-cols-[1fr,1fr,auto]">
+                      <input
+                        type="text"
+                        className="input"
+                        placeholder={copy.metadataKeyPlaceholder}
+                        value={entry.key}
+                        onChange={(e) =>
+                          updateMetadataRow(entry.id, 'key', e.target.value)
+                        }
+                        maxLength={30}
+                      />
+                      <input
+                        type="text"
+                        className="input"
+                        placeholder={copy.metadataValuePlaceholder}
+                        value={entry.value}
+                        onChange={(e) =>
+                          updateMetadataRow(entry.id, 'value', e.target.value)
+                        }
+                        maxLength={60}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeMetadataRow(entry.id)}
+                        className="btn-ghost justify-center md:justify-start"
+                        aria-label={copy.removeMetadata}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={addMetadataRow}
+                    disabled={metadataEntries.length >= MAX_METADATA_ENTRIES}
+                    className="btn-secondary px-3 py-2 text-xs"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    {copy.addMetadata}
+                  </button>
+                  {metadataReference && (
+                    <span className="text-xs text-ink-3">
+                      {copy.metadataValue}: {metadataReference}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setProFeature('reusable')}
+                  className="flex w-full items-center justify-between rounded-lg border border-border px-3 py-2.5 text-left hover:border-primary/40"
+                >
+                  <span className="text-sm text-ink-1">Reusable links</span>
+                  <span className="inline-flex items-center gap-2 text-xs text-ink-3">
+                    <Lock className="h-3.5 w-3.5" />
+                    {copy.proBadge}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProFeature('variable')}
+                  className="flex w-full items-center justify-between rounded-lg border border-border px-3 py-2.5 text-left hover:border-primary/40"
+                >
+                  <span className="text-sm text-ink-1">Variable amount</span>
+                  <span className="inline-flex items-center gap-2 text-xs text-ink-3">
+                    <Lock className="h-3.5 w-3.5" />
+                    {copy.proBadge}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProFeature('invoiceMode')}
+                  className="flex w-full items-center justify-between rounded-lg border border-border px-3 py-2.5 text-left hover:border-primary/40"
+                >
+                  <span className="text-sm text-ink-1">Invoice mode</span>
+                  <span className="inline-flex items-center gap-2 text-xs text-ink-3">
+                    <Lock className="h-3.5 w-3.5" />
+                    {copy.proBadge}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProFeature('redirectUrl')}
+                  className="flex w-full items-center justify-between rounded-lg border border-border px-3 py-2.5 text-left hover:border-primary/40"
+                >
+                  <span className="text-sm text-ink-1">Redirect URL after pay</span>
+                  <span className="inline-flex items-center gap-2 text-xs text-ink-3">
+                    <Lock className="h-3.5 w-3.5" />
+                    {copy.proBadge}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProFeature('webhooks')}
+                  className="flex w-full items-center justify-between rounded-lg border border-border px-3 py-2.5 text-left hover:border-primary/40"
+                >
+                  <span className="text-sm text-ink-1">Webhooks</span>
+                  <span className="inline-flex items-center gap-2 text-xs text-ink-3">
+                    <Lock className="h-3.5 w-3.5" />
+                    {copy.proBadge}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
+      </form>
+
+      {proFeature && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
+          <div className="card w-full max-w-md p-5 sm:p-6">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+              <Lock className="h-3.5 w-3.5" />
+              {copy.proModalTitle}
+            </div>
+
+            <p className="text-sm text-ink-1">{getProMessage(copy, proFeature)}</p>
+
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                className="btn-secondary w-full sm:w-auto"
+                onClick={() => setProFeature(null)}
+              >
+                {copy.keepFree}
+              </button>
+              <button
+                type="button"
+                className="btn-primary w-full sm:w-auto"
+                onClick={() => {
+                  setProFeature(null);
+                  navigate('/plans');
+                }}
+              >
+                {copy.upgrade}
+              </button>
             </div>
           </div>
         </div>
-      </section>
-
-      <section className="card p-5 sm:p-6">
-        <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.notes}</h3>
-        <textarea
-          className="input min-h-[80px] resize-y"
-          placeholder={copy.notesPlaceholder}
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-        />
-      </section>
-
-      <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:items-center sm:justify-end">
-        <button type="button" onClick={() => navigate('/invoices')} className="btn-secondary w-full sm:w-auto">
-          {copy.cancel}
-        </button>
-        <button type="submit" disabled={isSubmitting} className="btn-primary w-full sm:w-auto">
-          {isSubmitting ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              {copy.creating}
-            </span>
-          ) : (
-            copy.createInvoice
-          )}
-        </button>
-      </div>
-    </form>
+      )}
+    </>
   );
 }

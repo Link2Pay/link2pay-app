@@ -5,15 +5,15 @@ import type { Language } from '../i18n/translations';
 const COPY: Record<Language, { title: string; subtitle: string }> = {
   en: {
     title: 'Create Payment Link',
-    subtitle: 'Fill in the details below to create a new payment link',
+    subtitle: 'Fast flow: amount, asset, fixed expiry, wallet, then generate and share.',
   },
   es: {
     title: 'Crear link de pago',
-    subtitle: 'Completa los detalles para crear un nuevo link de pago',
+    subtitle: 'Flujo rapido: monto, activo, expiracion fija, wallet y compartir.',
   },
   pt: {
     title: 'Criar link de pagamento',
-    subtitle: 'Preencha os detalhes abaixo para criar um novo link de pagamento',
+    subtitle: 'Fluxo rapido: valor, ativo, expiracao fixa, wallet e compartilhar.',
   },
 };
 
