@@ -23,7 +23,7 @@ const COPY: Record<Language, {
     inputHint: 'Paste the full checkout URL or enter the link ID directly.',
     invalidInvoiceId: 'Could not find a link ID. Please paste a valid checkout URL or link ID.',
     viewInvoice: 'Open Checkout',
-    backHome: 'Back to home',
+    backHome: 'Back to Role Select',
   },
   es: {
     title: 'Abrir link de pago',
@@ -33,7 +33,7 @@ const COPY: Record<Language, {
     inputHint: 'Pega la URL completa del checkout o ingresa el ID del link.',
     invalidInvoiceId: 'No se pudo encontrar un ID de link. Pega una URL o ID valido.',
     viewInvoice: 'Abrir checkout',
-    backHome: 'Volver al inicio',
+    backHome: 'Volver a seleccion de rol',
   },
   pt: {
     title: 'Abrir link de pagamento',
@@ -43,7 +43,7 @@ const COPY: Record<Language, {
     inputHint: 'Cole a URL completa do checkout ou informe o ID do link.',
     invalidInvoiceId: 'Nao foi possivel encontrar um ID de link. Cole uma URL ou ID valido.',
     viewInvoice: 'Abrir checkout',
-    backHome: 'Voltar ao inicio',
+    backHome: 'Voltar a selecao de papel',
   },
 };
 
@@ -124,7 +124,7 @@ export default function ClientInvoiceLookup() {
           </div>
 
           <div className="text-center mt-6">
-            <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/app" className="text-sm text-muted-foreground hover:text-stellar-500 transition-colors">
               {'<-'} {copy.backHome}
             </Link>
           </div>

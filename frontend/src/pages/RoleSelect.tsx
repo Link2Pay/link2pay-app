@@ -18,6 +18,7 @@ const COPY: Record<Language, {
   clientDescription: string;
   payInvoice: string;
   failedConnectWallet: string;
+  backToHome: string;
 }> = {
   en: {
     tagline: 'Instant payment links powered by the Stellar network',
@@ -31,6 +32,7 @@ const COPY: Record<Language, {
       'Complete a payment through a secure, hosted checkout link. Instant settlement, no account required.',
     payInvoice: 'Open Payment Link',
     failedConnectWallet: 'Wallet connection failed',
+    backToHome: 'Back to Home',
   },
   es: {
     tagline: 'Links de pago instantaneos impulsados por la red Stellar',
@@ -44,6 +46,7 @@ const COPY: Record<Language, {
       'Completa un pago a traves de un link de checkout seguro y hospedado. Liquidacion instantanea, sin cuenta requerida.',
     payInvoice: 'Abrir link de pago',
     failedConnectWallet: 'Fallo la conexion de wallet',
+    backToHome: 'Volver al inicio',
   },
   pt: {
     tagline: 'Links de pagamento instantaneos na rede Stellar',
@@ -57,6 +60,7 @@ const COPY: Record<Language, {
       'Complete um pagamento atraves de um link de checkout seguro e hospedado. Liquidacao instantanea, sem conta necessaria.',
     payInvoice: 'Abrir link de pagamento',
     failedConnectWallet: 'Falha na conexao da wallet',
+    backToHome: 'Voltar ao início',
   },
 };
 
@@ -86,9 +90,20 @@ export default function RoleSelect() {
   return (
     <div className="min-h-screen gradient-bg p-4 sm:p-6">
       <div className="mx-auto w-full max-w-3xl">
-        <div className="mb-4 flex justify-end gap-2">
-          <LanguageToggle />
-          <ThemeToggle />
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <button
+            onClick={() => navigate('/role-select')}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-stellar-500 transition-colors"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            {copy.backToHome}
+          </button>
+          <div className="flex gap-2">
+            <LanguageToggle />
+            <ThemeToggle />
+          </div>
         </div>
 
         <div className="animate-in">
