@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { listInvoices } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
-import { useWalletStore } from '../../store/walletStore';
+import { useActorWallet } from '../../hooks/useActorWallet';
 import type { Invoice, InvoiceStatus } from '../../types';
 import { CURRENCY_SYMBOLS } from '../../config';
 import type { Language } from '../../i18n/translations';
@@ -85,7 +85,7 @@ const LOCALE_BY_LANGUAGE: Record<Language, string> = {
 };
 
 export default function InvoiceList() {
-  const { publicKey } = useWalletStore();
+  const actorWallet = useActorWallet();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -110,17 +110,17 @@ export default function InvoiceList() {
   }, [filter]);
 
   useEffect(() => {
-    if (!publicKey) return;
+    if (!actorWallet) return;
 
     setLoading(true);
-    listInvoices(publicKey, filter || undefined, PAGE_SIZE, page * PAGE_SIZE)
+    listInvoices(actorWallet, filter || undefined, PAGE_SIZE, page * PAGE_SIZE)
       .then(({ invoices: fetched, total: fetchedTotal }) => {
         setInvoices(fetched);
         setTotal(fetchedTotal);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [publicKey, filter, page]);
+  }, [actorWallet, filter, page]);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString(LOCALE_BY_LANGUAGE[language], {
@@ -141,7 +141,7 @@ export default function InvoiceList() {
     <div className="animate-in">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
-        <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
+        <Link to="/app/create-link" className="btn-primary w-full text-sm sm:w-auto">
           + {copy.newInvoice}
         </Link>
       </div>
@@ -167,7 +167,7 @@ export default function InvoiceList() {
       ) : invoices.length === 0 ? (
         <div className="card p-12 text-center">
           <p className="text-ink-3 text-sm mb-3">{copy.noInvoicesFound}</p>
-          <Link to="/dashboard/create-link" className="btn-primary text-sm">
+          <Link to="/app/create-link" className="btn-primary text-sm">
             {copy.createFirstInvoice}
           </Link>
         </div>
@@ -188,7 +188,7 @@ export default function InvoiceList() {
                 {invoices.map((invoice) => (
                   <tr key={invoice.id} className="hover:bg-surface-1 transition-colors">
                     <td className="px-4 py-3">
-                      <Link to={`/dashboard/links/${invoice.id}`} className="text-sm font-medium text-stellar-600 hover:text-stellar-700">
+                      <Link to={`/app/links/${invoice.id}`} className="text-sm font-medium text-stellar-600 hover:text-stellar-700">
                         {invoice.invoiceNumber}
                       </Link>
                       <p className="text-xs text-ink-3 mt-0.5">{invoice.title}</p>
@@ -239,3 +239,4 @@ export default function InvoiceList() {
     </div>
   );
 }
+

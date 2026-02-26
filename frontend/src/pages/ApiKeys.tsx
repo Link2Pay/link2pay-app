@@ -8,10 +8,11 @@ import {
   ShieldCheck,
   TerminalSquare,
 } from 'lucide-react';
-import { useWalletStore } from '../store/walletStore';
+import { useActorWallet } from '../hooks/useActorWallet';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import { config } from '../config';
+import PlanGate from '../components/PlanGate';
 
 type SnippetType = 'curl' | 'js';
 
@@ -20,6 +21,8 @@ const COPY: Record<
   {
     title: string;
     subtitle: string;
+    gateTitle: string;
+    gateDescription: string;
     authModelTitle: string;
     authModelDesc: string;
     walletTitle: string;
@@ -59,6 +62,9 @@ const COPY: Record<
   en: {
     title: 'API Keys',
     subtitle: 'Integration setup and authenticated request flow',
+    gateTitle: 'API Keys are a Pro feature',
+    gateDescription:
+      'Upgrade to Pro to generate and rotate live keys, separate test/live credentials, and unlock usage controls.',
     authModelTitle: 'Authentication Model',
     authModelDesc:
       'Link2Pay uses wallet-signed headers instead of static API secrets. Each request is validated with nonce + signature.',
@@ -98,6 +104,9 @@ const COPY: Record<
   es: {
     title: 'API Keys',
     subtitle: 'Configuracion de integracion y flujo de requests autenticados',
+    gateTitle: 'API Keys es una funcion Pro',
+    gateDescription:
+      'Mejora a Pro para generar y rotar llaves live, separar credenciales test/live y habilitar controles de uso.',
     authModelTitle: 'Modelo de autenticacion',
     authModelDesc:
       'Link2Pay usa headers firmados por wallet en lugar de secretos API estaticos. Cada request se valida con nonce + firma.',
@@ -137,6 +146,9 @@ const COPY: Record<
   pt: {
     title: 'API Keys',
     subtitle: 'Configuracao de integracao e fluxo de requests autenticados',
+    gateTitle: 'API Keys e um recurso Pro',
+    gateDescription:
+      'Faça upgrade para Pro para gerar e rotacionar chaves live, separar credenciais test/live e habilitar controles de uso.',
     authModelTitle: 'Modelo de autenticacao',
     authModelDesc:
       'Link2Pay usa headers assinados por wallet em vez de segredos API estaticos. Cada request e validada com nonce + assinatura.',
@@ -178,7 +190,7 @@ const COPY: Record<
 const shortAddress = (value: string) => `${value.slice(0, 8)}...${value.slice(-8)}`;
 
 export default function ApiKeys() {
-  const { publicKey } = useWalletStore();
+  const actorWallet = useActorWallet();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -194,18 +206,18 @@ export default function ApiKeys() {
     () => `# 1) Obtain nonce
 curl -X POST "${config.apiUrl}/api/auth/nonce" \\
   -H "Content-Type: application/json" \\
-  -d "{\\"walletAddress\\": \\\"${publicKey || 'G...YOUR_WALLET'}\\\"}"
+  -d "{\\"walletAddress\\": \\\"${actorWallet || 'G...YOUR_WALLET'}\\\"}"
 
 # 2) Sign nonce in wallet and call API
 curl "${config.apiUrl}/api/invoices?limit=20&offset=0" \\
-  -H "x-wallet-address: ${publicKey || 'G...YOUR_WALLET'}" \\
+  -H "x-wallet-address: ${actorWallet || 'G...YOUR_WALLET'}" \\
   -H "x-auth-nonce: <nonce>" \\
   -H "x-auth-signature: <hex_signature>"`,
-    [publicKey]
+    [actorWallet]
   );
 
   const jsSnippet = useMemo(
-    () => `const walletAddress = '${publicKey || 'G...YOUR_WALLET'}';
+    () => `const walletAddress = '${actorWallet || 'G...YOUR_WALLET'}';
 
 const nonceRes = await fetch('${config.apiUrl}/api/auth/nonce', {
   method: 'POST',
@@ -225,7 +237,7 @@ const linksRes = await fetch('${config.apiUrl}/api/invoices?limit=20&offset=0', 
   },
 });
 const links = await linksRes.json();`,
-    [publicKey]
+    [actorWallet]
   );
 
   const snippet = snippetType === 'curl' ? curlSnippet : jsSnippet;
@@ -264,6 +276,7 @@ const links = await linksRes.json();`,
   ];
 
   return (
+    <PlanGate requiredTier="pro" title={copy.gateTitle} description={copy.gateDescription}>
     <div className="space-y-6 animate-in">
       <div>
         <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
@@ -285,11 +298,11 @@ const links = await linksRes.json();`,
             {copy.walletTitle}
           </h3>
 
-          {publicKey ? (
+          {actorWallet ? (
             <div className="space-y-2">
               <p className="text-xs text-ink-3">{copy.walletLabel}</p>
               <p className="rounded-lg border border-surface-3 bg-surface-1 px-3 py-2 font-mono text-xs text-ink-1">
-                {shortAddress(publicKey)}
+                {shortAddress(actorWallet)}
               </p>
               <p className="pt-1 text-xs text-ink-3">
                 {copy.modeLabel}: <span className="text-ink-1">{copy.modeValue}</span>
@@ -426,5 +439,6 @@ const links = await linksRes.json();`,
         </pre>
       </div>
     </div>
+    </PlanGate>
   );
 }

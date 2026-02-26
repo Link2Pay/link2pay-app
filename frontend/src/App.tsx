@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
@@ -8,6 +8,12 @@ import Transactions from './pages/Transactions';
 import ApiKeys from './pages/ApiKeys';
 import Analytics from './pages/Analytics';
 import CreateInvoice from './pages/CreateInvoice';
+import Projects from './pages/Projects';
+import Webhooks from './pages/Webhooks';
+import ExportsLogs from './pages/ExportsLogs';
+import Team from './pages/Team';
+import Branding from './pages/Branding';
+import Billing from './pages/Billing';
 import InvoiceList from './components/Invoice/InvoiceList';
 import InvoiceDetail from './components/Invoice/InvoiceDetail';
 import PaymentFlow from './components/Payment/PaymentFlow';
@@ -18,7 +24,7 @@ import SDK from './pages/SDK';
 import Pricing from './pages/Pricing';
 import About from './pages/About';
 import RoleSelect from './pages/RoleSelect';
-import Register from './pages/Register';
+import ProfileOptions from './pages/ProfileOptions';
 import ClientInvoiceLookup from './pages/ClientInvoiceLookup';
 import { useWalletRestore } from './hooks/useWalletRestore';
 
@@ -33,7 +39,13 @@ const queryClient = new QueryClient({
 
 function LegacyInvoiceRedirect() {
   const { id } = useParams<{ id: string }>();
-  return <Navigate to={id ? `/dashboard/links/${id}` : '/dashboard/links'} replace />;
+  return <Navigate to={id ? `/app/links/${id}` : '/app/links'} replace />;
+}
+
+function LegacyDashboardRedirect() {
+  const location = useLocation();
+  const mappedPath = location.pathname.replace(/^\/dashboard/, '/app');
+  return <Navigate to={`${mappedPath}${location.search}${location.hash}`} replace />;
 }
 
 export default function App() {
@@ -52,14 +64,15 @@ export default function App() {
       />
       <BrowserRouter>
         <Routes>
-          {/* Role selection (gateway to app) */}
-          <Route path="/app" element={<RoleSelect />} />
+          {/* Login route */}
+          <Route path="/app/login" element={<RoleSelect />} />
+          <Route path="/login" element={<Navigate to="/app/login" replace />} />
 
           {/* Checkout lookup */}
           <Route path="/checkout" element={<ClientInvoiceLookup />} />
 
-          {/* Freelancer registration */}
-          <Route path="/register" element={<Register />} />
+          {/* Legacy registration route */}
+          <Route path="/register" element={<Navigate to="/app/login" replace />} />
 
           {/* Public payment page (no sidebar layout) */}
           <Route path="/pay/:id" element={<PaymentFlow />} />
@@ -75,34 +88,43 @@ export default function App() {
           </Route>
 
           {/* App routes with sidebar layout */}
-          <Route path="/dashboard" element={<Layout />}>
+          <Route path="/app" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="clients" element={<Clients />} />
             <Route path="transactions" element={<Transactions />} />
             <Route path="links" element={<InvoiceList />} />
             <Route path="links/:id" element={<InvoiceDetail />} />
             <Route path="api-keys" element={<ApiKeys />} />
+            <Route path="projects" element={<Projects />} />
+            <Route path="webhooks" element={<Webhooks />} />
             <Route path="analytics" element={<Analytics />} />
-            <Route path="profile-options" element={<Navigate to="/dashboard" replace />} />
+            <Route path="exports-logs" element={<ExportsLogs />} />
+            <Route path="team" element={<Team />} />
+            <Route path="branding" element={<Branding />} />
+            <Route path="billing" element={<Billing />} />
+            <Route path="profile-options" element={<ProfileOptions />} />
             <Route path="create-link" element={<CreateInvoice />} />
 
             {/* Backward-compatible nested redirects */}
-            <Route path="invoices" element={<Navigate to="/dashboard/links" replace />} />
+            <Route path="invoices" element={<Navigate to="/app/links" replace />} />
             <Route path="invoices/:id" element={<LegacyInvoiceRedirect />} />
-            <Route path="create" element={<Navigate to="/dashboard/create-link" replace />} />
+            <Route path="create" element={<Navigate to="/app/create-link" replace />} />
           </Route>
+
+          {/* Legacy dashboard path mapping */}
+          <Route path="/dashboard/*" element={<LegacyDashboardRedirect />} />
 
           {/* Backward-compatible redirects */}
           <Route path="/features" element={<Navigate to="/payment-links" replace />} />
           <Route path="/developers" element={<Navigate to="/sdk" replace />} />
           <Route path="/pricing" element={<Navigate to="/plans" replace />} />
           <Route path="/about" element={<Navigate to="/why-link2pay" replace />} />
-          <Route path="/get-started" element={<Navigate to="/app" replace />} />
+          <Route path="/get-started" element={<Navigate to="/app/login" replace />} />
           <Route path="/payer" element={<Navigate to="/checkout" replace />} />
           <Route path="/client" element={<Navigate to="/checkout" replace />} />
-          <Route path="/invoices" element={<Navigate to="/dashboard/links" replace />} />
+          <Route path="/invoices" element={<Navigate to="/app/links" replace />} />
           <Route path="/invoices/:id" element={<LegacyInvoiceRedirect />} />
-          <Route path="/create" element={<Navigate to="/dashboard/create-link" replace />} />
+          <Route path="/create" element={<Navigate to="/app/create-link" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
