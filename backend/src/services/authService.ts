@@ -86,10 +86,74 @@ export class AuthService {
         return true;
       }
 
-      return false;
+      // Neither Freighter attempt matched — fall through to Attempt 3
     } catch (e) {
-      return false;
+      // Not a hex signature — may be an Accesly XDR signature, fall through
     }
+
+    // Attempt 3: Accesly signed XDR (base64-encoded Stellar transaction envelope).
+    // Accesly custodial wallets sign a Stellar manageData transaction containing
+    // the nonce. The frontend passes the full signed XDR as the signature value.
+    try {
+      if (this.verifyXdrSignature(walletAddress, nonce, signatureHex)) {
+        return true;
+      }
+    } catch {
+      // Not a valid XDR
+    }
+
+    return false;
+  }
+
+  /**
+   * Verifies a Stellar ed25519 transaction signature produced by Accesly.
+   *
+   * Parses the signed XDR envelope, validates:
+   *  1. Source account matches walletAddress
+   *  2. Single manageData operation with name 'link2pay-auth' and value = nonce
+   *  3. At least one valid ed25519 signature over the transaction hash
+   *
+   * Tries both testnet and mainnet passphrases.
+   */
+  private verifyXdrSignature(
+    walletAddress: string,
+    nonce: string,
+    signedXdrBase64: string
+  ): boolean {
+    const PASSPHRASES = [
+      'Test SDF Network ; September 2015',
+      'Public Global Stellar Network ; September 2015',
+    ];
+
+    for (const passphrase of PASSPHRASES) {
+      try {
+        const tx = new StellarSdk.Transaction(signedXdrBase64, passphrase);
+
+        if (tx.source !== walletAddress) continue;
+        if (tx.operations.length !== 1) continue;
+
+        const op = tx.operations[0] as StellarSdk.Operation.ManageData;
+        if (op.type !== 'manageData') continue;
+        if (op.name !== 'link2pay-auth') continue;
+
+        // op.value is a Buffer; compare as UTF-8 string to the nonce
+        const opNonce = op.value?.toString('utf8') ?? '';
+        if (opNonce !== nonce) continue;
+
+        const txHash = tx.hash();
+        const keypair = StellarSdk.Keypair.fromPublicKey(walletAddress);
+
+        for (const sig of tx.signatures) {
+          if (keypair.verify(txHash, sig.signature())) {
+            return true;
+          }
+        }
+      } catch {
+        // Try the other passphrase or invalid XDR — continue
+      }
+    }
+
+    return false;
   }
 
   /**

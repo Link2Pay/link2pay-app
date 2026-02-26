@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Receipt,
 } from 'lucide-react';
+import { useAccesly } from 'accesly';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
 import WalletConnect from './Wallet/WalletConnect';
@@ -20,7 +21,11 @@ import { useI18n } from '../i18n/I18nProvider';
 export default function Layout() {
   const location = useLocation();
   const { connected, publicKey } = useWalletStore();
+  const { wallet: acceslyWallet } = useAccesly();
   const { network } = useNetworkStore();
+
+  const isAuthenticated = (connected && !!publicKey) || !!acceslyWallet;
+  const displayAddress = (connected && publicKey) ? publicKey : (acceslyWallet?.stellarAddress ?? null);
   const { t } = useI18n();
 
   const navItems = [
@@ -38,7 +43,7 @@ export default function Layout() {
       : location.pathname.startsWith(path);
 
   const shortenAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
-  const profileInitial = (publicKey?.[0] || 'L').toUpperCase();
+  const profileInitial = (displayAddress?.[0] || 'L').toUpperCase();
 
   return (
     <div className="min-h-screen md:flex">
@@ -95,10 +100,10 @@ export default function Layout() {
         <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md">
           <div className="flex flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-6 md:px-8">
             <div className="flex flex-wrap items-center justify-end gap-2">
-              {connected && publicKey && (
+              {isAuthenticated && displayAddress && (
                 <div className="flex items-center gap-2 rounded-full border border-surface-3 bg-surface-1 px-2 py-1">
                   <span className="hidden font-mono text-xs text-ink-2 min-[420px]:inline">
-                    {shortenAddress(publicKey)}
+                    {shortenAddress(displayAddress)}
                   </span>
                   <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
                     {profileInitial}
@@ -140,7 +145,7 @@ export default function Layout() {
         </div>
 
         <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 md:px-8">
-          {connected ? (
+          {isAuthenticated ? (
             <Outlet />
           ) : (
             <div className="flex min-h-[60vh] items-center justify-center">

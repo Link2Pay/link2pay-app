@@ -8,7 +8,7 @@ import {
   ShieldCheck,
   TerminalSquare,
 } from 'lucide-react';
-import { useWalletStore } from '../store/walletStore';
+import { useActiveAddress } from '../hooks/useActiveAddress';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import { config } from '../config';
@@ -178,7 +178,7 @@ const COPY: Record<
 const shortAddress = (value: string) => `${value.slice(0, 8)}...${value.slice(-8)}`;
 
 export default function ApiKeys() {
-  const { publicKey } = useWalletStore();
+  const walletAddress = useActiveAddress();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -194,18 +194,18 @@ export default function ApiKeys() {
     () => `# 1) Obtain nonce
 curl -X POST "${config.apiUrl}/api/auth/nonce" \\
   -H "Content-Type: application/json" \\
-  -d "{\\"walletAddress\\": \\\"${publicKey || 'G...YOUR_WALLET'}\\\"}"
+  -d "{\\"walletAddress\\": \\\"${walletAddress || 'G...YOUR_WALLET'}\\\"}"
 
 # 2) Sign nonce in wallet and call API
 curl "${config.apiUrl}/api/invoices?limit=20&offset=0" \\
-  -H "x-wallet-address: ${publicKey || 'G...YOUR_WALLET'}" \\
+  -H "x-wallet-address: ${walletAddress || 'G...YOUR_WALLET'}" \\
   -H "x-auth-nonce: <nonce>" \\
   -H "x-auth-signature: <hex_signature>"`,
-    [publicKey]
+    [walletAddress]
   );
 
   const jsSnippet = useMemo(
-    () => `const walletAddress = '${publicKey || 'G...YOUR_WALLET'}';
+    () => `const walletAddress = '${walletAddress || 'G...YOUR_WALLET'}';
 
 const nonceRes = await fetch('${config.apiUrl}/api/auth/nonce', {
   method: 'POST',
@@ -225,7 +225,7 @@ const linksRes = await fetch('${config.apiUrl}/api/invoices?limit=20&offset=0', 
   },
 });
 const links = await linksRes.json();`,
-    [publicKey]
+    [walletAddress]
   );
 
   const snippet = snippetType === 'curl' ? curlSnippet : jsSnippet;
@@ -285,11 +285,11 @@ const links = await linksRes.json();`,
             {copy.walletTitle}
           </h3>
 
-          {publicKey ? (
+          {walletAddress ? (
             <div className="space-y-2">
               <p className="text-xs text-ink-3">{copy.walletLabel}</p>
               <p className="rounded-lg border border-surface-3 bg-surface-1 px-3 py-2 font-mono text-xs text-ink-1">
-                {shortAddress(publicKey)}
+                {shortAddress(walletAddress)}
               </p>
               <p className="pt-1 text-xs text-ink-3">
                 {copy.modeLabel}: <span className="text-ink-1">{copy.modeValue}</span>

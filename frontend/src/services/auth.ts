@@ -137,6 +137,87 @@ export function clearAuthToken(): void {
   cachedToken = null;
 }
 
+// ─── Accesly token cache ───────────────────────────────────────────────────────
+// Same TTL-based caching as Freighter, but the "signature" field holds a
+// base64 XDR string (signed manageData transaction) instead of a hex signature.
+
+let cachedAcceslyToken: AuthToken | null = null;
+let inflightAcceslyPromise: Promise<AuthToken> | null = null;
+
+/**
+ * Obtain auth headers for an Accesly-authenticated user.
+ *
+ * Fetches a nonce from the backend, signs it by building a Stellar manageData
+ * transaction via Accesly's signTransaction, and caches the result for ~5 min.
+ *
+ * The returned x-auth-signature value is a base64-encoded signed XDR envelope.
+ * The backend's verifyXdrSignature() method parses and verifies it.
+ */
+export async function getAcceslyAuthHeaders(
+  walletAddress: string
+): Promise<Record<string, string>> {
+  if (
+    cachedAcceslyToken &&
+    cachedAcceslyToken.walletAddress === walletAddress &&
+    isTokenValid(cachedAcceslyToken)
+  ) {
+    return buildHeaders(cachedAcceslyToken);
+  }
+
+  if (inflightAcceslyPromise) {
+    const token = await inflightAcceslyPromise;
+    return buildHeaders(token);
+  }
+
+  inflightAcceslyPromise = (async (): Promise<AuthToken> => {
+    try {
+      const { signNonceWithAccesly } = await import('./acceslyAuth');
+
+      const response = await fetchWithTimeout(
+        `${API_BASE}/auth/nonce`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ walletAddress }),
+        },
+        AUTH_REQUEST_TIMEOUT_MS
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to get auth nonce');
+      }
+
+      const { nonce, expiresIn } = await response.json();
+
+      const signedXdr = await withTimeout(
+        signNonceWithAccesly(walletAddress, nonce),
+        AUTH_SIGN_TIMEOUT_MS,
+        'Accesly signing timed out. Please try again.'
+      );
+
+      const token: AuthToken = {
+        walletAddress,
+        nonce,
+        signature: signedXdr, // base64 XDR
+        expiresAt: Date.now() + expiresIn * 1000,
+      };
+
+      cachedAcceslyToken = token;
+      return token;
+    } finally {
+      inflightAcceslyPromise = null;
+    }
+  })();
+
+  const token = await inflightAcceslyPromise;
+  return buildHeaders(token);
+}
+
+/** Clear cached Accesly token (call on Accesly disconnect) */
+export function clearAcceslyAuthToken(): void {
+  cachedAcceslyToken = null;
+}
+
 function buildHeaders(token: AuthToken): Record<string, string> {
   return {
     'x-wallet-address': token.walletAddress,

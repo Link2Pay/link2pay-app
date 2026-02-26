@@ -16,7 +16,7 @@ import {
 import { getDashboardStats, listInvoices } from '../services/api';
 import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
 import { useI18n } from '../i18n/I18nProvider';
-import { useWalletStore } from '../store/walletStore';
+import { useActiveAddress } from '../hooks/useActiveAddress';
 import type { DashboardStats, Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
 
@@ -163,7 +163,7 @@ const COPY: Record<Language, {
 };
 
 export default function Dashboard() {
-  const { publicKey } = useWalletStore();
+  const walletAddress = useActiveAddress();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -172,9 +172,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!publicKey) return;
+    if (!walletAddress) return;
 
-    Promise.all([getDashboardStats(publicKey), listInvoices(publicKey, undefined, 50, 0)])
+    Promise.all([getDashboardStats(walletAddress), listInvoices(walletAddress, undefined, 50, 0)])
       .then(([dashboardStats, invoiceResult]) => {
         const safeStats =
           dashboardStats && typeof dashboardStats === 'object' ? dashboardStats : null;
@@ -187,7 +187,7 @@ export default function Dashboard() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [publicKey]);
+  }, [walletAddress]);
 
   const invoices = Array.isArray(allInvoices) ? allInvoices : [];
   const recentInvoices = invoices.slice(0, 5);

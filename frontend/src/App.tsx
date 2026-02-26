@@ -17,10 +17,11 @@ import Features from './pages/Features';
 import SDK from './pages/SDK';
 import Pricing from './pages/Pricing';
 import About from './pages/About';
-import RoleSelect from './pages/RoleSelect';
+import Login from './pages/Login';
 import Register from './pages/Register';
 import ClientInvoiceLookup from './pages/ClientInvoiceLookup';
 import { useWalletRestore } from './hooks/useWalletRestore';
+import AcceslySync from './components/AcceslySync';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,7 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <AcceslySync />
       <Toaster
         position="top-right"
         toastOptions={{
@@ -52,8 +54,8 @@ export default function App() {
       />
       <BrowserRouter>
         <Routes>
-          {/* Role selection (gateway to app) */}
-          <Route path="/app" element={<RoleSelect />} />
+          {/* Login / role selection (gateway to app) */}
+          <Route path="/app" element={<Login />} />
 
           {/* Checkout lookup */}
           <Route path="/checkout" element={<ClientInvoiceLookup />} />

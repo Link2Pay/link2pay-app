@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { listInvoices } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
-import { useWalletStore } from '../../store/walletStore';
+import { useActiveAddress } from '../../hooks/useActiveAddress';
 import type { Invoice, InvoiceStatus } from '../../types';
 import { CURRENCY_SYMBOLS } from '../../config';
 import type { Language } from '../../i18n/translations';
@@ -85,7 +85,7 @@ const LOCALE_BY_LANGUAGE: Record<Language, string> = {
 };
 
 export default function InvoiceList() {
-  const { publicKey } = useWalletStore();
+  const walletAddress = useActiveAddress();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -110,17 +110,17 @@ export default function InvoiceList() {
   }, [filter]);
 
   useEffect(() => {
-    if (!publicKey) return;
+    if (!walletAddress) return;
 
     setLoading(true);
-    listInvoices(publicKey, filter || undefined, PAGE_SIZE, page * PAGE_SIZE)
+    listInvoices(walletAddress, filter || undefined, PAGE_SIZE, page * PAGE_SIZE)
       .then(({ invoices: fetched, total: fetchedTotal }) => {
         setInvoices(fetched);
         setTotal(fetchedTotal);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [publicKey, filter, page]);
+  }, [walletAddress, filter, page]);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString(LOCALE_BY_LANGUAGE[language], {

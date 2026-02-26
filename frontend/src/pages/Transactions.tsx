@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Copy, ExternalLink, History, Search } from 'lucide-react';
 import { listInvoices } from '../services/api';
 import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
-import { useWalletStore } from '../store/walletStore';
+import { useActiveAddress } from '../hooks/useActiveAddress';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
@@ -134,7 +134,7 @@ const IN_PROGRESS_STATUSES: InvoiceStatus[] = ['PENDING', 'PROCESSING'];
 const FAILED_STATUSES: InvoiceStatus[] = ['FAILED', 'EXPIRED', 'CANCELLED'];
 
 export default function Transactions() {
-  const { publicKey } = useWalletStore();
+  const walletAddress = useActiveAddress();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -145,14 +145,14 @@ export default function Transactions() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!publicKey) return;
+    if (!walletAddress) return;
 
     setLoading(true);
-    listInvoices(publicKey, undefined, 100, 0)
+    listInvoices(walletAddress, undefined, 100, 0)
       .then(({ invoices: rows }) => setInvoices(Array.isArray(rows) ? rows : []))
       .catch(() => setInvoices([]))
       .finally(() => setLoading(false));
-  }, [publicKey]);
+  }, [walletAddress]);
 
   const transactionRows = useMemo(
     () => invoices.filter((invoice) => invoice.status !== 'DRAFT'),

@@ -5,6 +5,7 @@ import { createInvoice } from '../../services/api';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
 import { useNetworkStore } from '../../store/networkStore';
+import { useActiveAddress } from '../../hooks/useActiveAddress';
 import type { Currency } from '../../types';
 import type { Language } from '../../i18n/translations';
 
@@ -178,10 +179,11 @@ const COPY: Record<Language, {
 
 export default function InvoiceForm() {
   const navigate = useNavigate();
-  const { publicKey, getFreighterNetwork } = useWalletStore();
+  const { getFreighterNetwork } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
   const { language } = useI18n();
   const copy = COPY[language];
+  const walletAddress = useActiveAddress();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -221,7 +223,7 @@ export default function InvoiceForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!publicKey) return;
+    if (!walletAddress) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -247,7 +249,7 @@ export default function InvoiceForm() {
 
       const invoice = await createInvoice(
         {
-          freelancerWallet: publicKey,
+          freelancerWallet: walletAddress,
           freelancerName: freelancerName || undefined,
           freelancerEmail: freelancerEmail || undefined,
           freelancerCompany: freelancerCompany || undefined,
@@ -263,7 +265,7 @@ export default function InvoiceForm() {
           networkPassphrase,
           lineItems: lineItems.filter((item) => item.description && item.rate > 0),
         },
-        publicKey
+        walletAddress
       );
 
       toast.success(`Invoice ${invoice.invoiceNumber} created`);
@@ -322,7 +324,7 @@ export default function InvoiceForm() {
         </div>
         <div className="mt-3">
           <label className="label">{copy.walletAddress}</label>
-          <div className="input bg-surface-1 font-mono text-xs text-ink-2 cursor-default break-all">{publicKey}</div>
+          <div className="input bg-surface-1 font-mono text-xs text-ink-2 cursor-default break-all">{walletAddress}</div>
         </div>
       </section>
 

@@ -3,6 +3,7 @@ import { ArrowRight, Check, Copy, Link as LinkIcon, Zap } from 'lucide-react';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useNetworkStore } from '../../store/networkStore';
 import { useWalletStore } from '../../store/walletStore';
+import { useActiveAddress } from '../../hooks/useActiveAddress';
 import { createLink } from '../../services/api';
 import toast from 'react-hot-toast';
 import type { Language } from '../../i18n/translations';
@@ -116,7 +117,8 @@ export default function HeroQuickLink() {
   const { language } = useI18n();
   const copy = COPY[language];
   const { network, networkPassphrase, setNetwork } = useNetworkStore();
-  const { publicKey, connected, isConnecting, connect, getFreighterNetwork } = useWalletStore();
+  const { connected, isConnecting, connect, getFreighterNetwork } = useWalletStore();
+  const walletAddress = useActiveAddress();
 
   const [asset, setAsset] = useState<Asset>('USDC');
   const [amount, setAmount] = useState<number>(199);
@@ -146,12 +148,12 @@ export default function HeroQuickLink() {
 
     setIsSubmitting(true);
     try {
-      let walletAddress = publicKey;
-      if (!connected || !walletAddress) {
+      let activeWallet = walletAddress;
+      if (!connected || !activeWallet) {
         await connect();
         const refreshedState = useWalletStore.getState();
-        walletAddress = refreshedState.publicKey;
-        if (!refreshedState.connected || !walletAddress) {
+        activeWallet = refreshedState.publicKey;
+        if (!refreshedState.connected || !activeWallet) {
           throw new Error(copy.connectWalletError);
         }
       }
@@ -177,7 +179,7 @@ export default function HeroQuickLink() {
           expiresAt,
           networkPassphrase,
         },
-        walletAddress
+        activeWallet
       );
       setLinkUrl(result.checkoutUrl);
       toast.success(copy.linkCreatedToast);

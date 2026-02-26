@@ -1,5 +1,9 @@
+import { useAccesly } from 'accesly';
 import { useWalletStore } from '../../store/walletStore';
 import { useI18n } from '../../i18n/I18nProvider';
+import { useNavigate } from 'react-router-dom';
+import { unregisterAcceslySigner } from '../../services/acceslyAuth';
+import { clearAcceslyAuthToken } from '../../services/auth';
 
 interface WalletConnectProps {
   variant?: 'compact' | 'large';
@@ -8,7 +12,42 @@ interface WalletConnectProps {
 export default function WalletConnect({ variant = 'compact' }: WalletConnectProps) {
   const { connected, publicKey, isConnecting, error, connect, disconnect } =
     useWalletStore();
+  const accesly = useAccesly();
+  const acceslyWallet = accesly.wallet;
   const { t } = useI18n();
+  const navigate = useNavigate();
+
+  // Handle Accesly disconnect
+  const handleAcceslyDisconnect = async () => {
+    try {
+      // Clear auth state
+      unregisterAcceslySigner();
+      clearAcceslyAuthToken();
+
+      // Call Accesly logout if the method is available
+      if ('logout' in accesly && typeof accesly.logout === 'function') {
+        await accesly.logout();
+      }
+
+      // Navigate to login page after logout
+      navigate('/app');
+    } catch (error) {
+      console.error('Failed to disconnect Accesly:', error);
+      // Even if logout fails, navigate to login
+      navigate('/app');
+    }
+  };
+
+  // Show disconnect button for Accesly users
+  if (acceslyWallet) {
+    if (variant === 'large') return null;
+
+    return (
+      <button onClick={handleAcceslyDisconnect} className="btn-ghost px-2 py-1 text-xs">
+        {t('wallet.disconnect')}
+      </button>
+    );
+  }
 
   if (connected && publicKey) {
     if (variant === 'large') return null;

@@ -1,5 +1,5 @@
 import { config } from '../config';
-import { clearAuthToken, getAuthHeaders } from './auth';
+import { clearAuthToken, clearAcceslyAuthToken, getAuthHeaders, getAcceslyAuthHeaders } from './auth';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
 import toast from 'react-hot-toast';
@@ -67,9 +67,11 @@ async function request<T>(
   };
 
   if (walletAddress) {
-    const { signMessage } = useWalletStore.getState();
     try {
-      const authHeaders = await getAuthHeaders(walletAddress, signMessage);
+      const { connected: freighterConnected, signMessage } = useWalletStore.getState();
+      const authHeaders = freighterConnected
+        ? await getAuthHeaders(walletAddress, signMessage)
+        : await getAcceslyAuthHeaders(walletAddress);
       Object.assign(headers, authHeaders);
     } catch (error: any) {
       notifyUserError(
@@ -109,6 +111,7 @@ async function request<T>(
   if (!response.ok) {
     if (response.status === 401 && walletAddress && retryOnAuthError) {
       clearAuthToken();
+      clearAcceslyAuthToken();
       return request<T>(path, options, walletAddress, false);
     }
 

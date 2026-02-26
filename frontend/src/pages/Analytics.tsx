@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BarChart3, CalendarDays, Clock3, Gauge, PieChart, Users2 } from 'lucide-react';
 import { getDashboardStats, listInvoices } from '../services/api';
-import { useWalletStore } from '../store/walletStore';
+import { useActiveAddress } from '../hooks/useActiveAddress';
 import { useI18n } from '../i18n/I18nProvider';
 import type { DashboardStats, Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
@@ -150,7 +150,7 @@ function toNumber(value: string | null | undefined): number {
 }
 
 export default function Analytics() {
-  const { publicKey } = useWalletStore();
+  const walletAddress = useActiveAddress();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -160,10 +160,10 @@ export default function Analytics() {
   const [periodDays, setPeriodDays] = useState<PeriodDays>(30);
 
   useEffect(() => {
-    if (!publicKey) return;
+    if (!walletAddress) return;
 
     setLoading(true);
-    Promise.all([getDashboardStats(publicKey), listInvoices(publicKey, undefined, 200, 0)])
+    Promise.all([getDashboardStats(walletAddress), listInvoices(walletAddress, undefined, 200, 0)])
       .then(([dashboardStats, result]) => {
         setStats(dashboardStats);
         setInvoices(Array.isArray(result?.invoices) ? result.invoices : []);
@@ -173,7 +173,7 @@ export default function Analytics() {
         setInvoices([]);
       })
       .finally(() => setLoading(false));
-  }, [publicKey]);
+  }, [walletAddress]);
 
   const now = Date.now();
   const periodStartMs = now - (periodDays - 1) * DAY_MS;
