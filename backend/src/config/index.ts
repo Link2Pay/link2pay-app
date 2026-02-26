@@ -41,6 +41,8 @@ const envSchema = z.object({
     .default('GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2'),
 
   WATCHER_POLL_INTERVAL_MS: z.coerce.number().default(5000),
+  AUTH_TOKEN_SECRET: z.string().min(32, 'AUTH_TOKEN_SECRET must be at least 32 characters'),
+  AUTH_SESSION_TTL_SECONDS: z.coerce.number().positive().default(60 * 60 * 24 * 7),
 });
 
 const parseResult = envSchema.safeParse(process.env);
@@ -72,6 +74,10 @@ export const config = {
   },
 
   watcherPollInterval: env.WATCHER_POLL_INTERVAL_MS,
+  auth: {
+    tokenSecret: env.AUTH_TOKEN_SECRET,
+    sessionTtlSeconds: env.AUTH_SESSION_TTL_SECONDS,
+  },
 } as const;
 
 // Network configurations for both testnet and mainnet

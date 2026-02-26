@@ -26,6 +26,43 @@ enum Currency {
   EURC
 }
 
+enum WalletProvider {
+  FREIGHTER
+  ACCESLY
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String?  @unique
+  passwordHash String?  @map("password_hash")
+  displayName  String?  @map("display_name")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  wallets UserWallet[]
+
+  @@map("users")
+}
+
+model UserWallet {
+  id           String         @id @default(cuid())
+  userId       String         @map("user_id")
+  walletAddress String        @unique @map("wallet_address")
+  provider     WalletProvider @default(FREIGHTER)
+  providerEmail String?       @map("provider_email")
+  isPrimary    Boolean        @default(false) @map("is_primary")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, walletAddress])
+  @@index([userId])
+  @@index([provider])
+  @@map("user_wallets")
+}
+
 model Invoice {
   id            String        @id @default(cuid())
   invoiceNumber String        @unique @map("invoice_number")
