@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
+import { accountService } from '../services/accountService';
 
 // Zod schemas for request validation
 
@@ -148,11 +149,47 @@ export function validateBody(schema: z.ZodSchema) {
  * rejected with 401 — the legacy address-only fallback has been removed
  * to close the Spoofing (Spoof.1) and Elevation of Privilege (EoP.2) vectors.
  */
-export function requireWallet(
+export async function requireWallet(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
+  const bearerToken = accountService.readBearerToken(
+    req.headers.authorization as string | undefined
+  );
+
+  if (bearerToken) {
+    const claims = accountService.verifyToken(bearerToken);
+    if (!claims) {
+      return res.status(401).json({ error: 'Invalid or expired session token' });
+    }
+
+    const preferredWallet = req.headers['x-wallet-address'] as string | undefined;
+    if (preferredWallet && !/^G[A-Z2-7]{55}$/.test(preferredWallet)) {
+      return res.status(401).json({
+        error: 'Valid wallet address required when x-wallet-address is provided',
+      });
+    }
+
+    const walletAddress = await accountService.resolveWalletForUser(
+      claims.sub,
+      preferredWallet || null
+    );
+
+    if (!walletAddress) {
+      return res.status(403).json({
+        error: preferredWallet
+          ? 'Provided wallet is not linked to your account'
+          : 'No wallet linked to this account',
+      });
+    }
+
+    (req as any).walletAddress = walletAddress;
+    (req as any).userId = claims.sub;
+    (req as any).authVerified = true;
+    return next();
+  }
+
   const walletAddress = req.headers['x-wallet-address'] as string | undefined;
   const nonce = req.headers['x-auth-nonce'] as string | undefined;
   const signature = req.headers['x-auth-signature'] as string | undefined;
