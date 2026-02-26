@@ -398,14 +398,24 @@ export class StellarService {
     networkPassphrase?: string
   ) {
     const server = this.getServerForNetwork(networkPassphrase);
-    const transactions = await server
-      .transactions()
-      .forAccount(accountId)
-      .limit(limit)
-      .order('desc')
-      .call();
-
-    return transactions.records;
+    try {
+      const transactions = await this.withRetry(() =>
+        server
+          .transactions()
+          .forAccount(accountId)
+          .limit(limit)
+          .order('desc')
+          .call()
+      );
+      return transactions.records;
+    } catch (error: any) {
+      // Unfunded/non-existent account on this network.
+      // Watcher should treat this as "no history yet", not as a hard error.
+      if (error?.response?.status === 404) {
+        return [];
+      }
+      throw error;
+    }
   }
 
   /**
