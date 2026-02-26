@@ -8,6 +8,8 @@ export const config = {
   networkPassphrase:
     import.meta.env.VITE_NETWORK_PASSPHRASE ||
     'Test SDF Network ; September 2015',
+  acceslyAppId: import.meta.env.VITE_ACCESLY_APP_ID || '',
+  planTier: import.meta.env.VITE_PLAN_TIER || 'free',
 } as const;
 
 export const CURRENCY_LABELS: Record<string, string> = {

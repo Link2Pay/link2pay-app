@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, ExternalLink, History, Search } from 'lucide-react';
+import { Copy, Download, ExternalLink, History, Lock, Search } from 'lucide-react';
 import { listInvoices } from '../services/api';
 import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
-import { useWalletStore } from '../store/walletStore';
+import { useActorWallet } from '../hooks/useActorWallet';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
 import { CURRENCY_SYMBOLS, config } from '../config';
+import { PLAN_HISTORY_RETENTION, tierAtLeast } from '../lib/plans';
+import { usePlanStore } from '../store/planStore';
+import PlanLockModal from '../components/PlanLockModal';
 
 type TransactionFilter = 'ALL' | 'IN_PROGRESS' | 'FAILED' | 'PAID';
 
@@ -39,6 +42,12 @@ const COPY: Record<
     copyCheckout: string;
     copied: string;
     openExplorer: string;
+    retentionWindow: string;
+    exportData: string;
+    exportCsv: string;
+    exportJson: string;
+    exportLockedTitle: string;
+    exportLockedDesc: string;
   }
 > = {
   en: {
@@ -67,6 +76,13 @@ const COPY: Record<
     copyCheckout: 'Copy Checkout',
     copied: 'Copied',
     openExplorer: 'Open',
+    retentionWindow: 'Retention window',
+    exportData: 'Export data',
+    exportCsv: 'Export CSV',
+    exportJson: 'Export JSON',
+    exportLockedTitle: 'Exports require Pro',
+    exportLockedDesc:
+      'Upgrade to Pro for CSV export and to Business for advanced JSON/audit exports.',
   },
   es: {
     title: 'Transacciones',
@@ -94,6 +110,13 @@ const COPY: Record<
     copyCheckout: 'Copiar checkout',
     copied: 'Copiado',
     openExplorer: 'Abrir',
+    retentionWindow: 'Ventana de retencion',
+    exportData: 'Exportar datos',
+    exportCsv: 'Exportar CSV',
+    exportJson: 'Exportar JSON',
+    exportLockedTitle: 'Exportaciones requieren Pro',
+    exportLockedDesc:
+      'Mejora a Pro para exportar CSV y a Business para exportaciones JSON/auditoria.',
   },
   pt: {
     title: 'Transacoes',
@@ -121,6 +144,13 @@ const COPY: Record<
     copyCheckout: 'Copiar checkout',
     copied: 'Copiado',
     openExplorer: 'Abrir',
+    retentionWindow: 'Janela de retencao',
+    exportData: 'Exportar dados',
+    exportCsv: 'Exportar CSV',
+    exportJson: 'Exportar JSON',
+    exportLockedTitle: 'Exportacoes exigem Pro',
+    exportLockedDesc:
+      'Faça upgrade para Pro para CSV e para Business para exportacoes JSON/auditoria.',
   },
 };
 
@@ -134,7 +164,8 @@ const IN_PROGRESS_STATUSES: InvoiceStatus[] = ['PENDING', 'PROCESSING'];
 const FAILED_STATUSES: InvoiceStatus[] = ['FAILED', 'EXPIRED', 'CANCELLED'];
 
 export default function Transactions() {
-  const { publicKey } = useWalletStore();
+  const actorWallet = useActorWallet();
+  const tier = usePlanStore((state) => state.tier);
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -143,16 +174,17 @@ export default function Transactions() {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<TransactionFilter>('ALL');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showExportLock, setShowExportLock] = useState(false);
 
   useEffect(() => {
-    if (!publicKey) return;
+    if (!actorWallet) return;
 
     setLoading(true);
-    listInvoices(publicKey, undefined, 100, 0)
+    listInvoices(actorWallet, undefined, 100, 0)
       .then(({ invoices: rows }) => setInvoices(Array.isArray(rows) ? rows : []))
       .catch(() => setInvoices([]))
       .finally(() => setLoading(false));
-  }, [publicKey]);
+  }, [actorWallet]);
 
   const transactionRows = useMemo(
     () => invoices.filter((invoice) => invoice.status !== 'DRAFT'),
@@ -203,6 +235,9 @@ export default function Transactions() {
 
   const successRate =
     transactionRows.length > 0 ? ((settledCount / transactionRows.length) * 100).toFixed(1) : '0.0';
+  const retentionWindow = PLAN_HISTORY_RETENTION[tier];
+  const canExportCsv = tierAtLeast(tier, 'pro');
+  const canExportJson = tierAtLeast(tier, 'business');
 
   const filterButtons: Array<{ label: string; value: TransactionFilter }> = [
     { label: copy.all, value: 'ALL' },
@@ -253,6 +288,39 @@ export default function Transactions() {
         <div className="card p-5">
           <p className="text-xs text-ink-3">{copy.successRate}</p>
           <p className="mt-2 text-2xl font-semibold font-mono text-primary">{successRate}%</p>
+        </div>
+      </div>
+
+      <div className="card p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-ink-3">
+            {copy.retentionWindow}: <span className="text-ink-1">{retentionWindow}</span>
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {!canExportCsv ? (
+              <button
+                type="button"
+                onClick={() => setShowExportLock(true)}
+                className="btn-secondary text-xs"
+              >
+                <Lock className="h-3.5 w-3.5" />
+                {copy.exportData}
+              </button>
+            ) : (
+              <>
+                <button type="button" className="btn-secondary text-xs">
+                  <Download className="h-3.5 w-3.5" />
+                  {copy.exportCsv}
+                </button>
+                {canExportJson && (
+                  <button type="button" className="btn-secondary text-xs">
+                    <Download className="h-3.5 w-3.5" />
+                    {copy.exportJson}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -347,7 +415,7 @@ export default function Transactions() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="inline-flex items-center gap-2">
-                        <Link to={`/dashboard/links/${invoice.id}`} className="text-xs text-stellar-600 hover:underline">
+                        <Link to={`/app/links/${invoice.id}`} className="text-xs text-stellar-600 hover:underline">
                           {copy.details}
                         </Link>
                         <button
@@ -367,6 +435,15 @@ export default function Transactions() {
           </div>
         </div>
       )}
+
+      <PlanLockModal
+        open={showExportLock}
+        requiredTier="pro"
+        title={copy.exportLockedTitle}
+        description={copy.exportLockedDesc}
+        onClose={() => setShowExportLock(false)}
+      />
     </div>
   );
 }
+

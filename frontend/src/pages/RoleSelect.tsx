@@ -1,105 +1,325 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { FormEvent, useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
 import LanguageToggle from '../components/LanguageToggle';
 import BrandMark from '../components/BrandMark';
 import BrandWordmark from '../components/BrandWordmark';
+import AcceslyActionButton from '../components/AcceslyActionButton';
+import { acceslyEvents } from '../components/AcceslyBridgeProvider';
 import { useWalletStore } from '../store/walletStore';
+import { useAuthStore } from '../store/authStore';
+import {
+  linkAcceslyWallet,
+  loginWithAccesly,
+  loginWithEmail,
+  loginWithFreighterWallet,
+  registerWithEmail,
+} from '../services/accountAuth';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 
-const COPY: Record<Language, {
-  tagline: string;
-  freelancerTitle: string;
-  freelancerDescription: string;
-  connectingWallet: string;
-  connectWalletEnter: string;
-  clientTitle: string;
-  clientDescription: string;
-  payInvoice: string;
-  failedConnectWallet: string;
-  backToHome: string;
-}> = {
+type Mode = 'login' | 'register';
+
+type CopyBlock = {
+  title: string;
+  subtitle: string;
+  loginTab: string;
+  registerTab: string;
+  name: string;
+  email: string;
+  password: string;
+  namePlaceholder: string;
+  emailPlaceholder: string;
+  passwordPlaceholder: string;
+  loginCta: string;
+  registerCta: string;
+  walletCta: string;
+  acceslyHint: string;
+  acceslyCreateCta: string;
+  acceslyLinkCta: string;
+  acceslyLinkedSuccess: string;
+  payerLink: string;
+  walletLinkRequired: string;
+  homeLink: string;
+};
+
+const COPY: Record<Language, CopyBlock> = {
   en: {
-    tagline: 'Instant payment links powered by the Stellar network',
-    freelancerTitle: 'Builder',
-    freelancerDescription:
-      'Create payment links, manage hosted checkout, and track on-chain settlements from your dashboard.',
-    connectingWallet: 'Authenticating...',
-    connectWalletEnter: 'Connect Wallet & Enter Dashboard',
-    clientTitle: 'Payer',
-    clientDescription:
-      'Complete a payment through a secure, hosted checkout link. Instant settlement, no account required.',
-    payInvoice: 'Open Payment Link',
-    failedConnectWallet: 'Wallet connection failed',
-    backToHome: 'Back to Home',
+    title: 'Sign in to Link2Pay',
+    subtitle: 'Use email/password, wallet, or Google wallet to access your dashboard.',
+    loginTab: 'Login',
+    registerTab: 'Create account',
+    name: 'Name',
+    email: 'Email',
+    password: 'Password',
+    namePlaceholder: 'Jane Doe',
+    emailPlaceholder: 'you@company.com',
+    passwordPlaceholder: 'At least 8 characters',
+    loginCta: 'Login',
+    registerCta: 'Create account',
+    walletCta: 'Continue with Wallet',
+    acceslyHint: 'Google wallet login (Accesly)',
+    acceslyCreateCta: 'Create / Continue with Google Wallet',
+    acceslyLinkCta: 'Link Existing Wallet to Google',
+    acceslyLinkedSuccess: 'Google wallet linked to your existing account.',
+    payerLink: 'I have a payment link',
+    walletLinkRequired: 'Your account has no linked wallet yet. Link a wallet to continue.',
+    homeLink: 'Back to Home',
   },
   es: {
-    tagline: 'Links de pago instantaneos impulsados por la red Stellar',
-    freelancerTitle: 'Builder',
-    freelancerDescription:
-      'Crea links de pago, gestiona checkout hospedado y rastrea liquidaciones on-chain desde tu panel.',
-    connectingWallet: 'Autenticando...',
-    connectWalletEnter: 'Conectar wallet y entrar al panel',
-    clientTitle: 'Pagador',
-    clientDescription:
-      'Completa un pago a traves de un link de checkout seguro y hospedado. Liquidacion instantanea, sin cuenta requerida.',
-    payInvoice: 'Abrir link de pago',
-    failedConnectWallet: 'Fallo la conexion de wallet',
-    backToHome: 'Volver al inicio',
+    title: 'Inicia sesion en Link2Pay',
+    subtitle: 'Usa email/password, wallet o wallet de Google para entrar al panel.',
+    loginTab: 'Ingresar',
+    registerTab: 'Crear cuenta',
+    name: 'Nombre',
+    email: 'Email',
+    password: 'Contrasena',
+    namePlaceholder: 'Juan Perez',
+    emailPlaceholder: 'tu@empresa.com',
+    passwordPlaceholder: 'Minimo 8 caracteres',
+    loginCta: 'Ingresar',
+    registerCta: 'Crear cuenta',
+    walletCta: 'Continuar con wallet',
+    acceslyHint: 'Login con wallet de Google (Accesly)',
+    acceslyCreateCta: 'Crear / continuar con wallet Google',
+    acceslyLinkCta: 'Vincular wallet existente con Google',
+    acceslyLinkedSuccess: 'Wallet de Google vinculada a tu cuenta existente.',
+    payerLink: 'Tengo un link de pago',
+    walletLinkRequired: 'Tu cuenta aun no tiene wallet vinculada. Vincula una wallet para continuar.',
+    homeLink: 'Volver al inicio',
   },
   pt: {
-    tagline: 'Links de pagamento instantaneos na rede Stellar',
-    freelancerTitle: 'Builder',
-    freelancerDescription:
-      'Crie links de pagamento, gerencie checkout hospedado e acompanhe liquidacoes on-chain no seu painel.',
-    connectingWallet: 'Autenticando...',
-    connectWalletEnter: 'Conectar wallet e entrar no painel',
-    clientTitle: 'Pagador',
-    clientDescription:
-      'Complete um pagamento atraves de um link de checkout seguro e hospedado. Liquidacao instantanea, sem conta necessaria.',
-    payInvoice: 'Abrir link de pagamento',
-    failedConnectWallet: 'Falha na conexao da wallet',
-    backToHome: 'Voltar ao início',
+    title: 'Entrar no Link2Pay',
+    subtitle: 'Use email/senha, wallet ou wallet Google para acessar o painel.',
+    loginTab: 'Entrar',
+    registerTab: 'Criar conta',
+    name: 'Nome',
+    email: 'Email',
+    password: 'Senha',
+    namePlaceholder: 'Joao Silva',
+    emailPlaceholder: 'voce@empresa.com',
+    passwordPlaceholder: 'Pelo menos 8 caracteres',
+    loginCta: 'Entrar',
+    registerCta: 'Criar conta',
+    walletCta: 'Continuar com wallet',
+    acceslyHint: 'Login com wallet Google (Accesly)',
+    acceslyCreateCta: 'Criar / continuar com wallet Google',
+    acceslyLinkCta: 'Vincular wallet existente ao Google',
+    acceslyLinkedSuccess: 'Wallet Google vinculada a sua conta existente.',
+    payerLink: 'Tenho um link de pagamento',
+    walletLinkRequired: 'Sua conta ainda nao possui wallet vinculada. Vincule uma wallet para continuar.',
+    homeLink: 'Voltar ao inicio',
   },
 };
 
+function toDisplayName(email: string): string {
+  const local = email.split('@')[0] || 'User';
+  return local
+    .replace(/[._-]+/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export default function RoleSelect() {
   const navigate = useNavigate();
-  const { connected, isConnecting, error, connect } = useWalletStore();
   const { language } = useI18n();
-  const [walletError, setWalletError] = useState<string | null>(null);
-
   const copy = COPY[language];
+  const { connect, isConnecting } = useWalletStore();
+  const setSession = useAuthStore((state) => state.setSession);
 
-  const handleFreelancer = async () => {
-    if (connected) {
-      navigate('/dashboard');
-      return;
-    }
+  const [mode, setMode] = useState<Mode>('login');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [walletInfo, setWalletInfo] = useState<string | null>(null);
+  const [acceslyIntent, setAcceslyIntent] = useState<'login' | 'link-existing'>('login');
+  const [linkSessionToken, setLinkSessionToken] = useState<string | null>(null);
 
-    setWalletError(null);
-    try {
-      await connect();
-      navigate('/dashboard');
-    } catch (err: any) {
-      setWalletError(err.message || copy.failedConnectWallet);
+  const applySession = (session: {
+    token: string;
+    user: {
+      id: string;
+      email: string | null;
+      displayName: string | null;
+      wallets: Array<{
+        walletAddress: string;
+        provider: 'FREIGHTER' | 'ACCESLY';
+        providerEmail: string | null;
+        isPrimary: boolean;
+      }>;
+    };
+    activeWallet: string | null;
+  }) => {
+    setSession(session);
+    if (session.activeWallet) {
+      navigate('/app');
+    } else {
+      setWalletInfo(copy.walletLinkRequired);
     }
   };
 
+  const handleEmailAuth = async (event: FormEvent) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    setWalletInfo(null);
+
+    try {
+      const session =
+        mode === 'register'
+          ? await registerWithEmail({
+              email,
+              password,
+              displayName: name || undefined,
+            })
+          : await loginWithEmail({ email, password });
+
+      applySession(session);
+    } catch (err: any) {
+      setError(err?.message || 'Authentication failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleFreighterLogin = async () => {
+    setSubmitting(true);
+    setError(null);
+    setWalletInfo(null);
+
+    try {
+      await connect();
+      const walletAddress = useWalletStore.getState().publicKey;
+      if (!walletAddress) {
+        throw new Error('Wallet connection failed');
+      }
+
+      const session = await loginWithFreighterWallet({
+        walletAddress,
+        email: email || undefined,
+        displayName: name || undefined,
+      });
+      applySession(session);
+    } catch (err: any) {
+      setError(err?.message || 'Wallet login failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const prepareAcceslyLogin = async () => {
+    setError(null);
+    setWalletInfo(null);
+    setAcceslyIntent('login');
+    setLinkSessionToken(null);
+  };
+
+  const prepareAcceslyLinkExisting = async () => {
+    setError(null);
+    setWalletInfo(null);
+    setAcceslyIntent('link-existing');
+    setSubmitting(true);
+
+    try {
+      await connect();
+      const walletAddress = useWalletStore.getState().publicKey;
+      if (!walletAddress) {
+        throw new Error('Wallet connection failed');
+      }
+
+      const session = await loginWithFreighterWallet({
+        walletAddress,
+        email: email || undefined,
+        displayName: name || undefined,
+      });
+
+      setSession(session);
+      setLinkSessionToken(session.token);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAcceslyButtonError = (message: string) => {
+    setError(message);
+  };
+
+  useEffect(() => {
+    const handleAcceslyConnect = async (event: Event) => {
+      const detail = (event as CustomEvent).detail as {
+        stellarAddress?: string;
+        email?: string;
+      };
+
+      if (!detail?.stellarAddress || !detail?.email) {
+        setError('Accesly login did not return wallet/email data');
+        return;
+      }
+
+      setSubmitting(true);
+      setError(null);
+
+      try {
+        if (acceslyIntent === 'link-existing') {
+          if (!linkSessionToken) {
+            throw new Error('Please connect your existing wallet before linking Google login');
+          }
+
+          const linked = await linkAcceslyWallet(linkSessionToken, {
+            walletAddress: detail.stellarAddress,
+            email: detail.email,
+            makePrimary: false,
+          });
+
+          setSession({
+            token: linkSessionToken,
+            user: linked.user,
+            activeWallet: linked.activeWallet,
+          });
+
+          setWalletInfo(copy.acceslyLinkedSuccess);
+          navigate('/app');
+        } else {
+          const session = await loginWithAccesly({
+            walletAddress: detail.stellarAddress,
+            email: detail.email,
+            displayName: toDisplayName(detail.email),
+          });
+          applySession(session);
+        }
+      } catch (err: any) {
+        setError(err?.message || 'Accesly login failed');
+      } finally {
+        setSubmitting(false);
+        setAcceslyIntent('login');
+        setLinkSessionToken(null);
+      }
+    };
+
+    window.addEventListener(acceslyEvents.connect, handleAcceslyConnect as EventListener);
+    return () => {
+      window.removeEventListener(acceslyEvents.connect, handleAcceslyConnect as EventListener);
+    };
+  }, [
+    acceslyIntent,
+    applySession,
+    copy.acceslyLinkedSuccess,
+    linkSessionToken,
+    navigate,
+    setSession,
+  ]);
+
   return (
     <div className="min-h-screen gradient-bg p-4 sm:p-6">
-      <div className="mx-auto w-full max-w-3xl">
+      <div className="mx-auto w-full max-w-md">
         <div className="mb-4 flex items-center justify-between gap-2">
-          <button
-            onClick={() => navigate('/role-select')}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-stellar-500 transition-colors"
+          <Link
+            to="/"
+            className="text-sm text-muted-foreground transition-colors hover:text-stellar-500"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-            </svg>
-            {copy.backToHome}
-          </button>
+            {copy.homeLink}
+          </Link>
           <div className="flex gap-2">
             <LanguageToggle />
             <ThemeToggle />
@@ -107,69 +327,132 @@ export default function RoleSelect() {
         </div>
 
         <div className="animate-in">
-          <div className="mb-8 text-center sm:mb-12">
+          <div className="mb-6 text-center sm:mb-8">
             <BrandMark className="mx-auto mb-4 h-14 w-14 rounded-2xl p-2.5 shadow-lg shadow-primary/25" />
             <h1 className="mb-2 text-2xl font-bold font-display sm:text-3xl">
               <BrandWordmark />
             </h1>
-            <p className="text-sm text-muted-foreground">{copy.tagline}</p>
-          </div>
-          <div className="mb-8 grid grid-cols-1 gap-4 md:mb-12 md:grid-cols-2 md:gap-6">
-            <button
-              onClick={handleFreelancer}
-              disabled={isConnecting}
-              className="glass-card group p-5 text-left transition-all duration-300 hover:scale-[1.02] neon-border hover:shadow-lg hover:shadow-primary/10 sm:p-8"
-            >
-              <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center mb-5 group-hover:bg-primary/25 transition-colors">
-                <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-foreground font-display mb-2">{copy.freelancerTitle}</h2>
-              <p className="text-sm text-muted-foreground mb-4">{copy.freelancerDescription}</p>
-              <div className="flex items-center gap-2 text-primary text-sm font-medium">
-                {isConnecting ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    {copy.connectingWallet}
-                  </span>
-                ) : (
-                  <>
-                    {copy.connectWalletEnter}
-                    <span className="transition-transform group-hover:translate-x-1">-&gt;</span>
-                  </>
-                )}
-              </div>
-            </button>
-
-            <button
-              onClick={() => navigate('/checkout')}
-              className="glass-card group p-5 text-left transition-all duration-300 hover:scale-[1.02] neon-border hover:shadow-lg hover:shadow-primary/10 sm:p-8"
-            >
-              <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center mb-5 group-hover:bg-primary/25 transition-colors">
-                <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-foreground font-display mb-2">{copy.clientTitle}</h2>
-              <p className="text-sm text-muted-foreground mb-4">{copy.clientDescription}</p>
-              <div className="flex items-center gap-2 text-primary text-sm font-medium">
-                {copy.payInvoice}
-                <span className="transition-transform group-hover:translate-x-1">-&gt;</span>
-              </div>
-            </button>
+            <p className="text-sm text-muted-foreground">{copy.subtitle}</p>
           </div>
 
-          {(walletError || error) && (
-            <div className="mb-8 p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm text-center max-w-md mx-auto">
-              {walletError || error}
+          <div className="card p-5 sm:p-6">
+            <h2 className="mb-4 text-lg font-semibold text-foreground">{copy.title}</h2>
+
+            <div className="mb-4 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  mode === 'login'
+                    ? 'bg-primary/15 text-primary'
+                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {copy.loginTab}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('register')}
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  mode === 'register'
+                    ? 'bg-primary/15 text-primary'
+                    : 'bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {copy.registerTab}
+              </button>
             </div>
-          )}
+
+            <form onSubmit={handleEmailAuth} className="space-y-3">
+              {mode === 'register' && (
+                <div>
+                  <label className="label">{copy.name}</label>
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder={copy.namePlaceholder}
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="label">{copy.email}</label>
+                <input
+                  type="email"
+                  required
+                  className="input"
+                  placeholder={copy.emailPlaceholder}
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="label">{copy.password}</label>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  className="input"
+                  placeholder={copy.passwordPlaceholder}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+              </div>
+
+              <button type="submit" disabled={submitting} className="btn-primary w-full py-3 text-base">
+                {submitting ? '...' : mode === 'register' ? copy.registerCta : copy.loginCta}
+              </button>
+            </form>
+
+            <div className="my-4 text-center text-xs text-muted-foreground">OR</div>
+
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={handleFreighterLogin}
+                disabled={submitting || isConnecting}
+                className="btn-secondary w-full py-3 text-sm"
+              >
+                {copy.walletCta}
+              </button>
+
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">{copy.acceslyHint}</p>
+                <AcceslyActionButton
+                  label={copy.acceslyCreateCta}
+                  className="btn-secondary w-full py-3 text-sm"
+                  disabled={submitting}
+                  onBeforeConnect={prepareAcceslyLogin}
+                  onError={handleAcceslyButtonError}
+                />
+                <AcceslyActionButton
+                  label={copy.acceslyLinkCta}
+                  className="btn-secondary w-full py-3 text-sm"
+                  disabled={submitting || isConnecting}
+                  onBeforeConnect={prepareAcceslyLinkExisting}
+                  onError={handleAcceslyButtonError}
+                />
+              </div>
+            </div>
+
+            {(error || walletInfo) && (
+              <div className="mt-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                {error || walletInfo}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 text-center">
+            <Link to="/checkout" className="text-sm text-muted-foreground hover:text-stellar-500 transition-colors">
+              {copy.payerLink}
+            </Link>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+

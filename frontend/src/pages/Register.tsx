@@ -81,7 +81,7 @@ export default function Register() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/dashboard');
+    navigate('/app');
   };
 
   const truncateAddress = (addr: string) =>
@@ -153,7 +153,7 @@ export default function Register() {
             </form>
 
             <div className="mt-4 text-center">
-              <Link to="/dashboard" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              <Link to="/app" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
                 {copy.skipNow}
               </Link>
             </div>
@@ -163,3 +163,4 @@ export default function Register() {
     </div>
   );
 }
+

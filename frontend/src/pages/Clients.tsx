@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Building2, Mail, MapPin, Plus, Search, Star, Users, X } from 'lucide-react';
 import { listSavedClients, saveClient, updateClientFavorite } from '../services/api';
 import { useI18n } from '../i18n/I18nProvider';
-import { useWalletStore } from '../store/walletStore';
+import { useActorWallet } from '../hooks/useActorWallet';
 import type { SavedClient } from '../types';
 import type { Language } from '../i18n/translations';
 
@@ -164,7 +164,7 @@ function matchesSearch(client: SavedClient, query: string): boolean {
 }
 
 export default function ClientsPage() {
-  const { publicKey } = useWalletStore();
+  const actorWallet = useActorWallet();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -180,16 +180,16 @@ export default function ClientsPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (!publicKey) return;
+    if (!actorWallet) return;
 
     setLoading(true);
     setError(null);
 
-    listSavedClients(publicKey)
+    listSavedClients(actorWallet)
       .then((clients) => setSavedClients(sortClients(clients)))
       .catch((err: any) => setError(err.message || copy.failedLoadClients))
       .finally(() => setLoading(false));
-  }, [publicKey, copy.failedLoadClients]);
+  }, [actorWallet, copy.failedLoadClients]);
 
   const filteredClients = useMemo(
     () => savedClients.filter((client) => matchesSearch(client, searchQuery)),
@@ -202,7 +202,7 @@ export default function ClientsPage() {
 
   const handleAddClient = async (event: FormEvent) => {
     event.preventDefault();
-    if (!publicKey) return;
+    if (!actorWallet) return;
 
     setSavingClient(true);
     setError(null);
@@ -216,7 +216,7 @@ export default function ClientsPage() {
           address: clientForm.address.trim() || undefined,
           isFavorite: clientForm.isFavorite,
         },
-        publicKey
+        actorWallet
       );
 
       setSavedClients((prev) => sortClients([saved, ...prev.filter((client) => client.id !== saved.id)]));
@@ -230,12 +230,12 @@ export default function ClientsPage() {
   };
 
   const toggleFavorite = async (client: SavedClient) => {
-    if (!publicKey) return;
+    if (!actorWallet) return;
 
     setError(null);
 
     try {
-      const updated = await updateClientFavorite(client.id, !client.isFavorite, publicKey);
+      const updated = await updateClientFavorite(client.id, !client.isFavorite, actorWallet);
       setSavedClients((prev) =>
         sortClients(prev.map((item) => (item.id === updated.id ? updated : item)))
       );
@@ -420,7 +420,7 @@ export default function ClientsPage() {
               )}
 
               <div className="flex items-center justify-end">
-                <Link to={`/dashboard/create-link?client=${client.id}`} className="btn-secondary px-2.5 py-1.5 text-xs">
+                <Link to={`/app/create-link?client=${client.id}`} className="btn-secondary px-2.5 py-1.5 text-xs">
                   {copy.useInInvoice}
                 </Link>
               </div>
@@ -431,3 +431,4 @@ export default function ClientsPage() {
     </div>
   );
 }
+

@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { deleteInvoice, getOwnerInvoice, sendInvoice } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
-import { useWalletStore } from '../../store/walletStore';
+import { useActorWallet } from '../../hooks/useActorWallet';
 import type { Invoice, InvoiceStatus } from '../../types';
 import { CURRENCY_SYMBOLS, config } from '../../config';
 import type { Language } from '../../i18n/translations';
@@ -157,7 +157,7 @@ const LOCALE_BY_LANGUAGE: Record<Language, string> = {
 export default function InvoiceDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { publicKey } = useWalletStore();
+  const actorWallet = useActorWallet();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -169,19 +169,19 @@ export default function InvoiceDetail() {
   const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
-    if (!id || !publicKey) return;
+    if (!id || !actorWallet) return;
 
     setLoading(true);
     setError(null);
 
-    getOwnerInvoice(id, publicKey)
+    getOwnerInvoice(id, actorWallet)
       .then(setInvoice)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [id, publicKey]);
+  }, [id, actorWallet]);
 
   const paymentLink = invoice ? `${window.location.origin}/pay/${invoice.id}` : '';
-  const isOwner = invoice?.freelancerWallet === publicKey;
+  const isOwner = invoice?.freelancerWallet === actorWallet;
 
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(paymentLink);
@@ -190,11 +190,11 @@ export default function InvoiceDetail() {
   };
 
   const handleSend = async () => {
-    if (!invoice || !publicKey) return;
+    if (!invoice || !actorWallet) return;
 
     setActionLoading(true);
     try {
-      const updated = await sendInvoice(invoice.id, publicKey);
+      const updated = await sendInvoice(invoice.id, actorWallet);
       setInvoice(updated);
       toast.success(`Invoice ${invoice.invoiceNumber} sent to client`);
     } catch (err: any) {
@@ -207,14 +207,14 @@ export default function InvoiceDetail() {
   };
 
   const handleDelete = async () => {
-    if (!invoice || !publicKey) return;
+    if (!invoice || !actorWallet) return;
     if (!window.confirm(copy.confirmDelete)) return;
 
     setActionLoading(true);
     try {
-      await deleteInvoice(invoice.id, publicKey);
+      await deleteInvoice(invoice.id, actorWallet);
       toast.success(`Invoice ${invoice.invoiceNumber} deleted`);
-      navigate('/dashboard/links');
+      navigate('/app/links');
     } catch (err: any) {
       const msg = err.message || 'Failed to delete invoice';
       setError(msg);
@@ -273,7 +273,7 @@ export default function InvoiceDetail() {
     return (
       <div className="text-center py-20">
         <p className="text-danger text-sm mb-3">{error || copy.invoiceNotFound}</p>
-        <Link to="/dashboard/links" className="btn-secondary text-sm">
+        <Link to="/app/links" className="btn-secondary text-sm">
           {copy.backToInvoices}
         </Link>
       </div>
@@ -452,3 +452,4 @@ export default function InvoiceDetail() {
     </div>
   );
 }
+

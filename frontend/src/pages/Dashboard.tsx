@@ -16,7 +16,7 @@ import {
 import { getDashboardStats, listInvoices } from '../services/api';
 import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
 import { useI18n } from '../i18n/I18nProvider';
-import { useWalletStore } from '../store/walletStore';
+import { useActorWallet } from '../hooks/useActorWallet';
 import type { DashboardStats, Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
 
@@ -163,7 +163,7 @@ const COPY: Record<Language, {
 };
 
 export default function Dashboard() {
-  const { publicKey } = useWalletStore();
+  const actorWallet = useActorWallet();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -172,9 +172,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!publicKey) return;
+    if (!actorWallet) return;
 
-    Promise.all([getDashboardStats(publicKey), listInvoices(publicKey, undefined, 50, 0)])
+    Promise.all([getDashboardStats(actorWallet), listInvoices(actorWallet, undefined, 50, 0)])
       .then(([dashboardStats, invoiceResult]) => {
         const safeStats =
           dashboardStats && typeof dashboardStats === 'object' ? dashboardStats : null;
@@ -187,7 +187,7 @@ export default function Dashboard() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [publicKey]);
+  }, [actorWallet]);
 
   const invoices = Array.isArray(allInvoices) ? allInvoices : [];
   const recentInvoices = invoices.slice(0, 5);
@@ -325,7 +325,7 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
           <p className="text-sm text-ink-3">{copy.subtitle}</p>
         </div>
-        <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
+        <Link to="/app/create-link" className="btn-primary w-full text-sm sm:w-auto">
           <FilePlus2 className="h-4 w-4" />
           {copy.newInvoice}
         </Link>
@@ -363,7 +363,7 @@ export default function Dashboard() {
                 <p className="text-xl font-semibold font-mono text-amber-700">{stats.pendingAmount}</p>
               </div>
             </div>
-            <Link to="/dashboard/links?status=PENDING" className="btn-secondary w-full text-xs sm:w-auto">
+            <Link to="/app/links?status=PENDING" className="btn-secondary w-full text-xs sm:w-auto">
               {copy.viewPending}
             </Link>
           </div>
@@ -469,7 +469,7 @@ export default function Dashboard() {
             <p className="mt-1 text-xs text-ink-3">{copy.clientActivitySubtitle}</p>
           </div>
           <Link
-            to="/dashboard/clients"
+            to="/app/clients"
             className="inline-flex items-center gap-1 text-xs text-stellar-600 hover:text-stellar-700"
           >
             {copy.viewClients}
@@ -514,7 +514,7 @@ export default function Dashboard() {
             {copy.recentInvoices}
           </h3>
           <Link
-            to="/dashboard/links"
+            to="/app/links"
             className="inline-flex items-center gap-1 text-xs text-stellar-600 hover:text-stellar-700"
           >
             {copy.viewAll}
@@ -525,7 +525,7 @@ export default function Dashboard() {
         {recentInvoices.length === 0 ? (
           <div className="card p-8 text-center">
             <p className="text-sm text-ink-3 mb-3">{copy.noInvoices}</p>
-            <Link to="/dashboard/create-link" className="btn-primary text-sm">
+            <Link to="/app/create-link" className="btn-primary text-sm">
               <FilePlus2 className="h-4 w-4" />
               {copy.createInvoice}
             </Link>
@@ -535,7 +535,7 @@ export default function Dashboard() {
             {recentInvoices.map((invoice) => (
               <Link
                 key={invoice.id}
-                to={`/dashboard/links/${invoice.id}`}
+                to={`/app/links/${invoice.id}`}
                 className="flex flex-col gap-3 p-4 transition-colors hover:bg-surface-1 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex min-w-0 items-center gap-4">
@@ -561,3 +561,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

@@ -1,6 +1,7 @@
 import { config } from '../config';
 import { clearAuthToken, getAuthHeaders } from './auth';
 import { useWalletStore } from '../store/walletStore';
+import { useAuthStore } from '../store/authStore';
 import { useNetworkStore } from '../store/networkStore';
 import toast from 'react-hot-toast';
 import type {
@@ -51,9 +52,8 @@ function notifyUserError(key: string, message: string): void {
  * Core fetch wrapper.
  *
  * When `walletAddress` is provided the request is authenticated:
- *   1. Fetches a nonce from POST /api/auth/nonce  (cached ~5 min)
- *   2. Signs the nonce message via Freighter       (cached ~5 min)
- *   3. Injects x-wallet-address, x-auth-nonce, x-auth-signature
+ *   - With session token: adds Authorization Bearer + x-wallet-address
+ *   - Without session token: signs nonce via Freighter and injects wallet headers
  */
 async function request<T>(
   path: string,
@@ -66,10 +66,19 @@ async function request<T>(
     ...(options.headers as Record<string, string>),
   };
 
-  if (walletAddress) {
+  const { token, activeWallet, clearSession } = useAuthStore.getState();
+  const resolvedWalletAddress = walletAddress || activeWallet || undefined;
+  const usingSessionToken = Boolean(token);
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    if (resolvedWalletAddress) {
+      headers['x-wallet-address'] = resolvedWalletAddress;
+    }
+  } else if (resolvedWalletAddress) {
     const { signMessage } = useWalletStore.getState();
     try {
-      const authHeaders = await getAuthHeaders(walletAddress, signMessage);
+      const authHeaders = await getAuthHeaders(resolvedWalletAddress, signMessage);
       Object.assign(headers, authHeaders);
     } catch (error: any) {
       notifyUserError(
@@ -107,9 +116,14 @@ async function request<T>(
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    if (response.status === 401 && walletAddress && retryOnAuthError) {
+    if (response.status === 401 && usingSessionToken) {
+      clearSession();
       clearAuthToken();
-      return request<T>(path, options, walletAddress, false);
+    }
+
+    if (response.status === 401 && !usingSessionToken && resolvedWalletAddress && retryOnAuthError) {
+      clearAuthToken();
+      return request<T>(path, options, resolvedWalletAddress, false);
     }
 
     if (response.status === 401) {
@@ -130,7 +144,7 @@ async function request<T>(
 
 export async function createInvoice(
   data: CreateInvoiceData,
-  walletAddress: string
+  walletAddress?: string
 ): Promise<Invoice> {
   return request<Invoice>(
     '/invoices',
@@ -143,7 +157,7 @@ export async function createInvoice(
 }
 
 export async function listInvoices(
-  walletAddress: string,
+  walletAddress?: string,
   status?: string,
   limit = 50,
   offset = 0
@@ -165,7 +179,7 @@ export async function getInvoice(id: string): Promise<PublicInvoice> {
 
 export async function getOwnerInvoice(
   id: string,
-  walletAddress: string
+  walletAddress?: string
 ): Promise<Invoice> {
   return request<Invoice>(`/invoices/${id}/owner`, {}, walletAddress);
 }
@@ -173,7 +187,7 @@ export async function getOwnerInvoice(
 export async function updateInvoice(
   id: string,
   data: Partial<CreateInvoiceData>,
-  walletAddress: string
+  walletAddress?: string
 ): Promise<Invoice> {
   return request<Invoice>(
     `/invoices/${id}`,
@@ -187,7 +201,7 @@ export async function updateInvoice(
 
 export async function sendInvoice(
   id: string,
-  walletAddress: string
+  walletAddress?: string
 ): Promise<Invoice> {
   return request<Invoice>(
     `/invoices/${id}/send`,
@@ -198,7 +212,7 @@ export async function sendInvoice(
 
 export async function deleteInvoice(
   id: string,
-  walletAddress: string
+  walletAddress?: string
 ): Promise<void> {
   return request<void>(
     `/invoices/${id}`,
@@ -208,7 +222,7 @@ export async function deleteInvoice(
 }
 
 export async function getDashboardStats(
-  walletAddress: string
+  walletAddress?: string
 ): Promise<DashboardStats> {
   return request<DashboardStats>('/invoices/stats', {}, walletAddress);
 }
@@ -217,7 +231,7 @@ export async function getDashboardStats(
 
 export async function createLink(
   data: CreatePaymentLinkData,
-  walletAddress: string
+  walletAddress?: string
 ): Promise<PaymentLink> {
   return request<PaymentLink>(
     '/links',
@@ -240,14 +254,14 @@ export async function getLinkStatus(id: string): Promise<PaymentLinkStatus> {
 // Client API ---------------------------------------------------
 
 export async function listSavedClients(
-  walletAddress: string
+  walletAddress?: string
 ): Promise<SavedClient[]> {
   return request<SavedClient[]>('/clients', {}, walletAddress);
 }
 
 export async function saveClient(
   data: SaveClientData,
-  walletAddress: string
+  walletAddress?: string
 ): Promise<SavedClient> {
   return request<SavedClient>(
     '/clients',
@@ -262,7 +276,7 @@ export async function saveClient(
 export async function updateClientFavorite(
   clientId: string,
   isFavorite: boolean,
-  walletAddress: string
+  walletAddress?: string
 ): Promise<SavedClient> {
   return request<SavedClient>(
     `/clients/${clientId}/favorite`,

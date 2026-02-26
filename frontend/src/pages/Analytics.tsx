@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BarChart3, CalendarDays, Clock3, Gauge, PieChart, Users2 } from 'lucide-react';
 import { getDashboardStats, listInvoices } from '../services/api';
-import { useWalletStore } from '../store/walletStore';
+import { useActorWallet } from '../hooks/useActorWallet';
 import { useI18n } from '../i18n/I18nProvider';
 import type { DashboardStats, Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
+import PlanGate from '../components/PlanGate';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -15,6 +16,8 @@ const COPY: Record<
   {
     title: string;
     subtitle: string;
+    gateTitle: string;
+    gateDescription: string;
     conversion: string;
     avgTicket: string;
     activeLinks: string;
@@ -46,6 +49,9 @@ const COPY: Record<
   en: {
     title: 'Analytics',
     subtitle: 'Performance metrics and payment behavior',
+    gateTitle: 'Analytics is a Pro feature',
+    gateDescription:
+      'Upgrade to Pro to access conversion metrics, asset mix, and client performance insights.',
     conversion: 'Conversion',
     avgTicket: 'Avg ticket',
     activeLinks: 'Active links',
@@ -74,6 +80,9 @@ const COPY: Record<
     period90: '90D',
   },
   es: {
+    gateTitle: 'Analitica es una funcion Pro',
+    gateDescription:
+      'Mejora a Pro para acceder a conversion, mix de activos y rendimiento por cliente.',
     title: 'Analítica',
     subtitle: 'Métricas de rendimiento y comportamiento de pagos',
     conversion: 'Conversión',
@@ -104,6 +113,9 @@ const COPY: Record<
     period90: '90D',
   },
   pt: {
+    gateTitle: 'Analitica e um recurso Pro',
+    gateDescription:
+      'Faça upgrade para Pro para acessar conversao, mix de ativos e desempenho por cliente.',
     title: 'Analítica',
     subtitle: 'Métricas de performance e comportamento de pagamentos',
     conversion: 'Conversão',
@@ -150,7 +162,7 @@ function toNumber(value: string | null | undefined): number {
 }
 
 export default function Analytics() {
-  const { publicKey } = useWalletStore();
+  const actorWallet = useActorWallet();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -160,10 +172,10 @@ export default function Analytics() {
   const [periodDays, setPeriodDays] = useState<PeriodDays>(30);
 
   useEffect(() => {
-    if (!publicKey) return;
+    if (!actorWallet) return;
 
     setLoading(true);
-    Promise.all([getDashboardStats(publicKey), listInvoices(publicKey, undefined, 200, 0)])
+    Promise.all([getDashboardStats(actorWallet), listInvoices(actorWallet, undefined, 200, 0)])
       .then(([dashboardStats, result]) => {
         setStats(dashboardStats);
         setInvoices(Array.isArray(result?.invoices) ? result.invoices : []);
@@ -173,7 +185,7 @@ export default function Analytics() {
         setInvoices([]);
       })
       .finally(() => setLoading(false));
-  }, [publicKey]);
+  }, [actorWallet]);
 
   const now = Date.now();
   const periodStartMs = now - (periodDays - 1) * DAY_MS;
@@ -294,6 +306,7 @@ export default function Analytics() {
   }
 
   return (
+    <PlanGate requiredTier="pro" title={copy.gateTitle} description={copy.gateDescription}>
     <div className="space-y-6 animate-in">
       <div>
         <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
@@ -490,5 +503,6 @@ export default function Analytics() {
         </div>
       )}
     </div>
+    </PlanGate>
   );
 }
