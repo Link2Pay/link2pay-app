@@ -11,6 +11,7 @@ import { getAssetIssuer } from '../config';
 import { formatStellarAmount } from '../utils/generators';
 import { mapStellarError } from '../utils/stellarErrors';
 import { log } from '../utils/logger';
+import { hasActivateNewAccountsFlag } from '../utils/paymentLinks';
 
 const router = Router();
 
@@ -117,6 +118,7 @@ router.post(
       // Mobile app flow may skip senderPublicKey and use SEP-7 only.
       let transactionXdr: string | null = null;
       if (senderPublicKey) {
+        const activateNewAccounts = hasActivateNewAccountsFlag(invoice.notes);
         const built = await stellarService.buildPaymentTransaction({
           senderPublicKey,
           recipientPublicKey: invoice.freelancerWallet,
@@ -124,6 +126,7 @@ router.post(
           assetCode,
           invoiceId: invoice.invoiceNumber, // Use invoice number as memo
           networkPassphrase, // Pass the client's network passphrase
+          activateNewAccounts,
         });
         transactionXdr = built.transactionXdr;
       }

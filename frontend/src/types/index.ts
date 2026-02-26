@@ -144,6 +144,7 @@ export interface PayIntentResponse {
 export interface CreatePaymentLinkData {
   amount: number;
   asset: Currency;
+  activateNewAccounts?: boolean;
   recipientWallet?: string;
   expiresAt?: string;
   networkPassphrase?: string;

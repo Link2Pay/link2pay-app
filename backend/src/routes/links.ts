@@ -8,6 +8,11 @@ import {
   validateBody,
 } from '../middleware/validation';
 import { log } from '../utils/logger';
+import {
+  buildLinkNotes,
+  extractReferenceFromNotes,
+  hasActivateNewAccountsFlag,
+} from '../utils/paymentLinks';
 
 type LinkStatus =
   | 'CREATED'
@@ -41,12 +46,6 @@ function getCheckoutUrl(linkId: string): string {
   return `${config.frontendUrl.replace(/\/+$/, '')}/pay/${linkId}`;
 }
 
-function extractReference(notes?: string | null): string | null {
-  if (!notes) return null;
-  const prefix = 'Reference: ';
-  return notes.startsWith(prefix) ? notes.slice(prefix.length) : null;
-}
-
 const router = Router();
 
 /**
@@ -74,12 +73,32 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const walletAddress = (req as any).walletAddress as string;
-      const { amount, asset, recipientWallet, expiresAt, metadata, networkPassphrase } = req.body;
+      const {
+        amount,
+        asset,
+        recipientWallet,
+        expiresAt,
+        metadata,
+        networkPassphrase,
+        activateNewAccounts,
+      } = req.body;
 
       const targetWallet = recipientWallet ?? walletAddress;
       if (targetWallet !== walletAddress) {
         return res.status(403).json({
           error: 'Recipient wallet must match authenticated wallet in this version',
+        });
+      }
+
+      if (activateNewAccounts && asset !== 'XLM') {
+        return res.status(400).json({
+          error: 'activateNewAccounts is supported only for XLM links',
+        });
+      }
+
+      if (activateNewAccounts && amount < 1) {
+        return res.status(400).json({
+          error: 'activateNewAccounts requires amount >= 1 XLM',
         });
       }
 
@@ -97,6 +116,7 @@ router.post(
       const title = metadata?.title?.trim() || 'Payment Link';
       const description = metadata?.description?.trim() || undefined;
       const reference = metadata?.reference?.trim();
+      const notes = buildLinkNotes(reference, Boolean(activateNewAccounts));
       const payerName = metadata?.payerName?.trim() || 'Payer';
       const payerEmail = metadata?.payerEmail?.trim() || 'payer@link2pay.local';
 
@@ -106,7 +126,7 @@ router.post(
         clientEmail: payerEmail,
         title,
         description,
-        notes: reference ? `Reference: ${reference}` : undefined,
+        notes,
         currency: asset,
         networkPassphrase,
         dueDate: expirationDate.toISOString(),
@@ -137,10 +157,11 @@ router.post(
         metadata: {
           title: created.title,
           description: created.description,
-          reference: extractReference(created.notes),
+          reference: extractReferenceFromNotes(created.notes),
           payerName: created.clientName,
           payerEmail: created.clientEmail,
         },
+        activateNewAccounts: hasActivateNewAccountsFlag(created.notes),
         legacyInvoiceId: created.id,
         legacyInvoiceNumber: created.invoiceNumber,
       });
@@ -200,10 +221,11 @@ router.get('/:id', async (req: Request, res: Response) => {
       metadata: {
         title: invoice.title,
         description: invoice.description,
-        reference: extractReference(invoice.notes),
+        reference: extractReferenceFromNotes(invoice.notes),
         payerName: invoice.clientName,
         payerEmail: null,
       },
+      activateNewAccounts: hasActivateNewAccountsFlag(invoice.notes),
       transactionHash: invoice.transactionHash,
       confirmedAt: invoice.paidAt,
       legacyInvoiceId: invoice.id,

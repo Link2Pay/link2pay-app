@@ -75,6 +75,21 @@ export class StellarService {
     }
   }
 
+  private async accountExists(
+    server: StellarSdk.Horizon.Server,
+    publicKey: string
+  ): Promise<boolean> {
+    try {
+      await this.withRetry(() => server.loadAccount(publicKey));
+      return true;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        return false;
+      }
+      throw error;
+    }
+  }
+
   /**
    * Get account balances
    */
@@ -101,6 +116,7 @@ export class StellarService {
     assetCode: string;
     invoiceId: string;
     networkPassphrase?: string;
+    activateNewAccounts?: boolean;
   }) {
     const {
       senderPublicKey,
@@ -109,6 +125,7 @@ export class StellarService {
       assetCode,
       invoiceId,
       networkPassphrase,
+      activateNewAccounts,
     } = params;
 
     // Use provided networkPassphrase or fall back to default
@@ -136,18 +153,46 @@ export class StellarService {
     // Determine asset based on network
     const asset = this.getAsset(assetCode, effectiveNetworkPassphrase);
 
-    // Build transaction
-    const transaction = new StellarSdk.TransactionBuilder(senderAccount, {
+    const shouldAutoActivate = Boolean(activateNewAccounts);
+    if (shouldAutoActivate && assetCode !== 'XLM') {
+      throw new Error('AUTO_ACTIVATION_XLM_ONLY');
+    }
+
+    const destinationExists = shouldAutoActivate
+      ? await this.accountExists(server, recipientPublicKey)
+      : true;
+
+    const txBuilder = new StellarSdk.TransactionBuilder(senderAccount, {
       fee: StellarSdk.BASE_FEE,
       networkPassphrase: effectiveNetworkPassphrase,
-    })
-      .addOperation(
+    });
+
+    if (shouldAutoActivate && !destinationExists) {
+      const numericAmount = Number(amount);
+      if (!Number.isFinite(numericAmount) || numericAmount < 1) {
+        throw new Error('AUTO_ACTIVATION_MIN_1_XLM');
+      }
+      console.log(
+        '[buildPaymentTransaction] Destination is not active, using createAccount operation'
+      );
+      txBuilder.addOperation(
+        StellarSdk.Operation.createAccount({
+          destination: recipientPublicKey,
+          startingBalance: amount,
+        })
+      );
+    } else {
+      txBuilder.addOperation(
         StellarSdk.Operation.payment({
           destination: recipientPublicKey,
           asset,
           amount,
         })
-      )
+      );
+    }
+
+    // Build transaction
+    const transaction = txBuilder
       .addMemo(StellarSdk.Memo.text(invoiceId.substring(0, 28)))
       .setTimeout(300) // 5 minutes
       .build();

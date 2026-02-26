@@ -18,6 +18,9 @@ type CopyBlock = {
   expires: string;
   expiresValue: string;
   fixedLabel: string;
+  activateNewAccounts: string;
+  activateHint: string;
+  activateXlmOnlyHint: string;
   connectWallet: string;
   connecting: string;
   creating: string;
@@ -44,6 +47,9 @@ const COPY: Record<Language, CopyBlock> = {
     expires: 'Expiration',
     expiresValue: '15 minutes',
     fixedLabel: 'Fixed',
+    activateNewAccounts: 'Activate new account if destination is not funded',
+    activateHint: 'XLM only. Uses create-account on first payment when needed.',
+    activateXlmOnlyHint: 'Available only for XLM links.',
     connectWallet: 'Connect Wallet',
     connecting: 'Connecting...',
     creating: 'Creating...',
@@ -69,6 +75,9 @@ const COPY: Record<Language, CopyBlock> = {
     expires: 'Expiración',
     expiresValue: '15 minutos',
     fixedLabel: 'Fijo',
+    activateNewAccounts: 'Activar cuenta nueva si el destino no esta fondeado',
+    activateHint: 'Solo XLM. Usa create-account en el primer pago si es necesario.',
+    activateXlmOnlyHint: 'Disponible solo en links XLM.',
     connectWallet: 'Conectar wallet',
     connecting: 'Conectando...',
     creating: 'Creando...',
@@ -94,6 +103,9 @@ const COPY: Record<Language, CopyBlock> = {
     expires: 'Expiração',
     expiresValue: '15 minutos',
     fixedLabel: 'Fixo',
+    activateNewAccounts: 'Ativar conta nova se o destino nao estiver fondeado',
+    activateHint: 'Somente XLM. Usa create-account no primeiro pagamento quando necessario.',
+    activateXlmOnlyHint: 'Disponivel apenas para links XLM.',
     connectWallet: 'Conectar wallet',
     connecting: 'Conectando...',
     creating: 'Criando...',
@@ -123,6 +135,7 @@ export default function HeroQuickLink() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [activateNewAccounts, setActivateNewAccounts] = useState(false);
 
   const handleCopy = async () => {
     if (!linkUrl) return;
@@ -174,6 +187,7 @@ export default function HeroQuickLink() {
         {
           amount: Number(numericAmount.toFixed(2)),
           asset,
+          activateNewAccounts: asset === 'XLM' && activateNewAccounts,
           expiresAt,
           networkPassphrase,
         },
@@ -231,7 +245,12 @@ export default function HeroQuickLink() {
                 <button
                   key={item}
                   type="button"
-                  onClick={() => setAsset(item)}
+                  onClick={() => {
+                    setAsset(item);
+                    if (item !== 'XLM') {
+                      setActivateNewAccounts(false);
+                    }
+                  }}
                   className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
                     asset === item
                       ? 'border-primary bg-primary/10 text-primary'
@@ -269,6 +288,24 @@ export default function HeroQuickLink() {
             </div>
           </div>
         </div>
+
+        <label className="flex items-start gap-3 rounded-lg border border-border bg-card/70 p-3.5">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+            checked={activateNewAccounts}
+            onChange={(e) => setActivateNewAccounts(e.target.checked)}
+            disabled={asset !== 'XLM'}
+          />
+          <span>
+            <span className="block text-sm font-medium text-foreground">
+              {copy.activateNewAccounts}
+            </span>
+            <span className="mt-1 block text-xs text-muted-foreground">
+              {asset === 'XLM' ? copy.activateHint : copy.activateXlmOnlyHint}
+            </span>
+          </span>
+        </label>
 
         <button
           type="submit"

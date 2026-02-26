@@ -106,6 +106,12 @@ export function mapStellarError(error: unknown): string {
   if (message.includes('INVALID_RECIPIENT_ADDRESS')) {
     return 'Invalid recipient wallet address.';
   }
+  if (message.includes('AUTO_ACTIVATION_XLM_ONLY')) {
+    return 'Automatic account activation is available only for XLM payments.';
+  }
+  if (message.includes('AUTO_ACTIVATION_MIN_1_XLM')) {
+    return 'Automatic account activation requires at least 1 XLM.';
+  }
 
   // Horizon HTTP errors
   const httpStatus = err?.response?.status;

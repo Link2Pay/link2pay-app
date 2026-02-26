@@ -46,6 +46,7 @@ export const createInvoiceSchema = z.object({
 export const createPaymentLinkSchema = z.object({
   amount: z.coerce.number().positive().max(999999999),
   asset: z.enum(['XLM', 'USDC', 'EURC']),
+  activateNewAccounts: z.boolean().optional(),
   networkPassphrase: z
     .string()
     .refine(
