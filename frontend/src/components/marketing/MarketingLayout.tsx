@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import { ArrowRight, Globe2, Heart } from 'lucide-react';
+import { ArrowRight, Globe2, Heart, LayoutDashboard } from 'lucide-react';
 import ThemeToggle from '../ThemeToggle';
 import LanguageToggle from '../LanguageToggle';
 import BrandMark from '../BrandMark';
@@ -34,7 +34,7 @@ export default function MarketingLayout() {
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="flex min-h-16 items-center justify-between gap-3 py-2">
+          <div className="flex min-h-14 items-center justify-between gap-3 py-2 md:min-h-16">
             <Link to="/" className="flex items-center gap-2">
               <BrandMark className="h-9 w-9 rounded-lg" />
               <BrandWordmark className="text-lg font-semibold leading-snug" />
@@ -60,6 +60,15 @@ export default function MarketingLayout() {
             </nav>
 
             <div className="flex items-center gap-2">
+              <Link
+                to="/app"
+                aria-label={t('marketing.dashboard')}
+                title={t('marketing.dashboard')}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/12 text-primary transition-colors hover:bg-primary/20 hover:text-primary md:hidden"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+              </Link>
+
               <LanguageToggle />
               <ThemeToggle />
 
@@ -72,24 +81,17 @@ export default function MarketingLayout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 pb-3 md:hidden">
-            <Link to="/app" className="btn-secondary px-3 py-2 text-xs">
-              {t('marketing.dashboard')}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <nav className="flex items-center gap-1 overflow-x-auto pb-3 md:hidden">
+          <nav className="flex items-center gap-1 overflow-x-auto pb-2 md:hidden">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 end={item.end}
                 className={({ isActive }) =>
-                  `whitespace-nowrap rounded-lg px-3 py-1.5 text-xs transition-colors ${
+                  `whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                     isActive
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      ? 'border-primary/40 bg-primary/12 text-primary'
+                      : 'border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`
                 }
               >

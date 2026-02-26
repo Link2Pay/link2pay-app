@@ -322,20 +322,20 @@ export default function Pricing() {
     <div>
       <section className="relative overflow-hidden border-b border-border bg-card">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(ellipse_at_top,_hsl(175_75%_45%_/_0.10),transparent_68%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-20 sm:px-6">
+        <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-12 sm:px-6 sm:pb-16 sm:pt-20">
           <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">{copy.heroTitle}</h1>
-            <p className="mt-4 text-base text-muted-foreground md:text-lg">{copy.heroSubtitle}</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">{copy.heroTitle}</h1>
+            <p className="mt-3 text-base leading-relaxed text-muted-foreground md:text-lg">{copy.heroSubtitle}</p>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <div className="grid gap-6 md:grid-cols-3">
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-20">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
           {plans.map((plan, index) => (
             <article
               key={plan.name}
-              className={`card relative flex h-full flex-col p-8 animate-fade-in ${plan.featured ? 'neon-border-strong shadow-elevated' : ''}`}
+              className={`card relative flex h-full flex-col p-6 animate-fade-in sm:p-8 ${plan.featured ? 'neon-border-strong shadow-elevated' : ''}`}
               style={{ animationDelay: `${0.06 + index * 0.1}s` }}
             >
               {plan.badge && (
@@ -348,14 +348,14 @@ export default function Pricing() {
               <div className="mb-2">
                 <h2 className="text-xl font-semibold text-foreground">{plan.name}</h2>
               </div>
-              <p className="mb-6 text-sm text-muted-foreground">{plan.tagline}</p>
+              <p className="mb-5 text-sm text-muted-foreground sm:mb-6">{plan.tagline}</p>
 
-              <div className="mb-8">
+              <div className="mb-6 sm:mb-8">
                 <span className="text-4xl font-bold text-foreground">{plan.price}</span>
                 {plan.period ? <span className="ml-1 text-sm text-muted-foreground">{plan.period}</span> : null}
               </div>
 
-              <ul className="mb-10 flex-1 space-y-3">
+              <ul className="mb-8 flex-1 space-y-3 sm:mb-10">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-sm text-muted-foreground">
                     <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
@@ -379,7 +379,7 @@ export default function Pricing() {
           ))}
         </div>
 
-        <div className="mt-8 rounded-xl border border-border bg-card p-5 text-center text-sm text-muted-foreground">
+        <div className="mt-6 rounded-xl border border-border bg-card p-4 text-center text-sm text-muted-foreground sm:mt-8 sm:p-5">
           {copy.plansNoteLine1}
           <br />
           {copy.plansNoteLine2}
@@ -387,16 +387,16 @@ export default function Pricing() {
       </section>
 
       <section className="border-t border-border bg-card">
-        <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
+        <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-20">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-semibold text-foreground">{copy.faqTitle}</h2>
             <p className="mt-3 text-base text-muted-foreground">{copy.faqSubtitle}</p>
           </div>
-          <div className="mt-14 grid gap-4 sm:grid-cols-2">
+          <div className="mt-8 grid gap-4 sm:mt-14 sm:grid-cols-2">
             {faqs.map((faq, index) => (
               <article
                 key={faq.q}
-                className="rounded-xl border border-border bg-background p-6 animate-fade-in"
+                className="rounded-xl border border-border bg-background p-5 animate-fade-in sm:p-6"
                 style={{ animationDelay: `${0.04 + index * 0.06}s` }}
               >
                 <div className="flex items-start gap-3">
