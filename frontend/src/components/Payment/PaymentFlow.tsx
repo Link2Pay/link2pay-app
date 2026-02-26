@@ -49,6 +49,18 @@ const CHECKOUT_STEP_LABELS: Record<Language, CheckoutStepLabels> = {
   },
 };
 
+function isLikelyMobileDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+
+  const userAgent = navigator.userAgent || '';
+  const isTouchMac = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+
+  return (
+    /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(userAgent) ||
+    isTouchMac
+  );
+}
+
 export default function PaymentFlow() {
   const { id } = useParams<{ id: string }>();
   const { connected, publicKey, signTransaction, disconnect, getFreighterNetwork } = useWalletStore();
@@ -73,7 +85,8 @@ export default function PaymentFlow() {
           setStep('success');
           setTxHash(inv.transactionHash || null);
         } else {
-          setStep(connected ? 'view' : 'connect');
+          const allowMobileDirectPay = isLikelyMobileDevice();
+          setStep(connected || allowMobileDirectPay ? 'view' : 'connect');
         }
       })
       .catch((err) => {
@@ -210,7 +223,10 @@ export default function PaymentFlow() {
   };
 
   const handlePay = async () => {
-    if (!invoice || !publicKey || !id) return;
+    if (!invoice || !id) return;
+
+    const mobileDirectPay = isLikelyMobileDevice();
+    if (!mobileDirectPay && !publicKey) return;
 
     // Block payment if there's a network mismatch
     if (hasNetworkMismatch) {
@@ -224,7 +240,25 @@ export default function PaymentFlow() {
     try {
       // Use the networkPassphrase from the invoice
       console.log('[PaymentFlow] Using networkPassphrase from invoice:', invoice.networkPassphrase);
-      const payIntent = await createPayIntent(id, publicKey, invoice.networkPassphrase);
+      const payIntent = await createPayIntent(
+        id,
+        mobileDirectPay ? undefined : publicKey,
+        invoice.networkPassphrase
+      );
+
+      // Mobile fallback: open wallet app through SEP-7 deep link.
+      // Desktop path remains extension-based signing.
+      if (mobileDirectPay && payIntent.sep7Uri) {
+        console.log('[PaymentFlow] Mobile detected, opening SEP-7 URI');
+        setStep('confirming');
+        window.location.assign(payIntent.sep7Uri);
+        return;
+      }
+
+      if (!payIntent.transactionXdr) {
+        throw new Error('Unable to build transaction for signing. Please reconnect your wallet and try again.');
+      }
+
       const signedXdr = await signTransaction(payIntent.transactionXdr, payIntent.networkPassphrase);
 
       setStep('confirming');

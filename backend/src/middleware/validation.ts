@@ -90,7 +90,8 @@ export const payIntentSchema = z.object({
     .string()
     .min(56)
     .max(56)
-    .regex(/^G[A-Z2-7]{55}$/, 'Invalid Stellar address'),
+    .regex(/^G[A-Z2-7]{55}$/, 'Invalid Stellar address')
+    .optional(),
   networkPassphrase: z
     .string()
     .min(1)

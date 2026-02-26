@@ -278,13 +278,19 @@ export async function updateClientFavorite(
 
 export async function createPayIntent(
   invoiceId: string,
-  senderPublicKey: string,
+  senderPublicKey?: string | null,
   networkPassphraseOverride?: string
 ): Promise<PayIntentResponse> {
   const networkPassphrase = networkPassphraseOverride || useNetworkStore.getState().networkPassphrase;
+  const payload: { networkPassphrase: string; senderPublicKey?: string } = {
+    networkPassphrase,
+  };
+  if (senderPublicKey) {
+    payload.senderPublicKey = senderPublicKey;
+  }
   return request<PayIntentResponse>(`/payments/${invoiceId}/pay-intent`, {
     method: 'POST',
-    body: JSON.stringify({ senderPublicKey, networkPassphrase }),
+    body: JSON.stringify(payload),
   });
 }
 

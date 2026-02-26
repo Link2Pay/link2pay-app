@@ -99,8 +99,8 @@ router.post(
         });
       }
 
-      // Prevent self-payment
-      if (senderPublicKey === invoice.freelancerWallet) {
+      // Prevent self-payment when sender is known (desktop extension flow).
+      if (senderPublicKey && senderPublicKey === invoice.freelancerWallet) {
         return res.status(400).json({ error: 'Cannot pay your own invoice' });
       }
 
@@ -113,9 +113,11 @@ router.post(
         });
       }
 
-      // Build the unsigned transaction with the client's network passphrase
-      const { transactionXdr, networkPassphrase: effectiveNetworkPassphrase } =
-        await stellarService.buildPaymentTransaction({
+      // Desktop flow returns an unsigned XDR for extension signing.
+      // Mobile app flow may skip senderPublicKey and use SEP-7 only.
+      let transactionXdr: string | null = null;
+      if (senderPublicKey) {
+        const built = await stellarService.buildPaymentTransaction({
           senderPublicKey,
           recipientPublicKey: invoice.freelancerWallet,
           amount,
@@ -123,9 +125,11 @@ router.post(
           invoiceId: invoice.invoiceNumber, // Use invoice number as memo
           networkPassphrase, // Pass the client's network passphrase
         });
+        transactionXdr = built.transactionXdr;
+      }
 
-      // Get asset issuer for the detected network
-      const assetIssuer = getAssetIssuer(assetCode, effectiveNetworkPassphrase);
+      // Get asset issuer for the invoice network
+      const assetIssuer = getAssetIssuer(assetCode, invoice.networkPassphrase);
 
       // Generate SEP-7 URI
       const sep7Uri = stellarService.generateSEP7Uri({
@@ -149,7 +153,7 @@ router.post(
           issuer: assetIssuer || null,
         },
         memo: invoice.invoiceNumber,
-        networkPassphrase: effectiveNetworkPassphrase,
+        networkPassphrase: invoice.networkPassphrase,
         timeout: 300,
       });
     } catch (error: any) {

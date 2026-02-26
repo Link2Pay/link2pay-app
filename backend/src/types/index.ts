@@ -28,7 +28,7 @@ export interface LineItemInput {
 
 export interface PayIntentResponse {
   invoiceId: string;
-  transactionXdr: string;
+  transactionXdr: string | null;
   sep7Uri: string;
   amount: string;
   asset: { code: string; issuer?: string };
