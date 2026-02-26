@@ -13,6 +13,12 @@ import { watcherService } from './services/watcherService';
 
 const app = express();
 
+// Render and similar platforms run behind a reverse proxy.
+// Trust the first proxy hop so rate-limits and logs use the real client IP.
+if (config.nodeEnv === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // ─── Security Middleware ─────────────────────────────────────────────
 app.use(
   helmet({

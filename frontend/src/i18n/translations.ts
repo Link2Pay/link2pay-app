@@ -90,6 +90,8 @@ const en = {
   'payment.switchStep5': 'This page will detect the change automatically',
   'payment.showInstructions': 'Show instructions',
   'payment.disconnectReconnect': 'Disconnect and reconnect on correct network',
+  'payment.sep7NoHandlerDesktop': 'No wallet handler found for this payment link. Connect Freighter in-browser or use a mobile wallet app that supports SEP-7.',
+  'payment.sep7NoHandlerMobile': 'No compatible Stellar wallet app was detected. Install a wallet with SEP-7 support and try again.',
 
   'invoiceStatus.draft': 'Draft',
   'invoiceStatus.pending': 'Pending',
@@ -192,6 +194,8 @@ const es: Record<TranslationKey, string> = {
   'payment.switchStep5': 'Esta página detectará el cambio automáticamente',
   'payment.showInstructions': 'Mostrar instrucciones',
   'payment.disconnectReconnect': 'Desconectar y reconectar en la red correcta',
+  'payment.sep7NoHandlerDesktop': 'No se encontro un manejador de wallet para este link. Conecta Freighter en el navegador o usa una app movil compatible con SEP-7.',
+  'payment.sep7NoHandlerMobile': 'No se detecto una app de wallet Stellar compatible. Instala una wallet con soporte SEP-7 e intenta de nuevo.',
 
   'invoiceStatus.draft': 'Borrador',
   'invoiceStatus.pending': 'Pendiente',
@@ -292,6 +296,8 @@ const pt: Record<TranslationKey, string> = {
   'payment.switchStep5': 'Esta página detectará a mudança automaticamente',
   'payment.showInstructions': 'Mostrar instruções',
   'payment.disconnectReconnect': 'Desconectar e reconectar na rede correta',
+  'payment.sep7NoHandlerDesktop': 'Nenhum handler de wallet foi encontrado para este link. Conecte o Freighter no navegador ou use uma carteira mobile com suporte a SEP-7.',
+  'payment.sep7NoHandlerMobile': 'Nenhum app de carteira Stellar compativel foi detectado. Instale uma carteira com suporte SEP-7 e tente novamente.',
 
   'invoiceStatus.draft': 'Rascunho',
   'invoiceStatus.pending': 'Pendente',

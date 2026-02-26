@@ -49,6 +49,56 @@ const CHECKOUT_STEP_LABELS: Record<Language, CheckoutStepLabels> = {
   },
 };
 
+function isLikelyMobileDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+async function launchSep7Uri(uri: string): Promise<boolean> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return false;
+  }
+
+  return new Promise((resolve) => {
+    let settled = false;
+    let timeoutId = 0;
+
+    const cleanup = () => {
+      window.clearTimeout(timeoutId);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('blur', onWindowBlur);
+    };
+
+    const finish = (value: boolean) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(value);
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        finish(true);
+      }
+    };
+
+    const onWindowBlur = () => finish(true);
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('blur', onWindowBlur);
+
+    timeoutId = window.setTimeout(() => {
+      finish(document.hidden);
+    }, 1200);
+
+    try {
+      window.location.assign(uri);
+    } catch {
+      finish(false);
+    }
+  });
+}
+
 export default function PaymentFlow() {
   const { id } = useParams<{ id: string }>();
   const { connected, publicKey, signTransaction, disconnect, getFreighterNetwork } = useWalletStore();
@@ -179,8 +229,11 @@ export default function PaymentFlow() {
           getInvoice(id).then(setInvoice).catch(() => {});
           return;
         }
-      } catch {
-        // Keep polling on error
+      } catch (pollError: any) {
+        // Respect backend rate limiting by jumping to max poll interval.
+        if (pollError?.status === 429) {
+          attemptIndex = BACKOFF_INTERVALS.length - 1;
+        }
       }
       if (cancelled) return;
       const delay = BACKOFF_INTERVALS[Math.min(attemptIndex, BACKOFF_INTERVALS.length - 1)];
@@ -236,15 +289,29 @@ export default function PaymentFlow() {
       // When no in-page wallet is connected, use SEP-7 deep link flow.
       if (!canSignInPage && payIntent.sep7Uri) {
         console.log('[PaymentFlow] No in-page wallet connected, opening SEP-7 URI');
+        const launched = await launchSep7Uri(payIntent.sep7Uri);
+        if (!launched) {
+          throw new Error(
+            isLikelyMobileDevice()
+              ? t('payment.sep7NoHandlerMobile')
+              : t('payment.sep7NoHandlerDesktop')
+          );
+        }
         setStep('confirming');
-        window.location.assign(payIntent.sep7Uri);
         return;
       }
 
       if (!payIntent.transactionXdr) {
         if (payIntent.sep7Uri) {
+          const launched = await launchSep7Uri(payIntent.sep7Uri);
+          if (!launched) {
+            throw new Error(
+              isLikelyMobileDevice()
+                ? t('payment.sep7NoHandlerMobile')
+                : t('payment.sep7NoHandlerDesktop')
+            );
+          }
           setStep('confirming');
-          window.location.assign(payIntent.sep7Uri);
           return;
         }
         throw new Error('Unable to build transaction for signing. Please reconnect your wallet and try again.');
