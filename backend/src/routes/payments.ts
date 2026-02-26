@@ -14,6 +14,65 @@ import { log } from '../utils/logger';
 
 const router = Router();
 
+type StellarResultCodes = {
+  transaction?: string;
+  operations?: string[];
+};
+
+function parseResultCodesFromMessage(message: string): StellarResultCodes | null {
+  const marker = 'Transaction failed:';
+  const markerIndex = message.indexOf(marker);
+  if (markerIndex === -1) return null;
+
+  const payload = message.slice(markerIndex + marker.length).trim();
+  if (!payload) return null;
+
+  try {
+    const parsed = JSON.parse(payload);
+    if (!parsed || typeof parsed !== 'object') return null;
+    return parsed as StellarResultCodes;
+  } catch {
+    return null;
+  }
+}
+
+function getResultCodes(error: any): StellarResultCodes | null {
+  const message = typeof error?.message === 'string' ? error.message : '';
+  const resultCodes =
+    error?.resultCodes ??
+    error?.response?.data?.extras?.result_codes ??
+    parseResultCodesFromMessage(message);
+
+  if (!resultCodes || typeof resultCodes !== 'object') return null;
+
+  const hasTransaction = typeof resultCodes.transaction === 'string';
+  const hasOperations = Array.isArray(resultCodes.operations) && resultCodes.operations.length > 0;
+  if (!hasTransaction && !hasOperations) return null;
+
+  return resultCodes as StellarResultCodes;
+}
+
+function resolveSubmitPaymentStatus(error: any): number {
+  const explicitStatus = error?.httpStatus;
+  if (typeof explicitStatus === 'number') {
+    if (explicitStatus === 429 || explicitStatus === 503) return explicitStatus;
+    if (explicitStatus >= 400 && explicitStatus < 500) return explicitStatus;
+  }
+
+  const responseStatus = error?.response?.status;
+  if (typeof responseStatus === 'number') {
+    if (responseStatus === 429 || responseStatus === 503) return responseStatus;
+    if (responseStatus >= 400 && responseStatus < 500) return responseStatus;
+  }
+
+  const message = typeof error?.message === 'string' ? error.message : '';
+  if (message.startsWith('Network mismatch:')) return 400;
+
+  if (getResultCodes(error)) return 400;
+
+  return 500;
+}
+
 /**
  * POST /api/payments/:invoiceId/pay-intent
  * Generate a payment transaction for the client to sign
@@ -149,7 +208,8 @@ router.post(
         return res.json({ success: true, alreadyPaid: true });
       }
       log.error('Submit payment error', { error: error?.message });
-      res.status(500).json({ error: mapStellarError(error) });
+      const status = resolveSubmitPaymentStatus(error);
+      res.status(status).json({ error: mapStellarError(error) });
     }
   }
 );

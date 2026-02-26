@@ -291,11 +291,34 @@ export class StellarService {
         successful: true,
       };
     } catch (error: any) {
+      const message = error?.message ?? 'Transaction submission failed';
       const resultCodes = error?.response?.data?.extras?.result_codes;
-      console.log('[submitTransaction] FAILED:', resultCodes || error.message);
-      throw new Error(
-        `Transaction failed: ${JSON.stringify(resultCodes || error.message)}`
-      );
+      const httpStatus = error?.response?.status;
+
+      console.log('[submitTransaction] FAILED:', resultCodes || message);
+
+      // Preserve network mismatch as a user-fixable validation error.
+      if (typeof message === 'string' && message.startsWith('Network mismatch:')) {
+        (error as any).httpStatus = 400;
+        throw error;
+      }
+
+      // Preserve structured Horizon data so route handlers can return clear user messages.
+      const wrappedError = new Error(message) as Error & {
+        httpStatus?: number;
+        resultCodes?: any;
+        details?: any;
+      };
+      if (typeof httpStatus === 'number') {
+        wrappedError.httpStatus = httpStatus;
+      }
+      if (resultCodes) {
+        wrappedError.resultCodes = resultCodes;
+      }
+      if (error?.response?.data) {
+        wrappedError.details = error.response.data;
+      }
+      throw wrappedError;
     }
   }
 
