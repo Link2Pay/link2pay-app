@@ -460,7 +460,24 @@ export default function Features() {
           <h2 className="text-3xl font-semibold text-foreground">{copy.comparisonTitle}</h2>
           <p className="mt-3 text-base text-muted-foreground">{copy.comparisonSubtitle}</p>
         </div>
-        <div className="mt-14 overflow-hidden rounded-xl border border-border">
+        <div className="mt-8 space-y-3 md:hidden">
+          {comparisonRows.map((row) => (
+            <article key={row.feature} className="rounded-xl border border-border bg-card p-4">
+              <h3 className="text-sm font-semibold text-foreground">{row.feature}</h3>
+              <div className="mt-3 space-y-2 text-sm">
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Link2Pay</p>
+                  <p className="font-medium text-primary">{row.stellarPay}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{copy.colTraditional}</p>
+                  <p className="text-muted-foreground">{row.traditional}</p>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+        <div className="mt-14 hidden overflow-hidden rounded-xl border border-border md:block">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[680px]">
               <thead>
@@ -474,7 +491,7 @@ export default function Features() {
                 {comparisonRows.map((row, index) => (
                   <tr key={row.feature} className={`border-b border-border last:border-0 ${index % 2 === 0 ? 'bg-card' : 'bg-background'}`}>
                     <td className="px-6 py-4 text-sm font-medium text-foreground">{row.feature}</td>
-                    <td className="px-6 py-4 text-sm text-primary font-medium">{row.stellarPay}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-primary">{row.stellarPay}</td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">{row.traditional}</td>
                   </tr>
                 ))}
