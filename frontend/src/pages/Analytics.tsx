@@ -3,6 +3,7 @@ import { BarChart3, CalendarDays, Clock3, Gauge, PieChart, Users2 } from 'lucide
 import { getDashboardStats, listInvoices } from '../services/api';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
+import { useDashboardViewStore } from '../store/dashboardViewStore';
 import { useI18n } from '../i18n/I18nProvider';
 import type { DashboardStats, Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
@@ -153,6 +154,7 @@ function toNumber(value: string | null | undefined): number {
 export default function Analytics() {
   const { publicKey } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
+  const { showPreviewLinks } = useDashboardViewStore();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -167,11 +169,11 @@ export default function Analytics() {
     setLoading(true);
     Promise.all([
       getDashboardStats(publicKey, {
-        excludePreview: true,
+        excludePreview: !showPreviewLinks,
         networkPassphrase,
       }),
       listInvoices(publicKey, undefined, 200, 0, {
-        excludePreview: true,
+        excludePreview: !showPreviewLinks,
         networkPassphrase,
       }),
     ])
@@ -184,7 +186,7 @@ export default function Analytics() {
         setInvoices([]);
       })
       .finally(() => setLoading(false));
-  }, [publicKey, networkPassphrase]);
+  }, [publicKey, networkPassphrase, showPreviewLinks]);
 
   const now = Date.now();
   const periodStartMs = now - (periodDays - 1) * DAY_MS;

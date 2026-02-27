@@ -6,6 +6,7 @@ import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
 import { useNetworkStore } from '../../store/networkStore';
+import { useDashboardViewStore } from '../../store/dashboardViewStore';
 import type { InvoiceStatus } from '../../types';
 import { CURRENCY_SYMBOLS } from '../../config';
 import type { Language } from '../../i18n/translations';
@@ -89,6 +90,7 @@ const LOCALE_BY_LANGUAGE: Record<Language, string> = {
 export default function InvoiceList() {
   const { publicKey } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
+  const { showPreviewLinks, toggleShowPreviewLinks } = useDashboardViewStore();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -97,10 +99,10 @@ export default function InvoiceList() {
   const [filter, setFilter] = useState('');
 
   const { data, isLoading: loading } = useQuery({
-    queryKey: ['invoices', publicKey, filter, page, networkPassphrase],
+    queryKey: ['invoices', publicKey, filter, page, networkPassphrase, showPreviewLinks],
     queryFn: () =>
       listInvoices(publicKey!, filter || undefined, PAGE_SIZE, page * PAGE_SIZE, {
-        excludePreview: true,
+        excludePreview: !showPreviewLinks,
         networkPassphrase,
       }),
     enabled: !!publicKey,
@@ -137,9 +139,18 @@ export default function InvoiceList() {
     <div className="animate-in">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
-        <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
-          + {copy.newInvoice}
-        </Link>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <button
+            type="button"
+            onClick={toggleShowPreviewLinks}
+            className="btn-secondary w-full text-sm sm:w-auto"
+          >
+            {showPreviewLinks ? 'Hide demo links' : 'Show demo links'}
+          </button>
+          <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
+            + {copy.newInvoice}
+          </Link>
+        </div>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-2">

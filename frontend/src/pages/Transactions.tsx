@@ -5,6 +5,7 @@ import { listInvoices } from '../services/api';
 import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
+import { useDashboardViewStore } from '../store/dashboardViewStore';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
@@ -137,6 +138,7 @@ const FAILED_STATUSES: InvoiceStatus[] = ['FAILED', 'EXPIRED', 'CANCELLED'];
 export default function Transactions() {
   const { publicKey } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
+  const { showPreviewLinks } = useDashboardViewStore();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -151,13 +153,13 @@ export default function Transactions() {
 
     setLoading(true);
     listInvoices(publicKey, undefined, 100, 0, {
-      excludePreview: true,
+      excludePreview: !showPreviewLinks,
       networkPassphrase,
     })
       .then(({ invoices: rows }) => setInvoices(Array.isArray(rows) ? rows : []))
       .catch(() => setInvoices([]))
       .finally(() => setLoading(false));
-  }, [publicKey, networkPassphrase]);
+  }, [publicKey, networkPassphrase, showPreviewLinks]);
 
   const transactionRows = useMemo(
     () => invoices.filter((invoice) => invoice.status !== 'DRAFT'),

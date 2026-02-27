@@ -19,6 +19,7 @@ import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
 import { useI18n } from '../i18n/I18nProvider';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
+import { useDashboardViewStore } from '../store/dashboardViewStore';
 import type { InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
 
@@ -167,24 +168,25 @@ const COPY: Record<Language, {
 export default function Dashboard() {
   const { publicKey } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
+  const { showPreviewLinks, toggleShowPreviewLinks } = useDashboardViewStore();
   const { language } = useI18n();
   const copy = COPY[language];
 
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['dashboardStats', publicKey, networkPassphrase],
+    queryKey: ['dashboardStats', publicKey, networkPassphrase, showPreviewLinks],
     queryFn: () =>
       getDashboardStats(publicKey!, {
-        excludePreview: true,
+        excludePreview: !showPreviewLinks,
         networkPassphrase,
       }),
     enabled: !!publicKey,
   });
 
   const { data: invoiceResult, isLoading: invoicesLoading } = useQuery({
-    queryKey: ['invoices', publicKey, 50, 0, networkPassphrase],
+    queryKey: ['invoices', publicKey, 50, 0, networkPassphrase, showPreviewLinks],
     queryFn: () =>
       listInvoices(publicKey!, undefined, 50, 0, {
-        excludePreview: true,
+        excludePreview: !showPreviewLinks,
         networkPassphrase,
       }),
     enabled: !!publicKey,
@@ -327,10 +329,19 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
           <p className="text-sm text-ink-3">{copy.subtitle}</p>
         </div>
-        <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
-          <FilePlus2 className="h-4 w-4" />
-          {copy.newInvoice}
-        </Link>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+          <button
+            type="button"
+            onClick={toggleShowPreviewLinks}
+            className="btn-secondary w-full text-sm sm:w-auto"
+          >
+            {showPreviewLinks ? 'Hide demo links' : 'Show demo links'}
+          </button>
+          <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
+            <FilePlus2 className="h-4 w-4" />
+            {copy.newInvoice}
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
