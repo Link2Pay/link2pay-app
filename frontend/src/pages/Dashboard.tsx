@@ -163,6 +163,18 @@ const COPY: Record<Language, {
   },
 };
 
+function toAmount(value: string | null | undefined): number {
+  const parsed = Number.parseFloat(value || '0');
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatSettledAmount(asset: 'XLM' | 'USDC' | 'EURC', value: number): string {
+  const fixed = value.toFixed(2);
+  if (asset === 'XLM') return `${fixed} XLM`;
+  if (asset === 'EURC') return `€${fixed}`;
+  return `$${fixed}`;
+}
+
 export default function Dashboard() {
   const { publicKey } = useWalletStore();
   const { language } = useI18n();
@@ -184,19 +196,25 @@ export default function Dashboard() {
   const invoices = Array.isArray(invoiceResult?.invoices) ? invoiceResult.invoices : [];
   const recentInvoices = invoices.slice(0, 5);
 
+  const counts = useMemo(() => {
+    let paid = 0, pending = 0, closed = 0, draft = 0;
+    for (const inv of invoices) {
+      if (inv.status === 'PAID') paid++;
+      else if (inv.status === 'DRAFT') draft++;
+      else if (inv.status === 'PENDING' || inv.status === 'PROCESSING') pending++;
+      else if (inv.status === 'FAILED' || inv.status === 'EXPIRED' || inv.status === 'CANCELLED') closed++;
+    }
+    return { paid, pending, closed, draft };
+  }, [invoices]);
+
   const totalLinks = stats?.totalInvoices ?? invoices.length;
-  const paidLinks = stats?.paidInvoices ?? invoices.filter((invoice) => invoice.status === 'PAID').length;
-  const pendingLinks = stats?.pendingInvoices ?? invoices.filter((invoice) => ['PENDING', 'PROCESSING'].includes(invoice.status)).length;
-  const closedLinks = invoices.filter((invoice) => ['FAILED', 'EXPIRED', 'CANCELLED'].includes(invoice.status)).length;
-  const draftLinks = invoices.filter((invoice) => invoice.status === 'DRAFT').length;
+  const paidLinks = stats?.paidInvoices ?? counts.paid;
+  const pendingLinks = stats?.pendingInvoices ?? counts.pending;
+  const closedLinks = counts.closed;
+  const draftLinks = counts.draft;
   const conversionRate = totalLinks > 0 ? (paidLinks / totalLinks) * 100 : 0;
 
-  const toAmount = (value: string | null | undefined) => {
-    const parsed = Number.parseFloat(value || '0');
-    return Number.isFinite(parsed) ? parsed : 0;
-  };
-
-  const settledByAsset = useMemo(() => {
+  const { settledAssetRows, settledTotal } = useMemo(() => {
     const totals: Record<'XLM' | 'USDC' | 'EURC', number> = { XLM: 0, USDC: 0, EURC: 0 };
     invoices.forEach((invoice) => {
       if (invoice.status !== 'PAID') return;
@@ -204,15 +222,12 @@ export default function Dashboard() {
         totals[invoice.currency as 'XLM' | 'USDC' | 'EURC'] += toAmount(invoice.total);
       }
     });
-    return totals;
+    const rows = (Object.keys(totals) as Array<'XLM' | 'USDC' | 'EURC'>).map((asset) => ({
+      asset,
+      value: totals[asset],
+    }));
+    return { settledAssetRows: rows, settledTotal: rows.reduce((sum, r) => sum + r.value, 0) };
   }, [invoices]);
-
-  const settledAssetRows = (Object.keys(settledByAsset) as Array<'XLM' | 'USDC' | 'EURC'>).map((asset) => ({
-    asset,
-    value: settledByAsset[asset],
-  }));
-
-  const settledTotal = settledAssetRows.reduce((sum, row) => sum + row.value, 0);
 
   const topClients = useMemo(() => {
     const map = new Map<string, { name: string; links: number; paid: number; pending: number }>();
@@ -231,19 +246,9 @@ export default function Dashboard() {
       .slice(0, 5);
   }, [invoices]);
 
-  const totalRevenueValue =
-    stats?.totalRevenue === undefined || stats?.totalRevenue === null
-      ? '0.00'
-      : String(stats.totalRevenue);
+  const totalRevenueValue = stats?.totalRevenue == null ? '0.00' : String(stats.totalRevenue);
 
-  const formatSettledAmount = (asset: 'XLM' | 'USDC' | 'EURC', value: number) => {
-    const fixed = value.toFixed(2);
-    if (asset === 'XLM') return `${fixed} XLM`;
-    if (asset === 'EURC') return `€${fixed}`;
-    return `$${fixed}`;
-  };
-
-  const statCards = [
+  const statCards = useMemo(() => [
     {
       label: copy.totalInvoices,
       value: totalLinks,
@@ -272,7 +277,7 @@ export default function Dashboard() {
       icon: CircleDollarSign,
       border: 'border-l-4 border-l-primary',
     },
-  ];
+  ], [copy, totalLinks, paidLinks, pendingLinks, totalRevenueValue]);
 
   if (loading) {
     return (
