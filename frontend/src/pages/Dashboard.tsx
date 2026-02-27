@@ -335,7 +335,9 @@ export default function Dashboard() {
             onClick={toggleShowPreviewLinks}
             className="btn-secondary w-full text-sm sm:w-auto"
           >
-            {showPreviewLinks ? 'Hide demo links' : 'Show demo links'}
+            {showPreviewLinks
+              ? 'Demo links: ON (showing all)'
+              : 'Demo links: OFF (real links only)'}
           </button>
           <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
             <FilePlus2 className="h-4 w-4" />

@@ -161,13 +161,18 @@ export class InvoiceService {
       ...(status && { status }),
       ...(networkPassphrase && { networkPassphrase }),
       ...(excludePreview && {
-        NOT: {
-          notes: {
-            contains: HERO_PREVIEW_REFERENCE_LINE,
+        OR: [
+          { notes: null },
+          {
+            NOT: {
+              notes: {
+                contains: HERO_PREVIEW_REFERENCE_LINE,
+              },
+            },
           },
-        },
+        ],
       }),
-    };
+    } satisfies Prisma.InvoiceWhereInput;
 
     const [invoices, total] = await Promise.all([
       prisma.invoice.findMany({
@@ -401,11 +406,16 @@ export class InvoiceService {
       freelancerWallet,
       ...(networkPassphrase && { networkPassphrase }),
       ...(excludePreview && {
-        NOT: {
-          notes: {
-            contains: HERO_PREVIEW_REFERENCE_LINE,
+        OR: [
+          { notes: null },
+          {
+            NOT: {
+              notes: {
+                contains: HERO_PREVIEW_REFERENCE_LINE,
+              },
+            },
           },
-        },
+        ],
       }),
     } satisfies Prisma.InvoiceWhereInput;
 
