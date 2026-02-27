@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BarChart3, CalendarDays, Clock3, Gauge, PieChart, Users2 } from 'lucide-react';
-import { getDashboardStats, listInvoices } from '../services/api';
+import { CalendarDays, Clock3, Gauge, PieChart, Users2 } from 'lucide-react';
+import { listInvoices } from '../services/api';
 import { useWalletStore } from '../store/walletStore';
 import { useI18n } from '../i18n/I18nProvider';
-import type { DashboardStats, Invoice, InvoiceStatus } from '../types';
+import type { Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -154,7 +154,6 @@ export default function Analytics() {
   const { language } = useI18n();
   const copy = COPY[language];
 
-  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [periodDays, setPeriodDays] = useState<PeriodDays>(30);
@@ -163,13 +162,11 @@ export default function Analytics() {
     if (!publicKey) return;
 
     setLoading(true);
-    Promise.all([getDashboardStats(publicKey), listInvoices(publicKey, undefined, 200, 0)])
-      .then(([dashboardStats, result]) => {
-        setStats(dashboardStats);
+    listInvoices(publicKey, undefined, 200, 0)
+      .then((result) => {
         setInvoices(Array.isArray(result?.invoices) ? result.invoices : []);
       })
       .catch(() => {
-        setStats(null);
         setInvoices([]);
       })
       .finally(() => setLoading(false));
@@ -290,7 +287,44 @@ export default function Analytics() {
   const otherStatusLinks = Math.max(0, totalLinks - paidLinks - pendingLinks - failedLinks);
 
   if (loading) {
-    return <div className="card p-12 text-center text-sm text-ink-3">{copy.loading}</div>;
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div>
+          <div className="h-5 w-28 bg-surface-2 rounded mb-2" />
+          <div className="h-4 w-64 bg-surface-2 rounded" />
+        </div>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="card p-5">
+              <div className="h-3 w-20 bg-surface-2 rounded mb-3" />
+              <div className="h-7 w-14 bg-surface-2 rounded" />
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="card p-5">
+              <div className="h-4 w-36 bg-surface-2 rounded mb-2" />
+              <div className="h-3 w-48 bg-surface-2 rounded mb-6" />
+              <div className="space-y-3">
+                {[...Array(4)].map((_, j) => (
+                  <div key={j} className="h-5 bg-surface-2 rounded" />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="card p-5">
+          <div className="h-4 w-32 bg-surface-2 rounded mb-2" />
+          <div className="h-3 w-56 bg-surface-2 rounded mb-6" />
+          <div className="flex items-end gap-1 h-28">
+            {[...Array(10)].map((_, i) => (
+              <div key={i} className="flex-1 bg-surface-2 rounded-sm" style={{ height: `${30 + Math.random() * 60}%` }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -423,19 +457,43 @@ export default function Analytics() {
         {trendPeak <= 0 ? (
           <p className="mt-5 text-xs text-ink-3">{copy.noData}</p>
         ) : (
-          <div className="mt-5 grid gap-2" style={{ gridTemplateColumns: `repeat(${activityTrend.length}, minmax(0, 1fr))` }}>
-            {activityTrend.map((bucket) => (
-              <div key={bucket.startMs} className="rounded-lg border border-surface-3 bg-surface-1 p-2">
-                <p className="mb-2 truncate text-center text-[10px] text-ink-3">{bucket.label}</p>
-                <div className="mx-auto flex h-20 w-6 items-end rounded bg-muted">
+          <div className="mt-5">
+            <div
+              className="flex items-end gap-1 border-b border-surface-3 pb-0"
+              style={{ height: '7rem' }}
+            >
+              {activityTrend.map((bucket) => {
+                const heightPct = bucket.created > 0
+                  ? Math.max(6, (bucket.created / trendPeak) * 100)
+                  : 2;
+                return (
                   <div
-                    className="w-full rounded bg-primary"
-                    style={{ height: `${Math.max(8, (bucket.created / trendPeak) * 100)}%` }}
-                  />
-                </div>
-                <p className="mt-2 text-center text-xs font-mono text-ink-1">{bucket.created}</p>
-              </div>
-            ))}
+                    key={bucket.startMs}
+                    className="group relative flex flex-1 flex-col items-center justify-end"
+                    style={{ height: '100%' }}
+                    title={`${bucket.label}: ${bucket.created}`}
+                  >
+                    {bucket.created > 0 && (
+                      <span className="mb-1 text-center text-[10px] font-mono text-ink-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {bucket.created}
+                      </span>
+                    )}
+                    <div
+                      className="w-full rounded-t-sm bg-primary/70 transition-all group-hover:bg-primary"
+                      style={{ height: `${heightPct}%` }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <div
+              className="mt-1 grid text-[10px] text-ink-3"
+              style={{ gridTemplateColumns: `repeat(${activityTrend.length}, minmax(0, 1fr))` }}
+            >
+              {activityTrend.map((bucket) => (
+                <p key={bucket.startMs} className="truncate text-center">{bucket.label}</p>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -478,17 +536,6 @@ export default function Analytics() {
         )}
       </div>
 
-      {stats && (
-        <div className="card p-4">
-          <p className="text-xs text-ink-3">
-            <span className="inline-flex items-center gap-1">
-              <BarChart3 className="h-3.5 w-3.5" />
-              Global totals:
-            </span>{' '}
-            total links {stats.totalInvoices} | paid {stats.paidInvoices} | pending {stats.pendingInvoices} | revenue {toNumber(stats.totalRevenue).toFixed(2)}
-          </p>
-        </div>
-      )}
     </div>
   );
 }

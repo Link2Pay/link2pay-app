@@ -255,6 +255,8 @@ export default function Dashboard() {
       color: 'text-ink-0',
       icon: FileText,
       border: '',
+      iconBg: 'bg-muted',
+      iconColor: 'text-ink-3',
     },
     {
       label: copy.paid,
@@ -262,6 +264,8 @@ export default function Dashboard() {
       color: 'text-emerald-600',
       icon: CheckCircle2,
       border: 'border-l-4 border-l-emerald-500',
+      iconBg: 'bg-emerald-500/10',
+      iconColor: 'text-emerald-600',
     },
     {
       label: copy.pending,
@@ -269,6 +273,8 @@ export default function Dashboard() {
       color: 'text-amber-600',
       icon: Clock3,
       border: 'border-l-4 border-l-amber-500',
+      iconBg: 'bg-amber-500/10',
+      iconColor: 'text-amber-600',
     },
     {
       label: copy.revenue,
@@ -276,6 +282,8 @@ export default function Dashboard() {
       color: 'text-stellar-600',
       icon: CircleDollarSign,
       border: 'border-l-4 border-l-primary',
+      iconBg: 'bg-primary/10',
+      iconColor: 'text-primary',
     },
   ], [copy, totalLinks, paidLinks, pendingLinks, totalRevenueValue]);
 
@@ -336,7 +344,7 @@ export default function Dashboard() {
             <div key={stat.label} className={`card p-5 ${stat.border}`}>
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-xs text-ink-3">{stat.label}</p>
-                <span className="rounded-md bg-muted p-1.5 text-ink-3">
+                <span className={`rounded-md p-1.5 ${stat.iconBg} ${stat.iconColor}`}>
                   <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                 </span>
               </div>
@@ -349,15 +357,15 @@ export default function Dashboard() {
       </div>
 
       {stats && toAmount(stats.pendingAmount) > 0 && (
-        <div className="card p-5 bg-amber-50 border-amber-200">
+        <div className="card p-5 border-warning/25 bg-warning/5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+              <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10 text-warning">
                 <AlertTriangle className="h-4 w-4" />
               </span>
               <div>
-                <p className="text-xs text-amber-600 font-medium mb-1">{copy.awaitingPayment}</p>
-                <p className="text-xl font-semibold font-mono text-amber-700">{stats.pendingAmount}</p>
+                <p className="text-xs text-warning/80 font-medium mb-1">{copy.awaitingPayment}</p>
+                <p className="text-xl font-semibold font-mono text-warning">{stats.pendingAmount}</p>
               </div>
             </div>
             <Link to="/dashboard/links?status=PENDING" className="btn-secondary w-full text-xs sm:w-auto">

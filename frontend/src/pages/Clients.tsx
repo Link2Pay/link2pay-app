@@ -255,7 +255,35 @@ export default function ClientsPage() {
   };
 
   if (loading) {
-    return <div className="py-20 text-center text-sm text-muted-foreground">{copy.loadingClients}</div>;
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="h-5 w-24 bg-surface-2 rounded mb-2" />
+            <div className="h-4 w-72 bg-surface-2 rounded" />
+          </div>
+          <div className="h-9 w-32 bg-surface-2 rounded-lg" />
+        </div>
+        <div className="h-10 bg-surface-2 rounded-lg" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="card p-5">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="h-9 w-9 rounded-full bg-surface-2 shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-28 bg-surface-2 rounded" />
+                  <div className="h-3 w-40 bg-surface-2 rounded" />
+                </div>
+              </div>
+              <div className="h-3 w-32 bg-surface-2 rounded mb-4" />
+              <div className="flex justify-end">
+                <div className="h-7 w-20 bg-surface-2 rounded-lg" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -386,17 +414,22 @@ export default function ClientsPage() {
           {filteredClients.map((client) => (
             <div key={client.id} className="card p-5 hover-glow">
               <div className="mb-3 flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">{client.name}</p>
-                  <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Mail className="h-3.5 w-3.5" />
-                    <span className="truncate">{client.email}</span>
+                <div className="flex items-start gap-3 min-w-0">
+                  <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                    {client.name.charAt(0).toUpperCase()}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">{client.name}</p>
+                    <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Mail className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{client.email}</span>
+                    </div>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => toggleFavorite(client)}
-                  className="btn-ghost px-2 py-1"
+                  className="btn-ghost px-2 py-1 shrink-0"
                   title={client.isFavorite ? copy.removeFavorite : copy.markFavorite}
                 >
                   <Star

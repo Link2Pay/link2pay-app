@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { listInvoices } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -153,7 +154,28 @@ export default function InvoiceList() {
       </div>
 
       {loading ? (
-        <div className="card p-12 text-center text-ink-3 text-sm">{copy.loadingInvoices}</div>
+        <div className="card overflow-hidden animate-pulse">
+          <div className="border-b border-surface-3 bg-surface-1 px-4 py-3 flex gap-6">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-3 w-16 bg-surface-2 rounded" />
+            ))}
+          </div>
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4 px-4 py-3.5 border-b border-surface-3 last:border-0">
+              <div className="flex-1 space-y-1.5">
+                <div className="h-3.5 w-24 bg-surface-2 rounded" />
+                <div className="h-3 w-40 bg-surface-2 rounded" />
+              </div>
+              <div className="space-y-1.5">
+                <div className="h-3.5 w-28 bg-surface-2 rounded" />
+                <div className="h-3 w-20 bg-surface-2 rounded" />
+              </div>
+              <div className="h-5 w-16 bg-surface-2 rounded-full" />
+              <div className="h-4 w-20 bg-surface-2 rounded ml-auto" />
+              <div className="h-3.5 w-16 bg-surface-2 rounded" />
+            </div>
+          ))}
+        </div>
       ) : invoices.length === 0 ? (
         <div className="card p-12 text-center">
           <p className="text-ink-3 text-sm mb-3">{copy.noInvoicesFound}</p>
@@ -212,16 +234,18 @@ export default function InvoiceList() {
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="px-3 py-1.5 rounded-lg border border-surface-3 disabled:opacity-40 hover:bg-surface-1 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-3 disabled:opacity-40 hover:bg-surface-1 transition-colors"
             >
-              ← Prev
+              <ChevronLeft className="h-3.5 w-3.5" />
+              Prev
             </button>
             <button
               onClick={() => setPage((p) => p + 1)}
               disabled={(page + 1) * PAGE_SIZE >= total}
-              className="px-3 py-1.5 rounded-lg border border-surface-3 disabled:opacity-40 hover:bg-surface-1 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-3 disabled:opacity-40 hover:bg-surface-1 transition-colors"
             >
-              Next →
+              Next
+              <ChevronRight className="h-3.5 w-3.5" />
             </button>
           </div>
         </div>

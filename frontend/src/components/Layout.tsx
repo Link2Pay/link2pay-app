@@ -6,6 +6,7 @@ import {
   KeyRound,
   LayoutDashboard,
   Receipt,
+  Users2,
 } from 'lucide-react';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
@@ -27,6 +28,7 @@ export default function Layout() {
     { path: '/dashboard', label: t('layout.nav.dashboard'), icon: LayoutDashboard },
     { path: '/dashboard/transactions', label: t('layout.nav.transactions'), icon: ArrowLeftRight },
     { path: '/dashboard/links', label: t('layout.nav.invoices'), icon: Receipt },
+    { path: '/dashboard/clients', label: t('layout.nav.clients'), icon: Users2 },
     { path: '/dashboard/api-keys', label: t('layout.nav.apiKeys'), icon: KeyRound },
     { path: '/dashboard/analytics', label: t('layout.nav.analytics'), icon: BarChart3 },
     { path: '/dashboard/create-link', label: t('layout.nav.createInvoice'), icon: FilePlus2 },
@@ -145,8 +147,8 @@ export default function Layout() {
           ) : (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="max-w-md text-center animate-in">
-                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-                  <span className="text-3xl text-primary">S</span>
+                <div className="mx-auto mb-6">
+                  <BrandMark className="h-16 w-16 rounded-2xl" />
                 </div>
                 <h2 className="mb-2 text-xl font-semibold text-foreground">
                   {t('layout.connectWalletTitle')}
