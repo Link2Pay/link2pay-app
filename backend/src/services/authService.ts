@@ -10,14 +10,24 @@ interface NonceEntry {
   expiresAt: number; // unix ms
 }
 
+interface SessionEntry {
+  walletAddress: string;
+  expiresAt: number; // unix ms
+}
+
 const NONCE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 // Cleanup interval: remove expired nonces every minute
 const nonceStore = new Map<string, NonceEntry>();
+const sessionStore = new Map<string, SessionEntry>();
 setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of nonceStore.entries()) {
     if (entry.expiresAt < now) nonceStore.delete(key);
+  }
+  for (const [key, entry] of sessionStore.entries()) {
+    if (entry.expiresAt < now) sessionStore.delete(key);
   }
 }, 60_000);
 
@@ -100,6 +110,35 @@ export class AuthService {
    */
   buildMessage(walletAddress: string, nonce: string): string {
     return `link2pay-auth:${walletAddress}:${nonce}`;
+  }
+
+  /**
+   * Issue a short-lived bearer token after successful wallet signature auth.
+   */
+  issueSessionToken(walletAddress: string): { sessionToken: string; expiresIn: number } {
+    const sessionToken = crypto.randomBytes(32).toString('hex');
+    sessionStore.set(sessionToken, {
+      walletAddress,
+      expiresAt: Date.now() + SESSION_TTL_MS,
+    });
+
+    return {
+      sessionToken,
+      expiresIn: Math.floor(SESSION_TTL_MS / 1000),
+    };
+  }
+
+  /**
+   * Validate bearer token and return the associated wallet if valid.
+   */
+  verifySessionToken(sessionToken: string): string | null {
+    const entry = sessionStore.get(sessionToken);
+    if (!entry) return null;
+    if (Date.now() > entry.expiresAt) {
+      sessionStore.delete(sessionToken);
+      return null;
+    }
+    return entry.walletAddress;
   }
 }
 

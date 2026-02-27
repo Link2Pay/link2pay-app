@@ -13,6 +13,20 @@ const nonceSchema = z.object({
     .regex(/^G[A-Z2-7]{55}$/, 'Invalid Stellar address'),
 });
 
+const sessionSchema = z.object({
+  walletAddress: z
+    .string()
+    .min(56)
+    .max(56)
+    .regex(/^G[A-Z2-7]{55}$/, 'Invalid Stellar address'),
+  nonce: z.string().regex(/^[a-fA-F0-9]{32}$/, 'Invalid nonce format'),
+  signature: z
+    .string()
+    .min(64)
+    .max(4096)
+    .regex(/^[a-fA-F0-9]+$/, 'Invalid signature format'),
+});
+
 /**
  * POST /api/auth/nonce
  * Issue a one-time nonce for wallet signature authentication.
@@ -36,6 +50,27 @@ router.post(
       message,
       expiresIn: 300, // seconds
     });
+  }
+);
+
+/**
+ * POST /api/auth/session
+ * Exchange a valid nonce signature for a short-lived bearer token.
+ */
+router.post(
+  '/session',
+  validateBody(sessionSchema),
+  (req: Request, res: Response) => {
+    const { walletAddress, nonce, signature } = req.body;
+    const valid = authService.verifySignature(walletAddress, nonce, signature);
+    if (!valid) {
+      return res.status(401).json({
+        error: 'Invalid or expired signature. Request a new nonce from POST /api/auth/nonce',
+      });
+    }
+
+    const session = authService.issueSessionToken(walletAddress);
+    res.json(session);
   }
 );
 

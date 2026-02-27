@@ -4,29 +4,26 @@ const API_BASE = config.apiUrl + '/api';
 const AUTH_REQUEST_TIMEOUT_MS = 15_000;
 const AUTH_SIGN_TIMEOUT_MS = 20_000;
 
-// ─── Token cache ──────────────────────────────────────────────────────────────
-// Stores the nonce+signature pair so we don't re-sign on every request.
-// The token is valid for ~5 minutes (matches backend TTL).
+// ─── Session cache ────────────────────────────────────────────────────────────
+// Stores the bearer session token to avoid re-signing on every request.
 
-interface AuthToken {
+interface AuthSession {
   walletAddress: string;
-  nonce: string;
-  signature: string;
+  sessionToken: string;
   expiresAt: number; // ms
 }
 
-let cachedToken: AuthToken | null = null;
+let cachedSession: AuthSession | null = null;
 
-// Refresh the token 30 seconds before it expires to avoid races
+// Refresh 30 seconds before expiry to avoid races
 const REFRESH_BUFFER_MS = 30_000;
 
-// In-flight promise: if a nonce fetch+sign is already in progress, share it
-// instead of issuing a second nonce that would overwrite the first on the backend.
-let inflightPromise: Promise<AuthToken> | null = null;
+// In-flight session creation promises by wallet
+const inflightByWallet = new Map<string, Promise<AuthSession>>();
 
-function isTokenValid(token: AuthToken | null): boolean {
-  if (!token) return false;
-  return Date.now() < token.expiresAt - REFRESH_BUFFER_MS;
+function isSessionValid(session: AuthSession | null): boolean {
+  if (!session) return false;
+  return Date.now() < session.expiresAt - REFRESH_BUFFER_MS;
 }
 
 async function fetchWithTimeout(
@@ -62,13 +59,10 @@ async function withTimeout<T>(
 }
 
 /**
- * Obtain a fresh nonce from the backend and sign it with Freighter.
- * The resulting token is cached and reused until close to expiry.
+ * Obtain a fresh nonce, sign it once, and exchange for bearer session token.
+ * The session token is cached and reused until close to expiry.
  *
- * Concurrent callers that arrive while a nonce fetch is in progress will
- * share the same promise — preventing race conditions where two simultaneous
- * requests each fetch their own nonce and one overwrites the other on the
- * backend before the first can be verified.
+ * Concurrent callers for the same wallet share one in-flight promise.
  *
  * @param walletAddress — Stellar public key
  * @param signMessage   — Function from walletStore that calls Freighter.signMessage
@@ -77,21 +71,25 @@ export async function getAuthHeaders(
   walletAddress: string,
   signMessage: (msg: string) => Promise<string>
 ): Promise<Record<string, string>> {
-  // Return cached token if still valid for the same wallet
-  if (cachedToken && cachedToken.walletAddress === walletAddress && isTokenValid(cachedToken)) {
-    return buildHeaders(cachedToken);
+  // Return cached session if still valid for the same wallet
+  if (
+    cachedSession &&
+    cachedSession.walletAddress === walletAddress &&
+    isSessionValid(cachedSession)
+  ) {
+    return buildHeaders(cachedSession);
   }
 
-  // If a fetch is already in flight (for any caller), wait for it
-  if (inflightPromise) {
-    const token = await inflightPromise;
-    return buildHeaders(token);
+  // If a session creation is already in flight for this wallet, wait for it
+  const inflight = inflightByWallet.get(walletAddress);
+  if (inflight) {
+    const session = await inflight;
+    return buildHeaders(session);
   }
 
-  // Start a new fetch+sign and share it with any concurrent callers
-  inflightPromise = (async (): Promise<AuthToken> => {
+  const createSessionPromise = (async (): Promise<AuthSession> => {
     try {
-      const response = await fetchWithTimeout(
+      const nonceResponse = await fetchWithTimeout(
         `${API_BASE}/auth/nonce`,
         {
           method: 'POST',
@@ -101,11 +99,11 @@ export async function getAuthHeaders(
         AUTH_REQUEST_TIMEOUT_MS
       );
 
-      if (!response.ok) {
+      if (!nonceResponse.ok) {
         throw new Error('Failed to get auth nonce');
       }
 
-      const { nonce, message, expiresIn } = await response.json();
+      const { nonce, message } = await nonceResponse.json();
 
       // Sign the message with Freighter
       const signature = await withTimeout(
@@ -114,33 +112,47 @@ export async function getAuthHeaders(
         'Wallet signature timed out. Please unlock Freighter and try again.'
       );
 
-      const token: AuthToken = {
+      const sessionResponse = await fetchWithTimeout(
+        `${API_BASE}/auth/session`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ walletAddress, nonce, signature }),
+        },
+        AUTH_REQUEST_TIMEOUT_MS
+      );
+
+      const sessionData = await sessionResponse.json().catch(() => null);
+      if (!sessionResponse.ok || !sessionData?.sessionToken || !sessionData?.expiresIn) {
+        throw new Error(sessionData?.error || 'Failed to create auth session');
+      }
+
+      const session: AuthSession = {
         walletAddress,
-        nonce,
-        signature,
-        expiresAt: Date.now() + expiresIn * 1000,
+        sessionToken: sessionData.sessionToken,
+        expiresAt: Date.now() + sessionData.expiresIn * 1000,
       };
 
-      cachedToken = token;
-      return token;
+      cachedSession = session;
+      return session;
     } finally {
-      inflightPromise = null;
+      inflightByWallet.delete(walletAddress);
     }
   })();
 
-  const token = await inflightPromise;
-  return buildHeaders(token);
+  inflightByWallet.set(walletAddress, createSessionPromise);
+  const session = await createSessionPromise;
+  return buildHeaders(session);
 }
 
-/** Clear cached token (call on wallet disconnect) */
+/** Clear cached auth session (call on wallet disconnect) */
 export function clearAuthToken(): void {
-  cachedToken = null;
+  cachedSession = null;
+  inflightByWallet.clear();
 }
 
-function buildHeaders(token: AuthToken): Record<string, string> {
+function buildHeaders(session: AuthSession): Record<string, string> {
   return {
-    'x-wallet-address': token.walletAddress,
-    'x-auth-nonce': token.nonce,
-    'x-auth-signature': token.signature,
+    Authorization: `Bearer ${session.sessionToken}`,
   };
 }

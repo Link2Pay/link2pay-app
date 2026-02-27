@@ -138,7 +138,10 @@ export function validateBody(schema: z.ZodSchema) {
 /**
  * Middleware for cryptographic wallet authentication.
  *
- * Expects these HTTP headers:
+ * Preferred auth:
+ *   Authorization: Bearer <sessionToken>
+ *
+ * Legacy fallback headers:
  *   x-wallet-address  — Stellar public key (G...)
  *   x-auth-nonce      — Nonce previously issued by POST /api/auth/nonce
  *   x-auth-signature  — Hex-encoded ed25519 signature over the canonical
@@ -147,15 +150,28 @@ export function validateBody(schema: z.ZodSchema) {
  * The signature proves the requester controls the private key corresponding
  * to the public wallet address, preventing impersonation attacks.
  *
- * All three headers are required. Requests missing nonce or signature are
- * rejected with 401 — the legacy address-only fallback has been removed
- * to close the Spoofing (Spoof.1) and Elevation of Privilege (EoP.2) vectors.
+ * If bearer auth is missing, all three legacy headers are required.
  */
 export function requireWallet(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
+  const authorization = req.headers.authorization as string | undefined;
+  if (authorization?.startsWith('Bearer ')) {
+    const sessionToken = authorization.slice('Bearer '.length).trim();
+    const walletFromSession = authService.verifySessionToken(sessionToken);
+    if (!walletFromSession) {
+      return res.status(401).json({
+        error: 'Invalid or expired session token. Re-authenticate your wallet.',
+      });
+    }
+
+    req.walletAddress = walletFromSession;
+    req.authVerified = true;
+    return next();
+  }
+
   const walletAddress = req.headers['x-wallet-address'] as string | undefined;
   const nonce = req.headers['x-auth-nonce'] as string | undefined;
   const signature = req.headers['x-auth-signature'] as string | undefined;
