@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { listInvoices } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
-import type { Invoice, InvoiceStatus } from '../../types';
+import type { InvoiceStatus } from '../../types';
 import { CURRENCY_SYMBOLS } from '../../config';
 import type { Language } from '../../i18n/translations';
 
@@ -89,12 +90,19 @@ export default function InvoiceList() {
   const { language } = useI18n();
   const copy = COPY[language];
 
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
+
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['invoices', publicKey, filter, page],
+    queryFn: () => listInvoices(publicKey!, filter || undefined, PAGE_SIZE, page * PAGE_SIZE),
+    enabled: !!publicKey,
+    placeholderData: (prev) => prev,
+  });
+
+  const invoices = data?.invoices ?? [];
+  const total = data?.total ?? 0;
 
   const statusFilters: { label: string; value: string }[] = [
     { label: copy.all, value: '' },
@@ -103,24 +111,6 @@ export default function InvoiceList() {
     { label: copy.paid, value: 'PAID' },
     { label: copy.failed, value: 'FAILED' },
   ];
-
-  // Reset to page 0 when filter changes
-  useEffect(() => {
-    setPage(0);
-  }, [filter]);
-
-  useEffect(() => {
-    if (!publicKey) return;
-
-    setLoading(true);
-    listInvoices(publicKey, filter || undefined, PAGE_SIZE, page * PAGE_SIZE)
-      .then(({ invoices: fetched, total: fetchedTotal }) => {
-        setInvoices(fetched);
-        setTotal(fetchedTotal);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [publicKey, filter, page]);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString(LOCALE_BY_LANGUAGE[language], {
@@ -150,7 +140,7 @@ export default function InvoiceList() {
         {statusFilters.map((statusFilter) => (
           <button
             key={statusFilter.value}
-            onClick={() => setFilter(statusFilter.value)}
+            onClick={() => { setFilter(statusFilter.value); setPage(0); }}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               filter === statusFilter.value
                 ? 'bg-stellar-50 text-stellar-700 border border-stellar-200'

@@ -1,26 +1,31 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
-import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
-import Clients from './pages/Clients';
-import Transactions from './pages/Transactions';
-import ApiKeys from './pages/ApiKeys';
-import Analytics from './pages/Analytics';
-import CreateInvoice from './pages/CreateInvoice';
-import InvoiceList from './components/Invoice/InvoiceList';
-import InvoiceDetail from './components/Invoice/InvoiceDetail';
-import PaymentFlow from './components/Payment/PaymentFlow';
-import MarketingLayout from './components/marketing/MarketingLayout';
-import Home from './pages/Home';
-import Features from './pages/Features';
-import SDK from './pages/SDK';
-import Pricing from './pages/Pricing';
-import About from './pages/About';
-import RoleSelect from './pages/RoleSelect';
-import Register from './pages/Register';
-import ClientInvoiceLookup from './pages/ClientInvoiceLookup';
 import { useWalletRestore } from './hooks/useWalletRestore';
+
+// Layout shells are loaded eagerly — they're tiny and needed immediately
+import Layout from './components/Layout';
+import MarketingLayout from './components/marketing/MarketingLayout';
+
+// All page/feature components are lazy-loaded per route
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Clients = lazy(() => import('./pages/Clients'));
+const Transactions = lazy(() => import('./pages/Transactions'));
+const ApiKeys = lazy(() => import('./pages/ApiKeys'));
+const Analytics = lazy(() => import('./pages/Analytics'));
+const CreateInvoice = lazy(() => import('./pages/CreateInvoice'));
+const InvoiceList = lazy(() => import('./components/Invoice/InvoiceList'));
+const InvoiceDetail = lazy(() => import('./components/Invoice/InvoiceDetail'));
+const PaymentFlow = lazy(() => import('./components/Payment/PaymentFlow'));
+const Home = lazy(() => import('./pages/Home'));
+const Features = lazy(() => import('./pages/Features'));
+const SDK = lazy(() => import('./pages/SDK'));
+const Pricing = lazy(() => import('./pages/Pricing'));
+const About = lazy(() => import('./pages/About'));
+const RoleSelect = lazy(() => import('./pages/RoleSelect'));
+const Register = lazy(() => import('./pages/Register'));
+const ClientInvoiceLookup = lazy(() => import('./pages/ClientInvoiceLookup'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,7 +56,8 @@ export default function App() {
         }}
       />
       <BrowserRouter>
-        <Routes>
+        <Suspense fallback={null}>
+          <Routes>
           {/* Role selection (gateway to app) */}
           <Route path="/app" element={<RoleSelect />} />
 
@@ -104,7 +110,8 @@ export default function App() {
           <Route path="/invoices/:id" element={<LegacyInvoiceRedirect />} />
           <Route path="/create" element={<Navigate to="/dashboard/create-link" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </QueryClientProvider>
   );

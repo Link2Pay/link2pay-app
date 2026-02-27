@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -17,7 +18,7 @@ import { getDashboardStats, listInvoices } from '../services/api';
 import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
 import { useI18n } from '../i18n/I18nProvider';
 import { useWalletStore } from '../store/walletStore';
-import type { DashboardStats, Invoice, InvoiceStatus } from '../types';
+import type { InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
 
 const COPY: Record<Language, {
@@ -167,29 +168,20 @@ export default function Dashboard() {
   const { language } = useI18n();
   const copy = COPY[language];
 
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [allInvoices, setAllInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['dashboardStats', publicKey],
+    queryFn: () => getDashboardStats(publicKey!),
+    enabled: !!publicKey,
+  });
 
-  useEffect(() => {
-    if (!publicKey) return;
+  const { data: invoiceResult, isLoading: invoicesLoading } = useQuery({
+    queryKey: ['invoices', publicKey, 50, 0],
+    queryFn: () => listInvoices(publicKey!, undefined, 50, 0),
+    enabled: !!publicKey,
+  });
 
-    Promise.all([getDashboardStats(publicKey), listInvoices(publicKey, undefined, 50, 0)])
-      .then(([dashboardStats, invoiceResult]) => {
-        const safeStats =
-          dashboardStats && typeof dashboardStats === 'object' ? dashboardStats : null;
-        const safeInvoices = Array.isArray(invoiceResult?.invoices)
-          ? invoiceResult.invoices
-          : [];
-
-        setStats(safeStats);
-        setAllInvoices(safeInvoices);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [publicKey]);
-
-  const invoices = Array.isArray(allInvoices) ? allInvoices : [];
+  const loading = statsLoading || invoicesLoading;
+  const invoices = Array.isArray(invoiceResult?.invoices) ? invoiceResult.invoices : [];
   const recentInvoices = invoices.slice(0, 5);
 
   const totalLinks = stats?.totalInvoices ?? invoices.length;
