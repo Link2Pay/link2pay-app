@@ -85,6 +85,21 @@ const LOCALE_BY_LANGUAGE: Record<Language, string> = {
   pt: 'pt-BR',
 };
 
+function formatDate(dateStr: string, locale: string): string {
+  return new Date(dateStr).toLocaleDateString(locale, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function formatAmount(amount: string, currency: string): string {
+  const symbol = CURRENCY_SYMBOLS[currency] || currency;
+  const number = parseFloat(amount);
+  if (currency === 'XLM') return `${number.toFixed(2)} ${symbol}`;
+  return `${symbol}${number.toFixed(2)}`;
+}
+
 export default function InvoiceList() {
   const { publicKey } = useWalletStore();
   const { language } = useI18n();
@@ -111,21 +126,6 @@ export default function InvoiceList() {
     { label: copy.paid, value: 'PAID' },
     { label: copy.failed, value: 'FAILED' },
   ];
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString(LOCALE_BY_LANGUAGE[language], {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-
-  const formatAmount = (amount: string, currency: string) => {
-    const symbol = CURRENCY_SYMBOLS[currency] || currency;
-    const number = parseFloat(amount);
-    if (currency === 'XLM') return `${number.toFixed(2)} ${symbol}`;
-    return `${symbol}${number.toFixed(2)}`;
-  };
 
   return (
     <div className="animate-in">
@@ -193,7 +193,7 @@ export default function InvoiceList() {
                     <td className="px-4 py-3 text-right">
                       <span className="text-sm font-mono font-medium text-ink-0">{formatAmount(invoice.total, invoice.currency)}</span>
                     </td>
-                    <td className="px-4 py-3 text-right text-sm text-ink-3">{formatDate(invoice.createdAt)}</td>
+                    <td className="px-4 py-3 text-right text-sm text-ink-3">{formatDate(invoice.createdAt, LOCALE_BY_LANGUAGE[language])}</td>
                   </tr>
                 ))}
               </tbody>

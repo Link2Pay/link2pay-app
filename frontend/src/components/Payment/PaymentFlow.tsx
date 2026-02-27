@@ -99,6 +99,19 @@ async function launchSep7Uri(uri: string): Promise<boolean> {
   });
 }
 
+function formatAmount(amount: string, currency: string): string {
+  const symbol = CURRENCY_SYMBOLS[currency] || currency;
+  const number = parseFloat(amount);
+  if (currency === 'XLM') return `${number.toFixed(2)} ${symbol}`;
+  return `${symbol}${number.toFixed(2)}`;
+}
+
+function formatUsdEquivalent(amount: string, xlmPriceUsd: number | null): string | null {
+  if (!xlmPriceUsd) return null;
+  const usd = parseFloat(amount) * xlmPriceUsd;
+  return usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 export default function PaymentFlow() {
   const { id } = useParams<{ id: string }>();
   const { connected, publicKey, signTransaction, disconnect, getFreighterNetwork } = useWalletStore();
@@ -338,19 +351,6 @@ export default function PaymentFlow() {
     }
   };
 
-  const formatAmount = (amount: string, currency: string) => {
-    const symbol = CURRENCY_SYMBOLS[currency] || currency;
-    const number = parseFloat(amount);
-    if (currency === 'XLM') return `${number.toFixed(2)} ${symbol}`;
-    return `${symbol}${number.toFixed(2)}`;
-  };
-
-  const formatUsdEquivalent = (amount: string): string | null => {
-    if (!xlmPriceUsd) return null;
-    const usd = parseFloat(amount) * xlmPriceUsd;
-    return usd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
-
   const checkoutStage = (() => {
     if (step === 'success' || invoice?.status === 'PAID') return 3;
     if (step === 'confirming' || step === 'paying') return 2;
@@ -561,9 +561,9 @@ export default function PaymentFlow() {
                 <span className="text-xl font-bold font-mono text-stellar-700 sm:text-2xl">
                   {formatAmount(invoice.total, invoice.currency)}
                 </span>
-                {invoice.currency === 'XLM' && formatUsdEquivalent(invoice.total) && (
+                {invoice.currency === 'XLM' && formatUsdEquivalent(invoice.total, xlmPriceUsd) && (
                   <p className="text-xs text-stellar-500 mt-0.5">
-                    {t('payment.usdEquivalent', { amount: formatUsdEquivalent(invoice.total)! })}
+                    {t('payment.usdEquivalent', { amount: formatUsdEquivalent(invoice.total, xlmPriceUsd)! })}
                   </p>
                 )}
               </div>
