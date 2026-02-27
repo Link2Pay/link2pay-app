@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Home } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import LanguageToggle from '../components/LanguageToggle';
 import BrandMark from '../components/BrandMark';
@@ -185,8 +186,9 @@ export default function RoleSelect() {
         <div className="mb-4 flex items-center justify-between gap-2">
           <Link
             to="/"
-            className="text-sm text-muted-foreground transition-colors hover:text-stellar-500"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1.5 text-sm font-medium text-foreground shadow-sm transition-all hover:border-primary/40 hover:bg-primary/10 hover:text-primary"
           >
+            <Home className="h-3.5 w-3.5" />
             {copy.homeLink}
           </Link>
           <div className="flex gap-2">
@@ -295,8 +297,12 @@ export default function RoleSelect() {
           </div>
 
           <div className="mt-6 text-center">
-            <Link to="/checkout" className="text-sm text-muted-foreground hover:text-stellar-500 transition-colors">
+            <Link
+              to="/checkout"
+              className="mx-auto inline-flex w-full items-center justify-center gap-2 rounded-full border border-primary/35 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary shadow-sm transition-all hover:border-primary/60 hover:bg-primary/15 sm:w-auto"
+            >
               {copy.payerLink}
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
