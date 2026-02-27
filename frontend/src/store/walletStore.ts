@@ -40,6 +40,7 @@ const MESSAGES: Record<
     freighterNotDetected: string;
     siteNotConnected: string;
     publicKeyMissing: string;
+    networkMismatch: string;
     failedConnectWallet: string;
     walletNotConnected: string;
     unexpectedFreighterResponse: string;
@@ -53,6 +54,8 @@ const MESSAGES: Record<
     freighterNotDetected: 'Freighter wallet not detected. Please install the Freighter browser extension.',
     siteNotConnected: 'This site is not connected to Freighter. Open Freighter and allow access, then try again.',
     publicKeyMissing: 'Could not get public key. Please unlock Freighter and try again.',
+    networkMismatch:
+      'Network mismatch: You selected {selected} but Freighter wallet is on {freighter}. Please switch your Freighter wallet to {selected}, disconnect and reconnect your wallet.',
     failedConnectWallet: 'Failed to connect wallet',
     walletNotConnected: 'Wallet not connected',
     unexpectedFreighterResponse: 'Unexpected response from Freighter',
@@ -65,6 +68,8 @@ const MESSAGES: Record<
     freighterNotDetected: 'No se detecto Freighter. Instala la extension de Freighter en tu navegador.',
     siteNotConnected: 'Este sitio no esta conectado a Freighter. Abre Freighter y permite el acceso, luego intenta de nuevo.',
     publicKeyMissing: 'No se pudo obtener la clave publica. Desbloquea Freighter e intenta de nuevo.',
+    networkMismatch:
+      'Red incorrecta: Seleccionaste {selected} pero Freighter está en {freighter}. Cambia tu wallet Freighter a {selected}, desconecta y vuelve a conectar.',
     failedConnectWallet: 'No se pudo conectar la wallet',
     walletNotConnected: 'Wallet no conectada',
     unexpectedFreighterResponse: 'Respuesta inesperada de Freighter',
@@ -77,6 +82,8 @@ const MESSAGES: Record<
     freighterNotDetected: 'Freighter nao foi detectado. Instale a extensao Freighter no navegador.',
     siteNotConnected: 'Este site nao esta conectado ao Freighter. Abra o Freighter e permita o acesso, depois tente novamente.',
     publicKeyMissing: 'Nao foi possivel obter a chave publica. Desbloqueie o Freighter e tente novamente.',
+    networkMismatch:
+      'Rede incorreta: Você selecionou {selected} mas o Freighter está em {freighter}. Mude a carteira Freighter para {selected}, desconecte e conecte novamente.',
     failedConnectWallet: 'Falha ao conectar a wallet',
     walletNotConnected: 'Wallet nao conectada',
     unexpectedFreighterResponse: 'Resposta inesperada do Freighter',
@@ -91,6 +98,15 @@ const getMessage = (key: keyof (typeof MESSAGES)['en']) => {
   const language = getActiveLanguage();
   return MESSAGES[language][key];
 };
+
+const networkName = (passphrase: string | null | undefined): 'TESTNET' | 'MAINNET' =>
+  passphrase === TESTNET_PASSPHRASE ? 'TESTNET' : 'MAINNET';
+
+const formatNetworkMismatchMessage = (selected: string, freighter: string) =>
+  getMessage('networkMismatch')
+    .replace('{selected}', selected)
+    .replace('{freighter}', freighter)
+    .replace('{selected}', selected);
 
 function normalizeFreighterNetwork(value: unknown): string | null {
   if (!value) return null;
@@ -213,6 +229,22 @@ async function getFreighterPublicKey(f: any): Promise<string | null> {
   return null;
 }
 
+async function getFreighterNetworkPassphrase(f: any): Promise<string | null> {
+  if (f.getNetworkDetails) {
+    const networkDetails = await f.getNetworkDetails();
+    const normalized = normalizeFreighterNetwork(networkDetails);
+    if (normalized) return normalized;
+  }
+
+  if (f.getNetwork) {
+    const network = await f.getNetwork();
+    const normalized = normalizeFreighterNetwork(network);
+    if (normalized) return normalized;
+  }
+
+  return null;
+}
+
 export const useWalletStore = create<WalletState>()(
   persist(
     (set, get) => ({
@@ -242,6 +274,18 @@ export const useWalletStore = create<WalletState>()(
 
           // If the current Freighter account matches our stored one, restore the connection
           if (currentPublicKey === state.publicKey) {
+            const selectedNetwork = useNetworkStore.getState().networkPassphrase;
+            const freighterNetwork = await getFreighterNetworkPassphrase(f);
+
+            if (freighterNetwork && freighterNetwork !== selectedNetwork) {
+              const message = formatNetworkMismatchMessage(
+                networkName(selectedNetwork),
+                networkName(freighterNetwork)
+              );
+              set({ connected: false, publicKey: null, error: message });
+              return;
+            }
+
             set({ connected: true, error: null });
           } else {
             // Account changed or not available, clear stored state
@@ -264,6 +308,17 @@ export const useWalletStore = create<WalletState>()(
 
       if (!publicKey) {
         throw new Error(getMessage('publicKeyMissing'));
+      }
+
+      const selectedNetwork = useNetworkStore.getState().networkPassphrase;
+      const freighterNetwork = await getFreighterNetworkPassphrase(f);
+      if (freighterNetwork && freighterNetwork !== selectedNetwork) {
+        throw new Error(
+          formatNetworkMismatchMessage(
+            networkName(selectedNetwork),
+            networkName(freighterNetwork)
+          )
+        );
       }
 
       set({
@@ -444,5 +499,4 @@ export const useWalletStore = create<WalletState>()(
     }
   )
 );
-
 
