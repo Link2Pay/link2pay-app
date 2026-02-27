@@ -16,8 +16,8 @@ type CopyBlock = {
   amount: string;
   asset: string;
   expires: string;
-  expiresValue: string;
-  fixedLabel: string;
+  expiresMinutesGroup: string;
+  expiresHoursGroup: string;
   activateNewAccounts: string;
   activateHint: string;
   activateXlmOnlyHint: string;
@@ -45,8 +45,8 @@ const COPY: Record<Language, CopyBlock> = {
     amount: 'Amount',
     asset: 'Token',
     expires: 'Expiration',
-    expiresValue: '15 minutes',
-    fixedLabel: 'Fixed',
+    expiresMinutesGroup: 'Minutes',
+    expiresHoursGroup: 'Hours',
     activateNewAccounts: 'Activate new account if destination is not funded',
     activateHint: 'XLM only. Uses create-account on first payment when needed.',
     activateXlmOnlyHint: 'Available only for XLM links.',
@@ -73,8 +73,8 @@ const COPY: Record<Language, CopyBlock> = {
     amount: 'Monto',
     asset: 'Token',
     expires: 'Expiración',
-    expiresValue: '15 minutos',
-    fixedLabel: 'Fijo',
+    expiresMinutesGroup: 'Minutos',
+    expiresHoursGroup: 'Horas',
     activateNewAccounts: 'Activar cuenta nueva si el destino no esta fondeado',
     activateHint: 'Solo XLM. Usa create-account en el primer pago si es necesario.',
     activateXlmOnlyHint: 'Disponible solo en links XLM.',
@@ -101,8 +101,8 @@ const COPY: Record<Language, CopyBlock> = {
     amount: 'Valor',
     asset: 'Token',
     expires: 'Expiração',
-    expiresValue: '15 minutos',
-    fixedLabel: 'Fixo',
+    expiresMinutesGroup: 'Minutos',
+    expiresHoursGroup: 'Horas',
     activateNewAccounts: 'Ativar conta nova se o destino nao estiver fondeado',
     activateHint: 'Somente XLM. Usa create-account no primeiro pagamento quando necessario.',
     activateXlmOnlyHint: 'Disponivel apenas para links XLM.',
@@ -124,6 +124,20 @@ const COPY: Record<Language, CopyBlock> = {
   },
 };
 
+const EXPIRATION_OPTIONS = [
+  { value: 15, label: '15m', group: 'minutes' },
+  { value: 30, label: '30m', group: 'minutes' },
+  { value: 60, label: '1h', group: 'hours' },
+  { value: 120, label: '2h', group: 'hours' },
+  { value: 240, label: '4h', group: 'hours' },
+  { value: 480, label: '8h', group: 'hours' },
+  { value: 720, label: '12h', group: 'hours' },
+  { value: 1440, label: '24h', group: 'hours' },
+  { value: 2880, label: '48h', group: 'hours' },
+] as const;
+
+const HERO_PREVIEW_REFERENCE = '__hero_preview_v1__';
+
 export default function HeroQuickLink() {
   const { language } = useI18n();
   const copy = COPY[language];
@@ -132,6 +146,7 @@ export default function HeroQuickLink() {
 
   const [asset, setAsset] = useState<Asset>('USDC');
   const [amount, setAmount] = useState<number>(199);
+  const [expirationMinutes, setExpirationMinutes] = useState<number>(15);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -182,7 +197,7 @@ export default function HeroQuickLink() {
         return;
       }
 
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      const expiresAt = new Date(Date.now() + expirationMinutes * 60 * 1000).toISOString();
       const result = await createLink(
         {
           amount: Number(numericAmount.toFixed(2)),
@@ -190,6 +205,9 @@ export default function HeroQuickLink() {
           activateNewAccounts: asset === 'XLM' && activateNewAccounts,
           expiresAt,
           networkPassphrase,
+          metadata: {
+            reference: HERO_PREVIEW_REFERENCE,
+          },
         },
         walletAddress
       );
@@ -282,10 +300,30 @@ export default function HeroQuickLink() {
             <label className="mb-2 block text-[13px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
               {copy.expires}
             </label>
-            <div className="input flex items-center justify-between bg-muted/40 text-lg text-foreground">
-              <span>{copy.expiresValue}</span>
-              <span className="text-xs text-muted-foreground">{copy.fixedLabel}</span>
-            </div>
+            <select
+              value={expirationMinutes}
+              onChange={(e) => setExpirationMinutes(Number(e.target.value))}
+              className="input text-lg"
+            >
+              <optgroup label={copy.expiresMinutesGroup}>
+                {EXPIRATION_OPTIONS
+                  .filter((option) => option.group === 'minutes')
+                  .map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label={copy.expiresHoursGroup}>
+                {EXPIRATION_OPTIONS
+                  .filter((option) => option.group === 'hours')
+                  .map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+              </optgroup>
+            </select>
           </div>
         </div>
 
@@ -324,44 +362,43 @@ export default function HeroQuickLink() {
       </form>
 
       <div className="rounded-2xl border border-border/70 bg-background/70 p-4 lg:p-5">
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
             <LinkIcon className="h-4 w-4 text-primary" />
             {copy.checkoutLabel}
           </div>
-          <div className="flex flex-1 items-center gap-3">
-            <div className="flex-1 rounded-lg border border-border bg-card/80 px-3 py-2 text-sm text-foreground">
-              {linkUrl ? (
-                <code className="block break-all">{linkUrl}</code>
-              ) : (
-                <span className="text-muted-foreground">{copy.previewPlaceholder}</span>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={handleCopy}
-                disabled={!linkUrl}
-                className="btn-secondary px-3 py-2 text-sm"
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCopy}
+              disabled={!linkUrl}
+              className="btn-secondary px-3 py-2 text-sm"
+            >
+              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? copy.copied : copy.copyLink}
+            </button>
+            {linkUrl && (
+              <a
+                href={linkUrl}
+                className="btn-primary px-3 py-2 text-sm"
+                target="_blank"
+                rel="noreferrer"
               >
-                {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                {copied ? copy.copied : copy.copyLink}
-              </button>
-              {linkUrl && (
-                <a
-                  href={linkUrl}
-                  className="btn-primary px-3 py-2 text-sm"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {copy.openCheckout}
-                </a>
-              )}
-            </div>
+                {copy.openCheckout}
+              </a>
+            )}
           </div>
+        </div>
+        <div className="mt-3 rounded-lg border border-border bg-card/80 px-3 py-2.5 text-sm text-foreground">
+          {linkUrl ? (
+            <code className="block break-all whitespace-pre-wrap font-mono text-[13px] leading-relaxed">
+              {linkUrl}
+            </code>
+          ) : (
+            <span className="text-muted-foreground">{copy.previewPlaceholder}</span>
+          )}
         </div>
       </div>
     </div>
   );
 }
-

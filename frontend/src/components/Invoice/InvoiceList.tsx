@@ -96,7 +96,10 @@ export default function InvoiceList() {
 
   const { data, isLoading: loading } = useQuery({
     queryKey: ['invoices', publicKey, filter, page],
-    queryFn: () => listInvoices(publicKey!, filter || undefined, PAGE_SIZE, page * PAGE_SIZE),
+    queryFn: () =>
+      listInvoices(publicKey!, filter || undefined, PAGE_SIZE, page * PAGE_SIZE, {
+        excludePreview: true,
+      }),
     enabled: !!publicKey,
     placeholderData: (prev) => prev,
   });

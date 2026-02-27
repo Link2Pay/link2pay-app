@@ -148,7 +148,7 @@ export default function Transactions() {
     if (!publicKey) return;
 
     setLoading(true);
-    listInvoices(publicKey, undefined, 100, 0)
+    listInvoices(publicKey, undefined, 100, 0, { excludePreview: true })
       .then(({ invoices: rows }) => setInvoices(Array.isArray(rows) ? rows : []))
       .catch(() => setInvoices([]))
       .finally(() => setLoading(false));

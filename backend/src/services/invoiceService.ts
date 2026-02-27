@@ -4,6 +4,8 @@ import { generateInvoiceNumber } from '../utils/generators';
 import { config } from '../config';
 import prisma from '../db';
 
+const HERO_PREVIEW_REFERENCE_LINE = 'Reference: __hero_preview_v1__';
+
 export class InvoiceService {
   /**
    * Create a new invoice with line items
@@ -149,12 +151,20 @@ export class InvoiceService {
     freelancerWallet: string,
     status?: InvoiceStatus,
     limit = 50,
-    offset = 0
+    offset = 0,
+    excludePreview = false
   ) {
     const where = {
       freelancerWallet,
       deletedAt: null, // exclude soft-deleted
       ...(status && { status }),
+      ...(excludePreview && {
+        NOT: {
+          notes: {
+            contains: HERO_PREVIEW_REFERENCE_LINE,
+          },
+        },
+      }),
     };
 
     const [invoices, total] = await Promise.all([
@@ -380,18 +390,29 @@ export class InvoiceService {
   /**
    * Get dashboard stats for a freelancer
    */
-  async getDashboardStats(freelancerWallet: string) {
+  async getDashboardStats(freelancerWallet: string, excludePreview = false) {
+    const whereWithPreviewFilter = {
+      freelancerWallet,
+      ...(excludePreview && {
+        NOT: {
+          notes: {
+            contains: HERO_PREVIEW_REFERENCE_LINE,
+          },
+        },
+      }),
+    } satisfies Prisma.InvoiceWhereInput;
+
     const [totalInvoices, paidInvoices, pendingInvoices, allInvoices] =
       await Promise.all([
-        prisma.invoice.count({ where: { freelancerWallet } }),
+        prisma.invoice.count({ where: whereWithPreviewFilter }),
         prisma.invoice.count({
-          where: { freelancerWallet, status: 'PAID' },
+          where: { ...whereWithPreviewFilter, status: 'PAID' },
         }),
         prisma.invoice.count({
-          where: { freelancerWallet, status: 'PENDING' },
+          where: { ...whereWithPreviewFilter, status: 'PENDING' },
         }),
         prisma.invoice.findMany({
-          where: { freelancerWallet },
+          where: whereWithPreviewFilter,
           select: { total: true, status: true, currency: true },
         }),
       ]);

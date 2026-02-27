@@ -8,6 +8,7 @@ import {
   createInvoiceSchema,
 } from '../middleware/validation';
 import { InvoiceStatus } from '@prisma/client';
+import { log } from '../utils/logger';
 
 const router = Router();
 
@@ -19,7 +20,7 @@ const router = Router();
 const createInvoiceLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 20,
-  keyGenerator: (req) => (req as any).walletAddress || req.ip || 'unknown',
+  keyGenerator: (req) => req.walletAddress || req.ip || 'unknown',
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Invoice creation limit reached. Maximum 20 invoices per hour per wallet.' },
@@ -36,7 +37,7 @@ router.post(
   validateBody(createInvoiceSchema),
   async (req: Request, res: Response) => {
     try {
-      const walletAddress = (req as any).walletAddress;
+      const walletAddress = req.walletAddress as string;
 
       // Ensure the freelancer wallet matches the authenticated wallet
       if (req.body.freelancerWallet !== walletAddress) {
@@ -58,15 +59,15 @@ router.post(
             isFavorite: req.body.favoriteClient ?? false,
           });
         } catch (clientErr) {
-          console.error('Failed to auto-save client:', clientErr);
+          log.warn('Failed to auto-save client', { error: (clientErr as Error)?.message });
           // Non-fatal — invoice was already created
         }
       }
 
       res.status(201).json(invoice);
     } catch (error: any) {
-      console.error('Create invoice error:', error);
-      res.status(500).json({ error: error.message });
+      log.error('Create invoice error', { error: error?.message });
+      res.status(500).json({ error: 'Failed to create invoice' });
     }
   }
 );
@@ -77,16 +78,23 @@ router.post(
  */
 router.get('/', requireWallet, async (req: Request, res: Response) => {
   try {
-    const walletAddress = (req as any).walletAddress;
+    const walletAddress = req.walletAddress as string;
     const status = req.query.status as InvoiceStatus | undefined;
     const limit = Math.min(parseInt((req.query.limit as string) || '50', 10), 100);
     const offset = Math.max(parseInt((req.query.offset as string) || '0', 10), 0);
+    const excludePreview = req.query.excludePreview === 'true';
 
-    const result = await invoiceService.listInvoices(walletAddress, status, limit, offset);
+    const result = await invoiceService.listInvoices(
+      walletAddress,
+      status,
+      limit,
+      offset,
+      excludePreview
+    );
     res.json(result);
   } catch (error: any) {
-    console.error('List invoices error:', error);
-    res.status(500).json({ error: error.message });
+    log.error('List invoices error', { error: error?.message });
+    res.status(500).json({ error: 'Failed to list invoices' });
   }
 });
 
@@ -96,12 +104,13 @@ router.get('/', requireWallet, async (req: Request, res: Response) => {
  */
 router.get('/stats', requireWallet, async (req: Request, res: Response) => {
   try {
-    const walletAddress = (req as any).walletAddress;
-    const stats = await invoiceService.getDashboardStats(walletAddress);
+    const walletAddress = req.walletAddress as string;
+    const excludePreview = req.query.excludePreview === 'true';
+    const stats = await invoiceService.getDashboardStats(walletAddress, excludePreview);
     res.json(stats);
   } catch (error: any) {
-    console.error('Stats error:', error);
-    res.status(500).json({ error: error.message });
+    log.error('Get invoice stats error', { error: error?.message });
+    res.status(500).json({ error: 'Failed to fetch invoice stats' });
   }
 });
 
@@ -115,13 +124,13 @@ router.get('/:id/owner', requireWallet, async (req: Request, res: Response) => {
     if (!invoice) {
       return res.status(404).json({ error: 'Invoice not found' });
     }
-    if (invoice.freelancerWallet !== (req as any).walletAddress) {
+    if (invoice.freelancerWallet !== req.walletAddress) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
     res.json(invoice);
   } catch (error: any) {
-    console.error('Get owner invoice error:', error);
-    res.status(500).json({ error: error.message });
+    log.error('Get owner invoice error', { error: error?.message });
+    res.status(500).json({ error: 'Failed to fetch invoice' });
   }
 });
 
@@ -137,8 +146,8 @@ router.get('/:id', async (req: Request, res: Response) => {
     }
     res.json(invoice);
   } catch (error: any) {
-    console.error('Get invoice error:', error);
-    res.status(500).json({ error: error.message });
+    log.error('Get public invoice error', { error: error?.message });
+    res.status(500).json({ error: 'Failed to fetch invoice' });
   }
 });
 
@@ -157,8 +166,8 @@ router.patch('/:id', requireWallet, async (req: Request, res: Response) => {
     if (error.message === 'Invoice not found') {
       return res.status(404).json({ error: error.message });
     }
-    console.error('Update invoice error:', error);
-    res.status(500).json({ error: error.message });
+    log.error('Update invoice error', { error: error?.message });
+    res.status(500).json({ error: 'Failed to update invoice' });
   }
 });
 
@@ -172,7 +181,7 @@ router.post('/:id/send', requireWallet, async (req: Request, res: Response) => {
     if (!invoice) {
       return res.status(404).json({ error: 'Invoice not found' });
     }
-    if (invoice.freelancerWallet !== (req as any).walletAddress) {
+    if (invoice.freelancerWallet !== req.walletAddress) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
     if (invoice.status !== 'DRAFT') {
@@ -182,14 +191,19 @@ router.post('/:id/send', requireWallet, async (req: Request, res: Response) => {
     const updated = await invoiceService.updateStatus(req.params.id, 'PENDING');
     // Fire-and-forget audit log — non-fatal
     invoiceService
-      .addAuditLog(req.params.id, 'SENT', (req as any).walletAddress, {
+      .addAuditLog(req.params.id, 'SENT', req.walletAddress as string, {
         status: { from: 'DRAFT', to: 'PENDING' },
       })
-      .catch(() => {});
+      .catch((auditError: unknown) => {
+        log.warn('Audit log failed for invoice send', {
+          invoiceId: req.params.id,
+          error: (auditError as Error)?.message,
+        });
+      });
     res.json(updated);
   } catch (error: any) {
-    console.error('Send invoice error:', error);
-    res.status(500).json({ error: error.message });
+    log.error('Send invoice error', { error: error?.message });
+    res.status(500).json({ error: 'Failed to send invoice' });
   }
 });
 
@@ -199,7 +213,7 @@ router.post('/:id/send', requireWallet, async (req: Request, res: Response) => {
  */
 router.delete('/:id', requireWallet, async (req: Request, res: Response) => {
   try {
-    const walletAddress = (req as any).walletAddress;
+    const walletAddress = req.walletAddress as string;
     await invoiceService.deleteInvoice(req.params.id, walletAddress);
     res.json({ success: true });
   } catch (error: any) {
@@ -209,8 +223,8 @@ router.delete('/:id', requireWallet, async (req: Request, res: Response) => {
     if (error.message.includes('DRAFT')) {
       return res.status(400).json({ error: error.message });
     }
-    console.error('Delete invoice error:', error);
-    res.status(500).json({ error: error.message });
+    log.error('Delete invoice error', { error: error?.message });
+    res.status(500).json({ error: 'Failed to delete invoice' });
   }
 });
 

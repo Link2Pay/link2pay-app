@@ -146,12 +146,14 @@ export async function listInvoices(
   walletAddress: string,
   status?: string,
   limit = 50,
-  offset = 0
+  offset = 0,
+  options?: { excludePreview?: boolean }
 ): Promise<{ invoices: Invoice[]; total: number }> {
   const params = new URLSearchParams();
   if (status) params.set('status', status);
   params.set('limit', String(limit));
   params.set('offset', String(offset));
+  if (options?.excludePreview) params.set('excludePreview', 'true');
   return request<{ invoices: Invoice[]; total: number }>(
     `/invoices?${params.toString()}`,
     {},
@@ -208,9 +210,11 @@ export async function deleteInvoice(
 }
 
 export async function getDashboardStats(
-  walletAddress: string
+  walletAddress: string,
+  options?: { excludePreview?: boolean }
 ): Promise<DashboardStats> {
-  return request<DashboardStats>('/invoices/stats', {}, walletAddress);
+  const path = options?.excludePreview ? '/invoices/stats?excludePreview=true' : '/invoices/stats';
+  return request<DashboardStats>(path, {}, walletAddress);
 }
 
 // Payment Link API ---------------------------------------------------

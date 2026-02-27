@@ -170,13 +170,13 @@ export default function Dashboard() {
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['dashboardStats', publicKey],
-    queryFn: () => getDashboardStats(publicKey!),
+    queryFn: () => getDashboardStats(publicKey!, { excludePreview: true }),
     enabled: !!publicKey,
   });
 
   const { data: invoiceResult, isLoading: invoicesLoading } = useQuery({
     queryKey: ['invoices', publicKey, 50, 0],
-    queryFn: () => listInvoices(publicKey!, undefined, 50, 0),
+    queryFn: () => listInvoices(publicKey!, undefined, 50, 0, { excludePreview: true }),
     enabled: !!publicKey,
   });
 

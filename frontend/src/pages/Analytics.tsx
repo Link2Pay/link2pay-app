@@ -163,7 +163,10 @@ export default function Analytics() {
     if (!publicKey) return;
 
     setLoading(true);
-    Promise.all([getDashboardStats(publicKey), listInvoices(publicKey, undefined, 200, 0)])
+    Promise.all([
+      getDashboardStats(publicKey, { excludePreview: true }),
+      listInvoices(publicKey, undefined, 200, 0, { excludePreview: true }),
+    ])
       .then(([dashboardStats, result]) => {
         setStats(dashboardStats);
         setInvoices(Array.isArray(result?.invoices) ? result.invoices : []);
