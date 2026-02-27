@@ -18,6 +18,7 @@ import { useNetworkStore } from '../../store/networkStore';
 import { useActorWallet } from '../../hooks/useActorWallet';
 import type { Currency, PaymentLink } from '../../types';
 import type { Language } from '../../i18n/translations';
+import { config } from '../../config';
 
 type ProFeature =
   | 'customExpiry'
@@ -25,7 +26,8 @@ type ProFeature =
   | 'redirectUrl'
   | 'reusable'
   | 'variable'
-  | 'webhooks';
+  | 'webhooks'
+  | 'changeWallet';
 
 interface MetadataEntry {
   id: string;
@@ -107,21 +109,21 @@ const COPY: Record<Language, CopyBlock> = {
     amountPlaceholder: '0.00',
     asset: 'Asset',
     expiresIn: 'Expires in',
-    expiresLocked: '15 minutes (Free)',
-    paymentReason: 'Payment reason',
-    paymentReasonPlaceholder: 'Subscription renewal, service fee, etc.',
-    memo: 'Description / memo',
+    expiresLocked: '15 minutes',
+    paymentReason: 'Reference ID',
+    paymentReasonPlaceholder: 'order_10291',
+    memo: 'Memo (optional)',
     memoPlaceholder: 'Optional short memo shown in the link metadata.',
     receiverSection: 'Receiver',
     payoutWallet: 'Payout wallet',
-    payoutWalletHint: 'Auto-filled from your connected account. Multiple payout wallets are not enabled on Free.',
+    payoutWalletHint: 'Auto-filled from your connected account.',
     outputSection: 'Output',
-    outputHint: 'Generate the link, then share checkout URL, QR, or status page.',
+    outputHint: 'Generate the link, then copy checkout URL, link ID, and status endpoint.',
     generateLink: 'Generate Link',
     generating: 'Generating...',
     checkoutLink: 'Checkout link',
     statusPage: 'Status page',
-    copyLink: 'Copy link',
+    copyLink: 'Copy',
     copied: 'Copied',
     openCheckout: 'Open checkout',
     openStatus: 'Open status',
@@ -166,21 +168,21 @@ const COPY: Record<Language, CopyBlock> = {
     amountPlaceholder: '0.00',
     asset: 'Activo',
     expiresIn: 'Expira en',
-    expiresLocked: '15 minutos (Free)',
-    paymentReason: 'Motivo del pago',
-    paymentReasonPlaceholder: 'Renovacion, tarifa de servicio, etc.',
-    memo: 'Descripcion / memo',
+    expiresLocked: '15 minutos',
+    paymentReason: 'Referencia ID',
+    paymentReasonPlaceholder: 'orden_10291',
+    memo: 'Memo (opcional)',
     memoPlaceholder: 'Memo corto opcional en los metadatos del link.',
     receiverSection: 'Receptor',
     payoutWallet: 'Wallet de cobro',
-    payoutWalletHint: 'Se completa automaticamente desde tu cuenta conectada. Multiples wallets no estan habilitadas en Free.',
+    payoutWalletHint: 'Se completa automaticamente desde tu cuenta conectada.',
     outputSection: 'Salida',
-    outputHint: 'Genera el link y comparte URL, QR o pagina de estado.',
+    outputHint: 'Genera el link y copia URL checkout, ID y endpoint de estado.',
     generateLink: 'Generar Link',
     generating: 'Generando...',
     checkoutLink: 'Link de checkout',
     statusPage: 'Pagina de estado',
-    copyLink: 'Copiar link',
+    copyLink: 'Copiar',
     copied: 'Copiado',
     openCheckout: 'Abrir checkout',
     openStatus: 'Abrir estado',
@@ -225,21 +227,21 @@ const COPY: Record<Language, CopyBlock> = {
     amountPlaceholder: '0.00',
     asset: 'Ativo',
     expiresIn: 'Expira em',
-    expiresLocked: '15 minutos (Free)',
-    paymentReason: 'Motivo do pagamento',
-    paymentReasonPlaceholder: 'Renovacao, taxa de servico, etc.',
-    memo: 'Descricao / memo',
+    expiresLocked: '15 minutos',
+    paymentReason: 'Referencia ID',
+    paymentReasonPlaceholder: 'ordem_10291',
+    memo: 'Memo (opcional)',
     memoPlaceholder: 'Memo curto opcional nos metadados do link.',
     receiverSection: 'Recebedor',
     payoutWallet: 'Wallet de recebimento',
-    payoutWalletHint: 'Preenchida automaticamente da conta conectada. Multiplas wallets nao estao habilitadas no Free.',
+    payoutWalletHint: 'Preenchida automaticamente da conta conectada.',
     outputSection: 'Saida',
-    outputHint: 'Gere o link e compartilhe URL, QR ou pagina de status.',
+    outputHint: 'Gere o link e copie URL checkout, ID e endpoint de status.',
     generateLink: 'Gerar Link',
     generating: 'Gerando...',
     checkoutLink: 'Link de checkout',
     statusPage: 'Pagina de status',
-    copyLink: 'Copiar link',
+    copyLink: 'Copiar',
     copied: 'Copiado',
     openCheckout: 'Abrir checkout',
     openStatus: 'Abrir status',
@@ -276,7 +278,7 @@ const COPY: Record<Language, CopyBlock> = {
   },
 };
 
-function buildReference(entries: MetadataEntry[]): string | undefined {
+function buildReference(referenceId: string, entries: MetadataEntry[]): string | undefined {
   const parts = entries
     .map((entry) => ({
       key: entry.key.trim(),
@@ -284,6 +286,10 @@ function buildReference(entries: MetadataEntry[]): string | undefined {
     }))
     .filter((entry) => entry.key && entry.value)
     .map((entry) => `${entry.key}:${entry.value}`);
+
+  if (referenceId.trim()) {
+    parts.unshift(`ref:${referenceId.trim()}`);
+  }
 
   if (!parts.length) return undefined;
   return parts.join('|').slice(0, MAX_REFERENCE_LENGTH);
@@ -303,6 +309,8 @@ function getProMessage(copy: CopyBlock, feature: ProFeature): string {
       return copy.proVariable;
     case 'webhooks':
       return copy.proWebhooks;
+    case 'changeWallet':
+      return 'Multiple payout wallets are Pro.';
     default:
       return copy.proCustomExpiry;
   }
@@ -328,7 +336,7 @@ export default function InvoiceForm() {
     { id: 'meta-1', key: '', value: '' },
   ]);
   const [createdLink, setCreatedLink] = useState<PaymentLink | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   const [proFeature, setProFeature] = useState<ProFeature | null>(null);
 
   useEffect(() => {
@@ -338,20 +346,32 @@ export default function InvoiceForm() {
   }, [actorWallet]);
 
   useEffect(() => {
-    if (!copied) return;
-    const timer = window.setTimeout(() => setCopied(false), 1500);
+    if (!copiedField) return;
+    const timer = window.setTimeout(() => setCopiedField(null), 1500);
     return () => window.clearTimeout(timer);
-  }, [copied]);
+  }, [copiedField]);
 
   const metadataReference = useMemo(
-    () => buildReference(metadataEntries),
-    [metadataEntries]
+    () => buildReference(paymentReason, metadataEntries),
+    [metadataEntries, paymentReason]
   );
 
+  const linkId = createdLink?.legacyInvoiceId || createdLink?.id || null;
+
   const statusUrl = useMemo(() => {
-    if (!createdLink || typeof window === 'undefined') return null;
-    return `${window.location.origin}/app/links/${createdLink.legacyInvoiceId || createdLink.id}`;
-  }, [createdLink]);
+    if (!linkId || typeof window === 'undefined') return null;
+    return `${window.location.origin}/app/links/${linkId}`;
+  }, [linkId]);
+
+  const statusEndpointPath = useMemo(() => {
+    if (!linkId) return null;
+    return `GET /links/${linkId}`;
+  }, [linkId]);
+
+  const statusEndpointCurl = useMemo(() => {
+    if (!linkId) return null;
+    return `curl -H "Authorization: Bearer <l2p_sk_...>" "${config.apiUrl}/api/links/${linkId}"`;
+  }, [linkId]);
 
   const qrUrl = useMemo(() => {
     if (!createdLink) return null;
@@ -383,11 +403,11 @@ export default function InvoiceForm() {
     );
   };
 
-  const handleCopyLink = async () => {
-    if (!createdLink?.checkoutUrl) return;
+  const handleCopyValue = async (value: string | null, key: string) => {
+    if (!value) return;
     try {
-      await navigator.clipboard.writeText(createdLink.checkoutUrl);
-      setCopied(true);
+      await navigator.clipboard.writeText(value);
+      setCopiedField(key);
     } catch {
       // no-op
     }
@@ -517,20 +537,17 @@ export default function InvoiceForm() {
               <label className="label" htmlFor="payment-expiry">
                 {copy.expiresIn}
               </label>
-              <div
-                id="payment-expiry"
-                className="input flex items-center justify-between bg-surface-1 text-ink-1"
+              <select id="payment-expiry" className="input" value={FREE_EXPIRY_MINUTES} disabled>
+                <option value={FREE_EXPIRY_MINUTES}>{copy.expiresLocked}</option>
+              </select>
+              <button
+                type="button"
+                className="mt-2 inline-flex items-center gap-1 text-xs text-ink-3 hover:text-ink-1"
+                onClick={() => setProFeature('customExpiry')}
               >
-                <span>{copy.expiresLocked}</span>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1 text-xs text-ink-3 hover:text-ink-1"
-                  onClick={() => setProFeature('customExpiry')}
-                >
-                  <Lock className="h-3.5 w-3.5" />
-                  {copy.proBadge}
-                </button>
-              </div>
+                <Lock className="h-3.5 w-3.5" />
+                Custom expiry (Pro)
+              </button>
             </div>
           </div>
 
@@ -546,7 +563,7 @@ export default function InvoiceForm() {
                 placeholder={copy.paymentReasonPlaceholder}
                 value={paymentReason}
                 onChange={(e) => setPaymentReason(e.target.value)}
-                maxLength={300}
+                maxLength={120}
               />
             </div>
             <div>
@@ -581,6 +598,24 @@ export default function InvoiceForm() {
                 onChange={(e) => setRecipientWallet(e.target.value.trim())}
                 readOnly
               />
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleCopyValue(recipientWallet, 'wallet')}
+                  className="btn-secondary px-3 py-2 text-xs"
+                >
+                  {copiedField === 'wallet' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copiedField === 'wallet' ? copy.copied : copy.copyLink}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProFeature('changeWallet')}
+                  className="btn-secondary px-3 py-2 text-xs"
+                >
+                  <Lock className="h-3.5 w-3.5" />
+                  Change wallet (Pro)
+                </button>
+              </div>
               <p className="mt-2 text-xs text-ink-3">{copy.payoutWalletHint}</p>
             </div>
           </div>
@@ -616,11 +651,11 @@ export default function InvoiceForm() {
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={handleCopyLink}
+                    onClick={() => handleCopyValue(createdLink.checkoutUrl, 'checkout')}
                     className="btn-secondary px-3 py-2 text-xs"
                   >
-                    {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                    {copied ? copy.copied : copy.copyLink}
+                    {copiedField === 'checkout' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copiedField === 'checkout' ? copy.copied : copy.copyLink}
                   </button>
                   <a
                     href={createdLink.checkoutUrl}
@@ -633,6 +668,57 @@ export default function InvoiceForm() {
                   </a>
                 </div>
               </div>
+
+              {linkId && (
+                <div className="rounded-lg border border-border bg-surface-1 p-3">
+                  <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-ink-3">
+                    Link ID
+                  </div>
+                  <code className="block break-all text-xs text-ink-1">{linkId}</code>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyValue(linkId, 'id')}
+                    className="btn-secondary mt-3 px-3 py-2 text-xs"
+                  >
+                    {copiedField === 'id' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copiedField === 'id' ? copy.copied : copy.copyLink}
+                  </button>
+                </div>
+              )}
+
+              {statusEndpointPath && (
+                <div className="rounded-lg border border-border bg-surface-1 p-3">
+                  <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-ink-3">
+                    Status endpoint
+                  </div>
+                  <code className="block break-all text-xs text-ink-1">{statusEndpointPath}</code>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyValue(statusEndpointPath, 'endpoint')}
+                    className="btn-secondary mt-3 px-3 py-2 text-xs"
+                  >
+                    {copiedField === 'endpoint' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copiedField === 'endpoint' ? copy.copied : copy.copyLink}
+                  </button>
+                </div>
+              )}
+
+              {statusEndpointCurl && (
+                <div className="rounded-lg border border-border bg-surface-1 p-3">
+                  <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-ink-3">
+                    cURL snippet
+                  </div>
+                  <code className="block break-all text-xs text-ink-1">{statusEndpointCurl}</code>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyValue(statusEndpointCurl, 'curl')}
+                    className="btn-secondary mt-3 px-3 py-2 text-xs"
+                  >
+                    {copiedField === 'curl' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copiedField === 'curl' ? copy.copied : copy.copyLink}
+                  </button>
+                </div>
+              )}
 
               {statusUrl && (
                 <div className="rounded-lg border border-border bg-surface-1 p-3">

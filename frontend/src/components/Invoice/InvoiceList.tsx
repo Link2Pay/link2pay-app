@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Code2, KeyRound, Lock, Webhook } from 'lucide-react';
 import { listInvoices } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -24,6 +25,16 @@ const COPY: Record<Language, {
   colStatus: string;
   colAmount: string;
   colDate: string;
+  quickstartTitle: string;
+  quickstartDesc: string;
+  quickstartStep1: string;
+  quickstartStep2: string;
+  quickstartStep3: string;
+  quickstartDocs: string;
+  quickstartOpen: string;
+  tryNowTitle: string;
+  tryNowDesc: string;
+  tryNowCta: string;
 }> = {
   en: {
     title: 'Payment Links',
@@ -41,6 +52,16 @@ const COPY: Record<Language, {
     colStatus: 'Status',
     colAmount: 'Amount',
     colDate: 'Date',
+    quickstartTitle: 'Quickstart (Developers)',
+    quickstartDesc: 'Infrastructure path for production integrations.',
+    quickstartStep1: 'Get API key (Pro)',
+    quickstartStep2: 'Create link via API/SDK',
+    quickstartStep3: 'Confirm payment with polling/webhooks',
+    quickstartDocs: 'Read docs',
+    quickstartOpen: 'Open quickstart',
+    tryNowTitle: 'Try it now (No setup)',
+    tryNowDesc: 'Create a basic payment link on Free to validate your checkout flow.',
+    tryNowCta: 'Create a Link',
   },
   es: {
     title: 'Links de pago',
@@ -58,6 +79,16 @@ const COPY: Record<Language, {
     colStatus: 'Estado',
     colAmount: 'Monto',
     colDate: 'Fecha',
+    quickstartTitle: 'Quickstart (Desarrolladores)',
+    quickstartDesc: 'Ruta de infraestructura para integraciones en produccion.',
+    quickstartStep1: 'Obtener API key (Pro)',
+    quickstartStep2: 'Crear link via API/SDK',
+    quickstartStep3: 'Confirmar pago con polling/webhooks',
+    quickstartDocs: 'Leer docs',
+    quickstartOpen: 'Abrir quickstart',
+    tryNowTitle: 'Probar ahora (sin setup)',
+    tryNowDesc: 'Crea un link basico en Free para validar tu flujo de checkout.',
+    tryNowCta: 'Crear Link',
   },
   pt: {
     title: 'Links de pagamento',
@@ -75,6 +106,16 @@ const COPY: Record<Language, {
     colStatus: 'Status',
     colAmount: 'Valor',
     colDate: 'Data',
+    quickstartTitle: 'Quickstart (Desenvolvedores)',
+    quickstartDesc: 'Caminho de infraestrutura para integracoes em producao.',
+    quickstartStep1: 'Gerar API key (Pro)',
+    quickstartStep2: 'Criar link via API/SDK',
+    quickstartStep3: 'Confirmar pagamento via polling/webhooks',
+    quickstartDocs: 'Ler docs',
+    quickstartOpen: 'Abrir quickstart',
+    tryNowTitle: 'Teste agora (sem setup)',
+    tryNowDesc: 'Crie um link basico no Free para validar o fluxo de checkout.',
+    tryNowCta: 'Criar Link',
   },
 };
 
@@ -165,11 +206,45 @@ export default function InvoiceList() {
       {loading ? (
         <div className="card p-12 text-center text-ink-3 text-sm">{copy.loadingInvoices}</div>
       ) : invoices.length === 0 ? (
-        <div className="card p-12 text-center">
-          <p className="text-ink-3 text-sm mb-3">{copy.noInvoicesFound}</p>
-          <Link to="/app/create-link" className="btn-primary text-sm">
-            {copy.createFirstInvoice}
-          </Link>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="card p-5">
+            <h4 className="text-sm font-semibold text-ink-0">{copy.quickstartTitle}</h4>
+            <p className="mt-1 text-xs text-ink-3">{copy.quickstartDesc}</p>
+            <div className="mt-4 space-y-2 text-xs text-ink-2">
+              <div className="flex items-center gap-2 rounded-lg border border-surface-3 bg-surface-1 px-3 py-2">
+                <Lock className="h-3.5 w-3.5 text-amber-500" />
+                <span>{copy.quickstartStep1}</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-lg border border-surface-3 bg-surface-1 px-3 py-2">
+                <Code2 className="h-3.5 w-3.5 text-primary" />
+                <span>{copy.quickstartStep2}</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-lg border border-surface-3 bg-surface-1 px-3 py-2">
+                <Webhook className="h-3.5 w-3.5 text-emerald-600" />
+                <span>{copy.quickstartStep3}</span>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link to="/sdk" className="btn-secondary text-xs">
+                <KeyRound className="h-3.5 w-3.5" />
+                {copy.quickstartDocs}
+              </Link>
+              <Link to="/sdk" className="btn-secondary text-xs">
+                {copy.quickstartOpen}
+              </Link>
+            </div>
+          </div>
+
+          <div className="card p-5">
+            <h4 className="text-sm font-semibold text-ink-0">{copy.tryNowTitle}</h4>
+            <p className="mt-1 text-xs text-ink-3">{copy.tryNowDesc}</p>
+            <div className="mt-4 rounded-lg border border-dashed border-border bg-surface-1 p-4 text-xs text-ink-3">
+              {copy.noInvoicesFound}
+            </div>
+            <Link to="/app/create-link" className="btn-primary mt-4 text-sm">
+              {copy.tryNowCta}
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="card overflow-hidden">
