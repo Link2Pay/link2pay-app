@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Request, Response, NextFunction } from 'express';
+import { authService } from '../services/authService';
 
 // Zod schemas for request validation
 
@@ -172,8 +173,6 @@ export function requireWallet(
   }
 
   // Full cryptographic verification — no unauthenticated fallback.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { authService } = require('../services/authService');
   const valid = authService.verifySignature(walletAddress, nonce, signature);
   if (!valid) {
     return res.status(401).json({
@@ -181,7 +180,7 @@ export function requireWallet(
     });
   }
 
-  (req as any).walletAddress = walletAddress;
-  (req as any).authVerified = true;
+  req.walletAddress = walletAddress;
+  req.authVerified = true;
   next();
 }

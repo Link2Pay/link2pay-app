@@ -6,6 +6,7 @@ import {
   updateClientFavoriteSchema,
   validateBody,
 } from '../middleware/validation';
+import { log } from '../utils/logger';
 
 const router = Router();
 
@@ -15,12 +16,12 @@ const router = Router();
  */
 router.get('/', requireWallet, async (req: Request, res: Response) => {
   try {
-    const walletAddress = (req as any).walletAddress;
+    const walletAddress = req.walletAddress as string;
     const clients = await clientService.listClients(walletAddress);
     res.json(clients);
   } catch (error: any) {
-    console.error('List clients error:', error);
-    res.status(500).json({ error: error.message });
+    log.error('List clients error', { error: error?.message });
+    res.status(500).json({ error: 'Failed to fetch clients' });
   }
 });
 
@@ -34,12 +35,12 @@ router.post(
   validateBody(saveClientSchema),
   async (req: Request, res: Response) => {
     try {
-      const walletAddress = (req as any).walletAddress;
+      const walletAddress = req.walletAddress as string;
       const client = await clientService.upsertClient(walletAddress, req.body);
       res.status(201).json(client);
     } catch (error: any) {
-      console.error('Save client error:', error);
-      res.status(500).json({ error: error.message });
+      log.error('Save client error', { error: error?.message });
+      res.status(500).json({ error: 'Failed to save client' });
     }
   }
 );
@@ -54,7 +55,7 @@ router.patch(
   validateBody(updateClientFavoriteSchema),
   async (req: Request, res: Response) => {
     try {
-      const walletAddress = (req as any).walletAddress;
+      const walletAddress = req.walletAddress as string;
       const updated = await clientService.updateFavorite(
         req.params.id,
         walletAddress,
@@ -68,8 +69,8 @@ router.patch(
       if (error.message === 'Unauthorized') {
         return res.status(403).json({ error: error.message });
       }
-      console.error('Update favorite client error:', error);
-      res.status(500).json({ error: error.message });
+      log.error('Update favorite client error', { error: error?.message });
+      res.status(500).json({ error: 'Failed to update client' });
     }
   }
 );

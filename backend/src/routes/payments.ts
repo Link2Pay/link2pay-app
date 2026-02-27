@@ -185,9 +185,6 @@ router.post(
         return res.status(404).json({ error: 'Invoice not found' });
       }
 
-      console.log('[/submit] Invoice network:', invoice.networkPassphrase);
-      console.log('[/submit] Invoice ID:', invoiceId);
-
       // Submit to Stellar with network validation
       const result = await stellarService.submitTransaction(
         signedTransactionXdr,
@@ -323,8 +320,11 @@ router.get('/:invoiceId/status', async (req: Request, res: Response) => {
       payerWallet: invoice.payerWallet,
     });
   } catch (error: any) {
-    console.error('Payment status error:', error);
-    res.status(500).json({ error: error.message });
+    log.error('Payment status error', {
+      invoiceId: req.params.invoiceId,
+      error: error?.message,
+    });
+    res.status(500).json({ error: 'Failed to fetch payment status' });
   }
 });
 
@@ -346,8 +346,8 @@ router.post('/verify-tx', async (req: Request, res: Response) => {
 
     res.json(details);
   } catch (error: any) {
-    console.error('Verify TX error:', error);
-    res.status(500).json({ error: error.message });
+    log.error('Verify transaction error', { error: error?.message });
+    res.status(500).json({ error: 'Failed to verify transaction' });
   }
 });
 

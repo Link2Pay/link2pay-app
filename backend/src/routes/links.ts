@@ -55,7 +55,7 @@ const router = Router();
 const createLinkLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 60,
-  keyGenerator: (req) => (req as any).walletAddress || req.ip || 'unknown',
+  keyGenerator: (req) => req.walletAddress || req.ip || 'unknown',
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Payment link creation limit reached. Maximum 60 links per hour per wallet.' },
@@ -72,7 +72,7 @@ router.post(
   validateBody(createPaymentLinkSchema),
   async (req: Request, res: Response) => {
     try {
-      const walletAddress = (req as any).walletAddress as string;
+      const walletAddress = req.walletAddress as string;
       const {
         amount,
         asset,
@@ -144,7 +144,12 @@ router.post(
         .addAuditLog(created.id, 'SENT', walletAddress, {
           status: { from: 'DRAFT', to: 'PENDING' },
         })
-        .catch(() => {});
+        .catch((auditError: unknown) => {
+          log.warn('Audit log failed for link creation', {
+            linkId: created.id,
+            error: (auditError as Error)?.message,
+          });
+        });
 
       res.status(201).json({
         id: created.id,
@@ -167,7 +172,7 @@ router.post(
       });
     } catch (error: any) {
       log.error('Create payment link error', { error: error?.message });
-      res.status(500).json({ error: error?.message || 'Failed to create payment link' });
+      res.status(500).json({ error: 'Failed to create payment link' });
     }
   }
 );

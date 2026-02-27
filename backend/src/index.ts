@@ -57,23 +57,29 @@ app.use(
     permittedCrossDomainPolicies: false,
   })
 );
+const localDevOrigins = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:4173',
+  'http://127.0.0.1:3000',
+  'https://localhost:5173',
+  'https://localhost:4173',
+  'https://localhost:3000',
+  'https://127.0.0.1:5173',
+  'https://127.0.0.1:4173',
+  'https://127.0.0.1:3000',
+];
+
+const allowedOrigins =
+  config.nodeEnv === 'production'
+    ? [config.frontendUrl]
+    : [config.frontendUrl, ...localDevOrigins];
+
 app.use(
   cors({
-    origin: [
-      config.frontendUrl,
-      'http://localhost:5173',
-      'http://localhost:4173',
-      'http://localhost:3000',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:4173',
-      'http://127.0.0.1:3000',
-      'https://localhost:5173',
-      'https://localhost:4173',
-      'https://localhost:3000',
-      'https://127.0.0.1:5173',
-      'https://127.0.0.1:4173',
-      'https://127.0.0.1:3000',
-    ],
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',

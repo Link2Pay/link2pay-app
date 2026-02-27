@@ -76,6 +76,7 @@ export class AuthService {
       // Attempt 1: raw UTF-8 message (Freighter v5+ signMessage)
       const valid = keypair.verify(Buffer.from(message, 'utf8'), signatureBuffer);
       if (valid) {
+        nonceStore.delete(walletAddress);
         return true;
       }
 
@@ -83,6 +84,7 @@ export class AuthService {
       const messageBase64 = Buffer.from(message, 'utf8').toString('base64');
       const validBlob = keypair.verify(Buffer.from(messageBase64, 'utf8'), signatureBuffer);
       if (validBlob) {
+        nonceStore.delete(walletAddress);
         return true;
       }
 

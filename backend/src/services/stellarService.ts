@@ -1,5 +1,6 @@
 import * as StellarSdk from '@stellar/stellar-sdk';
 import { config, getAssetIssuer, getHorizonUrl, NETWORK_CONFIG } from '../config';
+import { log } from '../utils/logger';
 
 export class StellarService {
   private server: StellarSdk.Horizon.Server;
@@ -131,9 +132,6 @@ export class StellarService {
     // Use provided networkPassphrase or fall back to default
     const effectiveNetworkPassphrase = networkPassphrase || this.networkPassphrase;
 
-    console.log('[buildPaymentTransaction] Network:', effectiveNetworkPassphrase);
-    console.log('[buildPaymentTransaction] Sender:', senderPublicKey);
-
     // Validate addresses
     if (!this.isValidAddress(senderPublicKey)) {
       throw new Error('INVALID_SENDER_ADDRESS');
@@ -144,11 +142,7 @@ export class StellarService {
 
     // Load sender account for sequence number (use appropriate Horizon server)
     const server = this.getServerForNetwork(effectiveNetworkPassphrase);
-    const horizonUrl = getHorizonUrl(effectiveNetworkPassphrase);
-    console.log('[buildPaymentTransaction] Horizon URL:', horizonUrl);
-
     const senderAccount = await this.withRetry(() => server.loadAccount(senderPublicKey));
-    console.log('[buildPaymentTransaction] Loaded account, sequence:', senderAccount.sequence);
 
     // Determine asset based on network
     const asset = this.getAsset(assetCode, effectiveNetworkPassphrase);
@@ -172,9 +166,7 @@ export class StellarService {
       if (!Number.isFinite(numericAmount) || numericAmount < 1) {
         throw new Error('AUTO_ACTIVATION_MIN_1_XLM');
       }
-      console.log(
-        '[buildPaymentTransaction] Destination is not active, using createAccount operation'
-      );
+      log.debug('Auto-activating destination account with createAccount operation');
       txBuilder.addOperation(
         StellarSdk.Operation.createAccount({
           destination: recipientPublicKey,
@@ -285,19 +277,16 @@ export class StellarService {
 
       if (expectedNetworkPassphrase) {
         // Parse with the expected network passphrase from the invoice
-        console.log('[submitTransaction] Expected network from invoice:', expectedNetworkPassphrase);
         try {
           transaction = StellarSdk.TransactionBuilder.fromXDR(
             signedXdr,
             expectedNetworkPassphrase
           ) as StellarSdk.Transaction;
           networkToUse = expectedNetworkPassphrase;
-          console.log('[submitTransaction] Successfully parsed with invoice network');
         } catch (parseError: any) {
           // Parsing failed - Freighter signed with wrong network
           const expectedName = expectedNetworkPassphrase === NETWORK_CONFIG.testnet.networkPassphrase ? 'TESTNET' : 'MAINNET';
           const wrongName = expectedNetworkPassphrase === NETWORK_CONFIG.testnet.networkPassphrase ? 'MAINNET' : 'TESTNET';
-          console.log('[submitTransaction] Parse failed - Freighter signed with wrong network');
           throw new Error(
             `Network mismatch: This invoice requires ${expectedName} but your Freighter wallet signed with ${wrongName}. Please switch your Freighter wallet to ${expectedName}, disconnect and reconnect, then try again.`
           );
@@ -319,17 +308,11 @@ export class StellarService {
           detectedNetworkPassphrase = NETWORK_CONFIG.mainnet.networkPassphrase;
         }
         networkToUse = detectedNetworkPassphrase;
-        console.log('[submitTransaction] Auto-detected network:', detectedNetworkPassphrase);
       }
-
-      console.log('[submitTransaction] Transaction sequence:', transaction.sequence);
-      console.log('[submitTransaction] Source account:', transaction.source);
       const server = this.getServerForNetwork(networkToUse);
-      const horizonUrl = getHorizonUrl(networkToUse);
-      console.log('[submitTransaction] Submitting to Horizon:', horizonUrl);
 
       const result = await server.submitTransaction(transaction);
-      console.log('[submitTransaction] Success! Hash:', result.hash);
+      log.info('Transaction submitted to Stellar');
       return {
         hash: result.hash,
         ledger: result.ledger,
@@ -340,7 +323,11 @@ export class StellarService {
       const resultCodes = error?.response?.data?.extras?.result_codes;
       const httpStatus = error?.response?.status;
 
-      console.log('[submitTransaction] FAILED:', resultCodes || message);
+      log.error('Stellar transaction submission failed', {
+        error: message,
+        resultCodes,
+        httpStatus,
+      });
 
       // Preserve network mismatch as a user-fixable validation error.
       if (typeof message === 'string' && message.startsWith('Network mismatch:')) {
@@ -384,7 +371,7 @@ export class StellarService {
     return builder.stream({
       onmessage: onPayment,
       onerror: (error: any) => {
-        console.error('Stream error:', error);
+        log.error('Stellar stream error', { error: error?.message });
       },
     });
   }
