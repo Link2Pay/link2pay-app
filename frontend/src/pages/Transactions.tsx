@@ -4,6 +4,7 @@ import { Copy, ExternalLink, History, Search } from 'lucide-react';
 import { listInvoices } from '../services/api';
 import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
 import { useWalletStore } from '../store/walletStore';
+import { useNetworkStore } from '../store/networkStore';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
@@ -135,6 +136,7 @@ const FAILED_STATUSES: InvoiceStatus[] = ['FAILED', 'EXPIRED', 'CANCELLED'];
 
 export default function Transactions() {
   const { publicKey } = useWalletStore();
+  const { networkPassphrase } = useNetworkStore();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -148,11 +150,14 @@ export default function Transactions() {
     if (!publicKey) return;
 
     setLoading(true);
-    listInvoices(publicKey, undefined, 100, 0, { excludePreview: true })
+    listInvoices(publicKey, undefined, 100, 0, {
+      excludePreview: true,
+      networkPassphrase,
+    })
       .then(({ invoices: rows }) => setInvoices(Array.isArray(rows) ? rows : []))
       .catch(() => setInvoices([]))
       .finally(() => setLoading(false));
-  }, [publicKey]);
+  }, [publicKey, networkPassphrase]);
 
   const transactionRows = useMemo(
     () => invoices.filter((invoice) => invoice.status !== 'DRAFT'),

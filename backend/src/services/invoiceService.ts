@@ -152,12 +152,14 @@ export class InvoiceService {
     status?: InvoiceStatus,
     limit = 50,
     offset = 0,
-    excludePreview = false
+    excludePreview = false,
+    networkPassphrase?: string
   ) {
     const where = {
       freelancerWallet,
       deletedAt: null, // exclude soft-deleted
       ...(status && { status }),
+      ...(networkPassphrase && { networkPassphrase }),
       ...(excludePreview && {
         NOT: {
           notes: {
@@ -390,9 +392,14 @@ export class InvoiceService {
   /**
    * Get dashboard stats for a freelancer
    */
-  async getDashboardStats(freelancerWallet: string, excludePreview = false) {
+  async getDashboardStats(
+    freelancerWallet: string,
+    excludePreview = false,
+    networkPassphrase?: string
+  ) {
     const whereWithPreviewFilter = {
       freelancerWallet,
+      ...(networkPassphrase && { networkPassphrase }),
       ...(excludePreview && {
         NOT: {
           notes: {

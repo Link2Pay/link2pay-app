@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
 import { invoiceService } from '../services/invoiceService';
 import { clientService } from '../services/clientService';
+import { NETWORK_CONFIG } from '../config';
 import {
   validateBody,
   requireWallet,
@@ -83,13 +84,23 @@ router.get('/', requireWallet, async (req: Request, res: Response) => {
     const limit = Math.min(parseInt((req.query.limit as string) || '50', 10), 100);
     const offset = Math.max(parseInt((req.query.offset as string) || '0', 10), 0);
     const excludePreview = req.query.excludePreview === 'true';
+    const networkPassphraseRaw = req.query.networkPassphrase as string | undefined;
+    const allowedPassphrases = new Set<string>([
+      NETWORK_CONFIG.testnet.networkPassphrase,
+      NETWORK_CONFIG.mainnet.networkPassphrase,
+    ]);
+
+    if (networkPassphraseRaw && !allowedPassphrases.has(networkPassphraseRaw)) {
+      return res.status(400).json({ error: 'Invalid network passphrase' });
+    }
 
     const result = await invoiceService.listInvoices(
       walletAddress,
       status,
       limit,
       offset,
-      excludePreview
+      excludePreview,
+      networkPassphraseRaw
     );
     res.json(result);
   } catch (error: any) {
@@ -106,7 +117,21 @@ router.get('/stats', requireWallet, async (req: Request, res: Response) => {
   try {
     const walletAddress = req.walletAddress as string;
     const excludePreview = req.query.excludePreview === 'true';
-    const stats = await invoiceService.getDashboardStats(walletAddress, excludePreview);
+    const networkPassphraseRaw = req.query.networkPassphrase as string | undefined;
+    const allowedPassphrases = new Set<string>([
+      NETWORK_CONFIG.testnet.networkPassphrase,
+      NETWORK_CONFIG.mainnet.networkPassphrase,
+    ]);
+
+    if (networkPassphraseRaw && !allowedPassphrases.has(networkPassphraseRaw)) {
+      return res.status(400).json({ error: 'Invalid network passphrase' });
+    }
+
+    const stats = await invoiceService.getDashboardStats(
+      walletAddress,
+      excludePreview,
+      networkPassphraseRaw
+    );
     res.json(stats);
   } catch (error: any) {
     log.error('Get invoice stats error', { error: error?.message });

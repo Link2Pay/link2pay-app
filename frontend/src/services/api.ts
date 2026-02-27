@@ -147,13 +147,15 @@ export async function listInvoices(
   status?: string,
   limit = 50,
   offset = 0,
-  options?: { excludePreview?: boolean }
+  options?: { excludePreview?: boolean; networkPassphrase?: string }
 ): Promise<{ invoices: Invoice[]; total: number }> {
   const params = new URLSearchParams();
+  const networkPassphrase = options?.networkPassphrase || useNetworkStore.getState().networkPassphrase;
   if (status) params.set('status', status);
   params.set('limit', String(limit));
   params.set('offset', String(offset));
   if (options?.excludePreview) params.set('excludePreview', 'true');
+  if (networkPassphrase) params.set('networkPassphrase', networkPassphrase);
   return request<{ invoices: Invoice[]; total: number }>(
     `/invoices?${params.toString()}`,
     {},
@@ -211,9 +213,14 @@ export async function deleteInvoice(
 
 export async function getDashboardStats(
   walletAddress: string,
-  options?: { excludePreview?: boolean }
+  options?: { excludePreview?: boolean; networkPassphrase?: string }
 ): Promise<DashboardStats> {
-  const path = options?.excludePreview ? '/invoices/stats?excludePreview=true' : '/invoices/stats';
+  const params = new URLSearchParams();
+  const networkPassphrase = options?.networkPassphrase || useNetworkStore.getState().networkPassphrase;
+  if (options?.excludePreview) params.set('excludePreview', 'true');
+  if (networkPassphrase) params.set('networkPassphrase', networkPassphrase);
+  const query = params.toString();
+  const path = query ? `/invoices/stats?${query}` : '/invoices/stats';
   return request<DashboardStats>(path, {}, walletAddress);
 }
 

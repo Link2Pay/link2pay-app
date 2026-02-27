@@ -18,6 +18,7 @@ import { getDashboardStats, listInvoices } from '../services/api';
 import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
 import { useI18n } from '../i18n/I18nProvider';
 import { useWalletStore } from '../store/walletStore';
+import { useNetworkStore } from '../store/networkStore';
 import type { InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
 
@@ -165,18 +166,27 @@ const COPY: Record<Language, {
 
 export default function Dashboard() {
   const { publicKey } = useWalletStore();
+  const { networkPassphrase } = useNetworkStore();
   const { language } = useI18n();
   const copy = COPY[language];
 
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['dashboardStats', publicKey],
-    queryFn: () => getDashboardStats(publicKey!, { excludePreview: true }),
+    queryKey: ['dashboardStats', publicKey, networkPassphrase],
+    queryFn: () =>
+      getDashboardStats(publicKey!, {
+        excludePreview: true,
+        networkPassphrase,
+      }),
     enabled: !!publicKey,
   });
 
   const { data: invoiceResult, isLoading: invoicesLoading } = useQuery({
-    queryKey: ['invoices', publicKey, 50, 0],
-    queryFn: () => listInvoices(publicKey!, undefined, 50, 0, { excludePreview: true }),
+    queryKey: ['invoices', publicKey, 50, 0, networkPassphrase],
+    queryFn: () =>
+      listInvoices(publicKey!, undefined, 50, 0, {
+        excludePreview: true,
+        networkPassphrase,
+      }),
     enabled: !!publicKey,
   });
 

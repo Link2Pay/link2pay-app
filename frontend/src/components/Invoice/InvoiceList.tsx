@@ -5,6 +5,7 @@ import { listInvoices } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
+import { useNetworkStore } from '../../store/networkStore';
 import type { InvoiceStatus } from '../../types';
 import { CURRENCY_SYMBOLS } from '../../config';
 import type { Language } from '../../i18n/translations';
@@ -87,6 +88,7 @@ const LOCALE_BY_LANGUAGE: Record<Language, string> = {
 
 export default function InvoiceList() {
   const { publicKey } = useWalletStore();
+  const { networkPassphrase } = useNetworkStore();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -95,10 +97,11 @@ export default function InvoiceList() {
   const [filter, setFilter] = useState('');
 
   const { data, isLoading: loading } = useQuery({
-    queryKey: ['invoices', publicKey, filter, page],
+    queryKey: ['invoices', publicKey, filter, page, networkPassphrase],
     queryFn: () =>
       listInvoices(publicKey!, filter || undefined, PAGE_SIZE, page * PAGE_SIZE, {
         excludePreview: true,
+        networkPassphrase,
       }),
     enabled: !!publicKey,
     placeholderData: (prev) => prev,

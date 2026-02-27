@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { BarChart3, CalendarDays, Clock3, Gauge, PieChart, Users2 } from 'lucide-react';
 import { getDashboardStats, listInvoices } from '../services/api';
 import { useWalletStore } from '../store/walletStore';
+import { useNetworkStore } from '../store/networkStore';
 import { useI18n } from '../i18n/I18nProvider';
 import type { DashboardStats, Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
@@ -151,6 +152,7 @@ function toNumber(value: string | null | undefined): number {
 
 export default function Analytics() {
   const { publicKey } = useWalletStore();
+  const { networkPassphrase } = useNetworkStore();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -164,8 +166,14 @@ export default function Analytics() {
 
     setLoading(true);
     Promise.all([
-      getDashboardStats(publicKey, { excludePreview: true }),
-      listInvoices(publicKey, undefined, 200, 0, { excludePreview: true }),
+      getDashboardStats(publicKey, {
+        excludePreview: true,
+        networkPassphrase,
+      }),
+      listInvoices(publicKey, undefined, 200, 0, {
+        excludePreview: true,
+        networkPassphrase,
+      }),
     ])
       .then(([dashboardStats, result]) => {
         setStats(dashboardStats);
@@ -176,7 +184,7 @@ export default function Analytics() {
         setInvoices([]);
       })
       .finally(() => setLoading(false));
-  }, [publicKey]);
+  }, [publicKey, networkPassphrase]);
 
   const now = Date.now();
   const periodStartMs = now - (periodDays - 1) * DAY_MS;
