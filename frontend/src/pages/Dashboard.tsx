@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -6,73 +6,94 @@ import {
   ChevronRight,
   CircleDollarSign,
   Clock3,
+  Code2,
   FilePlus2,
   FileText,
+  FolderKanban,
   History,
+  KeyRound,
   Layers,
+  Lock,
   PieChart,
   Users2,
+  Webhook,
 } from 'lucide-react';
 import { getDashboardStats, listInvoices } from '../services/api';
 import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
 import { useI18n } from '../i18n/I18nProvider';
 import { useActorWallet } from '../hooks/useActorWallet';
+import { useProjectStore } from '../store/projectStore';
 import type { DashboardStats, Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
 
-const COPY: Record<Language, {
-  loading: string;
-  totalInvoices: string;
-  paid: string;
-  pending: string;
-  revenue: string;
-  conversionRate: string;
-  title: string;
-  subtitle: string;
-  newInvoice: string;
-  awaitingPayment: string;
-  viewPending: string;
-  pipelineTitle: string;
-  pipelineSubtitle: string;
-  stageDraft: string;
-  stageInFlight: string;
-  stagePaid: string;
-  stageClosed: string;
-  settledLabel: string;
-  assetMixTitle: string;
-  assetMixSubtitle: string;
-  noSettledVolume: string;
-  clientActivityTitle: string;
-  clientActivitySubtitle: string;
-  colClient: string;
-  colLinks: string;
-  colPaid: string;
-  colPending: string;
-  noClientActivity: string;
-  viewClients: string;
-  recentInvoices: string;
-  viewAll: string;
-  noInvoices: string;
-  createInvoice: string;
-}> = {
+const COPY: Record<
+  Language,
+  {
+    loading: string;
+    totalInvoices: string;
+    paid: string;
+    pending: string;
+    revenue: string;
+    conversionRate: string;
+    title: string;
+    subtitle: string;
+    projectLabel: string;
+    newInvoice: string;
+    awaitingPayment: string;
+    viewPending: string;
+    pipelineTitle: string;
+    pipelineSubtitle: string;
+    stageCreated: string;
+    stagePending: string;
+    stageConfirmed: string;
+    stageExpiredFailed: string;
+    settledLabel: string;
+    assetMixTitle: string;
+    assetMixSubtitle: string;
+    noSettledVolume: string;
+    clientActivityTitle: string;
+    clientActivitySubtitle: string;
+    colClient: string;
+    colLinks: string;
+    colPaid: string;
+    colPending: string;
+    noClientActivity: string;
+    viewClients: string;
+    recentInvoices: string;
+    viewAll: string;
+    noInvoices: string;
+    createInvoice: string;
+    quickstartTitle: string;
+    quickstartDesc: string;
+    quickstartStep1: string;
+    quickstartStep2: string;
+    quickstartStep3: string;
+    quickstartDocs: string;
+    quickstartOpen: string;
+    tryNowTitle: string;
+    tryNowDesc: string;
+    tryNowCta: string;
+  }
+> = {
   en: {
     loading: 'Loading...',
     totalInvoices: 'Total Links',
     paid: 'Confirmed',
-    pending: 'Awaiting',
+    pending: 'Pending',
     revenue: 'Total Volume',
     conversionRate: 'Conversion',
     title: 'Dashboard',
     subtitle: 'Real-time overview of your payment link activity and settlements',
+    projectLabel: 'Project',
     newInvoice: 'New Link',
     awaitingPayment: 'Pending Settlement',
     viewPending: 'View Pending',
     pipelineTitle: 'Payment Pipeline',
     pipelineSubtitle: 'How links are moving through your lifecycle right now',
-    stageDraft: 'Draft',
-    stageInFlight: 'In flight',
-    stagePaid: 'Paid',
-    stageClosed: 'Closed',
+    stageCreated: 'Created',
+    stagePending: 'Pending',
+    stageConfirmed: 'Confirmed',
+    stageExpiredFailed: 'Expired/Failed',
     settledLabel: 'settled links',
     assetMixTitle: 'Settled Asset Mix',
     assetMixSubtitle: 'Distribution of confirmed volume by asset',
@@ -89,76 +110,108 @@ const COPY: Record<Language, {
     viewAll: 'View All',
     noInvoices: 'No payment links yet. Generate your first one to get started.',
     createInvoice: 'Create Link',
+    quickstartTitle: 'Quickstart (Developers)',
+    quickstartDesc: 'Infrastructure path for production integrations.',
+    quickstartStep1: 'Get API key (Pro)',
+    quickstartStep2: 'Create link via API/SDK',
+    quickstartStep3: 'Confirm payment with polling/webhooks',
+    quickstartDocs: 'Read docs',
+    quickstartOpen: 'Open quickstart',
+    tryNowTitle: 'Try it now (No setup)',
+    tryNowDesc: 'Create a basic payment link on Free to validate your checkout flow.',
+    tryNowCta: 'Create a Link',
   },
   es: {
     loading: 'Cargando...',
     totalInvoices: 'Total de links',
     paid: 'Confirmados',
-    pending: 'En espera',
+    pending: 'Pendientes',
     revenue: 'Volumen total',
-    conversionRate: 'Conversión',
+    conversionRate: 'Conversion',
     title: 'Panel',
-    subtitle: 'Vista en tiempo real de tu actividad de links de pago y liquidaciones',
+    subtitle: 'Vista en tiempo real de tu actividad de links y liquidaciones',
+    projectLabel: 'Proyecto',
     newInvoice: 'Nuevo link',
-    awaitingPayment: 'Liquidación pendiente',
+    awaitingPayment: 'Liquidacion pendiente',
     viewPending: 'Ver pendientes',
     pipelineTitle: 'Pipeline de pagos',
-    pipelineSubtitle: 'Cómo avanzan tus links en el ciclo de vida',
-    stageDraft: 'Borrador',
-    stageInFlight: 'En curso',
-    stagePaid: 'Pagado',
-    stageClosed: 'Cerrado',
+    pipelineSubtitle: 'Como avanzan tus links en el ciclo de vida',
+    stageCreated: 'Creado',
+    stagePending: 'Pendiente',
+    stageConfirmed: 'Confirmado',
+    stageExpiredFailed: 'Expirado/Fallido',
     settledLabel: 'links liquidados',
     assetMixTitle: 'Mix de activos liquidados',
-    assetMixSubtitle: 'Distribución del volumen confirmado por activo',
-    noSettledVolume: 'Aún no hay volumen liquidado',
+    assetMixSubtitle: 'Distribucion del volumen confirmado por activo',
+    noSettledVolume: 'Aun no hay volumen liquidado',
     clientActivityTitle: 'Actividad de clientes',
-    clientActivitySubtitle: 'Clientes más activos en tus links recientes',
+    clientActivitySubtitle: 'Clientes mas activos en tus links recientes',
     colClient: 'Cliente',
     colLinks: 'Links',
     colPaid: 'Pagados',
     colPending: 'Pendientes',
-    noClientActivity: 'Aún no hay actividad de clientes.',
+    noClientActivity: 'Aun no hay actividad de clientes.',
     viewClients: 'Ver clientes',
     recentInvoices: 'Actividad reciente',
     viewAll: 'Ver todo',
-    noInvoices: 'Aún no tienes links de pago. Genera el primero para comenzar.',
+    noInvoices: 'Aun no tienes links de pago.',
     createInvoice: 'Crear link',
+    quickstartTitle: 'Quickstart (Desarrolladores)',
+    quickstartDesc: 'Ruta de infraestructura para integraciones en produccion.',
+    quickstartStep1: 'Obtener API key (Pro)',
+    quickstartStep2: 'Crear link via API/SDK',
+    quickstartStep3: 'Confirmar pago con polling/webhooks',
+    quickstartDocs: 'Leer docs',
+    quickstartOpen: 'Abrir quickstart',
+    tryNowTitle: 'Probar ahora (sin setup)',
+    tryNowDesc: 'Crea un link basico en Free para validar tu flujo de checkout.',
+    tryNowCta: 'Crear Link',
   },
   pt: {
     loading: 'Carregando...',
     totalInvoices: 'Total de links',
     paid: 'Confirmados',
-    pending: 'Aguardando',
+    pending: 'Pendentes',
     revenue: 'Volume total',
-    conversionRate: 'Conversão',
+    conversionRate: 'Conversao',
     title: 'Painel',
-    subtitle: 'Visão em tempo real da sua atividade de links de pagamento e liquidações',
+    subtitle: 'Visao em tempo real da sua atividade de links e liquidacoes',
+    projectLabel: 'Projeto',
     newInvoice: 'Novo link',
-    awaitingPayment: 'Liquidação pendente',
+    awaitingPayment: 'Liquidacao pendente',
     viewPending: 'Ver pendentes',
     pipelineTitle: 'Pipeline de pagamentos',
-    pipelineSubtitle: 'Como seus links avançam no ciclo de vida',
-    stageDraft: 'Rascunho',
-    stageInFlight: 'Em andamento',
-    stagePaid: 'Pago',
-    stageClosed: 'Encerrado',
+    pipelineSubtitle: 'Como seus links avancam no ciclo de vida',
+    stageCreated: 'Criado',
+    stagePending: 'Pendente',
+    stageConfirmed: 'Confirmado',
+    stageExpiredFailed: 'Expirado/Falha',
     settledLabel: 'links liquidados',
     assetMixTitle: 'Mix de ativos liquidados',
-    assetMixSubtitle: 'Distribuição do volume confirmado por ativo',
-    noSettledVolume: 'Ainda não há volume liquidado',
+    assetMixSubtitle: 'Distribuicao do volume confirmado por ativo',
+    noSettledVolume: 'Ainda nao ha volume liquidado',
     clientActivityTitle: 'Atividade de clientes',
     clientActivitySubtitle: 'Clientes mais ativos nos seus links recentes',
     colClient: 'Cliente',
     colLinks: 'Links',
     colPaid: 'Pagos',
     colPending: 'Pendentes',
-    noClientActivity: 'Ainda não há atividade de clientes.',
+    noClientActivity: 'Ainda nao ha atividade de clientes.',
     viewClients: 'Ver clientes',
     recentInvoices: 'Atividade recente',
     viewAll: 'Ver tudo',
-    noInvoices: 'Nenhum link de pagamento ainda. Gere o primeiro para começar.',
+    noInvoices: 'Nenhum link de pagamento ainda.',
     createInvoice: 'Criar link',
+    quickstartTitle: 'Quickstart (Desenvolvedores)',
+    quickstartDesc: 'Caminho de infraestrutura para integracoes em producao.',
+    quickstartStep1: 'Gerar API key (Pro)',
+    quickstartStep2: 'Criar link via API/SDK',
+    quickstartStep3: 'Confirmar pagamento via polling/webhooks',
+    quickstartDocs: 'Ler docs',
+    quickstartOpen: 'Abrir quickstart',
+    tryNowTitle: 'Teste agora (sem setup)',
+    tryNowDesc: 'Crie um link basico no Free para validar o fluxo de checkout.',
+    tryNowCta: 'Criar Link',
   },
 };
 
@@ -166,6 +219,11 @@ export default function Dashboard() {
   const actorWallet = useActorWallet();
   const { language } = useI18n();
   const copy = COPY[language];
+  const projects = useProjectStore((state) => state.projects);
+  const activeProjectId = useProjectStore((state) => state.activeProjectId);
+
+  const activeProjectName =
+    projects.find((project) => project.id === activeProjectId)?.name || projects[0]?.name || 'Default';
 
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [allInvoices, setAllInvoices] = useState<Invoice[]>([]);
@@ -193,11 +251,16 @@ export default function Dashboard() {
   const recentInvoices = invoices.slice(0, 5);
 
   const totalLinks = stats?.totalInvoices ?? invoices.length;
-  const paidLinks = stats?.paidInvoices ?? invoices.filter((invoice) => invoice.status === 'PAID').length;
-  const pendingLinks = stats?.pendingInvoices ?? invoices.filter((invoice) => ['PENDING', 'PROCESSING'].includes(invoice.status)).length;
-  const closedLinks = invoices.filter((invoice) => ['FAILED', 'EXPIRED', 'CANCELLED'].includes(invoice.status)).length;
-  const draftLinks = invoices.filter((invoice) => invoice.status === 'DRAFT').length;
-  const conversionRate = totalLinks > 0 ? (paidLinks / totalLinks) * 100 : 0;
+  const confirmedLinks =
+    stats?.paidInvoices ?? invoices.filter((invoice) => invoice.status === 'PAID').length;
+  const pendingLinks =
+    stats?.pendingInvoices ??
+    invoices.filter((invoice) => ['PENDING', 'PROCESSING'].includes(invoice.status)).length;
+  const failedExpiredLinks = invoices.filter((invoice) =>
+    ['FAILED', 'EXPIRED', 'CANCELLED'].includes(invoice.status)
+  ).length;
+  const createdLinks = invoices.filter((invoice) => ['DRAFT', 'CREATED'].includes(invoice.status)).length;
+  const conversionRate = totalLinks > 0 ? (confirmedLinks / totalLinks) * 100 : 0;
 
   const toAmount = (value: string | null | undefined) => {
     const parsed = Number.parseFloat(value || '0');
@@ -247,7 +310,7 @@ export default function Dashboard() {
   const formatSettledAmount = (asset: 'XLM' | 'USDC' | 'EURC', value: number) => {
     const fixed = value.toFixed(2);
     if (asset === 'XLM') return `${fixed} XLM`;
-    if (asset === 'EURC') return `€${fixed}`;
+    if (asset === 'EURC') return `EUR ${fixed}`;
     return `$${fixed}`;
   };
 
@@ -261,7 +324,7 @@ export default function Dashboard() {
     },
     {
       label: copy.paid,
-      value: paidLinks,
+      value: confirmedLinks,
       color: 'text-emerald-600',
       icon: CheckCircle2,
       border: 'border-l-4 border-l-emerald-500',
@@ -285,7 +348,6 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="space-y-6 animate-pulse sm:space-y-8">
-        {/* Header skeleton */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="h-5 w-32 bg-surface-2 rounded mb-2" />
@@ -293,24 +355,11 @@ export default function Dashboard() {
           </div>
           <div className="h-9 w-32 bg-surface-2 rounded-lg" />
         </div>
-        {/* Stat cards skeleton */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="card p-5">
               <div className="h-3 w-20 bg-surface-2 rounded mb-3" />
               <div className="h-7 w-12 bg-surface-2 rounded" />
-            </div>
-          ))}
-        </div>
-        {/* Recent invoices skeleton */}
-        <div className="card divide-y divide-surface-3">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="flex items-center justify-between p-4">
-              <div className="space-y-2">
-                <div className="h-4 w-40 bg-surface-2 rounded" />
-                <div className="h-3 w-28 bg-surface-2 rounded" />
-              </div>
-              <div className="h-4 w-20 bg-surface-2 rounded" />
             </div>
           ))}
         </div>
@@ -324,6 +373,11 @@ export default function Dashboard() {
         <div>
           <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
           <p className="text-sm text-ink-3">{copy.subtitle}</p>
+          <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-surface-3 bg-surface-1 px-3 py-1">
+            <FolderKanban className="h-3.5 w-3.5 text-primary" />
+            <span className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">{copy.projectLabel}</span>
+            <span className="text-xs font-semibold text-ink-1">{activeProjectName}</span>
+          </div>
         </div>
         <Link to="/app/create-link" className="btn-primary w-full text-sm sm:w-auto">
           <FilePlus2 className="h-4 w-4" />
@@ -334,7 +388,6 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {statCards.map((stat) => {
           const Icon = stat.icon;
-
           return (
             <div key={stat.label} className={`card p-5 ${stat.border}`}>
               <div className="mb-2 flex items-center justify-between">
@@ -343,9 +396,7 @@ export default function Dashboard() {
                   <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                 </span>
               </div>
-              <p className={`text-2xl font-semibold font-mono ${stat.color}`}>
-                {stat.value}
-              </p>
+              <p className={`text-2xl font-semibold font-mono ${stat.color}`}>{stat.value}</p>
             </div>
           );
         })}
@@ -387,10 +438,10 @@ export default function Dashboard() {
 
           <div className="mb-4 flex h-2 overflow-hidden rounded-full bg-muted">
             {[
-              { key: copy.stageDraft, value: draftLinks, color: 'bg-slate-400' },
-              { key: copy.stageInFlight, value: pendingLinks, color: 'bg-amber-500' },
-              { key: copy.stagePaid, value: paidLinks, color: 'bg-emerald-500' },
-              { key: copy.stageClosed, value: closedLinks, color: 'bg-rose-500' },
+              { key: copy.stageCreated, value: createdLinks, color: 'bg-slate-400' },
+              { key: copy.stagePending, value: pendingLinks, color: 'bg-amber-500' },
+              { key: copy.stageConfirmed, value: confirmedLinks, color: 'bg-emerald-500' },
+              { key: copy.stageExpiredFailed, value: failedExpiredLinks, color: 'bg-rose-500' },
             ].map((segment) => {
               const width = totalLinks > 0 ? (segment.value / totalLinks) * 100 : 0;
               return (
@@ -406,10 +457,10 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              { key: copy.stageDraft, value: draftLinks, textColor: 'text-slate-600' },
-              { key: copy.stageInFlight, value: pendingLinks, textColor: 'text-amber-600' },
-              { key: copy.stagePaid, value: paidLinks, textColor: 'text-emerald-600' },
-              { key: copy.stageClosed, value: closedLinks, textColor: 'text-rose-600' },
+              { key: copy.stageCreated, value: createdLinks, textColor: 'text-slate-600' },
+              { key: copy.stagePending, value: pendingLinks, textColor: 'text-amber-600' },
+              { key: copy.stageConfirmed, value: confirmedLinks, textColor: 'text-emerald-600' },
+              { key: copy.stageExpiredFailed, value: failedExpiredLinks, textColor: 'text-rose-600' },
             ].map((item) => (
               <div key={item.key} className="rounded-lg border border-surface-3 bg-surface-1 p-3">
                 <p className="text-[11px] text-ink-3">{item.key}</p>
@@ -443,16 +494,13 @@ export default function Dashboard() {
                       <span className="font-mono text-ink-2">{formatSettledAmount(row.asset, row.value)}</span>
                     </div>
                     <div className="h-2 rounded-full bg-muted">
-                      <div
-                        className="h-2 rounded-full bg-primary"
-                        style={{ width: `${pct}%` }}
-                      />
+                      <div className="h-2 rounded-full bg-primary" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 );
               })}
               <p className="pt-1 text-[11px] text-ink-3">
-                {paidLinks} {copy.settledLabel}
+                {confirmedLinks} {copy.settledLabel}
               </p>
             </div>
           )}
@@ -523,12 +571,47 @@ export default function Dashboard() {
         </div>
 
         {recentInvoices.length === 0 ? (
-          <div className="card p-8 text-center">
-            <p className="text-sm text-ink-3 mb-3">{copy.noInvoices}</p>
-            <Link to="/app/create-link" className="btn-primary text-sm">
-              <FilePlus2 className="h-4 w-4" />
-              {copy.createInvoice}
-            </Link>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="card p-5">
+              <h4 className="text-sm font-semibold text-ink-0">{copy.quickstartTitle}</h4>
+              <p className="mt-1 text-xs text-ink-3">{copy.quickstartDesc}</p>
+              <div className="mt-4 space-y-2 text-xs text-ink-2">
+                <div className="flex items-center gap-2 rounded-lg border border-surface-3 bg-surface-1 px-3 py-2">
+                  <Lock className="h-3.5 w-3.5 text-amber-500" />
+                  <span>{copy.quickstartStep1}</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-lg border border-surface-3 bg-surface-1 px-3 py-2">
+                  <Code2 className="h-3.5 w-3.5 text-primary" />
+                  <span>{copy.quickstartStep2}</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-lg border border-surface-3 bg-surface-1 px-3 py-2">
+                  <Webhook className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>{copy.quickstartStep3}</span>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link to="/sdk" className="btn-secondary text-xs">
+                  <KeyRound className="h-3.5 w-3.5" />
+                  {copy.quickstartDocs}
+                </Link>
+                <Link to="/sdk" className="btn-secondary text-xs">
+                  {copy.quickstartOpen}
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            <div className="card p-5">
+              <h4 className="text-sm font-semibold text-ink-0">{copy.tryNowTitle}</h4>
+              <p className="mt-1 text-xs text-ink-3">{copy.tryNowDesc}</p>
+              <div className="mt-4 rounded-lg border border-dashed border-border bg-surface-1 p-4 text-xs text-ink-3">
+                {copy.noInvoices}
+              </div>
+              <Link to="/app/create-link" className="btn-primary mt-4 text-sm">
+                <FilePlus2 className="h-4 w-4" />
+                {copy.tryNowCta}
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="card divide-y divide-surface-3">
@@ -561,4 +644,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

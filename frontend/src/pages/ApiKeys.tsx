@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Check,
   Copy,
@@ -12,7 +13,8 @@ import { useActorWallet } from '../hooks/useActorWallet';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import { config } from '../config';
-import PlanGate from '../components/PlanGate';
+import { tierAtLeast } from '../lib/plans';
+import { usePlanStore } from '../store/planStore';
 
 type SnippetType = 'curl' | 'js';
 
@@ -23,6 +25,9 @@ const COPY: Record<
     subtitle: string;
     gateTitle: string;
     gateDescription: string;
+    gateWhatYouGet: string;
+    gateHeaderExample: string;
+    gateCta: string;
     authModelTitle: string;
     authModelDesc: string;
     walletTitle: string;
@@ -62,12 +67,14 @@ const COPY: Record<
   en: {
     title: 'API Keys',
     subtitle: 'Integration setup and authenticated request flow',
-    gateTitle: 'API Keys are a Pro feature',
-    gateDescription:
-      'Upgrade to Pro to generate and rotate live keys, separate test/live credentials, and unlock usage controls.',
+    gateTitle: 'API keys are used for server-side link creation and webhooks.',
+    gateDescription: 'Upgrade to Pro to generate live keys and unlock webhook delivery.',
+    gateWhatYouGet: 'Pro unlocks live API keys, key rotation, and webhook signing.',
+    gateHeaderExample: 'Authorization: Bearer l2p_sk_live_xxxxx',
+    gateCta: 'Upgrade to Pro',
     authModelTitle: 'Authentication Model',
     authModelDesc:
-      'Link2Pay uses wallet-signed headers instead of static API secrets. Each request is validated with nonce + signature.',
+      'Link2Pay supports wallet-signed headers and API key auth patterns for backend integrations.',
     walletTitle: 'Primary Access Identity',
     walletLabel: 'Wallet address',
     modeLabel: 'Access mode',
@@ -85,13 +92,13 @@ const COPY: Record<
     checklist1: 'Fetch nonce from the auth endpoint.',
     checklist2: 'Sign the nonce message in Freighter.',
     checklist3: 'Send authenticated API request with the 3 auth headers.',
-    checklist4: 'Store only public wallet identifiers, never private keys.',
+    checklist4: 'Store only public identifiers, never private keys.',
     endpointsTitle: 'Endpoint Quick Reference',
     colMethod: 'Method',
     colPath: 'Path',
     colPurpose: 'Purpose',
-    purposeListLinks: 'List payment links/invoices for authenticated wallet.',
-    purposeCreateLink: 'Create a new payment link/invoice.',
+    purposeListLinks: 'List payment links for authenticated wallet/project.',
+    purposeCreateLink: 'Create a new payment link.',
     purposePayIntent: 'Build transaction payload for checkout payment.',
     purposeConfirm: 'Confirm submitted transaction and settlement status.',
     sampleTitle: 'Integration Snippet',
@@ -103,41 +110,43 @@ const COPY: Record<
   },
   es: {
     title: 'API Keys',
-    subtitle: 'Configuracion de integracion y flujo de requests autenticados',
-    gateTitle: 'API Keys es una funcion Pro',
-    gateDescription:
-      'Mejora a Pro para generar y rotar llaves live, separar credenciales test/live y habilitar controles de uso.',
+    subtitle: 'Configuracion de integracion y flujo autenticado',
+    gateTitle: 'API keys se usan para crear links y webhooks desde backend.',
+    gateDescription: 'Mejora a Pro para generar llaves live y habilitar webhooks.',
+    gateWhatYouGet: 'Pro habilita API keys live, rotacion y firma de webhooks.',
+    gateHeaderExample: 'Authorization: Bearer l2p_sk_live_xxxxx',
+    gateCta: 'Mejorar a Pro',
     authModelTitle: 'Modelo de autenticacion',
     authModelDesc:
-      'Link2Pay usa headers firmados por wallet en lugar de secretos API estaticos. Cada request se valida con nonce + firma.',
+      'Link2Pay soporta headers firmados por wallet y patrones con API key para backend.',
     walletTitle: 'Identidad principal de acceso',
     walletLabel: 'Direccion wallet',
     modeLabel: 'Modo de acceso',
     modeValue: 'Firma de wallet (nonce + mensaje firmado)',
     envLabel: 'Red',
-    noWallet: 'Conecta tu wallet para ver tu perfil autenticado de API.',
+    noWallet: 'Conecta tu wallet para ver tu perfil autenticado.',
     baseUrlsTitle: 'URLs base',
     apiBase: 'Base API',
     checkoutBase: 'Base checkout',
     headersTitle: 'Headers requeridos',
     headerWallet: 'Clave publica de wallet para alcance de cuenta.',
-    headerNonce: 'Nonce emitido por el endpoint /api/auth/nonce.',
-    headerSignature: 'Firma hex del mensaje nonce firmado por wallet.',
+    headerNonce: 'Nonce emitido por /api/auth/nonce.',
+    headerSignature: 'Firma hex del mensaje nonce firmado.',
     checklistTitle: 'Checklist rapido',
-    checklist1: 'Solicita nonce desde el endpoint de auth.',
-    checklist2: 'Firma el mensaje nonce en Freighter.',
-    checklist3: 'Envia request autenticado con los 3 headers de auth.',
-    checklist4: 'Guarda solo identificadores publicos, nunca claves privadas.',
-    endpointsTitle: 'Referencia rapida de endpoints',
+    checklist1: 'Solicita nonce en auth.',
+    checklist2: 'Firma nonce en Freighter.',
+    checklist3: 'Envia request autenticado con 3 headers.',
+    checklist4: 'Guarda solo identificadores publicos.',
+    endpointsTitle: 'Referencia de endpoints',
     colMethod: 'Metodo',
     colPath: 'Ruta',
     colPurpose: 'Uso',
-    purposeListLinks: 'Lista links/invoices de la wallet autenticada.',
-    purposeCreateLink: 'Crea un nuevo link/invoice de pago.',
-    purposePayIntent: 'Construye payload de transaccion para checkout.',
-    purposeConfirm: 'Confirma transaccion enviada y estado de liquidacion.',
+    purposeListLinks: 'Lista links de la wallet/proyecto autenticado.',
+    purposeCreateLink: 'Crea un nuevo link de pago.',
+    purposePayIntent: 'Construye payload de transaccion.',
+    purposeConfirm: 'Confirma transaccion y estado de liquidacion.',
     sampleTitle: 'Snippet de integracion',
-    sampleDesc: 'Forma de referencia para backend o wrapper SDK.',
+    sampleDesc: 'Forma de referencia para backend o SDK wrapper.',
     tabCurl: 'cURL',
     tabJs: 'JavaScript',
     copied: 'Copiado',
@@ -145,41 +154,43 @@ const COPY: Record<
   },
   pt: {
     title: 'API Keys',
-    subtitle: 'Configuracao de integracao e fluxo de requests autenticados',
-    gateTitle: 'API Keys e um recurso Pro',
-    gateDescription:
-      'Faça upgrade para Pro para gerar e rotacionar chaves live, separar credenciais test/live e habilitar controles de uso.',
+    subtitle: 'Configuracao de integracao e fluxo autenticado',
+    gateTitle: 'API keys sao usadas para criar links e webhooks no backend.',
+    gateDescription: 'Faca upgrade para Pro para gerar chaves live e habilitar webhooks.',
+    gateWhatYouGet: 'Pro libera API keys live, rotacao e assinatura de webhooks.',
+    gateHeaderExample: 'Authorization: Bearer l2p_sk_live_xxxxx',
+    gateCta: 'Fazer upgrade para Pro',
     authModelTitle: 'Modelo de autenticacao',
     authModelDesc:
-      'Link2Pay usa headers assinados por wallet em vez de segredos API estaticos. Cada request e validada com nonce + assinatura.',
+      'Link2Pay suporta headers assinados por wallet e padrao com API key para backend.',
     walletTitle: 'Identidade principal de acesso',
     walletLabel: 'Endereco da wallet',
     modeLabel: 'Modo de acesso',
     modeValue: 'Assinatura de wallet (nonce + mensagem assinada)',
     envLabel: 'Rede',
-    noWallet: 'Conecte sua wallet para ver seu perfil autenticado da API.',
+    noWallet: 'Conecte sua wallet para ver o perfil autenticado.',
     baseUrlsTitle: 'URLs base',
     apiBase: 'Base API',
     checkoutBase: 'Base checkout',
     headersTitle: 'Headers obrigatorios',
     headerWallet: 'Chave publica da wallet para escopo da conta.',
-    headerNonce: 'Nonce emitido pelo endpoint /api/auth/nonce.',
-    headerSignature: 'Assinatura hex do nonce assinado pela wallet.',
+    headerNonce: 'Nonce emitido por /api/auth/nonce.',
+    headerSignature: 'Assinatura hex do nonce assinado.',
     checklistTitle: 'Checklist rapido',
-    checklist1: 'Busque nonce no endpoint de auth.',
-    checklist2: 'Assine a mensagem nonce no Freighter.',
-    checklist3: 'Envie request autenticada com os 3 headers de auth.',
-    checklist4: 'Armazene apenas identificadores publicos, nunca chaves privadas.',
-    endpointsTitle: 'Referencia rapida de endpoints',
+    checklist1: 'Busque nonce no auth.',
+    checklist2: 'Assine nonce no Freighter.',
+    checklist3: 'Envie request autenticada com 3 headers.',
+    checklist4: 'Armazene apenas identificadores publicos.',
+    endpointsTitle: 'Referencia de endpoints',
     colMethod: 'Metodo',
     colPath: 'Rota',
     colPurpose: 'Uso',
-    purposeListLinks: 'Lista links/invoices da wallet autenticada.',
-    purposeCreateLink: 'Cria um novo link/invoice de pagamento.',
-    purposePayIntent: 'Monta payload de transacao para checkout.',
-    purposeConfirm: 'Confirma transacao enviada e status de liquidacao.',
+    purposeListLinks: 'Lista links da wallet/projeto autenticado.',
+    purposeCreateLink: 'Cria novo link de pagamento.',
+    purposePayIntent: 'Monta payload de transacao.',
+    purposeConfirm: 'Confirma transacao e status de liquidacao.',
     sampleTitle: 'Snippet de integracao',
-    sampleDesc: 'Formato de referencia para backend ou wrapper SDK.',
+    sampleDesc: 'Formato de referencia para backend ou SDK wrapper.',
     tabCurl: 'cURL',
     tabJs: 'JavaScript',
     copied: 'Copiado',
@@ -191,9 +202,11 @@ const shortAddress = (value: string) => `${value.slice(0, 8)}...${value.slice(-8
 
 export default function ApiKeys() {
   const actorWallet = useActorWallet();
+  const tier = usePlanStore((state) => state.tier);
   const { language } = useI18n();
   const copy = COPY[language];
 
+  const canUseApiKeys = tierAtLeast(tier, 'pro');
   const [copied, setCopied] = useState(false);
   const [snippetType, setSnippetType] = useState<SnippetType>('curl');
 
@@ -203,40 +216,12 @@ export default function ApiKeys() {
   }, []);
 
   const curlSnippet = useMemo(
-    () => `# 1) Obtain nonce
-curl -X POST "${config.apiUrl}/api/auth/nonce" \\
-  -H "Content-Type: application/json" \\
-  -d "{\\"walletAddress\\": \\\"${actorWallet || 'G...YOUR_WALLET'}\\\"}"
-
-# 2) Sign nonce in wallet and call API
-curl "${config.apiUrl}/api/invoices?limit=20&offset=0" \\
-  -H "x-wallet-address: ${actorWallet || 'G...YOUR_WALLET'}" \\
-  -H "x-auth-nonce: <nonce>" \\
-  -H "x-auth-signature: <hex_signature>"`,
+    () => `# 1) Obtain nonce\ncurl -X POST "${config.apiUrl}/api/auth/nonce" \\\n  -H "Content-Type: application/json" \\\n  -d "{\\"walletAddress\\": \\\"${actorWallet || 'G...YOUR_WALLET'}\\\"}"\n\n# 2) Sign nonce in wallet and call API\ncurl "${config.apiUrl}/api/invoices?limit=20&offset=0" \\\n  -H "x-wallet-address: ${actorWallet || 'G...YOUR_WALLET'}" \\\n  -H "x-auth-nonce: <nonce>" \\\n  -H "x-auth-signature: <hex_signature>"`,
     [actorWallet]
   );
 
   const jsSnippet = useMemo(
-    () => `const walletAddress = '${actorWallet || 'G...YOUR_WALLET'}';
-
-const nonceRes = await fetch('${config.apiUrl}/api/auth/nonce', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ walletAddress }),
-});
-const { nonce } = await nonceRes.json();
-
-// Implement this with Freighter signMessage in your app:
-const signature = await signNonceWithFreighter(nonce);
-
-const linksRes = await fetch('${config.apiUrl}/api/invoices?limit=20&offset=0', {
-  headers: {
-    'x-wallet-address': walletAddress,
-    'x-auth-nonce': nonce,
-    'x-auth-signature': signature,
-  },
-});
-const links = await linksRes.json();`,
+    () => `const walletAddress = '${actorWallet || 'G...YOUR_WALLET'}';\n\nconst nonceRes = await fetch('${config.apiUrl}/api/auth/nonce', {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify({ walletAddress }),\n});\nconst { nonce } = await nonceRes.json();\n\nconst signature = await signNonceWithFreighter(nonce);\n\nconst linksRes = await fetch('${config.apiUrl}/api/invoices?limit=20&offset=0', {\n  headers: {\n    'x-wallet-address': walletAddress,\n    'x-auth-nonce': nonce,\n    'x-auth-signature': signature,\n  },\n});\nconst links = await linksRes.json();`,
     [actorWallet]
   );
 
@@ -253,35 +238,35 @@ const links = await linksRes.json();`,
   };
 
   const endpoints = [
-    {
-      method: 'GET',
-      path: '/api/invoices',
-      purpose: copy.purposeListLinks,
-    },
-    {
-      method: 'POST',
-      path: '/api/invoices',
-      purpose: copy.purposeCreateLink,
-    },
-    {
-      method: 'POST',
-      path: '/api/payments/:invoiceId/pay-intent',
-      purpose: copy.purposePayIntent,
-    },
-    {
-      method: 'POST',
-      path: '/api/payments/confirm',
-      purpose: copy.purposeConfirm,
-    },
+    { method: 'GET', path: '/api/invoices', purpose: copy.purposeListLinks },
+    { method: 'POST', path: '/api/invoices', purpose: copy.purposeCreateLink },
+    { method: 'POST', path: '/api/payments/:invoiceId/pay-intent', purpose: copy.purposePayIntent },
+    { method: 'POST', path: '/api/payments/confirm', purpose: copy.purposeConfirm },
   ];
 
   return (
-    <PlanGate requiredTier="pro" title={copy.gateTitle} description={copy.gateDescription}>
     <div className="space-y-6 animate-in">
       <div>
         <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
         <p className="text-sm text-ink-3">{copy.subtitle}</p>
       </div>
+
+      {!canUseApiKeys && (
+        <div className="card p-5">
+          <div className="mb-2 inline-flex items-center rounded-full border border-primary/35 bg-primary/10 px-2.5 py-1 text-[10px] uppercase tracking-wide text-primary">
+            Pro
+          </div>
+          <h3 className="text-sm font-semibold text-ink-0">{copy.gateTitle}</h3>
+          <p className="mt-1 text-sm text-ink-3">{copy.gateDescription}</p>
+          <p className="mt-2 text-xs text-ink-2">{copy.gateWhatYouGet}</p>
+          <code className="mt-3 block rounded-lg border border-surface-3 bg-surface-1 px-3 py-2 text-xs text-ink-1">
+            {copy.gateHeaderExample}
+          </code>
+          <Link to="/plans" className="btn-primary mt-4 text-sm">
+            {copy.gateCta}
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="card p-5 lg:col-span-2">
@@ -439,6 +424,5 @@ const links = await linksRes.json();`,
         </pre>
       </div>
     </div>
-    </PlanGate>
   );
 }

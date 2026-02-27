@@ -43,6 +43,8 @@ const COPY: Record<
     copied: string;
     openExplorer: string;
     retentionWindow: string;
+    retentionFreeTag: string;
+    upgradeRetention: string;
     exportData: string;
     exportCsv: string;
     exportJson: string;
@@ -53,12 +55,12 @@ const COPY: Record<
   en: {
     title: 'Transactions',
     subtitle: 'Settlement and payment activity across your links',
-    settled: 'Settled',
-    inProgress: 'In Progress',
-    failed: 'Failed/Expired',
+    settled: 'Confirmed',
+    inProgress: 'Pending',
+    failed: 'Expired/Failed',
     successRate: 'Success Rate',
     all: 'All',
-    filterInProgress: 'In Progress',
+    filterInProgress: 'Pending',
     filterFailed: 'Failed',
     filterSettled: 'Settled',
     loading: 'Loading transactions...',
@@ -77,6 +79,8 @@ const COPY: Record<
     copied: 'Copied',
     openExplorer: 'Open',
     retentionWindow: 'Retention window',
+    retentionFreeTag: 'Free',
+    upgradeRetention: 'Upgrade for 30 days',
     exportData: 'Export data',
     exportCsv: 'Export CSV',
     exportJson: 'Export JSON',
@@ -87,8 +91,8 @@ const COPY: Record<
   es: {
     title: 'Transacciones',
     subtitle: 'Actividad de pagos y liquidaciones de tus links',
-    settled: 'Liquidadas',
-    inProgress: 'En progreso',
+    settled: 'Confirmadas',
+    inProgress: 'Pendientes',
     failed: 'Fallidas/expiradas',
     successRate: 'Tasa de exito',
     all: 'Todas',
@@ -111,6 +115,8 @@ const COPY: Record<
     copied: 'Copiado',
     openExplorer: 'Abrir',
     retentionWindow: 'Ventana de retencion',
+    retentionFreeTag: 'Free',
+    upgradeRetention: 'Mejorar a 30 dias',
     exportData: 'Exportar datos',
     exportCsv: 'Exportar CSV',
     exportJson: 'Exportar JSON',
@@ -121,8 +127,8 @@ const COPY: Record<
   pt: {
     title: 'Transacoes',
     subtitle: 'Atividade de pagamentos e liquidacoes dos seus links',
-    settled: 'Liquidadas',
-    inProgress: 'Em progresso',
+    settled: 'Confirmadas',
+    inProgress: 'Pendentes',
     failed: 'Falhas/expiradas',
     successRate: 'Taxa de sucesso',
     all: 'Todas',
@@ -145,6 +151,8 @@ const COPY: Record<
     copied: 'Copiado',
     openExplorer: 'Abrir',
     retentionWindow: 'Janela de retencao',
+    retentionFreeTag: 'Free',
+    upgradeRetention: 'Upgrade para 30 dias',
     exportData: 'Exportar dados',
     exportCsv: 'Exportar CSV',
     exportJson: 'Exportar JSON',
@@ -293,9 +301,27 @@ export default function Transactions() {
 
       <div className="card p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-ink-3">
-            {copy.retentionWindow}: <span className="text-ink-1">{retentionWindow}</span>
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-surface-3 bg-surface-1 px-3 py-1 text-xs text-ink-1">
+              <History className="h-3.5 w-3.5 text-muted-foreground" />
+              {copy.retentionWindow}: {retentionWindow}
+              {tier === 'free' && (
+                <span className="rounded-full border border-primary/30 bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+                  {copy.retentionFreeTag}
+                </span>
+              )}
+            </span>
+            {tier === 'free' && (
+              <button
+                type="button"
+                onClick={() => setShowExportLock(true)}
+                className="btn-secondary text-xs"
+              >
+                <Lock className="h-3.5 w-3.5" />
+                {copy.upgradeRetention}
+              </button>
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             {!canExportCsv ? (
               <button

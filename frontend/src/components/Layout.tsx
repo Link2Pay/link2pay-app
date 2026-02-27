@@ -5,9 +5,7 @@ import {
   BarChart3,
   BookOpen,
   ChevronDown,
-  ChevronRight,
   CreditCard,
-  FilePlus2,
   FolderKanban,
   HelpCircle,
   KeyRound,
@@ -41,6 +39,7 @@ import PlanLockModal from './PlanLockModal';
 type NavCopy = {
   overview: string;
   links: string;
+  transactions: string;
   projects: string;
   apiKeys: string;
   webhooks: string;
@@ -49,13 +48,13 @@ type NavCopy = {
   team: string;
   branding: string;
   billing: string;
-  createLink: string;
 };
 
 const NAV_COPY: Record<Language, NavCopy> = {
   en: {
     overview: 'Overview',
     links: 'Links',
+    transactions: 'Transactions',
     projects: 'Projects',
     apiKeys: 'API Keys',
     webhooks: 'Webhooks',
@@ -64,11 +63,11 @@ const NAV_COPY: Record<Language, NavCopy> = {
     team: 'Team',
     branding: 'Branding',
     billing: 'Billing',
-    createLink: 'Create Link',
   },
   es: {
     overview: 'Resumen',
     links: 'Links',
+    transactions: 'Transacciones',
     projects: 'Proyectos',
     apiKeys: 'API Keys',
     webhooks: 'Webhooks',
@@ -77,11 +76,11 @@ const NAV_COPY: Record<Language, NavCopy> = {
     team: 'Equipo',
     branding: 'Branding',
     billing: 'Facturacion',
-    createLink: 'Crear Link',
   },
   pt: {
     overview: 'Visao geral',
     links: 'Links',
+    transactions: 'Transacoes',
     projects: 'Projetos',
     apiKeys: 'API Keys',
     webhooks: 'Webhooks',
@@ -90,7 +89,6 @@ const NAV_COPY: Record<Language, NavCopy> = {
     team: 'Equipe',
     branding: 'Branding',
     billing: 'Faturamento',
-    createLink: 'Criar Link',
   },
 };
 
@@ -143,8 +141,8 @@ export default function Layout() {
 
   const navItems: NavItem[] = [
     { path: '/app', label: navCopy.overview, icon: LayoutDashboard },
-    { path: '/app/transactions', label: t('layout.nav.transactions'), icon: ArrowLeftRight },
     { path: '/app/links', label: navCopy.links, icon: Receipt },
+    { path: '/app/transactions', label: navCopy.transactions, icon: ArrowLeftRight },
     { path: '/app/projects', label: navCopy.projects, icon: FolderKanban, requiredTier: 'pro' },
     { path: '/app/api-keys', label: navCopy.apiKeys, icon: KeyRound, requiredTier: 'pro' },
     { path: '/app/webhooks', label: navCopy.webhooks, icon: Webhook, requiredTier: 'pro' },
@@ -153,7 +151,12 @@ export default function Layout() {
     { path: '/app/team', label: navCopy.team, icon: Users, requiredTier: 'business' },
     { path: '/app/branding', label: navCopy.branding, icon: Palette, requiredTier: 'pro' },
     { path: '/app/billing', label: navCopy.billing, icon: CreditCard },
-    { path: '/app/create-link', label: navCopy.createLink, icon: FilePlus2 },
+  ];
+
+  const navSections: NavItem[][] = [
+    navItems.slice(0, 3),
+    navItems.slice(3, 6),
+    navItems.slice(6),
   ];
 
   const isActivePath = (path: string) =>
@@ -169,7 +172,7 @@ export default function Layout() {
     user?.displayName?.trim() ||
     (user?.email ? user.email.split('@')[0] : null) ||
     (displayWallet ? shortenAddress(displayWallet) : 'Link2Pay User');
-  const accountMeta = user?.email || (displayWallet ? shortenAddress(displayWallet) : 'No wallet linked');
+  const accountMeta = user?.email || (displayWallet ? 'Connected wallet' : 'No wallet linked');
   const accountPlan = getPlanLabel(tier);
 
   const handleLogout = () => {
@@ -217,111 +220,122 @@ export default function Layout() {
         </div>
 
         <nav aria-label="Main navigation" className="flex-1 px-3 py-4">
-          <div className="space-y-1">
-            {navItems.map((item) => {
-              const isActive = isActivePath(item.path);
-              const Icon = item.icon;
-              const isLocked = item.requiredTier ? !tierAtLeast(tier, item.requiredTier) : false;
-              const lockText = item.requiredTier ? getPlanLabel(item.requiredTier) : '';
+          <div className="space-y-3">
+            {navSections.map((section, sectionIndex) => (
+              <div key={`section-${sectionIndex}`} className="space-y-1">
+                {section.map((item) => {
+                  const isActive = isActivePath(item.path);
+                  const Icon = item.icon;
+                  const isLocked = item.requiredTier ? !tierAtLeast(tier, item.requiredTier) : false;
+                  const lockText = item.requiredTier ? getPlanLabel(item.requiredTier) : '';
 
-              if (isLocked && item.requiredTier) {
-                return (
-                  <button
-                    key={item.path}
-                    type="button"
-                    onClick={() =>
-                      setLockedNavItem({
-                        label: item.label,
-                        requiredTier: item.requiredTier!,
-                      })
-                    }
-                    className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-150 hover:bg-sidebar-accent hover:text-foreground"
-                  >
-                    <span className="flex items-center gap-3">
-                      <Icon aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
+                  if (isLocked && item.requiredTier) {
+                    return (
+                      <button
+                        key={item.path}
+                        type="button"
+                        onClick={() =>
+                          setLockedNavItem({
+                            label: item.label,
+                            requiredTier: item.requiredTier!,
+                          })
+                        }
+                        className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-150 hover:bg-sidebar-accent hover:text-foreground"
+                      >
+                        <span className="flex items-center gap-3">
+                          <Icon aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
+                          {item.label}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide">
+                          <Lock className="h-3 w-3" />
+                          {lockText}
+                        </span>
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+                        isActive
+                          ? 'bg-sidebar-accent text-primary'
+                          : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
+                      }`}
+                    >
+                      <Icon aria-hidden="true" className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                       {item.label}
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide">
-                      <Lock className="h-3 w-3" />
-                      {lockText}
-                    </span>
-                  </button>
-                );
-              }
-
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
-                    isActive
-                      ? 'bg-sidebar-accent text-primary'
-                      : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
-                  }`}
-                >
-                  <Icon aria-hidden="true" className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                  {item.label}
-                </Link>
-              );
-            })}
+                    </Link>
+                  );
+                })}
+                {sectionIndex < navSections.length - 1 && (
+                  <div className="mx-3 mt-2 border-t border-surface-3" />
+                )}
+              </div>
+            ))}
           </div>
         </nav>
 
         <div ref={accountMenuRef} className="relative border-t border-sidebar-border px-4 py-4">
           {accountMenuOpen && (
-            <div className="mb-2 rounded-2xl border border-surface-3 bg-surface-1 p-3 shadow-2xl">
-              <div className="pb-3">
-                <p className="truncate text-sm font-semibold text-foreground">{accountName}</p>
-                <p className="truncate text-xs text-muted-foreground">{accountMeta}</p>
+            <div className="absolute bottom-full left-4 right-4 z-40 mb-2 max-h-[60vh] overflow-y-auto rounded-2xl border border-surface-3 bg-surface-1 p-3 shadow-[0_18px_40px_hsl(var(--background)_/_0.55)]">
+              <div className="flex items-center gap-2.5 pb-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+                  {accountName[0]?.toUpperCase() || 'L'}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">{accountName}</p>
+                  <p className="truncate text-xs text-muted-foreground">{accountMeta}</p>
+                </div>
+                <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">
+                  {accountPlan}
+                </span>
               </div>
 
               <div className="mt-1 space-y-1 border-t border-surface-3 pt-3">
                 <Link
                   to="/app/profile-options"
-                  className="flex items-center justify-between rounded-lg px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
+                  className="flex items-center rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
                 >
                   <span className="flex items-center gap-2">
                     <UserCircle2 className="h-4 w-4 text-muted-foreground" />
                     Profile
                   </span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </Link>
                 <Link
                   to="/plans"
-                  className="flex items-center justify-between rounded-lg px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
+                  className="flex items-center rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
                 >
                   <span className="flex items-center gap-2">
                     <Settings2 className="h-4 w-4 text-muted-foreground" />
                     Plans
                   </span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </Link>
                 <Link
                   to="/sdk"
-                  className="flex items-center justify-between rounded-lg px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
+                  className="flex items-center rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
                 >
                   <span className="flex items-center gap-2">
                     <BookOpen className="h-4 w-4 text-muted-foreground" />
                     Documentation
                   </span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </Link>
                 <Link
                   to="/why-link2pay"
-                  className="flex items-center justify-between rounded-lg px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
+                  className="flex items-center rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
                 >
                   <span className="flex items-center gap-2">
                     <HelpCircle className="h-4 w-4 text-muted-foreground" />
                     Help
                   </span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </Link>
               </div>
 
               <div className="mt-3 border-t border-surface-3 pt-3">
                 <button
                   onClick={handleLogout}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
+                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
                 >
                   <LogOut className="h-4 w-4 text-muted-foreground" />
                   Log out
@@ -355,7 +369,10 @@ export default function Layout() {
 
       <main className="flex-1 md:ml-64">
         <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md">
-          <div className="flex flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-6 md:px-8">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 sm:px-6 md:px-8">
+            <div className="flex flex-wrap items-center gap-2">
+              <NetworkToggle compact integrated />
+            </div>
             <div className="flex flex-wrap items-center justify-end gap-2">
               {displayWallet && (
                 <div className="flex items-center gap-2 rounded-full border border-surface-3 bg-surface-1 px-2 py-1">
@@ -367,7 +384,6 @@ export default function Layout() {
                   </span>
                 </div>
               )}
-              <NetworkToggle compact integrated />
               <LanguageToggle />
               <ThemeToggle />
               {!token && (

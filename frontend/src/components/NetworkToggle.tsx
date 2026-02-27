@@ -11,12 +11,9 @@ interface NetworkToggleProps {
 export default function NetworkToggle({ compact = false, integrated = false }: NetworkToggleProps) {
   const { network, setNetwork } = useNetworkStore();
   const { connected, disconnect } = useWalletStore();
-  const nextNetworkLabel = network === 'testnet' ? 'Mainnet' : 'Testnet';
-  const currentNetworkLabel = network === 'testnet' ? 'Testnet' : 'Mainnet';
-  const currentNetworkHint = network === 'testnet' ? 'Sandbox' : 'Live';
 
-  const toggleNetwork = () => {
-    const next: StellarNetwork = network === 'testnet' ? 'mainnet' : 'testnet';
+  const applyNetwork = (next: StellarNetwork) => {
+    if (next === network) return;
 
     if (connected) {
       disconnect();
@@ -31,51 +28,52 @@ export default function NetworkToggle({ compact = false, integrated = false }: N
   };
 
   if (integrated) {
+    const isTestnet = network === 'testnet';
+
     return (
-      <div className="flex items-center rounded-xl border border-surface-3 bg-surface-1/95 p-1 shadow-sm">
-        <div className="flex items-center gap-2 rounded-lg px-2.5 py-1.5">
-          <span
-            className={`h-2 w-2 rounded-full ${
-              network === 'testnet' ? 'bg-emerald-400' : 'bg-amber-400'
-            }`}
-          />
-          <span className="hidden text-[10px] uppercase tracking-wide text-muted-foreground min-[640px]:inline">
-            Network
-          </span>
-          <span className="text-xs font-semibold text-foreground">{currentNetworkLabel}</span>
-          <span
-            className={`rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
-              network === 'testnet'
-                ? 'bg-emerald-500/10 text-emerald-500'
-                : 'bg-amber-500/10 text-amber-500'
+      <div className="inline-flex items-center gap-2 rounded-lg border border-border/70 bg-card/80 px-2 py-1">
+        <span className="hidden text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80 min-[640px]:inline">
+          Network
+        </span>
+        <div className="inline-flex items-center rounded-lg border border-border/70 bg-background/50 p-1">
+          <button
+            type="button"
+            onClick={() => applyNetwork('testnet')}
+            aria-pressed={isTestnet}
+            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+              isTestnet
+                ? 'border border-primary/35 bg-primary/12 text-primary'
+                : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
             }`}
           >
-            {currentNetworkHint}
-          </span>
+            {isTestnet ? <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> : null}
+            Testnet
+          </button>
+          <button
+            type="button"
+            onClick={() => applyNetwork('mainnet')}
+            aria-pressed={!isTestnet}
+            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+              !isTestnet
+                ? 'border border-primary/35 bg-primary/12 text-primary'
+                : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+            }`}
+          >
+            {!isTestnet ? <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> : null}
+            Mainnet
+          </button>
         </div>
-
-        <span className="mx-1 h-5 w-px bg-surface-3" />
-
-        <button
-          type="button"
-          onClick={toggleNetwork}
-          className="btn-ghost rounded-lg border border-border/80 bg-card/90 px-3 py-1.5 text-xs font-medium"
-          aria-label={`Switch to ${nextNetworkLabel}`}
-          title={`Switch to ${nextNetworkLabel}`}
-        >
-          {network === 'testnet' ? <TestTube2 className="h-4 w-4" /> : <Network className="h-4 w-4" />}
-          <span className={compact ? 'hidden min-[560px]:inline text-muted-foreground' : 'text-muted-foreground'}>
-            Switch
-          </span>
-        </button>
       </div>
     );
   }
 
+  const nextNetworkLabel = network === 'testnet' ? 'Mainnet' : 'Testnet';
+  const nextNetwork: StellarNetwork = network === 'testnet' ? 'mainnet' : 'testnet';
+
   return (
     <button
       type="button"
-      onClick={toggleNetwork}
+      onClick={() => applyNetwork(nextNetwork)}
       className={`btn-ghost rounded-lg border border-border bg-card ${
         compact ? 'px-2.5 py-1.5 text-xs' : 'px-2.5 py-2 text-xs sm:px-3 sm:text-sm'
       }`}
