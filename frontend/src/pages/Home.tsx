@@ -8,7 +8,6 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
-  Star,
   TrendingUp,
   Users,
   Wallet,
@@ -25,7 +24,6 @@ const STATS_ICONS = [Rocket, TrendingUp, Wallet, Globe2] as const;
 
 type Item = { title: string; description: string };
 type StatItem = { value: string; label: string };
-type Testimonial = { quote: string; name: string; role: string };
 type CurrencyCard = { code: string; name: string; desc: string };
 
 type HomeCopy = {
@@ -36,6 +34,8 @@ type HomeCopy = {
   heroDescription: string;
   heroPrimaryCta: string;
   heroSecondaryCta: string;
+  heroSecondaryNote: string;
+  heroSecondaryBadge: string;
   heroFootnote: string;
   howTitle: string;
   howSubtitle: string;
@@ -65,7 +65,9 @@ const COPY: Record<Language, HomeCopy> = {
     heroDescription:
       'Link2Pay helps freelancers, agencies, and product teams collect payments without banking delays. Create a link, share it, and settle on-chain in about 5 seconds.',
     heroPrimaryCta: 'Create Your First Link',
-    heroSecondaryCta: 'Watch The Flow',
+    heroSecondaryCta: 'SDK + Docs',
+    heroSecondaryNote: 'Integration guides and API reference coming soon',
+    heroSecondaryBadge: 'Soon',
     heroFootnote: 'Start free on Testnet and switch to Mainnet when you are ready.',
     howTitle: 'How teams launch in one afternoon',
     howSubtitle: 'Connect wallet, generate a link, and confirm payment with real-time status.',
@@ -73,8 +75,8 @@ const COPY: Record<Language, HomeCopy> = {
     benefitsSubtitle: 'Faster cash flow, lower friction, and a checkout your clients trust.',
     audienceTitle: 'Made for modern payment teams',
     audienceSubtitle: 'From solo operators to scaling platforms, Link2Pay keeps operations simple.',
-    testimonialsTitle: 'Stories from teams shipping faster',
-    testimonialsSubtitle: 'Used by teams in 30+ countries to launch checkout with less engineering effort.',
+    testimonialsTitle: 'Go live with confidence',
+    testimonialsSubtitle: 'Use this checklist to launch on Mainnet without surprises.',
     moneyTitle: 'Accept the assets your clients already use',
     moneySubtitle: 'Collect XLM, USDC, and EURC in one checkout flow with fast finality.',
     finalTitle: 'Launch your next payment flow today',
@@ -94,7 +96,9 @@ const COPY: Record<Language, HomeCopy> = {
     heroDescription:
       'Link2Pay ayuda a freelancers, agencias y equipos de producto a cobrar sin demoras bancarias. Crea un link, compártelo y liquida on-chain en unos 5 segundos.',
     heroPrimaryCta: 'Crear mi primer link',
-    heroSecondaryCta: 'Ver el flujo',
+    heroSecondaryCta: 'SDK + Docs',
+    heroSecondaryNote: 'Guías de integración y referencia API muy pronto',
+    heroSecondaryBadge: 'Pronto',
     heroFootnote: 'Empieza gratis en Testnet y pasa a Mainnet cuando estés listo.',
     howTitle: 'Cómo lanzar en una tarde',
     howSubtitle: 'Conecta wallet, genera el link y confirma el pago con estado en tiempo real.',
@@ -102,8 +106,8 @@ const COPY: Record<Language, HomeCopy> = {
     benefitsSubtitle: 'Mejor flujo de caja, menos fricción y checkout confiable para tus clientes.',
     audienceTitle: 'Hecho para equipos de pagos modernos',
     audienceSubtitle: 'Desde operadores independientes hasta plataformas en crecimiento.',
-    testimonialsTitle: 'Historias de equipos que lanzan más rápido',
-    testimonialsSubtitle: 'Equipos en 30+ países lanzan checkout con menos esfuerzo de ingeniería.',
+    testimonialsTitle: 'Lanza en vivo con confianza',
+    testimonialsSubtitle: 'Usa este checklist para pasar a Mainnet sin sorpresas.',
     moneyTitle: 'Acepta los activos que tus clientes ya usan',
     moneySubtitle: 'Cobra XLM, USDC y EURC en un solo flujo con finalidad rápida.',
     finalTitle: 'Lanza tu siguiente flujo de pago hoy',
@@ -123,7 +127,9 @@ const COPY: Record<Language, HomeCopy> = {
     heroDescription:
       'Link2Pay ajuda freelancers, agências e times de produto a receber sem atrasos bancários. Crie um link, compartilhe e liquide on-chain em cerca de 5 segundos.',
     heroPrimaryCta: 'Criar meu primeiro link',
-    heroSecondaryCta: 'Ver o fluxo',
+    heroSecondaryCta: 'SDK + Docs',
+    heroSecondaryNote: 'Guias de integração e referência de API em breve',
+    heroSecondaryBadge: 'Em breve',
     heroFootnote: 'Comece grátis na Testnet e mude para Mainnet quando estiver pronto.',
     howTitle: 'Como lançar em uma tarde',
     howSubtitle: 'Conecte a wallet, gere o link e confirme o pagamento em tempo real.',
@@ -131,8 +137,8 @@ const COPY: Record<Language, HomeCopy> = {
     benefitsSubtitle: 'Mais velocidade de caixa, menos fricção e checkout confiável.',
     audienceTitle: 'Feito para times de pagamentos modernos',
     audienceSubtitle: 'De operadores independentes a plataformas em crescimento.',
-    testimonialsTitle: 'Histórias de times que lançam mais rápido',
-    testimonialsSubtitle: 'Times em 30+ países lançam checkout com menos esforço de engenharia.',
+    testimonialsTitle: 'Entre em producao com confianca',
+    testimonialsSubtitle: 'Use este checklist para ir para Mainnet sem surpresas.',
     moneyTitle: 'Aceite os ativos que seus clientes já usam',
     moneySubtitle: 'Receba XLM, USDC e EURC em um único fluxo com finalidade rápida.',
     finalTitle: 'Lance seu próximo fluxo de pagamento hoje',
@@ -329,56 +335,59 @@ const STATS: Record<Language, StatItem[]> = {
   ],
 };
 
-const TESTIMONIALS: Record<Language, Testimonial[]> = {
+const LAUNCH_CHECKLIST: Record<Language, Item[]> = {
   en: [
     {
-      quote: 'We replaced manual bank follow-ups with one checkout link. Time to get paid dropped from days to minutes.',
-      name: 'Maria G.',
-      role: 'COO, Digital Studio - Colombia',
+      title: 'Validate in Sandbox',
+      description: 'Create test links and run the checkout flow end-to-end before going live.',
     },
     {
-      quote: 'Integration was simple: create link, listen to webhook, update order status. We shipped in one sprint.',
-      name: 'James K.',
-      role: 'Lead Engineer - Nigeria',
+      title: 'Confirm settlement tracking',
+      description: 'Use polling or webhooks to monitor CREATED, PENDING, and CONFIRMED states.',
     },
     {
-      quote: 'Cross-border billing became easier with USDC and EURC. Clients pay faster and support tickets dropped.',
-      name: 'Sofia R.',
-      role: 'Founder, Agency - Argentina',
+      title: 'Align wallet network',
+      description: 'Keep Freighter network aligned with your dashboard network before creating live links.',
+    },
+    {
+      title: 'Switch to Mainnet',
+      description: 'Reconnect wallet on Mainnet and start issuing production payment links.',
     },
   ],
   es: [
     {
-      quote: 'Reemplazamos seguimiento manual bancario por un solo link de checkout. Pasamos de días a minutos para cobrar.',
-      name: 'Maria G.',
-      role: 'COO, Estudio Digital - Colombia',
+      title: 'Valida en Sandbox',
+      description: 'Crea links de prueba y valida el flujo completo de checkout antes de salir en vivo.',
     },
     {
-      quote: 'La integración fue simple: crear link, escuchar webhook y actualizar estado de orden. Lo lanzamos en un sprint.',
-      name: 'James K.',
-      role: 'Lead Engineer - Nigeria',
+      title: 'Confirma el seguimiento',
+      description: 'Usa polling o webhooks para monitorear CREATED, PENDING y CONFIRMED.',
     },
     {
-      quote: 'La facturación internacional fue más fácil con USDC y EURC. Los clientes pagan más rápido y bajaron los tickets.',
-      name: 'Sofia R.',
-      role: 'Fundadora, Agencia - Argentina',
+      title: 'Alinea la red de la wallet',
+      description: 'Mantén Freighter en la misma red que el dashboard antes de crear links en vivo.',
+    },
+    {
+      title: 'Cambia a Mainnet',
+      description: 'Reconecta la wallet en Mainnet y emite links de pago de producción.',
     },
   ],
   pt: [
     {
-      quote: 'Trocamos acompanhamento manual bancário por um único link de checkout. O tempo para receber caiu de dias para minutos.',
-      name: 'Maria G.',
-      role: 'COO, Estudio Digital - Colombia',
+      title: 'Valide no Sandbox',
+      description: 'Crie links de teste e valide o fluxo completo de checkout antes de ir para producao.',
     },
     {
-      quote: 'A integração foi simples: criar link, receber webhook e atualizar status do pedido. Lançamos em um sprint.',
-      name: 'James K.',
-      role: 'Lead Engineer - Nigeria',
+      title: 'Confirme o rastreamento',
+      description: 'Use polling ou webhooks para monitorar CREATED, PENDING e CONFIRMED.',
     },
     {
-      quote: 'A cobrança internacional ficou mais fácil com USDC e EURC. Clientes pagam mais rápido e os tickets caíram.',
-      name: 'Sofia R.',
-      role: 'Fundadora, Agencia - Argentina',
+      title: 'Alinhe a rede da wallet',
+      description: 'Mantenha o Freighter na mesma rede do dashboard antes de criar links ao vivo.',
+    },
+    {
+      title: 'Troque para Mainnet',
+      description: 'Reconecte a wallet em Mainnet e comece a emitir links de pagamento de producao.',
     },
   ],
 };
@@ -444,6 +453,8 @@ const HOME_EXTRAS: Record<
     snapshotSubtitle: string;
     benefitsCta: string;
     ratingNote: string;
+    checklistOrderTitle: string;
+    checklistOrderSummary: string;
     assetsNote: string;
     sdkCta: string;
     sdkHint: string;
@@ -457,6 +468,8 @@ const HOME_EXTRAS: Record<
     snapshotSubtitle: 'Monitor settlement speed, fees, and global reach before scaling your live checkout.',
     benefitsCta: 'Explore capabilities',
     ratingNote: 'Average partner rating after launching live payment links.',
+    checklistOrderTitle: 'Recommended order',
+    checklistOrderSummary: 'Sandbox validation -> network check -> Mainnet go-live.',
     assetsNote: 'Use one integration pattern and choose the asset per payment request.',
     sdkCta: 'Open SDK Section',
     sdkHint: 'Need implementation details?',
@@ -469,6 +482,8 @@ const HOME_EXTRAS: Record<
     snapshotSubtitle: 'Visualiza velocidad de liquidacion, costos y alcance global antes de escalar checkout en vivo.',
     benefitsCta: 'Explorar capacidades',
     ratingNote: 'Calificacion promedio de partners despues de lanzar links de pago en vivo.',
+    checklistOrderTitle: 'Orden recomendada',
+    checklistOrderSummary: 'Validacion en Sandbox -> revision de red -> salida a Mainnet.',
     assetsNote: 'Usa un solo patron de integracion y elige el activo por solicitud de pago.',
     sdkCta: 'Abrir seccion SDK',
     sdkHint: 'Necesitas detalles de implementacion?',
@@ -481,6 +496,8 @@ const HOME_EXTRAS: Record<
     snapshotSubtitle: 'Visualize velocidade de liquidacao, custos e alcance global antes de escalar checkout em producao.',
     benefitsCta: 'Explorar capacidades',
     ratingNote: 'Nota media de parceiros apos lancar links de pagamento ao vivo.',
+    checklistOrderTitle: 'Ordem recomendada',
+    checklistOrderSummary: 'Validacao em Sandbox -> verificacao de rede -> go-live em Mainnet.',
     assetsNote: 'Use um unico padrao de integracao e escolha o ativo por solicitacao de pagamento.',
     sdkCta: 'Abrir secao SDK',
     sdkHint: 'Precisa de detalhes de implementacao?',
@@ -499,7 +516,7 @@ export default function Home() {
   const audiences = AUDIENCES[language];
   const audienceFits = AUDIENCE_FITS[language];
   const stats = STATS[language];
-  const testimonials = TESTIMONIALS[language];
+  const launchChecklist = LAUNCH_CHECKLIST[language];
   const currencies = CURRENCIES[language];
   const extras = HOME_EXTRAS[language];
 
@@ -508,7 +525,7 @@ export default function Home() {
       <section className="relative overflow-hidden border-b border-border bg-card">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_at_top,_hsl(175_75%_45%_/_0.12),transparent_68%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(ellipse_at_bottom,_hsl(175_75%_45%_/_0.06),transparent_68%)]" />
-        <div className="relative mx-auto max-w-[1480px] px-4 pb-16 pt-20 sm:px-6 sm:pb-20 sm:pt-24">
+        <div className="relative mx-auto max-w-[1480px] px-4 pb-[clamp(2.75rem,7svh,5rem)] pt-[clamp(2.75rem,8svh,6rem)] sm:px-6 sm:pb-[clamp(3rem,8svh,5.5rem)] sm:pt-[clamp(3.25rem,10svh,6.5rem)]">
           <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
             <div className="text-center lg:text-left">
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary animate-fade-in">
@@ -538,9 +555,18 @@ export default function Home() {
                   {copy.heroPrimaryCta}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link to="/payment-links" className="btn-secondary px-6 py-3.5 text-sm">
-                  {copy.heroSecondaryCta}
-                </Link>
+                <div className="inline-flex items-center gap-3 rounded-2xl border border-primary/35 bg-card/80 px-4 py-2.5 text-left shadow-[0_8px_32px_hsl(var(--primary)_/_0.1)]">
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-primary/35 bg-primary/15 text-primary">
+                    <FileText className="h-4 w-4" />
+                  </span>
+                  <span className="flex flex-col">
+                    <span className="text-sm font-semibold leading-tight text-foreground">{copy.heroSecondaryCta}</span>
+                    <span className="text-[11px] leading-tight text-muted-foreground">{copy.heroSecondaryNote}</span>
+                  </span>
+                  <span className="rounded-full border border-primary/35 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+                    {copy.heroSecondaryBadge}
+                  </span>
+                </div>
               </div>
               <p className="mt-4 text-xs text-muted-foreground animate-slide-up" style={{ animationDelay: '0.32s' }}>
                 {copy.heroFootnote}
@@ -749,34 +775,29 @@ export default function Home() {
               <h2 className="text-3xl font-semibold text-foreground">{copy.testimonialsTitle}</h2>
               <p className="mt-3 text-base text-muted-foreground">{copy.testimonialsSubtitle}</p>
               <div className="mt-8 rounded-2xl border border-border bg-background p-6">
-                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{copy.heroTag1}</p>
-                <p className="mt-2 text-4xl font-semibold text-primary">4.9/5</p>
-                <p className="mt-2 text-sm text-muted-foreground">{extras.ratingNote}</p>
+                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{extras.checklistOrderTitle}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{extras.checklistOrderSummary}</p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link to="/app" className="btn-primary px-4 py-2 text-xs sm:text-sm">
+                    {copy.heroPrimaryCta}
+                  </Link>
+                  <Link to="/sdk" className="btn-secondary px-4 py-2 text-xs sm:text-sm">
+                    {extras.sdkCta}
+                  </Link>
+                </div>
               </div>
             </div>
 
-            <div className="-mx-4 overflow-x-auto px-4">
-              <div className="flex snap-x gap-5 pb-2">
-                {testimonials.map((testimonial, index) => (
-                  <article
-                    key={testimonial.name}
-                    className={`min-w-[280px] max-w-[320px] snap-start rounded-2xl border border-border bg-background p-7 ${
-                      index === 1 ? 'sm:translate-y-3' : ''
-                    }`}
-                  >
-                    <div className="mb-4 flex gap-1">
-                      {[...Array(5)].map((_, starIndex) => (
-                        <Star key={starIndex} className="h-4 w-4 fill-primary text-primary" />
-                      ))}
-                    </div>
-                    <p className="text-sm leading-relaxed text-muted-foreground italic">"{testimonial.quote}"</p>
-                    <div className="mt-6 border-t border-border pt-4">
-                      <p className="text-sm font-medium text-foreground">{testimonial.name}</p>
-                      <p className="text-xs text-muted-foreground">{testimonial.role}</p>
-                    </div>
-                  </article>
-                ))}
-              </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {launchChecklist.map((item) => (
+                <article key={item.title} className="rounded-2xl border border-border bg-background p-6">
+                  <div className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
+                    <ShieldCheck className="h-4 w-4" />
+                  </div>
+                  <h3 className="text-base font-semibold text-foreground">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+                </article>
+              ))}
             </div>
           </div>
         </div>
@@ -858,5 +879,3 @@ export default function Home() {
     </div>
   );
 }
-
-

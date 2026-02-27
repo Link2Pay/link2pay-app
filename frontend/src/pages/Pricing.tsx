@@ -20,6 +20,7 @@ type FaqItem = { q: string; a: string };
 type PricingCopy = {
   heroTitle: string;
   heroSubtitle: string;
+  sdkFreeLine: string;
   plansNoteLine1: string;
   plansNoteLine2: string;
   faqTitle: string;
@@ -30,6 +31,7 @@ const COPY: Record<Language, PricingCopy> = {
   en: {
     heroTitle: 'Simple pricing that grows with you',
     heroSubtitle: 'Start free in Sandbox. Upgrade only when you need live webhooks, longer retention, branding, and team controls.',
+    sdkFreeLine: 'SDK and client libraries stay free on every plan.',
     plansNoteLine1: 'Sandbox is free forever for prototyping and integration testing. Pro and Business are designed for live payment operations.',
     plansNoteLine2: 'A per-transaction fee applies to checkout settlement. Higher tiers reduce rates and unlock volume discounts.',
     faqTitle: 'Frequently asked questions',
@@ -38,6 +40,7 @@ const COPY: Record<Language, PricingCopy> = {
   es: {
     heroTitle: 'Precios simples que crecen contigo',
     heroSubtitle: 'Empieza gratis en Sandbox. Actualiza solo cuando necesites webhooks en vivo, mayor retención, branding y control de equipo.',
+    sdkFreeLine: 'El SDK y las librerías cliente siguen gratis en cualquier plan.',
     plansNoteLine1: 'Sandbox es gratis para siempre para prototipos y pruebas de integración. Pro y Business están pensados para operación real.',
     plansNoteLine2: 'Se aplica una tarifa por transacción a la liquidación del checkout. Los tiers superiores reducen tarifas y habilitan descuentos por volumen.',
     faqTitle: 'Preguntas frecuentes',
@@ -46,6 +49,7 @@ const COPY: Record<Language, PricingCopy> = {
   pt: {
     heroTitle: 'Preços simples que crescem com você',
     heroSubtitle: 'Comece grátis no Sandbox. Faça upgrade apenas quando precisar de webhooks em produção, maior retenção, branding e controle de equipe.',
+    sdkFreeLine: 'SDK e bibliotecas cliente continuam grátis em qualquer plano.',
     plansNoteLine1: 'Sandbox é grátis para sempre para prototipação e testes de integração. Pro e Business são para operação real.',
     plansNoteLine2: 'Uma taxa por transação é aplicada na liquidação do checkout. Tiers superiores reduzem taxas e liberam descontos por volume.',
     faqTitle: 'Perguntas frequentes',
@@ -326,6 +330,9 @@ export default function Pricing() {
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">{copy.heroTitle}</h1>
             <p className="mt-3 text-base leading-relaxed text-muted-foreground md:text-lg">{copy.heroSubtitle}</p>
+            <p className="mx-auto mt-4 max-w-2xl rounded-xl border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+              {copy.sdkFreeLine}
+            </p>
           </div>
         </div>
       </section>
@@ -414,4 +421,3 @@ export default function Pricing() {
     </div>
   );
 }
-

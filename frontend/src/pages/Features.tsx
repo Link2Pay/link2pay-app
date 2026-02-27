@@ -32,6 +32,7 @@ type FeaturesCopy = {
   heroDescription: string;
   sdkSectionTitle: string;
   sdkSectionSubtitle: string;
+  sdkSectionQuickstartLabel: string;
   sdkSectionPrimaryCta: string;
   sdkSectionSecondaryCta: string;
   coreTitle: string;
@@ -59,6 +60,7 @@ const COPY: Record<Language, FeaturesCopy> = {
     sdkSectionTitle: 'Dedicated SDK section',
     sdkSectionSubtitle:
       'Explore implementation guidance, API patterns, and interactive payload previews in a dedicated SDK page.',
+    sdkSectionQuickstartLabel: 'Developer quickstart',
     sdkSectionPrimaryCta: 'Open SDK Section',
     sdkSectionSecondaryCta: 'Create Live Link',
     coreTitle: 'Core capabilities',
@@ -84,6 +86,7 @@ const COPY: Record<Language, FeaturesCopy> = {
     sdkSectionTitle: 'Sección SDK dedicada',
     sdkSectionSubtitle:
       'Explora guía de implementación, patrones API y vistas interactivas de payload en una página SDK dedicada.',
+    sdkSectionQuickstartLabel: 'Quickstart de desarrollador',
     sdkSectionPrimaryCta: 'Abrir sección SDK',
     sdkSectionSecondaryCta: 'Crear link en vivo',
     coreTitle: 'Capacidades principales',
@@ -109,6 +112,7 @@ const COPY: Record<Language, FeaturesCopy> = {
     sdkSectionTitle: 'Seção SDK dedicada',
     sdkSectionSubtitle:
       'Explore guia de implementação, padrões de API e prévias interativas de payload em uma página SDK dedicada.',
+    sdkSectionQuickstartLabel: 'Quickstart de desenvolvedor',
     sdkSectionPrimaryCta: 'Abrir seção SDK',
     sdkSectionSecondaryCta: 'Criar link ao vivo',
     coreTitle: 'Capacidades principais',
@@ -386,6 +390,16 @@ export default function Features() {
           <div className="card p-8">
             <h2 className="text-3xl font-semibold text-foreground">{copy.sdkSectionTitle}</h2>
             <p className="mt-3 text-base text-muted-foreground">{copy.sdkSectionSubtitle}</p>
+            <div className="mt-5 rounded-xl border border-surface-3 bg-background p-4">
+              <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{copy.sdkSectionQuickstartLabel}</p>
+              <pre className="mt-2 overflow-x-auto whitespace-pre-wrap text-xs leading-relaxed text-ink-1">
+{`Create link request
+-> receive checkoutUrl
+
+Share checkoutUrl
+-> track status: CREATED -> PENDING -> CONFIRMED`}
+              </pre>
+            </div>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/sdk" className="btn-primary px-5 py-2.5 text-sm">
                 {copy.sdkSectionPrimaryCta}
@@ -551,4 +565,3 @@ export default function Features() {
     </div>
   );
 }
-

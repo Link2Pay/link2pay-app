@@ -232,6 +232,12 @@ const POWERED_TAGS: Record<Language, string[]> = {
   pt: ['Finalidade em ~5s', 'Taxas quase zero', 'Alcance global 150+ países', 'Suporte nativo multi-ativo', 'Consenso eficiente em energia'],
 };
 
+const WHY_STELLAR: Record<Language, string[]> = {
+  en: ['Fast finality', 'Low fees', 'Stablecoins supported (XLM, USDC, EURC)'],
+  es: ['Finalidad rápida', 'Comisiones bajas', 'Soporte para stablecoins (XLM, USDC, EURC)'],
+  pt: ['Finalidade rápida', 'Taxas baixas', 'Suporte a stablecoins (XLM, USDC, EURC)'],
+};
+
 export default function About() {
   const { language } = useI18n();
 
@@ -240,6 +246,7 @@ export default function About() {
   const values = VALUES[language];
   const milestones = MILESTONES[language];
   const poweredTags = POWERED_TAGS[language];
+  const whyStellar = WHY_STELLAR[language];
 
   return (
     <div>
@@ -324,6 +331,14 @@ export default function About() {
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-2xl font-semibold text-foreground">{copy.poweredTitle}</h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{copy.poweredDescription}</p>
+            <div className="mt-5 grid gap-2 text-left">
+              {whyStellar.map((item) => (
+                <span key={item} className="inline-flex items-center gap-2 text-sm text-foreground">
+                  <span className="h-2 w-2 rounded-full bg-primary" />
+                  {item}
+                </span>
+              ))}
+            </div>
             <div className="mt-6 flex flex-wrap justify-center gap-4">
               {poweredTags.map((item) => (
                 <span key={item} className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs text-primary">
@@ -356,4 +371,3 @@ export default function About() {
     </div>
   );
 }
-
