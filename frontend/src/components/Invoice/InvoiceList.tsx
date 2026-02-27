@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { listInvoices } from '../../services/api';
@@ -98,6 +98,10 @@ export default function InvoiceList() {
   const PAGE_SIZE = 20;
   const [filter, setFilter] = useState('');
 
+  useEffect(() => {
+    setPage(0);
+  }, [showPreviewLinks, networkPassphrase]);
+
   const { data, isLoading: loading } = useQuery({
     queryKey: ['invoices', publicKey, filter, page, networkPassphrase, showPreviewLinks],
     queryFn: () =>
@@ -111,6 +115,17 @@ export default function InvoiceList() {
 
   const invoices = data?.invoices ?? [];
   const total = data?.total ?? 0;
+  const filteredInvoices = useMemo(
+    () =>
+      invoices.filter((invoice) => {
+        const matchesNetwork =
+          !invoice.networkPassphrase || invoice.networkPassphrase === networkPassphrase;
+        if (!matchesNetwork) return false;
+        if (showPreviewLinks) return true;
+        return !invoice.notes?.includes('__hero_preview_v1__');
+      }),
+    [invoices, networkPassphrase, showPreviewLinks]
+  );
 
   const statusFilters: { label: string; value: string }[] = [
     { label: copy.all, value: '' },
@@ -173,7 +188,7 @@ export default function InvoiceList() {
 
       {loading ? (
         <div className="card p-12 text-center text-ink-3 text-sm">{copy.loadingInvoices}</div>
-      ) : invoices.length === 0 ? (
+      ) : filteredInvoices.length === 0 ? (
         <div className="card p-12 text-center">
           <p className="text-ink-3 text-sm mb-3">{copy.noInvoicesFound}</p>
           <Link to="/dashboard/create-link" className="btn-primary text-sm">
@@ -194,7 +209,7 @@ export default function InvoiceList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-3">
-                {invoices.map((invoice) => (
+                {filteredInvoices.map((invoice) => (
                   <tr key={invoice.id} className="hover:bg-surface-1 transition-colors">
                     <td className="px-4 py-3">
                       <Link to={`/dashboard/links/${invoice.id}`} className="text-sm font-medium text-stellar-600 hover:text-stellar-700">

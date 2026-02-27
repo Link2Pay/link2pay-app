@@ -194,13 +194,28 @@ export default function Dashboard() {
 
   const loading = statsLoading || invoicesLoading;
   const invoices = Array.isArray(invoiceResult?.invoices) ? invoiceResult.invoices : [];
-  const recentInvoices = invoices.slice(0, 5);
+  const filteredInvoices = useMemo(
+    () =>
+      invoices.filter((invoice) => {
+        const matchesNetwork =
+          !invoice.networkPassphrase || invoice.networkPassphrase === networkPassphrase;
+        if (!matchesNetwork) return false;
+        if (showPreviewLinks) return true;
+        return !invoice.notes?.includes('__hero_preview_v1__');
+      }),
+    [invoices, networkPassphrase, showPreviewLinks]
+  );
+  const recentInvoices = filteredInvoices.slice(0, 5);
 
-  const totalLinks = stats?.totalInvoices ?? invoices.length;
-  const paidLinks = stats?.paidInvoices ?? invoices.filter((invoice) => invoice.status === 'PAID').length;
-  const pendingLinks = stats?.pendingInvoices ?? invoices.filter((invoice) => ['PENDING', 'PROCESSING'].includes(invoice.status)).length;
-  const closedLinks = invoices.filter((invoice) => ['FAILED', 'EXPIRED', 'CANCELLED'].includes(invoice.status)).length;
-  const draftLinks = invoices.filter((invoice) => invoice.status === 'DRAFT').length;
+  const totalLinks = stats?.totalInvoices ?? filteredInvoices.length;
+  const paidLinks = stats?.paidInvoices ?? filteredInvoices.filter((invoice) => invoice.status === 'PAID').length;
+  const pendingLinks =
+    stats?.pendingInvoices ??
+    filteredInvoices.filter((invoice) => ['PENDING', 'PROCESSING'].includes(invoice.status)).length;
+  const closedLinks = filteredInvoices.filter((invoice) =>
+    ['FAILED', 'EXPIRED', 'CANCELLED'].includes(invoice.status)
+  ).length;
+  const draftLinks = filteredInvoices.filter((invoice) => invoice.status === 'DRAFT').length;
   const conversionRate = totalLinks > 0 ? (paidLinks / totalLinks) * 100 : 0;
 
   const toAmount = (value: string | null | undefined) => {
@@ -210,14 +225,14 @@ export default function Dashboard() {
 
   const settledByAsset = useMemo(() => {
     const totals: Record<'XLM' | 'USDC' | 'EURC', number> = { XLM: 0, USDC: 0, EURC: 0 };
-    invoices.forEach((invoice) => {
+    filteredInvoices.forEach((invoice) => {
       if (invoice.status !== 'PAID') return;
       if (invoice.currency in totals) {
         totals[invoice.currency as 'XLM' | 'USDC' | 'EURC'] += toAmount(invoice.total);
       }
     });
     return totals;
-  }, [invoices]);
+  }, [filteredInvoices]);
 
   const settledAssetRows = (Object.keys(settledByAsset) as Array<'XLM' | 'USDC' | 'EURC'>).map((asset) => ({
     asset,
@@ -229,7 +244,7 @@ export default function Dashboard() {
   const topClients = useMemo(() => {
     const map = new Map<string, { name: string; links: number; paid: number; pending: number }>();
 
-    invoices.forEach((invoice) => {
+    filteredInvoices.forEach((invoice) => {
       const name = invoice.clientName || 'Unknown';
       const entry = map.get(name) || { name, links: 0, paid: 0, pending: 0 };
       entry.links += 1;
@@ -241,7 +256,7 @@ export default function Dashboard() {
     return Array.from(map.values())
       .sort((a, b) => b.links - a.links || b.paid - a.paid)
       .slice(0, 5);
-  }, [invoices]);
+  }, [filteredInvoices]);
 
   const totalRevenueValue =
     stats?.totalRevenue === undefined || stats?.totalRevenue === null
