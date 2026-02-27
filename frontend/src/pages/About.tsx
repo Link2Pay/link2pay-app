@@ -51,7 +51,7 @@ const COPY: Record<Language, AboutCopy> = {
     journeySubtitle: 'Each milestone improved developer speed, payer trust, and operational clarity.',
     poweredTitle: 'Powered by the Stellar network',
     poweredDescription:
-      'Stellar makes global payments practical: fast finality, very low fees, and native support for multiple assets.',
+      'Stellar-first today: fast finality, very low fees, and stablecoin support. Multi-chain support is on our roadmap.',
     finalTitle: 'Build payment flows with confidence',
     finalDescription: 'Launch quickly, keep control of funds, and scale without adding payment complexity.',
     finalCta: 'Start Integrating',
@@ -69,7 +69,7 @@ const COPY: Record<Language, AboutCopy> = {
     journeySubtitle: 'Cada hito mejoró velocidad para developers, confianza del pagador y claridad operativa.',
     poweredTitle: 'Impulsado por la red Stellar',
     poweredDescription:
-      'Stellar hace viables los pagos globales: finalidad rápida, comisiones muy bajas y soporte nativo multi-activo.',
+      'Stellar-first hoy: finalidad rapida, comisiones bajas y soporte de stablecoins. Multi-chain esta en roadmap.',
     finalTitle: 'Construye flujos de pago con confianza',
     finalDescription: 'Lanza rápido, mantén control de los fondos y escala sin sumar complejidad.',
     finalCta: 'Comenzar integración',
@@ -87,7 +87,7 @@ const COPY: Record<Language, AboutCopy> = {
     journeySubtitle: 'Cada marco melhorou velocidade para developers, confiança do pagador e clareza operacional.',
     poweredTitle: 'Impulsionado pela rede Stellar',
     poweredDescription:
-      'Stellar torna pagamentos globais práticos: finalidade rápida, taxas muito baixas e suporte nativo multi-ativo.',
+      'Stellar-first hoje: finalidade rapida, taxas baixas e suporte a stablecoins. Multi-chain esta no roadmap.',
     finalTitle: 'Construa fluxos de pagamento com confiança',
     finalDescription: 'Lance rápido, mantenha controle dos fundos e escale sem adicionar complexidade.',
     finalCta: 'Começar integração',
@@ -232,6 +232,12 @@ const POWERED_TAGS: Record<Language, string[]> = {
   pt: ['Finalidade em ~5s', 'Taxas quase zero', 'Alcance global 150+ países', 'Suporte nativo multi-ativo', 'Consenso eficiente em energia'],
 };
 
+const WHY_STELLAR: Record<Language, string[]> = {
+  en: ['Fast finality', 'Low fees', 'Stablecoins supported (XLM, USDC, EURC)'],
+  es: ['Finalidad rapida', 'Comisiones bajas', 'Soporte para stablecoins (XLM, USDC, EURC)'],
+  pt: ['Finalidade rapida', 'Taxas baixas', 'Suporte a stablecoins (XLM, USDC, EURC)'],
+};
+
 export default function About() {
   const { language } = useI18n();
 
@@ -240,6 +246,7 @@ export default function About() {
   const values = VALUES[language];
   const milestones = MILESTONES[language];
   const poweredTags = POWERED_TAGS[language];
+  const whyStellar = WHY_STELLAR[language];
 
   return (
     <div>
@@ -324,6 +331,14 @@ export default function About() {
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-2xl font-semibold text-foreground">{copy.poweredTitle}</h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{copy.poweredDescription}</p>
+            <div className="mt-5 grid gap-2 text-left">
+              {whyStellar.map((item) => (
+                <span key={item} className="inline-flex items-center gap-2 text-sm text-foreground">
+                  <span className="h-2 w-2 rounded-full bg-primary" />
+                  {item}
+                </span>
+              ))}
+            </div>
             <div className="mt-6 flex flex-wrap justify-center gap-4">
               {poweredTags.map((item) => (
                 <span key={item} className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs text-primary">

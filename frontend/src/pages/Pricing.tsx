@@ -20,6 +20,7 @@ type FaqItem = { q: string; a: string };
 type PricingCopy = {
   heroTitle: string;
   heroSubtitle: string;
+  sdkFreeLine: string;
   plansNoteLine1: string;
   plansNoteLine2: string;
   faqTitle: string;
@@ -30,6 +31,7 @@ const COPY: Record<Language, PricingCopy> = {
   en: {
     heroTitle: 'Simple pricing that grows with you',
     heroSubtitle: 'Start free in Sandbox. Upgrade only when you need live webhooks, longer retention, branding, and team controls.',
+    sdkFreeLine: 'SDK and client libraries are free for everyone. Plans unlock production operations.',
     plansNoteLine1: 'Sandbox is free forever for prototyping and integration testing. Pro and Business are designed for live payment operations.',
     plansNoteLine2: 'A per-transaction fee applies to checkout settlement. Higher tiers reduce rates and unlock volume discounts.',
     faqTitle: 'Frequently asked questions',
@@ -38,6 +40,7 @@ const COPY: Record<Language, PricingCopy> = {
   es: {
     heroTitle: 'Precios simples que crecen contigo',
     heroSubtitle: 'Empieza gratis en Sandbox. Actualiza solo cuando necesites webhooks en vivo, mayor retención, branding y control de equipo.',
+    sdkFreeLine: 'SDK y librerias cliente son gratis para todos. Los planes desbloquean operacion en produccion.',
     plansNoteLine1: 'Sandbox es gratis para siempre para prototipos y pruebas de integración. Pro y Business están pensados para operación real.',
     plansNoteLine2: 'Se aplica una tarifa por transacción a la liquidación del checkout. Los tiers superiores reducen tarifas y habilitan descuentos por volumen.',
     faqTitle: 'Preguntas frecuentes',
@@ -46,6 +49,7 @@ const COPY: Record<Language, PricingCopy> = {
   pt: {
     heroTitle: 'Preços simples que crescem com você',
     heroSubtitle: 'Comece grátis no Sandbox. Faça upgrade apenas quando precisar de webhooks em produção, maior retenção, branding e controle de equipe.',
+    sdkFreeLine: 'SDK e client libraries sao gratis para todos. Planos desbloqueiam operacao em producao.',
     plansNoteLine1: 'Sandbox é grátis para sempre para prototipação e testes de integração. Pro e Business são para operação real.',
     plansNoteLine2: 'Uma taxa por transação é aplicada na liquidação do checkout. Tiers superiores reduzem taxas e liberam descontos por volume.',
     faqTitle: 'Perguntas frequentes',
@@ -66,8 +70,8 @@ const PLANS: Record<Language, Plan[]> = {
         '3-hour transaction history retention',
         'Up to 3 concurrent active links',
         'REST polling for payment confirmation',
-        'Full Stellar Testnet access',
-        'Standard transaction fee tier',
+        'Testnet only (Sandbox environment)',
+        'Transaction fee: 1.20%',
       ],
       cta: 'Start Free',
       to: '/app',
@@ -86,7 +90,8 @@ const PLANS: Record<Language, Plan[]> = {
         'Higher concurrent link limits',
         'Real-time webhooks with automatic retries and HMAC signature checks',
         'Branded checkout with your logo and colors',
-        'Reduced per-transaction fee',
+        'Mainnet + Testnet access',
+        'Transaction fee: 0.80%',
         'Priority technical support (24-hour SLA)',
       ],
       cta: 'Upgrade to Pro',
@@ -105,7 +110,8 @@ const PLANS: Record<Language, Plan[]> = {
         'Audit logs with CSV and JSON export',
         'Webhook delivery logs with event replay',
         'White-label checkout with custom domain',
-        'Lowest fee tier with volume-based discounts',
+        'Mainnet + Testnet + advanced operations',
+        'Transaction fee: 0.50% (volume-based)',
       ],
       cta: 'Contact Sales',
       to: '/app',
@@ -124,8 +130,8 @@ const PLANS: Record<Language, Plan[]> = {
         'Retención de historial por 3 horas',
         'Hasta 3 links activos simultáneos',
         'Polling REST para confirmar pagos',
-        'Acceso completo a Stellar Testnet',
-        'Tarifa estándar por transacción',
+        'Solo Testnet (entorno Sandbox)',
+        'Tarifa por transaccion: 1.20%',
       ],
       cta: 'Empezar gratis',
       to: '/app',
@@ -144,7 +150,8 @@ const PLANS: Record<Language, Plan[]> = {
         'Mayor límite de links simultáneos',
         'Webhooks en tiempo real con reintentos y verificación HMAC',
         'Checkout personalizado con logo y colores',
-        'Tarifa reducida por transacción',
+        'Acceso Mainnet + Testnet',
+        'Tarifa por transaccion: 0.80%',
         'Soporte técnico prioritario (SLA 24 horas)',
       ],
       cta: 'Actualizar a Pro',
@@ -163,7 +170,8 @@ const PLANS: Record<Language, Plan[]> = {
         'Logs de auditoría con exportación CSV y JSON',
         'Logs de webhooks con replay de eventos',
         'Checkout white-label con dominio propio',
-        'Tarifa más baja con descuentos por volumen',
+        'Mainnet + Testnet + operacion avanzada',
+        'Tarifa por transaccion: 0.50% (segun volumen)',
       ],
       cta: 'Hablar con ventas',
       to: '/app',
@@ -182,8 +190,8 @@ const PLANS: Record<Language, Plan[]> = {
         'Retenção de histórico por 3 horas',
         'Até 3 links ativos ao mesmo tempo',
         'Polling REST para confirmar pagamentos',
-        'Acesso completo a Stellar Testnet',
-        'Tarifa padrão por transação',
+        'Somente Testnet (ambiente Sandbox)',
+        'Taxa por transacao: 1.20%',
       ],
       cta: 'Começar grátis',
       to: '/app',
@@ -202,7 +210,8 @@ const PLANS: Record<Language, Plan[]> = {
         'Limites maiores de links simultâneos',
         'Webhooks em tempo real com retentativas e verificação HMAC',
         'Checkout personalizado com logo e cores',
-        'Taxa reduzida por transação',
+        'Acesso Mainnet + Testnet',
+        'Taxa por transacao: 0.80%',
         'Suporte técnico prioritário (SLA de 24 horas)',
       ],
       cta: 'Atualizar para Pro',
@@ -221,7 +230,8 @@ const PLANS: Record<Language, Plan[]> = {
         'Logs de auditoria com exportação CSV e JSON',
         'Logs de webhooks com replay de eventos',
         'Checkout white-label com domínio próprio',
-        'Menor taxa com descontos por volume',
+        'Mainnet + Testnet + operacao avancada',
+        'Taxa por transacao: 0.50% (por volume)',
       ],
       cta: 'Falar com vendas',
       to: '/app',
@@ -253,6 +263,14 @@ const FAQS: Record<Language, FaqItem[]> = {
       a: 'Every settled payment has a fee. Higher tiers reduce your fee rate and may include volume discounts.',
     },
     {
+      q: 'Do payers need an account?',
+      a: 'No. Anyone can pay from the payment link checkout flow.',
+    },
+    {
+      q: 'Is Link2Pay custodial?',
+      a: 'No. Funds move wallet-to-wallet and are not custody-held by Link2Pay.',
+    },
+    {
       q: 'Which assets are currently supported?',
       a: 'Link2Pay currently supports Stellar assets XLM, USDC, and EURC.',
     },
@@ -277,6 +295,14 @@ const FAQS: Record<Language, FaqItem[]> = {
     {
       q: '¿Cómo funcionan las tarifas por transacción?',
       a: 'Cada pago liquidado tiene una tarifa. Los tiers superiores reducen esa tarifa y pueden incluir descuentos por volumen.',
+    },
+    {
+      q: '¿Los pagadores necesitan una cuenta?',
+      a: 'No. Cualquier persona puede pagar desde el checkout del link de pago.',
+    },
+    {
+      q: '¿Link2Pay es custodial?',
+      a: 'No. Los fondos van wallet-to-wallet y Link2Pay no custodia fondos.',
     },
     {
       q: '¿Qué activos están soportados hoy?',
@@ -305,6 +331,14 @@ const FAQS: Record<Language, FaqItem[]> = {
       a: 'Cada pagamento liquidado tem uma taxa. Tiers superiores reduzem a taxa e podem incluir descontos por volume.',
     },
     {
+      q: 'Pagadores precisam de conta?',
+      a: 'Nao. Qualquer pessoa pode pagar pelo checkout do link de pagamento.',
+    },
+    {
+      q: 'A Link2Pay e custodial?',
+      a: 'Nao. Os fundos vao wallet-to-wallet e a Link2Pay nao faz custodia.',
+    },
+    {
       q: 'Quais ativos são suportados hoje?',
       a: 'Atualmente o Link2Pay suporta XLM, USDC e EURC na Stellar.',
     },
@@ -326,6 +360,9 @@ export default function Pricing() {
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">{copy.heroTitle}</h1>
             <p className="mt-3 text-base leading-relaxed text-muted-foreground md:text-lg">{copy.heroSubtitle}</p>
+            <p className="mx-auto mt-4 max-w-2xl rounded-xl border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+              {copy.sdkFreeLine}
+            </p>
           </div>
         </div>
       </section>

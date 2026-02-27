@@ -23,6 +23,7 @@ import Features from './pages/Features';
 import SDK from './pages/SDK';
 import Pricing from './pages/Pricing';
 import About from './pages/About';
+import Security from './pages/Security';
 import RoleSelect from './pages/RoleSelect';
 import ProfileOptions from './pages/ProfileOptions';
 import ClientInvoiceLookup from './pages/ClientInvoiceLookup';
@@ -84,6 +85,7 @@ export default function App() {
             <Route path="/payment-links" element={<Features />} />
             <Route path="/sdk" element={<SDK />} />
             <Route path="/plans" element={<Pricing />} />
+            <Route path="/security" element={<Security />} />
             <Route path="/why-link2pay" element={<About />} />
           </Route>
 
@@ -116,9 +118,11 @@ export default function App() {
 
           {/* Backward-compatible redirects */}
           <Route path="/features" element={<Navigate to="/payment-links" replace />} />
+          <Route path="/docs" element={<Navigate to="/payment-links" replace />} />
           <Route path="/developers" element={<Navigate to="/sdk" replace />} />
           <Route path="/pricing" element={<Navigate to="/plans" replace />} />
           <Route path="/about" element={<Navigate to="/why-link2pay" replace />} />
+          <Route path="/trust" element={<Navigate to="/security" replace />} />
           <Route path="/get-started" element={<Navigate to="/app/login" replace />} />
           <Route path="/payer" element={<Navigate to="/checkout" replace />} />
           <Route path="/client" element={<Navigate to="/checkout" replace />} />

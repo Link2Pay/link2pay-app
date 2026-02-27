@@ -7,6 +7,7 @@ import {
   CreditCard,
   FileText,
   Globe2,
+  KeyRound,
   Link2,
   Receipt,
   RefreshCw,
@@ -19,7 +20,7 @@ import {
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 
-const CORE_FEATURE_ICONS = [Link2, Wallet, Zap, Globe2, Shield, RefreshCw] as const;
+const CORE_FEATURE_ICONS = [Link2, Wallet, Zap, Globe2, Shield, RefreshCw, KeyRound] as const;
 const INVOICE_FEATURE_ICONS = [FileText, Users, Receipt, BarChart3] as const;
 const UPCOMING_FEATURE_ICONS = [Bell, CreditCard, Smartphone] as const;
 
@@ -56,17 +57,17 @@ const COPY: Record<Language, FeaturesCopy> = {
     heroTitleHighlight: 'launch and scale payment links',
     heroDescription:
       'Link2Pay combines API + hosted checkout on Stellar so your team can move from idea to first payment in minutes.',
-    sdkSectionTitle: 'Dedicated SDK section',
+    sdkSectionTitle: 'Developer quickstart',
     sdkSectionSubtitle:
-      'Explore implementation guidance, API patterns, and interactive payload previews in a dedicated SDK page.',
+      'POST /links returns checkoutUrl. Then confirm with GET /links/:id or webhook payment.confirmed.',
     sdkSectionPrimaryCta: 'Open SDK Section',
     sdkSectionSecondaryCta: 'Create Live Link',
     coreTitle: 'Core capabilities',
     coreSubtitle: 'The building blocks to create, share, and track every payment link.',
     managementTitle: 'Operations and reliability',
     managementSubtitle: 'Production tooling for webhooks, controls, branding, and auditability.',
-    comparisonTitle: 'Why teams replace legacy rails',
-    comparisonSubtitle: 'Lower setup time, faster settlement, and clearer payment states.',
+    comparisonTitle: 'Build vs buy',
+    comparisonSubtitle: 'Compare implementation speed, operational visibility, and settlement performance.',
     colFeature: 'What matters',
     colTraditional: 'Traditional setup',
     comingSoon: 'Coming soon',
@@ -81,17 +82,17 @@ const COPY: Record<Language, FeaturesCopy> = {
     heroTitleHighlight: 'lanzar y escalar links de pago',
     heroDescription:
       'Link2Pay combina API y checkout hospedado sobre Stellar para que tu equipo pase de idea a primer cobro en minutos.',
-    sdkSectionTitle: 'Sección SDK dedicada',
+    sdkSectionTitle: 'Quickstart de desarrollador',
     sdkSectionSubtitle:
-      'Explora guía de implementación, patrones API y vistas interactivas de payload en una página SDK dedicada.',
+      'POST /links devuelve checkoutUrl. Luego confirma con GET /links/:id o webhook payment.confirmed.',
     sdkSectionPrimaryCta: 'Abrir sección SDK',
     sdkSectionSecondaryCta: 'Crear link en vivo',
     coreTitle: 'Capacidades principales',
     coreSubtitle: 'Bloques para crear, compartir y monitorear cada link de pago.',
     managementTitle: 'Operación y fiabilidad',
     managementSubtitle: 'Herramientas productivas para webhooks, controles, branding y auditoría.',
-    comparisonTitle: 'Por qué los equipos reemplazan rails legacy',
-    comparisonSubtitle: 'Menor tiempo de implementación, liquidación más rápida y estados claros.',
+    comparisonTitle: 'Build vs buy',
+    comparisonSubtitle: 'Comparacion de velocidad de integracion, visibilidad operativa y liquidacion.',
     colFeature: 'Lo importante',
     colTraditional: 'Configuración tradicional',
     comingSoon: 'Próximamente',
@@ -106,17 +107,17 @@ const COPY: Record<Language, FeaturesCopy> = {
     heroTitleHighlight: 'lançar e escalar links de pagamento',
     heroDescription:
       'Link2Pay combina API e checkout hospedado na Stellar para seu time ir da ideia ao primeiro recebimento em minutos.',
-    sdkSectionTitle: 'Seção SDK dedicada',
+    sdkSectionTitle: 'Quickstart de desenvolvedor',
     sdkSectionSubtitle:
-      'Explore guia de implementação, padrões de API e prévias interativas de payload em uma página SDK dedicada.',
+      'POST /links retorna checkoutUrl. Depois confirme com GET /links/:id ou webhook payment.confirmed.',
     sdkSectionPrimaryCta: 'Abrir seção SDK',
     sdkSectionSecondaryCta: 'Criar link ao vivo',
     coreTitle: 'Capacidades principais',
     coreSubtitle: 'Blocos para criar, compartilhar e acompanhar cada link de pagamento.',
     managementTitle: 'Operação e confiabilidade',
     managementSubtitle: 'Ferramentas de produção para webhooks, controles, branding e auditoria.',
-    comparisonTitle: 'Por que os times trocam rails legacy',
-    comparisonSubtitle: 'Menos tempo de implementação, liquidação mais rápida e estados claros.',
+    comparisonTitle: 'Build vs buy',
+    comparisonSubtitle: 'Comparacao de velocidade de integracao, visibilidade operacional e liquidacao.',
     colFeature: 'O que importa',
     colTraditional: 'Configuração tradicional',
     comingSoon: 'Em breve',
@@ -151,8 +152,12 @@ const CORE_FEATURES: Record<Language, Item[]> = {
       description: 'Funds go directly to merchant wallets. Link2Pay does not custody user balances.',
     },
     {
-      title: 'Wallet-based authentication',
-      description: 'Use Stellar wallet signatures for identity and access, without password-based auth flows.',
+      title: 'Wallet-based account ownership',
+      description: 'Use Stellar wallet signatures to prove account ownership and environment access.',
+    },
+    {
+      title: 'Project + API keys (Pro)',
+      description: 'Organize links by project, generate server keys, and isolate production operations.',
     },
   ],
   es: [
@@ -177,8 +182,12 @@ const CORE_FEATURES: Record<Language, Item[]> = {
       description: 'Los fondos van directo a la wallet del comercio. Link2Pay no custodia balances.',
     },
     {
-      title: 'Autenticación con wallet',
-      description: 'Usa firmas de wallet Stellar para identidad y acceso, sin flujos de password.',
+      title: 'Propiedad de cuenta con wallet',
+      description: 'Usa firmas de wallet Stellar para demostrar propiedad de cuenta y acceso por entorno.',
+    },
+    {
+      title: 'Proyecto + API keys (Pro)',
+      description: 'Organiza links por proyecto, genera llaves server y separa operaciones de produccion.',
     },
   ],
   pt: [
@@ -203,8 +212,12 @@ const CORE_FEATURES: Record<Language, Item[]> = {
       description: 'Os fundos vão direto para a wallet do comércio. Link2Pay não faz custódia.',
     },
     {
-      title: 'Autenticação com wallet',
-      description: 'Use assinaturas da wallet Stellar para identidade e acesso, sem fluxo de senha.',
+      title: 'Propriedade de conta com wallet',
+      description: 'Use assinaturas da wallet Stellar para provar propriedade de conta e acesso por ambiente.',
+    },
+    {
+      title: 'Projeto + API keys (Pro)',
+      description: 'Organize links por projeto, gere chaves de servidor e isole operacoes de producao.',
     },
   ],
 };
@@ -213,11 +226,11 @@ const INVOICE_FEATURES: Record<Language, Item[]> = {
   en: [
     {
       title: 'Signed Webhooks',
-      description: 'Receive trusted callbacks for each status change with retry policies and delivery visibility.',
+      description: 'HMAC signatures + timestamp headers for trusted webhook verification.',
     },
     {
-      title: 'Plan and quota controls',
-      description: 'Manage active link limits, expiration windows, and retention by plan tier.',
+      title: 'Retries and delivery logs',
+      description: 'Automatic retries on Pro with delivery logs and replay controls on Business.',
     },
     {
       title: 'Branded checkout',
@@ -231,11 +244,11 @@ const INVOICE_FEATURES: Record<Language, Item[]> = {
   es: [
     {
       title: 'Webhooks firmados',
-      description: 'Recibe callbacks confiables por cada cambio de estado con reintentos y visibilidad de entrega.',
+      description: 'Firmas HMAC + timestamp para verificar eventos de forma confiable.',
     },
     {
-      title: 'Controles de plan y cuota',
-      description: 'Gestiona límites de links activos, ventanas de expiración y retención por tier.',
+      title: 'Reintentos y logs de entrega',
+      description: 'Reintentos automaticos en Pro y logs/replay de entrega en Business.',
     },
     {
       title: 'Checkout con tu marca',
@@ -249,11 +262,11 @@ const INVOICE_FEATURES: Record<Language, Item[]> = {
   pt: [
     {
       title: 'Webhooks assinados',
-      description: 'Receba callbacks confiáveis a cada mudança de status com retentativas e visibilidade de entrega.',
+      description: 'Assinaturas HMAC + timestamp para verificacao confiavel dos eventos.',
     },
     {
-      title: 'Controles de plano e quota',
-      description: 'Gerencie limites de links ativos, janelas de expiração e retenção por tier.',
+      title: 'Retentativas e logs de entrega',
+      description: 'Retentativas automaticas no Pro e logs/replay de entrega no Business.',
     },
     {
       title: 'Checkout com sua marca',
@@ -268,27 +281,27 @@ const INVOICE_FEATURES: Record<Language, Item[]> = {
 
 const COMPARISON: Record<Language, ComparisonRow[]> = {
   en: [
-    { feature: 'Integration effort', stellarPay: 'Single API endpoint + hosted checkout', traditional: 'Custom gateway integration work' },
+    { feature: 'Time to integrate', stellarPay: '1 endpoint + hosted checkout', traditional: 'Custom gateway integration work' },
     { feature: 'Time to first payment', stellarPay: 'Minutes', traditional: 'Days or weeks' },
     { feature: 'Settlement speed', stellarPay: 'About 5 seconds', traditional: 'T+1 to T+3 banking days' },
     { feature: 'Transaction cost', stellarPay: 'Near-zero network fee', traditional: 'Percentage fee + fixed fee' },
-    { feature: 'Payment visibility', stellarPay: 'Deterministic states + webhooks', traditional: 'Polling and manual reconciliation' },
+    { feature: 'Operational visibility', stellarPay: 'Event logs + status transitions', traditional: 'Polling and manual reconciliation' },
     { feature: 'Custody model', stellarPay: 'Non-custodial wallet-to-wallet', traditional: 'Custodial flows and hold periods' },
   ],
   es: [
-    { feature: 'Esfuerzo de integración', stellarPay: 'Un endpoint API + checkout hospedado', traditional: 'Integración personalizada con gateway' },
+    { feature: 'Tiempo de integracion', stellarPay: '1 endpoint + checkout hospedado', traditional: 'Integracion personalizada con gateway' },
     { feature: 'Tiempo al primer pago', stellarPay: 'Minutos', traditional: 'Días o semanas' },
     { feature: 'Velocidad de liquidación', stellarPay: 'Alrededor de 5 segundos', traditional: 'T+1 a T+3 días bancarios' },
     { feature: 'Costo por transacción', stellarPay: 'Comisión de red casi cero', traditional: 'Porcentaje + cargo fijo' },
-    { feature: 'Visibilidad del pago', stellarPay: 'Estados deterministas + webhooks', traditional: 'Polling y conciliación manual' },
+    { feature: 'Visibilidad operativa', stellarPay: 'Logs de eventos + transiciones de estado', traditional: 'Polling y conciliacion manual' },
     { feature: 'Modelo de custodia', stellarPay: 'Non-custodial wallet-to-wallet', traditional: 'Flujos custodiales con períodos de espera' },
   ],
   pt: [
-    { feature: 'Esforço de integração', stellarPay: 'Um endpoint API + checkout hospedado', traditional: 'Integração customizada com gateway' },
+    { feature: 'Tempo de integracao', stellarPay: '1 endpoint + checkout hospedado', traditional: 'Integracao customizada com gateway' },
     { feature: 'Tempo para primeiro pagamento', stellarPay: 'Minutos', traditional: 'Dias ou semanas' },
     { feature: 'Velocidade de liquidação', stellarPay: 'Cerca de 5 segundos', traditional: 'T+1 a T+3 dias bancários' },
     { feature: 'Custo por transação', stellarPay: 'Taxa de rede quase zero', traditional: 'Percentual + taxa fixa' },
-    { feature: 'Visibilidade do pagamento', stellarPay: 'Estados deterministas + webhooks', traditional: 'Polling e conciliação manual' },
+    { feature: 'Visibilidade operacional', stellarPay: 'Logs de eventos + transicoes de status', traditional: 'Polling e conciliacao manual' },
     { feature: 'Modelo de custódia', stellarPay: 'Non-custodial wallet-to-wallet', traditional: 'Fluxos custodiais com períodos de espera' },
   ],
 };
@@ -386,6 +399,16 @@ export default function Features() {
           <div className="card p-8">
             <h2 className="text-3xl font-semibold text-foreground">{copy.sdkSectionTitle}</h2>
             <p className="mt-3 text-base text-muted-foreground">{copy.sdkSectionSubtitle}</p>
+            <div className="mt-5 rounded-xl border border-surface-3 bg-background p-4">
+              <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Developer quickstart</p>
+              <pre className="mt-2 overflow-x-auto whitespace-pre-wrap text-xs leading-relaxed text-ink-1">
+{`POST /links
+-> returns checkoutUrl
+
+GET /links/:id
+or webhook payment.confirmed`}
+              </pre>
+            </div>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/sdk" className="btn-primary px-5 py-2.5 text-sm">
                 {copy.sdkSectionPrimaryCta}

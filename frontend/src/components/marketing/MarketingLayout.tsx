@@ -11,16 +11,18 @@ export default function MarketingLayout() {
 
   const navItems = [
     { path: '/', label: t('marketing.nav.home'), end: true },
-    { path: '/payment-links', label: t('marketing.nav.features') },
+    { path: '/payment-links', label: t('marketing.nav.docs') },
     { path: '/sdk', label: t('marketing.nav.sdk') },
     { path: '/plans', label: t('marketing.nav.pricing') },
+    { path: '/security', label: t('marketing.nav.security') },
     { path: '/why-link2pay', label: t('marketing.nav.about') },
   ];
 
   const footerProduct = [
-    { label: t('marketing.nav.features'), to: '/payment-links' },
+    { label: t('marketing.nav.docs'), to: '/payment-links' },
     { label: t('marketing.nav.sdk'), to: '/sdk' },
     { label: t('marketing.nav.pricing'), to: '/plans' },
+    { label: t('marketing.nav.security'), to: '/security' },
     { label: t('marketing.dashboard'), to: '/app' },
   ];
 

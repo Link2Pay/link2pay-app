@@ -81,44 +81,44 @@ const COPY: Record<Language, SdkCopy> = {
 const QUICK_STEPS: Record<Language, Item[]> = {
   en: [
     {
-      title: '1. Generate credentials',
-      description: 'Create API keys and configure your environment before calling payment endpoints.',
+      title: '1. Start in Sandbox (Free)',
+      description: 'Connect wallet and create links without API keys while you validate checkout flow.',
     },
     {
-      title: '2. Create and share links',
-      description: 'Send payment link requests with amount, asset, expiration, and metadata.',
+      title: '2. Upgrade for API keys (Pro)',
+      description: 'Generate server API keys when you are ready for production backend calls and webhooks.',
     },
     {
       title: '3. Confirm and monitor',
-      description: 'Track state transitions and webhook events for operational visibility.',
+      description: 'Use polling in Free or webhook events in Pro to track Created, Pending, Confirmed, and Expired.',
     },
   ],
   es: [
     {
-      title: '1. Genera credenciales',
-      description: 'Crea API keys y configura tu entorno antes de llamar endpoints de pago.',
+      title: '1. Empieza en Sandbox (Free)',
+      description: 'Conecta wallet y crea links sin API keys mientras validas el checkout.',
     },
     {
-      title: '2. Crea y comparte links',
-      description: 'Envía requests de links de pago con monto, activo, expiración y metadata.',
+      title: '2. Mejora para API keys (Pro)',
+      description: 'Genera llaves server cuando pases a llamadas backend y webhooks en produccion.',
     },
     {
       title: '3. Confirma y monitorea',
-      description: 'Sigue transiciones de estado y eventos webhook para visibilidad operativa.',
+      description: 'Usa polling en Free o webhooks en Pro para Created, Pending, Confirmed y Expired.',
     },
   ],
   pt: [
     {
-      title: '1. Gere credenciais',
-      description: 'Crie API keys e configure seu ambiente antes de chamar endpoints de pagamento.',
+      title: '1. Comece no Sandbox (Free)',
+      description: 'Conecte wallet e crie links sem API keys enquanto valida o checkout.',
     },
     {
-      title: '2. Crie e compartilhe links',
-      description: 'Envie requests de links de pagamento com valor, ativo, expiração e metadata.',
+      title: '2. Upgrade para API keys (Pro)',
+      description: 'Gere chaves server quando estiver pronto para chamadas backend e webhooks.',
     },
     {
       title: '3. Confirme e monitore',
-      description: 'Acompanhe transições de status e eventos webhook para visibilidade operacional.',
+      description: 'Use polling no Free ou webhooks no Pro para Created, Pending, Confirmed e Expired.',
     },
   ],
 };
@@ -189,6 +189,19 @@ const RESOURCE_ITEMS: Record<Language, ResourceItem[]> = {
 const STEP_ICONS = [KeyRound, Code2, Layers] as const;
 const RESOURCE_ICONS = [KeyRound, Code2, BookOpen] as const;
 
+const FLOW_EXAMPLES = {
+  sandbox: `// Sandbox (Free) - polling
+const { checkoutUrl, id } = await createLink(payload);
+window.location.href = checkoutUrl;
+const status = await getLinkStatus(id);`,
+  pro: `// Pro - webhook confirmation
+const { checkoutUrl } = await createLink(payload);
+// listen to webhook: payment.confirmed
+verifyWebhookSignature(headers, body);`,
+  verify: `const expected = hmacSHA256(secret, timestamp + '.' + rawBody);
+if (signature !== expected) throw new Error('Invalid signature');`,
+};
+
 export default function SDK() {
   const { language } = useI18n();
 
@@ -212,6 +225,25 @@ export default function SDK() {
             </h1>
             <p className="mt-4 text-base text-muted-foreground md:text-lg">{copy.heroDescription}</p>
           </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+        <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+          <article className="card p-6">
+            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Install</p>
+            <pre className="mt-3 overflow-x-auto rounded-lg border border-surface-3 bg-surface-1 p-3 text-xs text-ink-1">
+{`npm install @link2pay/sdk`}
+            </pre>
+          </article>
+          <article className="card p-6">
+            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Minimal snippet</p>
+            <pre className="mt-3 overflow-x-auto rounded-lg border border-surface-3 bg-surface-1 p-3 text-xs text-ink-1">
+{`const { checkoutUrl, id } = await sdk.links.create(payload)
+window.location.href = checkoutUrl
+const status = await sdk.links.get(id)`}
+            </pre>
+          </article>
         </div>
       </section>
 
@@ -241,10 +273,38 @@ export default function SDK() {
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-semibold text-foreground">{copy.builderTitle}</h2>
             <p className="mt-3 text-base text-muted-foreground">{copy.builderSubtitle}</p>
+            <p className="mt-2 text-xs text-primary">This creates a real Sandbox link you can open.</p>
           </div>
           <div className="mt-12">
             <InteractiveLinkBuilder />
           </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <article className="rounded-xl border border-border bg-background p-5">
+              <h3 className="text-sm font-semibold text-foreground">Sandbox (Free)</h3>
+              <p className="mt-2 text-xs text-muted-foreground">Polling flow for early testing.</p>
+              <pre className="mt-3 overflow-x-auto rounded-lg border border-surface-3 bg-surface-1 p-3 text-xs text-ink-1">
+                {FLOW_EXAMPLES.sandbox}
+              </pre>
+            </article>
+            <article className="rounded-xl border border-border bg-background p-5">
+              <h3 className="text-sm font-semibold text-foreground">Pro</h3>
+              <p className="mt-2 text-xs text-muted-foreground">Webhook flow with signature verification.</p>
+              <pre className="mt-3 overflow-x-auto rounded-lg border border-surface-3 bg-surface-1 p-3 text-xs text-ink-1">
+                {FLOW_EXAMPLES.pro}
+              </pre>
+            </article>
+          </div>
+          <article className="mt-4 rounded-xl border border-border bg-background p-5">
+            <h3 className="text-sm font-semibold text-foreground">Webhook verification</h3>
+            <p className="mt-2 text-xs text-muted-foreground">Use timestamp + signature headers to verify event authenticity.</p>
+            <pre className="mt-3 overflow-x-auto rounded-lg border border-surface-3 bg-surface-1 p-3 text-xs text-ink-1">
+{`headers:
+x-link2pay-signature
+x-link2pay-timestamp
+
+${FLOW_EXAMPLES.verify}`}
+            </pre>
+          </article>
         </div>
       </section>
 

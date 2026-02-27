@@ -36,6 +36,8 @@ type HomeCopy = {
   heroDescription: string;
   heroPrimaryCta: string;
   heroSecondaryCta: string;
+  heroSecondaryNote: string;
+  heroSecondaryBadge: string;
   heroFootnote: string;
   howTitle: string;
   howSubtitle: string;
@@ -59,13 +61,15 @@ type HomeCopy = {
 const COPY: Record<Language, HomeCopy> = {
   en: {
     badge: 'Global payments powered by Stellar',
-    heroTitleStart: 'Turn every invoice into',
+    heroTitleStart: 'Turn every payment intent into',
     heroTitleHighlight: 'an instant checkout link',
     heroTitleEnd: 'and get paid in seconds',
     heroDescription:
       'Link2Pay helps freelancers, agencies, and product teams collect payments without banking delays. Create a link, share it, and settle on-chain in about 5 seconds.',
     heroPrimaryCta: 'Create Your First Link',
-    heroSecondaryCta: 'Watch The Flow',
+    heroSecondaryCta: 'SDK + Docs',
+    heroSecondaryNote: 'Integration guides and API reference coming soon',
+    heroSecondaryBadge: 'Soon',
     heroFootnote: 'Start free on Testnet and switch to Mainnet when you are ready.',
     howTitle: 'How teams launch in one afternoon',
     howSubtitle: 'Connect wallet, generate a link, and confirm payment with real-time status.',
@@ -88,13 +92,15 @@ const COPY: Record<Language, HomeCopy> = {
   },
   es: {
     badge: 'Pagos globales impulsados por Stellar',
-    heroTitleStart: 'Convierte cada factura en',
+    heroTitleStart: 'Convierte cada intencion de pago en',
     heroTitleHighlight: 'un link de checkout instantáneo',
     heroTitleEnd: 'y cobra en segundos',
     heroDescription:
       'Link2Pay ayuda a freelancers, agencias y equipos de producto a cobrar sin demoras bancarias. Crea un link, compártelo y liquida on-chain en unos 5 segundos.',
     heroPrimaryCta: 'Crear mi primer link',
-    heroSecondaryCta: 'Ver el flujo',
+    heroSecondaryCta: 'SDK + Docs',
+    heroSecondaryNote: 'Guías de integración y referencia API muy pronto',
+    heroSecondaryBadge: 'Pronto',
     heroFootnote: 'Empieza gratis en Testnet y pasa a Mainnet cuando estés listo.',
     howTitle: 'Cómo lanzar en una tarde',
     howSubtitle: 'Conecta wallet, genera el link y confirma el pago con estado en tiempo real.',
@@ -117,13 +123,15 @@ const COPY: Record<Language, HomeCopy> = {
   },
   pt: {
     badge: 'Pagamentos globais com Stellar',
-    heroTitleStart: 'Transforme cada fatura em',
+    heroTitleStart: 'Transforme cada intencao de pagamento em',
     heroTitleHighlight: 'um link de checkout instantâneo',
     heroTitleEnd: 'e receba em segundos',
     heroDescription:
       'Link2Pay ajuda freelancers, agências e times de produto a receber sem atrasos bancários. Crie um link, compartilhe e liquide on-chain em cerca de 5 segundos.',
     heroPrimaryCta: 'Criar meu primeiro link',
-    heroSecondaryCta: 'Ver o fluxo',
+    heroSecondaryCta: 'SDK + Docs',
+    heroSecondaryNote: 'Guias de integração e referência de API em breve',
+    heroSecondaryBadge: 'Em breve',
     heroFootnote: 'Comece grátis na Testnet e mude para Mainnet quando estiver pronto.',
     howTitle: 'Como lançar em uma tarde',
     howSubtitle: 'Conecte a wallet, gere o link e confirme o pagamento em tempo real.',
@@ -208,7 +216,7 @@ const BENEFITS: Record<Language, Item[]> = {
     },
     {
       title: 'Low transaction costs',
-      description: 'Network fees stay near zero, from small invoices to high-value transactions.',
+      description: 'Network fees stay near zero, from small intents to high-value transactions.',
     },
     {
       title: 'Global collection',
@@ -538,9 +546,18 @@ export default function Home() {
                   {copy.heroPrimaryCta}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link to="/payment-links" className="btn-secondary px-6 py-3.5 text-sm">
-                  {copy.heroSecondaryCta}
-                </Link>
+                <div className="inline-flex items-center gap-3 rounded-2xl border border-primary/35 bg-card/80 px-4 py-2.5 text-left shadow-[0_8px_32px_hsl(var(--primary)_/_0.1)]">
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-primary/35 bg-primary/15 text-primary">
+                    <FileText className="h-4 w-4" />
+                  </span>
+                  <span className="flex flex-col">
+                    <span className="text-sm font-semibold leading-tight text-foreground">{copy.heroSecondaryCta}</span>
+                    <span className="text-[11px] leading-tight text-muted-foreground">{copy.heroSecondaryNote}</span>
+                  </span>
+                  <span className="rounded-full border border-primary/35 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+                    {copy.heroSecondaryBadge}
+                  </span>
+                </div>
               </div>
               <p className="mt-4 text-xs text-muted-foreground animate-slide-up" style={{ animationDelay: '0.32s' }}>
                 {copy.heroFootnote}
