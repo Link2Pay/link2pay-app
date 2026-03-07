@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 import type { Language } from '../../i18n/translations';
 
 type Asset = 'XLM' | 'USDC';
+const HERO_LINK_EXPIRATION_DAYS = 30;
+const HERO_LINK_EXPIRATION_MS = HERO_LINK_EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
 
 type CopyBlock = {
   title: string;
@@ -16,8 +18,8 @@ type CopyBlock = {
   amount: string;
   asset: string;
   expires: string;
-  expiresMinutesGroup: string;
-  expiresHoursGroup: string;
+  expiresValue: string;
+  fixedLabel: string;
   activateNewAccounts: string;
   activateHint: string;
   activateXlmOnlyHint: string;
@@ -45,8 +47,8 @@ const COPY: Record<Language, CopyBlock> = {
     amount: 'Amount',
     asset: 'Token',
     expires: 'Expiration',
-    expiresMinutesGroup: 'Minutes',
-    expiresHoursGroup: 'Hours',
+    expiresValue: `${HERO_LINK_EXPIRATION_DAYS} days`,
+    fixedLabel: 'Fixed',
     activateNewAccounts: 'Activate new account if destination is not funded',
     activateHint: 'XLM only. Uses create-account on first payment when needed.',
     activateXlmOnlyHint: 'Available only for XLM links.',
@@ -73,8 +75,8 @@ const COPY: Record<Language, CopyBlock> = {
     amount: 'Monto',
     asset: 'Token',
     expires: 'Expiración',
-    expiresMinutesGroup: 'Minutos',
-    expiresHoursGroup: 'Horas',
+    expiresValue: `${HERO_LINK_EXPIRATION_DAYS} dias`,
+    fixedLabel: 'Fijo',
     activateNewAccounts: 'Activar cuenta nueva si el destino no esta fondeado',
     activateHint: 'Solo XLM. Usa create-account en el primer pago si es necesario.',
     activateXlmOnlyHint: 'Disponible solo en links XLM.',
@@ -101,8 +103,8 @@ const COPY: Record<Language, CopyBlock> = {
     amount: 'Valor',
     asset: 'Token',
     expires: 'Expiração',
-    expiresMinutesGroup: 'Minutos',
-    expiresHoursGroup: 'Horas',
+    expiresValue: `${HERO_LINK_EXPIRATION_DAYS} dias`,
+    fixedLabel: 'Fixo',
     activateNewAccounts: 'Ativar conta nova se o destino nao estiver fondeado',
     activateHint: 'Somente XLM. Usa create-account no primeiro pagamento quando necessario.',
     activateXlmOnlyHint: 'Disponivel apenas para links XLM.',
@@ -124,18 +126,6 @@ const COPY: Record<Language, CopyBlock> = {
   },
 };
 
-const EXPIRATION_OPTIONS = [
-  { value: 15, label: '15m', group: 'minutes' },
-  { value: 30, label: '30m', group: 'minutes' },
-  { value: 60, label: '1h', group: 'hours' },
-  { value: 120, label: '2h', group: 'hours' },
-  { value: 240, label: '4h', group: 'hours' },
-  { value: 480, label: '8h', group: 'hours' },
-  { value: 720, label: '12h', group: 'hours' },
-  { value: 1440, label: '24h', group: 'hours' },
-  { value: 2880, label: '48h', group: 'hours' },
-] as const;
-
 const HERO_PREVIEW_REFERENCE = '__hero_preview_v1__';
 
 export default function HeroQuickLink() {
@@ -146,7 +136,6 @@ export default function HeroQuickLink() {
 
   const [asset, setAsset] = useState<Asset>('USDC');
   const [amount, setAmount] = useState<number>(199);
-  const [expirationMinutes, setExpirationMinutes] = useState<number>(15);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -197,7 +186,7 @@ export default function HeroQuickLink() {
         return;
       }
 
-      const expiresAt = new Date(Date.now() + expirationMinutes * 60 * 1000).toISOString();
+      const expiresAt = new Date(Date.now() + HERO_LINK_EXPIRATION_MS).toISOString();
       const result = await createLink(
         {
           amount: Number(numericAmount.toFixed(2)),
@@ -300,30 +289,10 @@ export default function HeroQuickLink() {
             <label className="mb-2 block text-[13px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
               {copy.expires}
             </label>
-            <select
-              value={expirationMinutes}
-              onChange={(e) => setExpirationMinutes(Number(e.target.value))}
-              className="input text-lg"
-            >
-              <optgroup label={copy.expiresMinutesGroup}>
-                {EXPIRATION_OPTIONS
-                  .filter((option) => option.group === 'minutes')
-                  .map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-              </optgroup>
-              <optgroup label={copy.expiresHoursGroup}>
-                {EXPIRATION_OPTIONS
-                  .filter((option) => option.group === 'hours')
-                  .map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-              </optgroup>
-            </select>
+            <div className="input flex items-center justify-between bg-muted/40 text-lg text-foreground">
+              <span>{copy.expiresValue}</span>
+              <span className="text-xs text-muted-foreground">{copy.fixedLabel}</span>
+            </div>
           </div>
         </div>
 
