@@ -135,7 +135,7 @@ export default function HeroQuickLink() {
   const { publicKey, connected, isConnecting, connect, getFreighterNetwork } = useWalletStore();
 
   const [asset, setAsset] = useState<Asset>('USDC');
-  const [amount, setAmount] = useState<number>(199);
+  const [amount, setAmount] = useState<string>('199');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -280,8 +280,8 @@ export default function HeroQuickLink() {
               type="number"
               min={1}
               step={0.01}
-              value={Number.isFinite(amount) ? amount : 0}
-              onChange={(e) => setAmount(Math.max(1, parseFloat(e.target.value) || 1))}
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
               className="input text-lg"
             />
           </div>
