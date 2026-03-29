@@ -53,6 +53,8 @@ const COPY: Record<Language, {
   taxPlaceholder: string;
   notesPlaceholder: string;
   networkMismatch: string;
+  privatePayment: string;
+  privatePaymentDescription: string;
 }> = {
   en: {
     failedCreateInvoice: 'Failed to create invoice',
@@ -93,6 +95,8 @@ const COPY: Record<Language, {
     taxPlaceholder: '0',
     notesPlaceholder: 'Payment terms, additional notes...',
     networkMismatch: 'Network mismatch: You selected {selected} but Freighter wallet is on {freighter}. Please switch your Freighter wallet to {selected}, disconnect and reconnect your wallet.',
+    privatePayment: 'Private Payment',
+    privatePaymentDescription: 'Use zero-knowledge proofs to hide payment details on-chain',
   },
   es: {
     failedCreateInvoice: 'No se pudo crear la factura',
@@ -133,6 +137,8 @@ const COPY: Record<Language, {
     taxPlaceholder: '0',
     notesPlaceholder: 'Terminos de pago, notas adicionales...',
     networkMismatch: 'Red incorrecta: Seleccionaste {selected} pero Freighter esta en {freighter}. Por favor cambia tu wallet Freighter a {selected}, desconecta y reconecta tu wallet.',
+    privatePayment: 'Pago Privado',
+    privatePaymentDescription: 'Usa pruebas de conocimiento cero para ocultar los detalles del pago',
   },
   pt: {
     failedCreateInvoice: 'Falha ao criar fatura',
@@ -173,6 +179,8 @@ const COPY: Record<Language, {
     taxPlaceholder: '0',
     notesPlaceholder: 'Termos de pagamento, notas adicionais...',
     networkMismatch: 'Rede incorreta: Voce selecionou {selected} mas Freighter esta em {freighter}. Por favor, mude sua carteira Freighter para {selected}, desconecte e reconecte sua carteira.',
+    privatePayment: 'Pagamento Privado',
+    privatePaymentDescription: 'Use provas de conhecimento zero para ocultar detalhes do pagamento',
   },
 };
 
@@ -199,6 +207,7 @@ export default function InvoiceForm() {
   const [taxRate, setTaxRate] = useState<string>('');
   const [dueDate, setDueDate] = useState('');
   const [lineItems, setLineItems] = useState<LineItemForm[]>([{ description: '', quantity: 1, rate: 0 }]);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   const addLineItem = () => {
     setLineItems([...lineItems, { description: '', quantity: 1, rate: 0 }]);
@@ -261,6 +270,7 @@ export default function InvoiceForm() {
           taxRate: taxRate ? parseFloat(taxRate) : undefined,
           dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
           networkPassphrase,
+          isPrivate,
           lineItems: lineItems.filter((item) => item.description && item.rate > 0),
         },
         publicKey
@@ -400,6 +410,26 @@ export default function InvoiceForm() {
             </div>
           </div>
         </div>
+
+        {/* Privacy Toggle */}
+        <div className="flex items-start space-x-3 p-4 bg-ink-12 border border-ink-10 rounded-lg">
+          <input
+            type="checkbox"
+            id="privacy-toggle"
+            checked={isPrivate}
+            onChange={(e) => setIsPrivate(e.target.checked)}
+            className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-ink-8 rounded"
+          />
+          <div className="flex-1">
+            <label htmlFor="privacy-toggle" className="block text-sm font-medium text-ink-0 cursor-pointer">
+              {copy.privatePayment}
+            </label>
+            <p className="text-sm text-ink-2 mt-1">
+              {copy.privatePaymentDescription}
+            </p>
+          </div>
+        </div>
+
         <div>
           <label className="label">{copy.description}</label>
           <textarea

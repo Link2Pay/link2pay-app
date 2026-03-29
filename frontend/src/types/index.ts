@@ -55,6 +55,7 @@ export interface Invoice {
   ledgerNumber?: number | null;
   payerWallet?: string | null;
   networkPassphrase?: string | null;
+  isPrivate?: boolean;
   lineItems: LineItem[];
 }
 
@@ -107,6 +108,7 @@ export interface CreateInvoiceData {
   networkPassphrase?: string;
   saveClient?: boolean;
   favoriteClient?: boolean;
+  isPrivate?: boolean;
   lineItems: { description: string; quantity: number; rate: number }[];
 }
 
