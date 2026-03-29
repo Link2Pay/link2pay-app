@@ -1,7 +1,8 @@
-use soroban_sdk::{contracttype, Address, BytesN, Vec, Env};
+use soroban_sdk::{contracttype, contracterror, Address, BytesN, Vec};
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-#[contracttype]
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
 pub enum Error {
     AlreadyInitialized = 1,
     NotInitialized = 2,

@@ -156,11 +156,15 @@ impl SparseMerkleTree {
     fn hash_two(env: &Env, left: &BytesN<32>, right: &BytesN<32>) -> BytesN<32> {
         // Concatenate left and right
         let mut data = Bytes::new(env);
-        data.append(&left.to_bytes());
-        data.append(&right.to_bytes());
+        for byte in left.to_array() {
+            data.push_back(byte);
+        }
+        for byte in right.to_array() {
+            data.push_back(byte);
+        }
 
-        // Hash with SHA256
-        env.crypto().sha256(&data)
+        // Hash with SHA256 and convert to BytesN
+        BytesN::from_array(env, &env.crypto().sha256(&data).to_array())
     }
 }
 

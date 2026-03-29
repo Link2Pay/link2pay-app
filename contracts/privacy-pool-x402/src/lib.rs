@@ -7,7 +7,7 @@ mod types;
 #[cfg(test)]
 mod test;
 
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Bytes, BytesN, Env, Vec, token, Symbol, symbol_short};
+use soroban_sdk::{contract, contractimpl, contracttype, Address, Bytes, BytesN, Env, Vec, token, symbol_short};
 
 pub use types::*;
 pub use merkle::*;
@@ -164,8 +164,14 @@ impl PrivacyPoolX402 {
         }
 
         // TODO: Verify ZK proof using auto-generated verifier
-        // For now, we'll add this after generating the verifier from circuits
+        // For MVP demo, proof verification is done off-chain in backend
+        // Production would verify on-chain using soroban-verifier-gen
         // verify_groth16_proof(&env, &proof, &[merkle_root, nullifier_hash, amount])?;
+
+        // For now, basic validation that proof is not empty
+        if proof.len() == 0 {
+            return Err(Error::InvalidProof);
+        }
 
         // Mark nullifier as spent
         env.storage().persistent().set(&nullifier_key, &true);
@@ -223,7 +229,7 @@ impl PrivacyPoolX402 {
         let token_client = token::Client::new(&env, &token_address);
 
         let mut payments_processed = 0u32;
-        let mut services_paid = 0u32;
+        let services_paid = 0u32;
         let mut total_amount = 0i128;
 
         // Simple aggregation (can be optimized)
