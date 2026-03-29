@@ -9,6 +9,7 @@ import paymentRoutes from './routes/payments';
 import clientRoutes from './routes/clients';
 import authRoutes from './routes/auth';
 import priceRoutes from './routes/prices';
+import privacyRoutes from './routes/privacy';
 import { watcherService } from './services/watcherService';
 
 const app = express();
@@ -143,6 +144,9 @@ app.use('/api/payments', paymentRoutes);
 
 // Saved client routes
 app.use('/api/clients', clientRoutes);
+
+// Privacy pool routes
+app.use('/api/privacy', privacyRoutes);
 
 // ─── Error Handling ─────────────────────────────────────────────────
 app.use(

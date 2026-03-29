@@ -1,0 +1,26 @@
+{
+  "name": "@link2pay/circuits",
+  "version": "0.1.0",
+  "description": "Zero-knowledge circuits for Link2Pay Privacy Pool",
+  "scripts": {
+    "setup:ptau": "bash scripts/download-ptau.sh",
+    "compile": "circom circuits/x402_payment.circom --r1cs --wasm --sym -o build/",
+    "compile:verbose": "circom circuits/x402_payment.circom --r1cs --wasm --sym --verbose -o build/",
+    "info": "snarkjs r1cs info build/x402_payment.r1cs",
+    "setup:phase1": "snarkjs groth16 setup build/x402_payment.r1cs keys/powersOfTau28_hez_final_14.ptau keys/x402_payment_0000.zkey",
+    "setup:phase2": "snarkjs zkey contribute keys/x402_payment_0000.zkey keys/x402_payment_final.zkey --name='First contribution' -v",
+    "setup:keys": "npm run setup:phase1 && npm run setup:phase2",
+    "export:vkey": "snarkjs zkey export verificationkey keys/x402_payment_final.zkey keys/verification_key.json",
+    "export:solidity": "snarkjs zkey export solidityverifier keys/x402_payment_final.zkey keys/verifier.sol",
+    "test:proof": "node scripts/test-proof.mjs",
+    "copy:frontend": "bash scripts/copy-to-frontend.sh",
+    "build:all": "npm run compile && npm run setup:keys && npm run export:vkey && npm run copy:frontend"
+  },
+  "dependencies": {
+    "circomlib": "^2.0.5",
+    "snarkjs": "^0.7.4"
+  },
+  "devDependencies": {
+    "circom_tester": "^0.0.19"
+  }
+}

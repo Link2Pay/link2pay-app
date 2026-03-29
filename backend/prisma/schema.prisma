@@ -72,6 +72,10 @@ model Invoice {
   // Soft delete — set instead of hard DELETE
   deletedAt DateTime? @map("deleted_at")
 
+  // Privacy Pool (optional)
+  isPrivate       Boolean?         @default(false) @map("is_private")
+  privacyDeposit  PrivacyDeposit?
+
   // Relations
   lineItems  LineItem[]
   payments   Payment[]
@@ -168,4 +172,94 @@ model InvoiceAuditLog {
   @@index([invoiceId])
   @@index([createdAt])
   @@map("invoice_audit_logs")
+}
+
+// ─── Privacy Pool (ZK Payments) ──────────────────────────────────────────────
+
+enum PrivacyDepositStatus {
+  PENDING      // Commitment submitted, waiting for on-chain confirmation
+  CONFIRMED    // Deposit confirmed in Merkle tree
+  WITHDRAWN    // Funds withdrawn (nullifier spent)
+  FAILED       // Deposit transaction failed
+}
+
+model PrivacyDeposit {
+  id         String               @id @default(cuid())
+  invoiceId  String               @unique @map("invoice_id")
+
+  // Deposit details
+  amount     Decimal              @db.Decimal(18, 7)
+  currency   Currency             @default(XLM)
+
+  // ZK proof inputs (stored encrypted for user recovery)
+  commitment String               // Poseidon hash: H(amount, secret, nullifier, recipientWallet)
+  secret     String?              // Encrypted with user's public key (recovery)
+  nullifier  String?              // Encrypted with user's public key (recovery)
+
+  // Merkle tree position
+  leafIndex  Int?                 @map("leaf_index")
+  merkleRoot String?              @map("merkle_root")
+
+  // On-chain references
+  depositTxHash   String?         @unique @map("deposit_tx_hash")
+  depositLedger   Int?            @map("deposit_ledger")
+
+  // Withdrawal tracking
+  withdrawnAt     DateTime?       @map("withdrawn_at")
+  withdrawTxHash  String?         @unique @map("withdraw_tx_hash")
+  withdrawLedger  Int?            @map("withdraw_ledger")
+
+  status     PrivacyDepositStatus @default(PENDING)
+  createdAt  DateTime             @default(now()) @map("created_at")
+  updatedAt  DateTime             @updatedAt @map("updated_at")
+
+  // Relations
+  invoice    Invoice              @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([commitment])
+  @@index([leafIndex])
+  @@index([status])
+  @@index([depositTxHash])
+  @@map("privacy_deposits")
+}
+
+// Track all nullifiers spent (double-spend prevention)
+model SpentNullifier {
+  id             String   @id @default(cuid())
+  nullifierHash  String   @unique @map("nullifier_hash")
+
+  // Withdrawal details
+  withdrawTxHash String   @map("withdraw_tx_hash")
+  withdrawLedger Int      @map("withdraw_ledger")
+  recipientAddr  String   @map("recipient_addr")
+  amount         Decimal  @db.Decimal(18, 7)
+
+  spentAt        DateTime @default(now()) @map("spent_at")
+
+  @@index([nullifierHash])
+  @@index([withdrawTxHash])
+  @@map("spent_nullifiers")
+}
+
+// Privacy Pool analytics (aggregated, differential privacy)
+model PrivacyPoolStats {
+  id                  String   @id @default(cuid())
+  date                DateTime @unique @db.Date
+
+  // Aggregated metrics (no individual data)
+  totalDeposits       Int      @default(0) @map("total_deposits")
+  totalWithdrawals    Int      @default(0) @map("total_withdrawals")
+  activeDeposits      Int      @default(0) @map("active_deposits")
+
+  volumeDeposited     Decimal  @default(0) @db.Decimal(18, 7) @map("volume_deposited")
+  volumeWithdrawn     Decimal  @default(0) @db.Decimal(18, 7) @map("volume_withdrawn")
+
+  // Privacy score (anonymity set size)
+  anonymitySetSize    Int      @default(0) @map("anonymity_set_size")
+  avgPrivacyScore     Decimal? @db.Decimal(5, 2) @map("avg_privacy_score")
+
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@index([date])
+  @@map("privacy_pool_stats")
 }

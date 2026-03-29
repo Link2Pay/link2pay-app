@@ -61,6 +61,7 @@ export class InvoiceService {
           currency: input.currency,
           dueDate: input.dueDate ? new Date(input.dueDate) : null,
           networkPassphrase: input.networkPassphrase || config.stellar.networkPassphrase,
+          isPrivate: input.isPrivate || false,
           lineItems: {
             create: lineItems,
           },

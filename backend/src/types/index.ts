@@ -18,6 +18,7 @@ export interface CreateInvoiceInput {
   saveClient?: boolean;
   favoriteClient?: boolean;
   lineItems: LineItemInput[];
+  isPrivate?: boolean; // Enable privacy pool for this invoice
 }
 
 export interface LineItemInput {
@@ -69,6 +70,7 @@ export interface InvoicePublicView {
   paidAt?: string | null;
   transactionHash?: string | null;
   networkPassphrase: string;
+  isPrivate?: boolean;
   lineItems: {
     description: string;
     quantity: string;
