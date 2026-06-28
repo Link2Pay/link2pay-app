@@ -196,6 +196,8 @@ export default function InvoiceForm() {
   const [description, setDescription] = useState('');
   const [notes, setNotes] = useState('');
   const [currency, setCurrency] = useState<Currency>('XLM');
+  const [payoutMethod, setPayoutMethod] = useState<'CRYPTO' | 'BRE_B'>('CRYPTO');
+  const [payoutAlias, setPayoutAlias] = useState('');
   const [taxRate, setTaxRate] = useState<string>('');
   const [dueDate, setDueDate] = useState('');
   const [lineItems, setLineItems] = useState<LineItemForm[]>([{ description: '', quantity: 1, rate: 0 }]);
@@ -258,6 +260,8 @@ export default function InvoiceForm() {
           description: description || undefined,
           notes: notes || undefined,
           currency,
+          payoutMethod,
+          payoutAlias: payoutMethod === 'BRE_B' ? payoutAlias.trim() || undefined : undefined,
           taxRate: taxRate ? parseFloat(taxRate) : undefined,
           dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
           networkPassphrase,
@@ -398,6 +402,49 @@ export default function InvoiceForm() {
               <label className="label">{copy.dueDate}</label>
               <input type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
+          </div>
+
+          <div>
+            <label className="label">Settlement</label>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setPayoutMethod('CRYPTO')}
+                className={`rounded-lg border px-3 py-2.5 text-left text-sm transition ${
+                  payoutMethod === 'CRYPTO'
+                    ? 'border-stellar-400 bg-stellar-50 text-stellar-700'
+                    : 'border-surface-3 bg-card text-ink-2'
+                }`}
+              >
+                <span className="block font-medium">Crypto</span>
+                <span className="block text-[11px] text-ink-3">Receiver keeps {currency} on-chain</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPayoutMethod('BRE_B')}
+                className={`rounded-lg border px-3 py-2.5 text-left text-sm transition ${
+                  payoutMethod === 'BRE_B'
+                    ? 'border-amber-400 bg-amber-50 text-amber-700'
+                    : 'border-surface-3 bg-card text-ink-2'
+                }`}
+              >
+                <span className="block font-medium">Fiat off-ramp · Bre-B (COP)</span>
+                <span className="block text-[11px] text-ink-3">Payer pays {currency}, receiver gets pesos</span>
+              </button>
+            </div>
+            {payoutMethod === 'BRE_B' && (
+              <div className="mt-2">
+                <input
+                  className="input"
+                  placeholder="Bre-B llave (payout alias), e.g. @nequi-3001234567"
+                  value={payoutAlias}
+                  onChange={(e) => setPayoutAlias(e.target.value)}
+                />
+                <p className="mt-1 text-[11px] text-amber-700">
+                  Simulated Bre-B settlement (testnet demo)
+                </p>
+              </div>
+            )}
           </div>
         </div>
         <div>
