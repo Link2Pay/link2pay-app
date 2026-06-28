@@ -9,6 +9,7 @@ import type { Invoice, InvoiceStatus } from '../../types';
 import { CURRENCY_SYMBOLS, config } from '../../config';
 import type { Language } from '../../i18n/translations';
 import { downloadInvoicePDF } from './InvoicePDF';
+import ReceiverOffRamp from './ReceiverOffRamp';
 
 const COPY: Record<Language, {
   loadingInvoice: string;
@@ -413,6 +414,15 @@ export default function InvoiceDetail() {
             </div>
           )}
         </div>
+      )}
+
+      {isOwner && invoice.payoutMethod === 'BRE_B' && invoice.status !== 'SETTLED_FIAT' && (
+        <ReceiverOffRamp
+          invoice={invoice}
+          onUpdated={() => {
+            if (id && publicKey) getOwnerInvoice(id, publicKey).then(setInvoice).catch(() => {});
+          }}
+        />
       )}
 
       {invoice.status === 'PAID' && invoice.transactionHash && (
