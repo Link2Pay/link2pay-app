@@ -4,10 +4,16 @@ import { log } from '../utils/logger';
 import prisma from '../db';
 import type { AnchorAdapter, Quote, OffRampIntent, AnchorStatus } from '../anchors/AnchorAdapter';
 import { testAnchorAdapter } from '../anchors/adapters/TestAnchorAdapter';
+import { mockBreBAdapter } from '../anchors/adapters/MockBreBAdapter';
 
 function getAdapter(): AnchorAdapter {
-  // Future: switch on config.anchor.provider for mock-breb / abroad
-  return testAnchorAdapter;
+  switch (config.anchor.provider) {
+    case 'mock-breb':
+      return mockBreBAdapter;
+    case 'testnet':
+    default:
+      return testAnchorAdapter;
+  }
 }
 
 /**
