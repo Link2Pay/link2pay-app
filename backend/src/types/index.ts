@@ -17,6 +17,8 @@ export interface CreateInvoiceInput {
   networkPassphrase?: string;
   saveClient?: boolean;
   favoriteClient?: boolean;
+  payoutMethod?: 'CRYPTO' | 'BRE_B';
+  payoutAlias?: string;
   lineItems: LineItemInput[];
 }
 

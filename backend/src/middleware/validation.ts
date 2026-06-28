@@ -41,6 +41,8 @@ export const createInvoiceSchema = z.object({
     .optional(),
   saveClient: z.boolean().optional(),
   favoriteClient: z.boolean().optional(),
+  payoutMethod: z.enum(['CRYPTO', 'BRE_B']).optional(),
+  payoutAlias: z.string().min(1).max(200).optional(),
   lineItems: z.array(lineItemSchema).min(1).max(50),
 });
 

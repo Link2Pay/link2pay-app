@@ -61,6 +61,10 @@ export class InvoiceService {
           currency: input.currency,
           dueDate: input.dueDate ? new Date(input.dueDate) : null,
           networkPassphrase: input.networkPassphrase || config.stellar.networkPassphrase,
+          payoutMethod: input.payoutMethod === 'BRE_B' ? 'BRE_B' : 'CRYPTO',
+          payoutAlias: input.payoutMethod === 'BRE_B' ? input.payoutAlias : null,
+          // Bre-B off-ramp invoices skip DRAFT so the receiver can request a quote immediately.
+          status: input.payoutMethod === 'BRE_B' ? 'PENDING' : undefined,
           lineItems: {
             create: lineItems,
           },
