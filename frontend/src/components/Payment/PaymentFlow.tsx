@@ -5,6 +5,7 @@ import { getInvoice, createPayIntent, submitPayment, getPaymentStatus, getXlmPri
 import { useWalletStore } from '../../store/walletStore';
 import InvoiceStatusBadge from '../Invoice/InvoiceStatusBadge';
 import WalletConnect from '../Wallet/WalletConnect';
+import OffRampPayment from './OffRampPayment';
 import LanguageToggle from '../LanguageToggle';
 import ThemeToggle from '../ThemeToggle';
 import NetworkToggle from '../NetworkToggle';
@@ -571,7 +572,16 @@ export default function PaymentFlow() {
           </div>
 
           <div className="p-4 sm:p-6">
-            {step === 'connect' && (
+            {invoice.payoutMethod === 'BRE_B' && (
+              <OffRampPayment
+                invoice={invoice}
+                onRefresh={() => {
+                  if (id) getInvoice(id).then(setInvoice).catch(() => {});
+                }}
+              />
+            )}
+
+            {invoice.payoutMethod !== 'BRE_B' && step === 'connect' && (
               <div className="text-center space-y-4">
                 <p className="text-sm text-ink-2">{t('payment.connectWalletPrompt')}</p>
                 {error && (
@@ -589,7 +599,7 @@ export default function PaymentFlow() {
               </div>
             )}
 
-            {step === 'view' && (
+            {invoice.payoutMethod !== 'BRE_B' && step === 'view' && (
               <div className="space-y-4">
                 {publicKey && (
                   <div className="text-xs text-ink-3 text-center">
