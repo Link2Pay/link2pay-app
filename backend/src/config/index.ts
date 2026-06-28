@@ -41,6 +41,17 @@ const envSchema = z.object({
     .default('GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2'),
 
   WATCHER_POLL_INTERVAL_MS: z.coerce.number().default(5000),
+
+  ANCHOR_PROVIDER: z
+    .enum(['testnet', 'mock-breb', 'abroad'])
+    .default('testnet'),
+  ANCHOR_HOME_DOMAIN: z
+    .string()
+    .min(1)
+    .default('testanchor.stellar.org'),
+  RECEIPT_CONTRACT_ID: z.string().optional(),
+  ABROAD_API_BASE: z.string().url().optional(),
+  ABROAD_API_KEY: z.string().optional(),
 });
 
 const parseResult = envSchema.safeParse(process.env);
@@ -72,6 +83,17 @@ export const config = {
   },
 
   watcherPollInterval: env.WATCHER_POLL_INTERVAL_MS,
+
+  anchor: {
+    provider: env.ANCHOR_PROVIDER,
+    homeDomain: env.ANCHOR_HOME_DOMAIN,
+  },
+
+  receiptContractId: env.RECEIPT_CONTRACT_ID,
+  abroad: {
+    apiBase: env.ABROAD_API_BASE,
+    apiKey: env.ABROAD_API_KEY,
+  },
 } as const;
 
 // Network configurations for both testnet and mainnet
