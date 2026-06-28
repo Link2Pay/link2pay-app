@@ -83,6 +83,9 @@ Live XLM/USD equivalent shown at payment time via CoinGecko pricing, cached serv
 ### Saved Client Book
 Reuse client details across invoices with an optional favorites system and quick-fill at invoice creation.
 
+### USDC→COP Fiat Off-Ramp (Bre-B)
+A payer pays **USDC on Stellar** from any wallet, and the receiver gets **local fiat (Colombian pesos)** in their bank via the **Bre-B** rail — without Link2Pay ever holding funds. See **[Anchor off-ramp](#anchor-off-ramp-usdccop-via-bre-b)** below.
+
 ---
 
 ## Highlights
@@ -262,6 +265,65 @@ sequenceDiagram
         Note over FE: Cache cleared → re-auth triggered
     end
 ```
+
+---
+
+## Anchor Off-Ramp (USDC→COP via Bre-B)
+
+Built for the **PULSO** hackathon (Stellar / NearX, Colombia track). Link2Pay adds a **non-custodial USDC→fiat off-ramp**: a payer pays USDC on Stellar from any wallet, and the receiver gets **Colombian pesos (COP)** on their **Bre-B** llave — and Link2Pay never custodies funds or holds private keys.
+
+### Named load-bearing integration
+
+- **Anchor Platform** — the SDF testnet reference anchor (`testanchor.stellar.org`) the demo runs against, via SEP-10 (auth), SEP-38 (firm USDC→COP quote), and SEP-24 (interactive withdraw). This is the integration the off-ramp is built on; remove it and the feature does not function.
+- **Abroad** — the named Bre-B production off-ramp. The `AbroadAdapter` is shipped as a documented, stubbed production path (Abroad has no public sandbox); the demo does **not** call it live.
+
+All anchor interaction goes through one swappable `AnchorAdapter` interface, selected by the `ANCHOR_PROVIDER` env var:
+
+| `ANCHOR_PROVIDER` | Adapter | What it does |
+|---|---|---|
+| `testnet` | `TestAnchorAdapter` | Real SEP-10/38/24 against the SDF test anchor |
+| `mock-breb` | `MockBreBAdapter` | **Demo hero rail** — real on-chain USDC leg, **simulated** COP payout |
+| `abroad` | `AbroadAdapter` | Stubbed Abroad production path (requires real credentials) |
+
+### Honest testnet-vs-mock boundary
+
+- ✅ **Real on testnet:** the SEP-10/38/24 anchor flow and the on-chain USDC payment (payer → anchor).
+- ⚠️ **Simulated:** the Colombian peso payout in the `mock-breb` demo. It is labeled **"Simulated Bre-B settlement (testnet demo)"** everywhere it appears. **No real pesos move.**
+
+### Non-custodial flow
+
+```
+1. Receiver creates a Bre-B invoice and enters their Bre-B llave (payout alias).
+2. Receiver requests a firm USDC→COP quote (SEP-38) and initiates a SEP-24 withdraw,
+   which returns the anchor's deposit address + exact memo.
+3. The payer opens the payment link and pays USDC straight to the ANCHOR's address
+   with that exact memo, signed by their own wallet (Freighter / Wallets Kit).
+4. The anchor matches the payment by memo, pays out COP to the receiver's llave,
+   and the invoice advances to SETTLED_FIAT.
+```
+
+Link2Pay only orchestrates the quote, link, memo, status, and (optionally) an on-chain receipt — **the payer always pays the anchor directly.** See **[ARCHITECTURE.md](./ARCHITECTURE.md)** for the diagram and state machine, and **[DEMO.md](./DEMO.md)** for the step-by-step demo script.
+
+### Try it (mock-breb demo)
+
+```bash
+# backend/.env
+ANCHOR_PROVIDER=mock-breb
+ANCHOR_HOME_DOMAIN=testanchor.stellar.org
+```
+
+1. Create an invoice and choose **Fiat off-ramp · Bre-B (COP)**, entering a llave alias.
+2. Open the invoice; in the **Bre-B fiat off-ramp** panel, get a quote → initiate. A payment link is generated.
+3. Open the payment link, connect a wallet, and pay USDC. Watch the invoice settle to COP (simulated, labeled).
+
+### Off-ramp env reference
+
+| Variable | Example | Notes |
+|---|---|---|
+| `ANCHOR_PROVIDER` | `testnet` \| `mock-breb` \| `abroad` | Selects the adapter (default `testnet`) |
+| `ANCHOR_HOME_DOMAIN` | `testanchor.stellar.org` | SEP-1 home domain for the anchor |
+| `RECEIPT_CONTRACT_ID` | _(optional)_ | Soroban receipt contract id, if deployed |
+| `ABROAD_API_BASE` / `ABROAD_API_KEY` | _(optional)_ | Production-only; do not set for the demo |
 
 ---
 
