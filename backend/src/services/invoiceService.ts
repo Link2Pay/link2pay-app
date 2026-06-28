@@ -133,6 +133,11 @@ export class InvoiceService {
       paidAt: invoice.paidAt?.toISOString() ?? null,
       transactionHash: invoice.transactionHash,
       networkPassphrase: invoice.networkPassphrase,
+      payoutMethod: invoice.payoutMethod,
+      payoutAlias: invoice.payoutAlias,
+      anchorTxId: invoice.anchorTxId,
+      quoteBuyAmount: invoice.quoteBuyAmount,
+      receiptTxHash: invoice.receiptTxHash,
       lineItems: invoice.lineItems.map((item) => ({
         description: item.description,
         quantity: item.quantity.toString(),
@@ -380,7 +385,7 @@ export class InvoiceService {
    */
   async addAuditLog(
     invoiceId: string,
-    action: 'CREATED' | 'UPDATED' | 'SENT' | 'PAID' | 'EXPIRED' | 'CANCELLED' | 'DELETED',
+    action: 'CREATED' | 'UPDATED' | 'SENT' | 'PAID' | 'OFFRAMP_INITIATED' | 'OFFRAMP_AWAITING_PAYMENT' | 'OFFRAMP_PROCESSING' | 'OFFRAMP_SETTLED' | 'OFFRAMP_ERROR' | 'EXPIRED' | 'CANCELLED' | 'DELETED',
     actorWallet: string,
     changes?: Record<string, { from: unknown; to: unknown }>
   ) {

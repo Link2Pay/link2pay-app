@@ -1,0 +1,283 @@
+import { InvoiceStatus, Prisma } from '@prisma/client';
+import { config } from '../config';
+import { log } from '../utils/logger';
+import prisma from '../db';
+import type { AnchorAdapter, Quote, OffRampIntent, AnchorStatus } from '../anchors/AnchorAdapter';
+import { testAnchorAdapter } from '../anchors/adapters/TestAnchorAdapter';
+
+function getAdapter(): AnchorAdapter {
+  // Future: switch on config.anchor.provider for mock-breb / abroad
+  return testAnchorAdapter;
+}
+
+/**
+ * Valid BRE_B state transitions (additive — crypto path untouched).
+ */
+const BRE_B_TRANSITIONS: Partial<Record<InvoiceStatus, InvoiceStatus[]>> = {
+  PENDING: ['AWAITING_ANCHOR'],
+  AWAITING_ANCHOR: ['AWAITING_PAYMENT', 'ANCHOR_ERROR', 'NEEDS_KYC', 'EXPIRED'],
+  AWAITING_PAYMENT: ['PROCESSING', 'ANCHOR_ERROR', 'EXPIRED'],
+  PROCESSING: ['SETTLING', 'ANCHOR_ERROR', 'EXPIRED'],
+  SETTLING: ['SETTLED_FIAT', 'ANCHOR_ERROR', 'EXPIRED'],
+};
+
+function isValidBreBTransition(from: InvoiceStatus, to: InvoiceStatus): boolean {
+  const allowed = BRE_B_TRANSITIONS[from];
+  return !!allowed && allowed.includes(to);
+}
+
+export class OffRampService {
+  private adapter: AnchorAdapter;
+
+  constructor() {
+    this.adapter = getAdapter();
+  }
+
+  /**
+   * Request a firm off-ramp quote and advance invoice to AWAITING_ANCHOR.
+   * Only the receiver (freelancer) of a BRE_B PENDING invoice can call this.
+   */
+  async getQuote(
+    invoiceId: string,
+    freelancerWallet: string,
+    params: { sellAmount: string; payoutAlias: string }
+  ): Promise<Quote> {
+    const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
+    if (!invoice) throw new Error('Invoice not found');
+    if (invoice.freelancerWallet !== freelancerWallet) throw new Error('Unauthorized');
+    if (invoice.payoutMethod !== 'BRE_B') throw new Error('Invoice is not a Bre-B off-ramp');
+    if (!isValidBreBTransition(invoice.status as InvoiceStatus, 'AWAITING_ANCHOR')) {
+      throw new Error(`Cannot request quote from status ${invoice.status}`);
+    }
+
+    log.info('[OffRampService] Requesting quote', { invoiceId, sellAmount: params.sellAmount });
+
+    const quote = await this.adapter.getQuote({
+      sellAmount: params.sellAmount,
+      buyCurrency: 'COP',
+      payoutAlias: params.payoutAlias,
+    });
+
+    await prisma.$transaction(async (tx) => {
+      await tx.invoice.update({
+        where: { id: invoiceId },
+        data: {
+          status: 'AWAITING_ANCHOR',
+          quoteId: quote.quoteId,
+          quoteBuyAmount: quote.buyAmount,
+          payoutAlias: params.payoutAlias,
+          anchorProvider: this.adapter.id === 'testnet' ? 'TESTNET' : 'MOCK_BREB',
+        },
+      });
+
+      await tx.invoiceAuditLog.create({
+        data: {
+          invoiceId,
+          action: 'OFFRAMP_INITIATED',
+          actorWallet: freelancerWallet,
+          changes: {
+            status: { from: invoice.status, to: 'AWAITING_ANCHOR' },
+            quoteId: { from: null, to: quote.quoteId },
+          },
+        },
+      });
+    });
+
+    return quote;
+  }
+
+  /**
+   * Initiate the SEP-24 withdraw and advance to AWAITING_PAYMENT.
+   */
+  async initiateOffRamp(
+    invoiceId: string,
+    freelancerWallet: string,
+    params: { quoteId: string }
+  ): Promise<OffRampIntent> {
+    const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
+    if (!invoice) throw new Error('Invoice not found');
+    if (invoice.freelancerWallet !== freelancerWallet) throw new Error('Unauthorized');
+    if (invoice.status !== 'AWAITING_ANCHOR') {
+      throw new Error('Invoice must be in AWAITING_ANCHOR status');
+    }
+
+    log.info('[OffRampService] Initiating off-ramp', { invoiceId, quoteId: params.quoteId });
+
+    const intent = await this.adapter.initiateOffRamp({
+      quoteId: params.quoteId,
+      receiverAccount: invoice.freelancerWallet,
+      payoutAlias: invoice.payoutAlias || 'unknown',
+    });
+
+    await prisma.$transaction(async (tx) => {
+      await tx.invoice.update({
+        where: { id: invoiceId },
+        data: {
+          status: 'AWAITING_PAYMENT',
+          anchorTxId: intent.anchorTxId,
+        },
+      });
+
+      await tx.invoiceAuditLog.create({
+        data: {
+          invoiceId,
+          action: 'OFFRAMP_AWAITING_PAYMENT',
+          actorWallet: freelancerWallet,
+          changes: {
+            status: { from: 'AWAITING_ANCHOR', to: 'AWAITING_PAYMENT' },
+            anchorTxId: { from: null, to: intent.anchorTxId },
+            interactiveUrl: { from: null, to: intent.interactiveUrl || null },
+          },
+        },
+      });
+    });
+
+    return intent;
+  }
+
+  /**
+   * Poll the anchor for current status and advance the state machine.
+   */
+  async pollStatus(invoiceId: string): Promise<{ status: InvoiceStatus; anchorStatus: AnchorStatus }> {
+    const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
+    if (!invoice) throw new Error('Invoice not found');
+    if (!invoice.anchorTxId) throw new Error('No anchor transaction for this invoice');
+
+    const anchorStatus = await this.adapter.getStatus(invoice.anchorTxId);
+    const newStatus = this.mapAnchorToInvoiceStatus(anchorStatus, invoice.status as InvoiceStatus);
+
+    if (newStatus && newStatus !== invoice.status) {
+      await prisma.invoice.update({
+        where: { id: invoiceId },
+        data: { status: newStatus },
+      });
+    }
+
+    return { status: newStatus || (invoice.status as InvoiceStatus), anchorStatus };
+  }
+
+  /**
+   * Mark that the anchor-bound payment was detected on-chain.
+   * Caller (watcher) provides the on-chain transaction hash.
+   * Advances AWAITING_PAYMENT → PROCESSING.
+   */
+  async markAnchorPayment(
+    invoiceId: string,
+    txHash: string,
+    fromWallet: string
+  ): Promise<void> {
+    const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
+    if (!invoice) throw new Error('Invoice not found');
+
+    if (invoice.status !== 'AWAITING_PAYMENT') {
+      throw new Error(`Invoice not in AWAITING_PAYMENT (current: ${invoice.status})`);
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.invoice.update({
+        where: { id: invoiceId },
+        data: {
+          status: 'PROCESSING',
+          transactionHash: txHash,
+          payerWallet: fromWallet,
+          clientWallet: fromWallet,
+        },
+      });
+
+      await tx.payment.create({
+        data: {
+          invoiceId,
+          transactionHash: txHash,
+          ledgerNumber: 0, // filled by watcher
+          fromWallet,
+          toWallet: invoice.freelancerWallet,
+          amount: invoice.total,
+          asset: invoice.currency,
+        },
+      });
+
+      await tx.invoiceAuditLog.create({
+        data: {
+          invoiceId,
+          action: 'OFFRAMP_PROCESSING',
+          actorWallet: fromWallet,
+          changes: {
+            status: { from: 'AWAITING_PAYMENT', to: 'PROCESSING' },
+            transactionHash: { from: null, to: txHash },
+          },
+        },
+      });
+    });
+  }
+
+  /**
+   * Mark the off-ramp as settled (anchor completed the COP payout).
+   */
+  async markSettled(invoiceId: string): Promise<void> {
+    const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
+    if (!invoice) throw new Error('Invoice not found');
+    if (invoice.status !== 'SETTLING') {
+      throw new Error(`Invoice not in SETTLING (current: ${invoice.status})`);
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.invoice.update({
+        where: { id: invoiceId },
+        data: {
+          status: 'SETTLED_FIAT',
+        },
+      });
+
+      await tx.invoiceAuditLog.create({
+        data: {
+          invoiceId,
+          action: 'OFFRAMP_SETTLED',
+          actorWallet: invoice.freelancerWallet,
+          changes: {
+            status: { from: 'SETTLING', to: 'SETTLED_FIAT' },
+          },
+        },
+      });
+    });
+  }
+
+  /**
+   * Mark the off-ramp as errored.
+   */
+  async markError(invoiceId: string, errorMessage: string): Promise<void> {
+    await prisma.invoice.update({
+      where: { id: invoiceId },
+      data: { status: 'ANCHOR_ERROR' },
+    });
+
+    log.error('[OffRampService] Anchor error for invoice', { invoiceId, error: errorMessage });
+  }
+
+  private mapAnchorToInvoiceStatus(
+    anchorStatus: AnchorStatus,
+    current: InvoiceStatus
+  ): InvoiceStatus | null {
+    switch (anchorStatus) {
+      case 'INITIATED':
+        return null; // already set during initiate
+      case 'AWAITING_PAYMENT':
+        return 'AWAITING_PAYMENT';
+      case 'PAYMENT_DETECTED':
+        if (current === 'AWAITING_PAYMENT') return 'PROCESSING';
+        return null;
+      case 'SETTLING':
+        if (current === 'PROCESSING') return 'SETTLING';
+        return null;
+      case 'SETTLED':
+        return 'SETTLED_FIAT';
+      case 'ERROR':
+        return 'ANCHOR_ERROR';
+      case 'EXPIRED':
+        return 'EXPIRED';
+      default:
+        return null;
+    }
+  }
+}
+
+export const offRampService = new OffRampService();

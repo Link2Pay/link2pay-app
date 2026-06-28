@@ -13,11 +13,28 @@ datasource db {
 enum InvoiceStatus {
   DRAFT
   PENDING
+  AWAITING_ANCHOR
+  AWAITING_PAYMENT
   PROCESSING
   PAID
+  SETTLING
+  SETTLED_FIAT
+  ANCHOR_ERROR
+  NEEDS_KYC
   FAILED
   EXPIRED
   CANCELLED
+}
+
+enum PayoutMethod {
+  CRYPTO
+  BRE_B
+}
+
+enum AnchorProvider {
+  TESTNET
+  MOCK_BREB
+  ABROAD
 }
 
 enum Currency {
@@ -68,6 +85,15 @@ model Invoice {
   ledgerNumber      Int?    @map("ledger_number")
   payerWallet       String? @map("payer_wallet")
   networkPassphrase String  @default("Test SDF Network ; September 2015") @map("network_passphrase")
+
+  // Off-ramp fields
+  payoutMethod   PayoutMethod   @default(CRYPTO) @map("payout_method")
+  payoutAlias    String?                         @map("payout_alias")
+  anchorProvider  AnchorProvider?                 @map("anchor_provider")
+  anchorTxId     String?                         @map("anchor_tx_id")
+  quoteId        String?                         @map("quote_id")
+  quoteBuyAmount String?                         @map("quote_buy_amount")
+  receiptTxHash  String?                         @map("receipt_tx_hash")
 
   // Soft delete — set instead of hard DELETE
   deletedAt DateTime? @map("deleted_at")
@@ -149,6 +175,11 @@ enum AuditAction {
   UPDATED
   SENT
   PAID
+  OFFRAMP_INITIATED
+  OFFRAMP_AWAITING_PAYMENT
+  OFFRAMP_PROCESSING
+  OFFRAMP_SETTLED
+  OFFRAMP_ERROR
   EXPIRED
   CANCELLED
   DELETED

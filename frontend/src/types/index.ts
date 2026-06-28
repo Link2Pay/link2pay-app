@@ -1,8 +1,14 @@
 export type InvoiceStatus =
   | 'DRAFT'
   | 'PENDING'
+  | 'AWAITING_ANCHOR'
+  | 'AWAITING_PAYMENT'
   | 'PROCESSING'
   | 'PAID'
+  | 'SETTLING'
+  | 'SETTLED_FIAT'
+  | 'ANCHOR_ERROR'
+  | 'NEEDS_KYC'
   | 'FAILED'
   | 'EXPIRED'
   | 'CANCELLED';
@@ -80,6 +86,9 @@ export interface PublicInvoice {
   paidAt?: string | null;
   transactionHash?: string | null;
   networkPassphrase: string;
+  payoutMethod?: string | null;
+  anchorTxId?: string | null;
+  quoteBuyAmount?: string | null;
   lineItems: {
     description: string;
     quantity: string;

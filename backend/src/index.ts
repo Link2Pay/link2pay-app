@@ -9,6 +9,7 @@ import paymentRoutes from './routes/payments';
 import clientRoutes from './routes/clients';
 import authRoutes from './routes/auth';
 import priceRoutes from './routes/prices';
+import offrampRoutes from './routes/offramp';
 import { watcherService } from './services/watcherService';
 
 const app = express();
@@ -143,6 +144,9 @@ app.use('/api/payments', paymentRoutes);
 
 // Saved client routes
 app.use('/api/clients', clientRoutes);
+
+// Off-ramp routes (Bre-B)
+app.use('/api/invoices', offrampRoutes);
 
 // ─── Error Handling ─────────────────────────────────────────────────
 app.use(

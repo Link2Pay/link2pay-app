@@ -132,8 +132,8 @@ const LOCALE_BY_LANGUAGE: Record<Language, string> = {
   pt: 'pt-BR',
 };
 
-const IN_PROGRESS_STATUSES: InvoiceStatus[] = ['PENDING', 'PROCESSING'];
-const FAILED_STATUSES: InvoiceStatus[] = ['FAILED', 'EXPIRED', 'CANCELLED'];
+const IN_PROGRESS_STATUSES: InvoiceStatus[] = ['PENDING', 'AWAITING_ANCHOR', 'AWAITING_PAYMENT', 'PROCESSING', 'SETTLING'];
+const FAILED_STATUSES: InvoiceStatus[] = ['FAILED', 'EXPIRED', 'CANCELLED', 'ANCHOR_ERROR'];
 
 export default function Transactions() {
   const { publicKey } = useWalletStore();

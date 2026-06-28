@@ -115,6 +115,21 @@ export const confirmPaymentSchema = z.object({
   transactionHash: z.string().min(64).max(64),
 });
 
+export const offrampQuoteSchema = z.object({
+  sellAmount: z.string().min(1),
+  payoutAlias: z.string().min(1).max(200),
+});
+
+export const offrampInitiateSchema = z.object({
+  quoteId: z.string().min(1),
+});
+
+export const offrampSubmitPaymentSchema = z.object({
+  invoiceId: z.string().min(1),
+  signedTransactionXdr: z.string().min(1),
+  depositAddress: z.string().min(56).max(56).regex(/^G[A-Z2-7]{55}$/, 'Invalid Stellar address'),
+});
+
 /**
  * Middleware factory for validating request body with Zod
  */

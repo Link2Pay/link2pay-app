@@ -69,6 +69,11 @@ export interface InvoicePublicView {
   paidAt?: string | null;
   transactionHash?: string | null;
   networkPassphrase: string;
+  payoutMethod?: string | null;
+  payoutAlias?: string | null;
+  anchorTxId?: string | null;
+  quoteBuyAmount?: string | null;
+  receiptTxHash?: string | null;
   lineItems: {
     description: string;
     quantity: string;
