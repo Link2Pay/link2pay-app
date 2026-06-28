@@ -329,6 +329,97 @@ export async function getXlmPrice(): Promise<{ usd: number }> {
   return request<{ usd: number }>('/prices/xlm');
 }
 
+// ─── Off-ramp (USDC→COP / Bre-B) API ──────────────────────────────
+
+export interface OffRampQuote {
+  quoteId: string;
+  sellAsset: string;
+  buyAsset: string;
+  sellAmount: string;
+  buyAmount: string;
+  rate: string;
+  feeTotal: string;
+  expiresAt: string;
+}
+
+export interface OffRampIntentResponse {
+  anchorTxId: string;
+  interactiveUrl?: string | null;
+  depositAddress: string;
+  memo: string;
+  memoType: 'text' | 'id' | 'hash';
+  asset: string;
+  amount: string;
+}
+
+export interface OffRampStatusResponse {
+  status: string;
+  anchorStatus: string;
+}
+
+/** Receiver-only: request a firm USDC→COP quote (advances invoice to AWAITING_ANCHOR). */
+export async function offrampQuote(
+  invoiceId: string,
+  data: { sellAmount: string; payoutAlias: string },
+  walletAddress: string
+): Promise<OffRampQuote> {
+  return request<OffRampQuote>(
+    `/invoices/${invoiceId}/offramp/quote`,
+    { method: 'POST', body: JSON.stringify(data) },
+    walletAddress
+  );
+}
+
+/** Receiver-only: initiate the SEP-24 withdraw (advances to AWAITING_PAYMENT). */
+export async function offrampInitiate(
+  invoiceId: string,
+  quoteId: string,
+  walletAddress: string
+): Promise<OffRampIntentResponse> {
+  return request<OffRampIntentResponse>(
+    `/invoices/${invoiceId}/offramp/initiate`,
+    { method: 'POST', body: JSON.stringify({ quoteId }) },
+    walletAddress
+  );
+}
+
+/** Public: build the USDC payment XDR the payer signs (payer → anchor, exact memo). */
+export async function offrampPayIntent(
+  invoiceId: string,
+  senderPublicKey: string,
+  networkPassphraseOverride?: string
+): Promise<{
+  transactionXdr: string;
+  networkPassphrase: string;
+  memo: string;
+  depositAddress: string;
+  asset: string;
+  amount: string;
+}> {
+  const networkPassphrase = networkPassphraseOverride || useNetworkStore.getState().networkPassphrase;
+  return request(`/invoices/${invoiceId}/offramp/pay-intent`, {
+    method: 'POST',
+    body: JSON.stringify({ senderPublicKey, networkPassphrase }),
+  });
+}
+
+/** Public: submit the signed off-ramp payment (advances to PROCESSING). */
+export async function offrampSubmit(
+  invoiceId: string,
+  signedTransactionXdr: string,
+  depositAddress: string
+): Promise<{ success: boolean; transactionHash: string; ledger: number }> {
+  return request(`/invoices/${invoiceId}/offramp/submit`, {
+    method: 'POST',
+    body: JSON.stringify({ invoiceId, signedTransactionXdr, depositAddress }),
+  });
+}
+
+/** Public: poll anchor status; drives PROCESSING → SETTLING → SETTLED_FIAT. */
+export async function offrampStatus(invoiceId: string): Promise<OffRampStatusResponse> {
+  return request<OffRampStatusResponse>(`/invoices/${invoiceId}/offramp/status`);
+}
+
 export async function getPaymentStatus(
   invoiceId: string
 ): Promise<{

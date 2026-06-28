@@ -61,6 +61,12 @@ export interface Invoice {
   ledgerNumber?: number | null;
   payerWallet?: string | null;
   networkPassphrase?: string | null;
+  payoutMethod?: string | null;
+  payoutAlias?: string | null;
+  quoteId?: string | null;
+  quoteBuyAmount?: string | null;
+  anchorTxId?: string | null;
+  receiptTxHash?: string | null;
   lineItems: LineItem[];
 }
 
@@ -87,8 +93,10 @@ export interface PublicInvoice {
   transactionHash?: string | null;
   networkPassphrase: string;
   payoutMethod?: string | null;
+  payoutAlias?: string | null;
   anchorTxId?: string | null;
   quoteBuyAmount?: string | null;
+  receiptTxHash?: string | null;
   lineItems: {
     description: string;
     quantity: string;
@@ -116,6 +124,8 @@ export interface CreateInvoiceData {
   networkPassphrase?: string;
   saveClient?: boolean;
   favoriteClient?: boolean;
+  payoutMethod?: 'CRYPTO' | 'BRE_B';
+  payoutAlias?: string;
   lineItems: { description: string; quantity: number; rate: number }[];
 }
 
