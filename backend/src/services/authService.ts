@@ -98,6 +98,14 @@ export class AuthService {
         return true;
       }
 
+      // Attempt 3: SHA-256(message) — Privy signRawHash signs a hash, not raw bytes
+      const sha256Msg = crypto.createHash('sha256').update(Buffer.from(message, 'utf8')).digest();
+      const validSha256 = keypair.verify(sha256Msg, signatureBuffer);
+      if (validSha256) {
+        nonceStore.delete(walletAddress);
+        return true;
+      }
+
       return false;
     } catch (e) {
       return false;
