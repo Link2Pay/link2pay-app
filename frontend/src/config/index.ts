@@ -10,6 +10,8 @@ export const config = {
     'Test SDF Network ; September 2015',
   // Phase 5: let payers pay a non-USDC asset (routed to USDC via the DEX).
   enablePathPayments: import.meta.env.VITE_ENABLE_PATH_PAYMENTS === 'true',
+  // Phase 6: offer multi-wallet connect (Stellar Wallets Kit) on the payer flow.
+  enableWalletsKit: import.meta.env.VITE_ENABLE_WALLETS_KIT !== 'false',
 } as const;
 
 export const CURRENCY_LABELS: Record<string, string> = {

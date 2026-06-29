@@ -11,6 +11,7 @@ import WalletConnect from '../Wallet/WalletConnect';
 import type { PublicInvoice } from '../../types';
 import { useI18n } from '../../i18n/I18nProvider';
 import { config } from '../../config';
+import { kitMountButton, kitGetAddress, kitSign } from '../../services/walletsKit';
 
 type OffRampStep = 'idle' | 'paying' | 'settling' | 'settled' | 'error';
 
@@ -38,6 +39,13 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(invoice.transactionHash || null);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Phase 6: multi-wallet connect via Stellar Wallets Kit (flagged on).
+  const walletsKit = config.enableWalletsKit;
+  const kitBtnRef = useRef<HTMLDivElement | null>(null);
+  const [kitAddress, setKitAddress] = useState<string | null>(null);
+  // Effective payer: a Wallets-Kit wallet if connected, else Freighter via the store.
+  const effectiveKey = kitAddress || publicKey;
 
   // Phase 5: pay-in-any-asset (flagged). sourceAsset === invoice.currency means a direct payment.
   const pathEnabled = config.enablePathPayments;
@@ -104,18 +112,38 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
     };
   }, [isPathPay, sourceAsset, invoice.id, invoice.networkPassphrase]);
 
+  // Mount the Wallets Kit button and detect a connected wallet by polling.
+  useEffect(() => {
+    if (!walletsKit || !readyToPay || effectiveKey || !kitBtnRef.current) return;
+    let cancelled = false;
+    kitMountButton(kitBtnRef.current, invoice.networkPassphrase).catch(() => {});
+    const iv = setInterval(async () => {
+      const addr = await kitGetAddress();
+      if (!cancelled && addr) {
+        setKitAddress(addr);
+        clearInterval(iv);
+      }
+    }, 1500);
+    return () => {
+      cancelled = true;
+      clearInterval(iv);
+    };
+  }, [walletsKit, readyToPay, effectiveKey, invoice.networkPassphrase]);
+
   const handlePay = async () => {
-    if (!publicKey) return;
+    if (!effectiveKey) return;
     setStep('paying');
     setError(null);
     try {
       const intent = await offrampPayIntent(
         invoice.id,
-        publicKey,
+        effectiveKey,
         invoice.networkPassphrase,
         isPathPay ? sourceAsset : undefined
       );
-      const signedXdr = await signTransaction(intent.transactionXdr, intent.networkPassphrase);
+      const signedXdr = kitAddress
+        ? await kitSign(intent.transactionXdr, intent.networkPassphrase)
+        : await signTransaction(intent.transactionXdr, intent.networkPassphrase);
       const result = await offrampSubmit(invoice.id, signedXdr, intent.depositAddress);
       if (!result.success) throw new Error('Transaction submission failed.');
       setTxHash(result.transactionHash);
@@ -175,17 +203,21 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
         </div>
       )}
 
-      {readyToPay && !publicKey && (
+      {readyToPay && !effectiveKey && (
         <div className="space-y-3 text-center">
           <p className="text-sm text-ink-2">Connect a Stellar wallet to pay USDC to the anchor.</p>
-          <WalletConnect variant="large" />
+          {walletsKit ? (
+            <div ref={kitBtnRef} className="flex justify-center" />
+          ) : (
+            <WalletConnect variant="large" />
+          )}
         </div>
       )}
 
-      {readyToPay && publicKey && (
+      {readyToPay && effectiveKey && (
         <div className="space-y-3">
           <div className="text-center text-xs text-ink-3">
-            Paying from <span className="font-mono">{publicKey.slice(0, 8)}...{publicKey.slice(-4)}</span>
+            Paying from <span className="font-mono">{effectiveKey.slice(0, 8)}...{effectiveKey.slice(-4)}</span>
           </div>
           {pathEnabled && (
             <div>
