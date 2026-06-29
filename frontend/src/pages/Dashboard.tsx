@@ -19,7 +19,6 @@ import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
 import { useI18n } from '../i18n/I18nProvider';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
-import { useDashboardViewStore } from '../store/dashboardViewStore';
 import type { InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
 
@@ -168,25 +167,24 @@ const COPY: Record<Language, {
 export default function Dashboard() {
   const { publicKey } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
-  const { showPreviewLinks, toggleShowPreviewLinks } = useDashboardViewStore();
   const { language } = useI18n();
   const copy = COPY[language];
 
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['dashboardStats', publicKey, networkPassphrase, showPreviewLinks],
+    queryKey: ['dashboardStats', publicKey, networkPassphrase],
     queryFn: () =>
       getDashboardStats(publicKey!, {
-        excludePreview: !showPreviewLinks,
+        excludePreview: true,
         networkPassphrase,
       }),
     enabled: !!publicKey,
   });
 
   const { data: invoiceResult, isLoading: invoicesLoading } = useQuery({
-    queryKey: ['invoices', publicKey, 50, 0, networkPassphrase, showPreviewLinks],
+    queryKey: ['invoices', publicKey, 50, 0, networkPassphrase],
     queryFn: () =>
       listInvoices(publicKey!, undefined, 50, 0, {
-        excludePreview: !showPreviewLinks,
+        excludePreview: true,
         networkPassphrase,
       }),
     enabled: !!publicKey,
@@ -200,10 +198,9 @@ export default function Dashboard() {
         const matchesNetwork =
           !invoice.networkPassphrase || invoice.networkPassphrase === networkPassphrase;
         if (!matchesNetwork) return false;
-        if (showPreviewLinks) return true;
         return !invoice.notes?.includes('__hero_preview_v1__');
       }),
-    [invoices, networkPassphrase, showPreviewLinks]
+    [invoices, networkPassphrase]
   );
   const recentInvoices = filteredInvoices.slice(0, 5);
 
@@ -345,15 +342,6 @@ export default function Dashboard() {
           <p className="text-sm text-ink-3">{copy.subtitle}</p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-          <button
-            type="button"
-            onClick={toggleShowPreviewLinks}
-            className="btn-secondary w-full text-sm sm:w-auto"
-          >
-            {showPreviewLinks
-              ? 'Demo links: ON (showing all)'
-              : 'Demo links: OFF (real links only)'}
-          </button>
           <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
             <FilePlus2 className="h-4 w-4" />
             {copy.newInvoice}

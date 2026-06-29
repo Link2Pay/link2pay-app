@@ -27,9 +27,9 @@ const NETWORK_CONFIGS: Record<StellarNetwork, Omit<NetworkConfig, 'network'>> = 
 export const useNetworkStore = create<NetworkState>()(
   persist(
     (set) => ({
-      network: 'testnet',
-      horizonUrl: NETWORK_CONFIGS.testnet.horizonUrl,
-      networkPassphrase: NETWORK_CONFIGS.testnet.networkPassphrase,
+      network: 'mainnet',
+      horizonUrl: NETWORK_CONFIGS.mainnet.horizonUrl,
+      networkPassphrase: NETWORK_CONFIGS.mainnet.networkPassphrase,
       setNetwork: (network: StellarNetwork) => {
         const config = NETWORK_CONFIGS[network];
         set({
