@@ -15,6 +15,9 @@ export const config = {
   // Phase 7: live Reflector oracle FX estimate. Off by default — no public
   // testnet oracle carries COP, so it only shows when a feed actually has it.
   enableFxPreview: import.meta.env.VITE_ENABLE_FX_PREVIEW === 'true',
+  // Privy social login (Google/email → Stellar embedded wallet).
+  // When set, replaces the Freighter connect button in the dashboard header.
+  privyAppId: import.meta.env.VITE_PRIVY_APP_ID || '',
 } as const;
 
 export const CURRENCY_LABELS: Record<string, string> = {

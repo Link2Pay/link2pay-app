@@ -5,13 +5,25 @@ import { clearAuthToken } from '../services/auth';
 
 type AppLanguage = 'en' | 'es' | 'pt';
 
+export interface ExternalSigner {
+  signTransaction: (xdr: string, networkPassphrase: string) => Promise<string>;
+  signMessage: (message: string) => Promise<string>;
+}
+
 interface WalletState {
   connected: boolean;
   publicKey: string | null;
   isConnecting: boolean;
   error: string | null;
+  _externalSigner: ExternalSigner | null;
+  /** True while Privy is authenticated but the Stellar wallet bridge is still initializing. */
+  privyLoading: boolean;
   connect: () => Promise<void>;
   disconnect: () => void;
+  /** Bridge for Privy (or any non-Freighter) embedded wallet. */
+  setExternalWallet: (publicKey: string, signer: ExternalSigner) => void;
+  clearExternalWallet: () => void;
+  setPrivyLoading: (v: boolean) => void;
   signTransaction: (xdr: string, networkPassphrase?: string) => Promise<string>;
   /** Sign an arbitrary UTF-8 message (used for auth nonce). Returns hex signature. */
   signMessage: (message: string) => Promise<string>;
@@ -252,6 +264,20 @@ export const useWalletStore = create<WalletState>()(
       publicKey: null,
       isConnecting: false,
       error: null,
+      _externalSigner: null,
+      privyLoading: false,
+
+      setPrivyLoading: (v: boolean) => set({ privyLoading: v }),
+
+      setExternalWallet: (publicKey: string, signer: ExternalSigner) => {
+        clearAuthToken();
+        set({ connected: true, publicKey, isConnecting: false, error: null, _externalSigner: signer, privyLoading: false });
+      },
+
+      clearExternalWallet: () => {
+        clearAuthToken();
+        set({ connected: false, publicKey: null, _externalSigner: null, error: null, privyLoading: false });
+      },
 
       restoreConnection: async () => {
         const state = get();
@@ -357,6 +383,9 @@ export const useWalletStore = create<WalletState>()(
   },
 
   signMessage: async (message: string) => {
+    const externalSigner = get()._externalSigner;
+    if (externalSigner) return externalSigner.signMessage(message);
+
     if (!get().connected || !get().publicKey) {
       await get().connect();
     }
@@ -423,6 +452,12 @@ export const useWalletStore = create<WalletState>()(
   },
 
   signTransaction: async (xdr: string, networkPassphraseOverride?: string) => {
+    const externalSigner = get()._externalSigner;
+    if (externalSigner) {
+      const passphrase = networkPassphraseOverride || useNetworkStore.getState().networkPassphrase;
+      return externalSigner.signTransaction(xdr, passphrase);
+    }
+
     if (!get().connected || !get().publicKey) {
       await get().connect();
     }
@@ -494,7 +529,8 @@ export const useWalletStore = create<WalletState>()(
     {
       name: 'link2pay-wallet-storage',
       partialize: (state) => ({
-        publicKey: state.publicKey,
+        // _externalSigner (functions) must not be persisted
+        publicKey: state._externalSigner ? null : state.publicKey,
       }),
     }
   )

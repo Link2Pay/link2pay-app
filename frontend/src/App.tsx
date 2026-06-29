@@ -26,6 +26,7 @@ const About = lazy(() => import('./pages/About'));
 const RoleSelect = lazy(() => import('./pages/RoleSelect'));
 const Register = lazy(() => import('./pages/Register'));
 const ClientInvoiceLookup = lazy(() => import('./pages/ClientInvoiceLookup'));
+const Login = lazy(() => import('./pages/Login'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +59,9 @@ export default function App() {
       <BrowserRouter>
         <Suspense fallback={null}>
           <Routes>
+          {/* Login */}
+          <Route path="/login" element={<Login />} />
+
           {/* Role selection (gateway to app) */}
           <Route path="/app" element={<RoleSelect />} />
 

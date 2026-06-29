@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
 import {
   ArrowLeftRight,
   BarChart3,
@@ -10,16 +10,18 @@ import {
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
 import WalletConnect from './Wallet/WalletConnect';
+import PrivyLogin from './Auth/PrivyLogin';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 import NetworkToggle from './NetworkToggle';
 import BrandMark from './BrandMark';
 import BrandWordmark from './BrandWordmark';
 import { useI18n } from '../i18n/I18nProvider';
+import { config } from '../config';
 
 export default function Layout() {
   const location = useLocation();
-  const { connected, publicKey } = useWalletStore();
+  const { connected, publicKey, privyLoading } = useWalletStore();
   const { network } = useNetworkStore();
   const { t } = useI18n();
 
@@ -108,7 +110,7 @@ export default function Layout() {
               <NetworkToggle compact />
               <LanguageToggle />
               <ThemeToggle />
-              <WalletConnect />
+              {config.privyAppId ? <PrivyLogin /> : <WalletConnect />}
             </div>
           </div>
         </header>
@@ -142,21 +144,12 @@ export default function Layout() {
         <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 md:px-8">
           {connected ? (
             <Outlet />
-          ) : (
+          ) : privyLoading ? (
             <div className="flex min-h-[60vh] items-center justify-center">
-              <div className="max-w-md text-center animate-in">
-                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-                  <span className="text-3xl text-primary">S</span>
-                </div>
-                <h2 className="mb-2 text-xl font-semibold text-foreground">
-                  {t('layout.connectWalletTitle')}
-                </h2>
-                <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-                  {t('layout.connectWalletDescription')}
-                </p>
-                <WalletConnect variant="large" />
-              </div>
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
             </div>
+          ) : (
+            <Navigate to="/login" replace />
           )}
         </div>
       </main>

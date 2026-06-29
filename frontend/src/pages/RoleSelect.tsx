@@ -6,6 +6,7 @@ import BrandMark from '../components/BrandMark';
 import BrandWordmark from '../components/BrandWordmark';
 import { useWalletStore } from '../store/walletStore';
 import { useI18n } from '../i18n/I18nProvider';
+import { config } from '../config';
 import type { Language } from '../i18n/translations';
 
 const COPY: Record<Language, {
@@ -71,6 +72,11 @@ export default function RoleSelect() {
   const handleFreelancer = async () => {
     if (connected) {
       navigate('/dashboard');
+      return;
+    }
+
+    if (config.privyAppId) {
+      navigate('/login');
       return;
     }
 
