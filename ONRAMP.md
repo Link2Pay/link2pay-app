@@ -49,19 +49,47 @@ User pays COP (PSE/Nequi)
   arbitrary Stellar address, **fully non-custodial**.
 - Both legs expose REST/contract APIs that fit an `AnchorAdapter`-style flow.
 
-### Fees
+### Key insight: source from Polygon, use CCTP Standard (free *and* fast)
 
-| Leg | Fee | Source |
-|-----|-----|--------|
-| **CCTP V2 — Standard Transfer** | **Free** (0 bps protocol fee, all chains; ~10–20 min finality) | developers.circle.com/cctp/concepts/fees |
-| **CCTP V2 — Fast Transfer** | 0–14 bps by source chain (Ethereum/Solana = 1 bps / 0.01%) | same |
-| **Gas** | EVM burn (use **Polygon** → cents, not Ethereum) + Stellar mint (fractions of a cent) | — |
-| **Koywe (COP→USDC)** | **Not publicly disclosed** — returned per-quote as `quote.data.fee` (COP) + `finalAmountIn`. Partner-negotiated spread + COP→USD FX spread. LatAm on-ramps typically ~1–5% all-in. | docs.koywe.com |
+CCTP V2 finality (verified, developers.circle.com/cctp/concepts/finality-and-block-confirmations):
+**Polygon Standard Transfer hard finality is ~8 seconds** (Ethereum is ~15–19 min,
+which is the usual "bridges are slow" assumption). Polygon isn't even in the
+Fast-Transfer table because Standard is already fast enough. So sourcing from
+**Polygon** makes the bridge leg **free (0 bps) AND sub-minute**.
 
-**Bottom line:** the CCTP bridge is effectively free (~0% + cents of gas); the
-real cost is Koywe's spread + FX, likely low-single-digit %, but **unconfirmed**.
-Get the exact number from Koywe's sandbox `POST /quotes` (`originCurrencySymbol:
-COP`, `destinationCurrencySymbol: USDC`) — it returns `fee` and `finalAmountIn`.
+### Total cost — for 1,000,000 COP (≈ $250)
+
+| Component | Cost | Verified? |
+|-----------|------|-----------|
+| **Koywe** (fee + COP→USD FX spread) | **~2–4%** ≈ 20,000–40,000 COP (~$5–10) | ❌ **Estimated** — not published; returned per-quote (`quote.data.fee` / `finalAmountIn`). Industry on-ramps run up to ~4.5% |
+| **CCTP V2** (Polygon→Stellar, Standard) | **Free** (0 bps) | ✅ Verified — developers.circle.com/cctp/concepts/fees |
+| **Gas** (Polygon burn + Stellar mint) | **< $0.10** total | ✅ Verified (cents) |
+| **TOTAL** | **≈ 2–4%** (~$5–10 on $250) — essentially **all Koywe** | bridge + gas ≈ free |
+
+→ The bridge is a rounding error. The entire cost is the **Koywe spread**, the one
+number not verifiable from public docs. Get it from Koywe's sandbox `POST /quotes`
+(`originCurrencySymbol: COP`, `destinationCurrencySymbol: USDC`) → `fee` + `finalAmountIn`.
+
+### Total time
+
+| Leg | Time | Verified? |
+|-----|------|-----------|
+| **Bre-B / Nequi** COP payment | **< 20 sec** | ✅ Verified — Banco de la República (Bre-B is 24/7 instant A2A) |
+| **Koywe** processing (PENDING→COMPLETED, incl. Polygon mint) | **~1–5 min** | ❌ Estimated (waits for fiat clearing) |
+| **CCTP** Polygon→Stellar (Standard) | **~10–60 sec** (8s finality + attestation + mint) | ✅ finality verified |
+| **TOTAL** | **best ~1–2 min · typical ~2–6 min** | mixed |
+
+Not instant, but a few minutes — the peso payment is the only truly instant part;
+**Koywe processing is the bottleneck**, not the bridge.
+
+### "Via Bre-B" specifically (caveat)
+
+- Bre-B is real and instant (launched 2025-10-06, <20s, mandatory for licensed
+  institutions, Nequi interoperable through it; PSE is the older separate rail).
+- **But Koywe does not name Bre-B** — its payment-methods page lists **PSE and
+  Nequi**. Since Nequi now settles via Bre-B, paying Koywe *through a Bre-B-connected
+  wallet works in practice*, but a **direct "pay to a Bre-B llave" Koywe integration
+  is unconfirmed.** ❌ Confirm with Koywe.
 
 ### Testnet vs mainnet
 
@@ -70,6 +98,11 @@ COP`, `destinationCurrencySymbol: USDC`) — it returns `fee` and `finalAmountIn
 - **Fiat leg:** Koywe COP pay-in is **mainnet-only** (no test COP rail).
 - ⇒ A *fully real* end-to-end can't run on testnet — same honesty boundary as the
   off-ramp's `mock-breb`.
+
+### Two unverified items (need Koywe sandbox/sales)
+
+1. Koywe's exact COP→USDC spread/fee.
+2. Whether Koywe accepts **Bre-B** directly as a pay-in method (vs only PSE/Nequi).
 
 ## Proposed implementation (mirror the off-ramp)
 
