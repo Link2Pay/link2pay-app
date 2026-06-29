@@ -7,6 +7,7 @@ import invoiceRoutes from './routes/invoices';
 import linkRoutes from './routes/links';
 import paymentRoutes from './routes/payments';
 import clientRoutes from './routes/clients';
+import profileRoutes from './routes/profile';
 import authRoutes from './routes/auth';
 import priceRoutes from './routes/prices';
 import offrampRoutes from './routes/offramp';
@@ -145,6 +146,9 @@ app.use('/api/payments', paymentRoutes);
 
 // Saved client routes
 app.use('/api/clients', clientRoutes);
+
+// Business profile routes
+app.use('/api/profile', profileRoutes);
 
 // Off-ramp routes (Bre-B)
 app.use('/api/invoices', offrampRoutes);

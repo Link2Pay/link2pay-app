@@ -55,17 +55,22 @@ model Invoice {
   status        InvoiceStatus @default(DRAFT)
   invoiceType   InvoiceType   @default(DIRECT_PAYMENT) @map("invoice_type")
 
-  // Freelancer (creator) info
+  // Freelancer (creator) info — snapshot of the issuer at invoice time
   freelancerWallet  String  @map("freelancer_wallet")
   freelancerName    String? @map("freelancer_name")
   freelancerEmail   String? @map("freelancer_email")
   freelancerCompany String? @map("freelancer_company")
+  freelancerTaxId   String? @map("freelancer_tax_id")
+  freelancerAddress String? @map("freelancer_address")
+  freelancerPhone   String? @map("freelancer_phone")
+  freelancerLogoUrl String? @map("freelancer_logo_url")
 
   // Client (payer) info
   clientName    String  @map("client_name")
   clientEmail   String  @map("client_email")
   clientCompany String? @map("client_company")
   clientAddress String? @map("client_address")
+  clientTaxId   String? @map("client_tax_id")
   clientWallet  String? @map("client_wallet")
 
   // Invoice details
@@ -140,6 +145,33 @@ model Client {
   @@index([freelancerWallet])
   @@index([isFavorite])
   @@map("clients")
+}
+
+// Persisted business identity for a wallet — entered once, reused on every
+// invoice instead of re-typing freelancer details each time. Also holds the
+// default payout alias so the off-ramp llave isn't re-entered per invoice.
+model BusinessProfile {
+  id            String @id @default(cuid())
+  walletAddress String @unique @map("wallet_address")
+
+  displayName String? @map("display_name")
+  legalName   String? @map("legal_name")
+  taxId       String? @map("tax_id")
+  email       String?
+  phone       String?
+  addressLine String? @map("address_line")
+  city        String?
+  country     String?
+  logoUrl     String? @map("logo_url")
+
+  defaultCurrency     Currency     @default(USDC) @map("default_currency")
+  defaultPayoutMethod PayoutMethod @default(CRYPTO) @map("default_payout_method")
+  defaultPayoutAlias  String?      @map("default_payout_alias")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("business_profiles")
 }
 
 model LineItem {

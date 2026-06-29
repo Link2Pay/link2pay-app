@@ -3,10 +3,15 @@ export interface CreateInvoiceInput {
   freelancerName?: string;
   freelancerEmail?: string;
   freelancerCompany?: string;
+  freelancerTaxId?: string;
+  freelancerAddress?: string;
+  freelancerPhone?: string;
+  freelancerLogoUrl?: string;
   clientName: string;
   clientEmail: string;
   clientCompany?: string;
   clientAddress?: string;
+  clientTaxId?: string;
   title: string;
   description?: string;
   notes?: string;
@@ -55,9 +60,17 @@ export interface InvoicePublicView {
   invoiceNumber: string;
   status: string;
   freelancerName?: string | null;
+  freelancerEmail?: string | null;
   freelancerCompany?: string | null;
+  freelancerTaxId?: string | null;
+  freelancerAddress?: string | null;
+  freelancerPhone?: string | null;
+  freelancerLogoUrl?: string | null;
   clientName: string;
+  clientEmail?: string | null;
   clientCompany?: string | null;
+  clientAddress?: string | null;
+  clientTaxId?: string | null;
   title: string;
   description?: string | null;
   notes?: string | null;
@@ -96,4 +109,35 @@ export interface SaveClientInput {
 
 export interface UpdateClientFavoriteInput {
   isFavorite: boolean;
+}
+
+export interface SaveProfileInput {
+  displayName?: string;
+  legalName?: string;
+  taxId?: string;
+  email?: string;
+  phone?: string;
+  addressLine?: string;
+  city?: string;
+  country?: string;
+  logoUrl?: string;
+  defaultCurrency?: 'XLM' | 'USDC' | 'EURC';
+  defaultPayoutMethod?: 'CRYPTO' | 'BRE_B';
+  defaultPayoutAlias?: string;
+}
+
+export interface BusinessProfileView {
+  walletAddress: string;
+  displayName: string | null;
+  legalName: string | null;
+  taxId: string | null;
+  email: string | null;
+  phone: string | null;
+  addressLine: string | null;
+  city: string | null;
+  country: string | null;
+  logoUrl: string | null;
+  defaultCurrency: string;
+  defaultPayoutMethod: string;
+  defaultPayoutAlias: string | null;
 }

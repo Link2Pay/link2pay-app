@@ -19,10 +19,15 @@ export const createInvoiceSchema = z.object({
   freelancerName: z.string().max(200).optional(),
   freelancerEmail: z.string().email().optional(),
   freelancerCompany: z.string().max(200).optional(),
+  freelancerTaxId: z.string().max(50).optional(),
+  freelancerAddress: z.string().max(500).optional(),
+  freelancerPhone: z.string().max(50).optional(),
+  freelancerLogoUrl: z.string().url().max(500).optional(),
   clientName: z.string().min(1).max(200),
   clientEmail: z.string().email(),
   clientCompany: z.string().max(200).optional(),
   clientAddress: z.string().max(500).optional(),
+  clientTaxId: z.string().max(50).optional(),
   title: z.string().min(1).max(300),
   description: z.string().max(2000).optional(),
   notes: z.string().max(2000).optional(),
@@ -87,6 +92,23 @@ export const saveClientSchema = z.object({
 
 export const updateClientFavoriteSchema = z.object({
   isFavorite: z.boolean(),
+});
+
+// Business profile — all fields optional so the form can be saved incrementally.
+// Empty strings are allowed for email/logoUrl so a previously-set value can be cleared.
+export const saveProfileSchema = z.object({
+  displayName: z.string().max(200).optional(),
+  legalName: z.string().max(200).optional(),
+  taxId: z.string().max(50).optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().max(50).optional(),
+  addressLine: z.string().max(500).optional(),
+  city: z.string().max(120).optional(),
+  country: z.string().max(120).optional(),
+  logoUrl: z.string().url().max(500).optional().or(z.literal('')),
+  defaultCurrency: z.enum(['XLM', 'USDC', 'EURC']).optional(),
+  defaultPayoutMethod: z.enum(['CRYPTO', 'BRE_B']).optional(),
+  defaultPayoutAlias: z.string().max(200).optional(),
 });
 
 export const payIntentSchema = z.object({
