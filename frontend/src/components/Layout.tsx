@@ -4,11 +4,12 @@ import {
   ArrowLeftRight,
   BarChart3,
   ChevronDown,
-  FilePlus2,
   LayoutDashboard,
   LogOut,
+  QrCode,
   Receipt,
   UserCircle2,
+  Users,
 } from 'lucide-react';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
@@ -44,10 +45,11 @@ export default function Layout() {
 
   const navItems = [
     { path: '/dashboard', label: t('layout.nav.dashboard'), icon: LayoutDashboard },
-    { path: '/dashboard/transactions', label: t('layout.nav.transactions'), icon: ArrowLeftRight },
     { path: '/dashboard/links', label: t('layout.nav.invoices'), icon: Receipt },
+    { path: '/dashboard/get-paid', label: t('layout.nav.getPaid'), icon: QrCode },
+    { path: '/dashboard/clients', label: t('layout.nav.contacts'), icon: Users },
+    { path: '/dashboard/transactions', label: t('layout.nav.transactions'), icon: ArrowLeftRight },
     { path: '/dashboard/analytics', label: t('layout.nav.analytics'), icon: BarChart3 },
-    { path: '/dashboard/create-link', label: t('layout.nav.createInvoice'), icon: FilePlus2 },
   ];
 
   const isActivePath = (path: string) =>

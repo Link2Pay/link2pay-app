@@ -27,6 +27,7 @@ const Register = lazy(() => import('./pages/Register'));
 const ClientInvoiceLookup = lazy(() => import('./pages/ClientInvoiceLookup'));
 const Login = lazy(() => import('./pages/Login'));
 const ProfileOptions = lazy(() => import('./pages/ProfileOptions'));
+const GetPaid = lazy(() => import('./pages/GetPaid'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -91,6 +92,7 @@ export default function App() {
             <Route path="transactions" element={<Transactions />} />
             <Route path="links" element={<InvoiceList />} />
             <Route path="links/:id" element={<InvoiceDetail />} />
+            <Route path="get-paid" element={<GetPaid />} />
             <Route path="api-keys" element={<Navigate to="/dashboard" replace />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="profile-options" element={<ProfileOptions />} />
