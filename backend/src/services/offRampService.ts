@@ -5,12 +5,15 @@ import prisma from '../db';
 import type { AnchorAdapter, Quote, OffRampIntent, AnchorStatus } from '../anchors/AnchorAdapter';
 import { testAnchorAdapter } from '../anchors/adapters/TestAnchorAdapter';
 import { mockBreBAdapter } from '../anchors/adapters/MockBreBAdapter';
+import { abroadAdapter } from '../anchors/adapters/AbroadAdapter';
 import { receiptService } from './receiptService';
 
 function getAdapter(): AnchorAdapter {
   switch (config.anchor.provider) {
     case 'mock-breb':
       return mockBreBAdapter;
+    case 'abroad':
+      return abroadAdapter;
     case 'testnet':
     default:
       return testAnchorAdapter;
@@ -73,7 +76,12 @@ export class OffRampService {
           quoteId: quote.quoteId,
           quoteBuyAmount: quote.buyAmount,
           payoutAlias: params.payoutAlias,
-          anchorProvider: this.adapter.id === 'testnet' ? 'TESTNET' : 'MOCK_BREB',
+          anchorProvider:
+            this.adapter.id === 'testnet'
+              ? 'TESTNET'
+              : this.adapter.id === 'abroad'
+                ? 'ABROAD'
+                : 'MOCK_BREB',
         },
       });
 
