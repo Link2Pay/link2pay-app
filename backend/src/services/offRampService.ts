@@ -5,6 +5,7 @@ import prisma from '../db';
 import type { AnchorAdapter, Quote, OffRampIntent, AnchorStatus } from '../anchors/AnchorAdapter';
 import { testAnchorAdapter } from '../anchors/adapters/TestAnchorAdapter';
 import { mockBreBAdapter } from '../anchors/adapters/MockBreBAdapter';
+import { receiptService } from './receiptService';
 
 function getAdapter(): AnchorAdapter {
   switch (config.anchor.provider) {
@@ -161,6 +162,11 @@ export class OffRampService {
         where: { id: invoiceId },
         data: { status: newStatus },
       });
+
+      // On settlement, write an on-chain receipt (no-op if not configured).
+      if (newStatus === 'SETTLED_FIAT') {
+        await this.writeReceipt(invoiceId);
+      }
     }
 
     return { status: newStatus || (invoice.status as InvoiceStatus), anchorStatus };
@@ -249,6 +255,8 @@ export class OffRampService {
         },
       });
     });
+
+    await this.writeReceipt(invoiceId);
   }
 
   /**
@@ -261,6 +269,39 @@ export class OffRampService {
     });
 
     log.error('[OffRampService] Anchor error for invoice', { invoiceId, error: errorMessage });
+  }
+
+  /**
+   * Write an on-chain receipt for a settled invoice and persist the tx hash.
+   * No-op when the receipt contract/signer is not configured. Never throws —
+   * receipt failures must not affect settlement.
+   */
+  private async writeReceipt(invoiceId: string): Promise<void> {
+    if (!receiptService.enabled) return;
+    try {
+      const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
+      if (!invoice || invoice.receiptTxHash) return;
+      if (!invoice.payerWallet || !invoice.anchorTxId) return;
+
+      const hash = await receiptService.writeReceipt({
+        invoiceId,
+        payer: invoice.payerWallet,
+        payee: invoice.freelancerWallet,
+        amount: invoice.total.toString(),
+        asset: invoice.currency,
+        anchorTxId: invoice.anchorTxId,
+        memo: invoice.anchorMemo || invoice.id,
+      });
+
+      if (hash) {
+        await prisma.invoice.update({
+          where: { id: invoiceId },
+          data: { receiptTxHash: hash },
+        });
+      }
+    } catch (error: any) {
+      log.error('[OffRampService] Receipt write failed', { invoiceId, error: error?.message });
+    }
   }
 
   private mapAnchorToInvoiceStatus(

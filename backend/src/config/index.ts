@@ -50,6 +50,12 @@ const envSchema = z.object({
     .min(1)
     .default('testanchor.stellar.org'),
   RECEIPT_CONTRACT_ID: z.string().optional(),
+  // Admin signer for the receipt contract (attestation only — NOT a funds key).
+  // When unset, receipt writing is skipped (the off-ramp still settles).
+  RECEIPT_SIGNER_SECRET: z
+    .string()
+    .regex(/^S[A-Z2-7]{55}$/, 'RECEIPT_SIGNER_SECRET must be a valid Stellar secret seed')
+    .optional(),
   ABROAD_API_BASE: z.string().url().optional(),
   ABROAD_API_KEY: z.string().optional(),
 });
@@ -90,6 +96,7 @@ export const config = {
   },
 
   receiptContractId: env.RECEIPT_CONTRACT_ID,
+  receiptSignerSecret: env.RECEIPT_SIGNER_SECRET,
   abroad: {
     apiBase: env.ABROAD_API_BASE,
     apiKey: env.ABROAD_API_KEY,
