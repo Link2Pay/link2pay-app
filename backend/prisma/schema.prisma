@@ -94,6 +94,11 @@ model Invoice {
   quoteId        String?                         @map("quote_id")
   quoteBuyAmount String?                         @map("quote_buy_amount")
   receiptTxHash  String?                         @map("receipt_tx_hash")
+  // Anchor deposit instructions captured at initiate time (payer pays these).
+  anchorDepositAddress String?                   @map("anchor_deposit_address")
+  anchorMemo           String?                   @map("anchor_memo")
+  anchorMemoType       String?                   @map("anchor_memo_type")
+  anchorInteractiveUrl String?                   @map("anchor_interactive_url")
 
   // Soft delete — set instead of hard DELETE
   deletedAt DateTime? @map("deleted_at")

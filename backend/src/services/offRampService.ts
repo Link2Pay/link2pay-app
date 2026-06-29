@@ -121,6 +121,10 @@ export class OffRampService {
         data: {
           status: 'AWAITING_PAYMENT',
           anchorTxId: intent.anchorTxId,
+          anchorDepositAddress: intent.depositAddress || null,
+          anchorMemo: intent.memo || null,
+          anchorMemoType: intent.memoType || null,
+          anchorInteractiveUrl: intent.interactiveUrl || null,
         },
       });
 

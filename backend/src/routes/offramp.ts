@@ -116,47 +116,36 @@ router.post('/:id/offramp/pay-intent', async (req: Request, res: Response) => {
 
     const { senderPublicKey, networkPassphrase } = req.body;
 
-    // Build a direct payment to the anchor's deposit address
-    // The depositAddress is stored in payerWallet field temporarily during offramp flow
-    // We need it from the anchor — let's re-fetch the latest intent
-    const statusResult = await offRampService.pollStatus(req.params.id);
-    if (statusResult.anchorStatus !== 'AWAITING_PAYMENT') {
+    // Deposit instructions are captured and persisted at initiate time —
+    // no re-initiation needed. If they're missing, the interactive SEP-24
+    // step (e.g. KYC) hasn't produced them yet.
+    if (!invoice.anchorDepositAddress) {
       return res.status(400).json({
-        error: 'Anchor not ready for payment',
-        anchorStatus: statusResult.anchorStatus,
+        error: 'Deposit address not available yet. Complete the anchor interactive step first.',
       });
     }
 
-    // Re-initiate to get fresh deposit instructions
-    const intent = await offRampService.initiateOffRamp(
-      req.params.id,
-      invoice.freelancerWallet,
-      { quoteId: invoice.quoteId || '' }
-    );
-
-    if (!intent.depositAddress) {
-      return res.status(400).json({ error: 'Deposit address not available yet (interactive KYC required). Open the interactive URL first.' });
-    }
+    const memoType = (invoice.anchorMemoType as 'text' | 'id' | 'hash' | null) || undefined;
 
     const txResult = await stellarService.buildPaymentTransaction({
       senderPublicKey,
-      recipientPublicKey: intent.depositAddress,
-      amount: intent.amount || invoice.total.toString(),
+      recipientPublicKey: invoice.anchorDepositAddress,
+      amount: invoice.total.toString(),
       assetCode: invoice.currency,
       invoiceId: invoice.id,
       // The anchor matches the incoming payment by this exact memo + type.
       // Honor the anchor's memoType (testanchor uses `id`, not text).
-      memo: intent.memo,
-      memoType: intent.memoType,
+      memo: invoice.anchorMemo || undefined,
+      memoType,
       networkPassphrase,
     });
 
     res.json({
       ...txResult,
-      memo: intent.memo,
-      depositAddress: intent.depositAddress,
+      memo: invoice.anchorMemo,
+      depositAddress: invoice.anchorDepositAddress,
       asset: invoice.currency,
-      amount: intent.amount || invoice.total.toString(),
+      amount: invoice.total.toString(),
     });
   } catch (error: any) {
     log.error('[OfframpRoutes] Pay intent error', { error: error?.message });
