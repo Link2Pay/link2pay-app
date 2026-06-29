@@ -41,10 +41,15 @@ export interface Invoice {
   freelancerName?: string | null;
   freelancerEmail?: string | null;
   freelancerCompany?: string | null;
+  freelancerTaxId?: string | null;
+  freelancerAddress?: string | null;
+  freelancerPhone?: string | null;
+  freelancerLogoUrl?: string | null;
   clientName: string;
   clientEmail: string;
   clientCompany?: string | null;
   clientAddress?: string | null;
+  clientTaxId?: string | null;
   clientWallet?: string | null;
   title: string;
   description?: string | null;
@@ -78,9 +83,17 @@ export interface PublicInvoice {
   invoiceNumber: string;
   status: InvoiceStatus;
   freelancerName?: string | null;
+  freelancerEmail?: string | null;
   freelancerCompany?: string | null;
+  freelancerTaxId?: string | null;
+  freelancerAddress?: string | null;
+  freelancerPhone?: string | null;
+  freelancerLogoUrl?: string | null;
   clientName: string;
+  clientEmail?: string | null;
   clientCompany?: string | null;
+  clientAddress?: string | null;
+  clientTaxId?: string | null;
   title: string;
   description?: string | null;
   notes?: string | null;
@@ -114,10 +127,15 @@ export interface CreateInvoiceData {
   freelancerName?: string;
   freelancerEmail?: string;
   freelancerCompany?: string;
+  freelancerTaxId?: string;
+  freelancerAddress?: string;
+  freelancerPhone?: string;
+  freelancerLogoUrl?: string;
   clientName: string;
   clientEmail: string;
   clientCompany?: string;
   clientAddress?: string;
+  clientTaxId?: string;
   title: string;
   description?: string;
   notes?: string;
@@ -152,6 +170,37 @@ export interface SaveClientData {
   company?: string;
   address?: string;
   isFavorite?: boolean;
+}
+
+export interface BusinessProfile {
+  walletAddress: string;
+  displayName?: string | null;
+  legalName?: string | null;
+  taxId?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  addressLine?: string | null;
+  city?: string | null;
+  country?: string | null;
+  logoUrl?: string | null;
+  defaultCurrency: Currency;
+  defaultPayoutMethod: 'CRYPTO' | 'BRE_B';
+  defaultPayoutAlias?: string | null;
+}
+
+export interface SaveProfileData {
+  displayName?: string;
+  legalName?: string;
+  taxId?: string;
+  email?: string;
+  phone?: string;
+  addressLine?: string;
+  city?: string;
+  country?: string;
+  logoUrl?: string;
+  defaultCurrency?: Currency;
+  defaultPayoutMethod?: 'CRYPTO' | 'BRE_B';
+  defaultPayoutAlias?: string;
 }
 
 export interface PayIntentResponse {

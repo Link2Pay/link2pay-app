@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { createInvoice } from '../../services/api';
+import { createInvoice, getBusinessProfile } from '../../services/api';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
 import { useNetworkStore } from '../../store/networkStore';
@@ -63,6 +63,14 @@ const COPY: Record<Language, {
   taxPlaceholder: string;
   notesPlaceholder: string;
   networkMismatch: string;
+  taxId: string;
+  taxIdPlaceholder: string;
+  address: string;
+  addressPlaceholder: string;
+  phone: string;
+  phonePlaceholder: string;
+  clientTaxId: string;
+  prefillHint: string;
 }> = {
   en: {
     failedCreateInvoice: 'Failed to create invoice',
@@ -109,6 +117,14 @@ const COPY: Record<Language, {
     taxPlaceholder: '0',
     notesPlaceholder: 'Payment terms, additional notes...',
     networkMismatch: 'Network mismatch: You selected {selected} but Freighter wallet is on {freighter}. Please switch your Freighter wallet to {selected}, disconnect and reconnect your wallet.',
+    taxId: 'Tax ID',
+    taxIdPlaceholder: 'NIT / RUT / tax number',
+    address: 'Address',
+    addressPlaceholder: 'Street, city, country',
+    phone: 'Phone',
+    phonePlaceholder: '+57 ...',
+    clientTaxId: 'Client Tax ID',
+    prefillHint: 'Prefilled from your business profile',
   },
   es: {
     failedCreateInvoice: 'No se pudo crear la factura',
@@ -155,6 +171,14 @@ const COPY: Record<Language, {
     taxPlaceholder: '0',
     notesPlaceholder: 'Terminos de pago, notas adicionales...',
     networkMismatch: 'Red incorrecta: Seleccionaste {selected} pero Freighter esta en {freighter}. Por favor cambia tu wallet Freighter a {selected}, desconecta y reconecta tu wallet.',
+    taxId: 'ID fiscal (NIT/RUT/CUIT)',
+    taxIdPlaceholder: 'NIT / RUT / numero fiscal',
+    address: 'Direccion',
+    addressPlaceholder: 'Calle, ciudad, pais',
+    phone: 'Telefono',
+    phonePlaceholder: '+57 ...',
+    clientTaxId: 'ID fiscal del cliente',
+    prefillHint: 'Rellenado desde tu perfil de negocio',
   },
   pt: {
     failedCreateInvoice: 'Falha ao criar fatura',
@@ -201,6 +225,14 @@ const COPY: Record<Language, {
     taxPlaceholder: '0',
     notesPlaceholder: 'Termos de pagamento, notas adicionais...',
     networkMismatch: 'Rede incorreta: Voce selecionou {selected} mas Freighter esta em {freighter}. Por favor, mude sua carteira Freighter para {selected}, desconecte e reconecte sua carteira.',
+    taxId: 'ID fiscal (CNPJ/CPF)',
+    taxIdPlaceholder: 'CNPJ / CPF / numero fiscal',
+    address: 'Endereco',
+    addressPlaceholder: 'Rua, cidade, pais',
+    phone: 'Telefone',
+    phonePlaceholder: '+55 ...',
+    clientTaxId: 'ID fiscal do cliente',
+    prefillHint: 'Preenchido do seu perfil de negocio',
   },
 };
 
@@ -220,6 +252,12 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   const [freelancerName, setFreelancerName] = useState('');
   const [freelancerEmail, setFreelancerEmail] = useState('');
   const [freelancerCompany, setFreelancerCompany] = useState('');
+  const [freelancerTaxId, setFreelancerTaxId] = useState('');
+  const [freelancerAddress, setFreelancerAddress] = useState('');
+  const [freelancerPhone, setFreelancerPhone] = useState('');
+  const [freelancerLogoUrl, setFreelancerLogoUrl] = useState('');
+  const [clientTaxId, setClientTaxId] = useState('');
+  const [hasProfile, setHasProfile] = useState(false);
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientCompany, setClientCompany] = useState('');
@@ -248,6 +286,38 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
     updated[index] = { ...updated[index], [field]: value };
     setLineItems(updated);
   };
+
+  // Prefill issuer identity from the saved business profile so it isn't
+  // re-typed on every invoice. Functional setState guards against clobbering
+  // anything the user manages to type before the fetch resolves.
+  useEffect(() => {
+    if (!publicKey) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const profile = await getBusinessProfile(publicKey);
+        if (cancelled || !profile) return;
+        setHasProfile(true);
+        const issuerName = profile.displayName || profile.legalName || '';
+        if (issuerName) setFreelancerName((v) => v || issuerName);
+        if (profile.email) setFreelancerEmail((v) => v || profile.email || '');
+        if (profile.legalName) setFreelancerCompany((v) => v || profile.legalName || '');
+        if (profile.taxId) setFreelancerTaxId((v) => v || profile.taxId || '');
+        if (profile.phone) setFreelancerPhone((v) => v || profile.phone || '');
+        if (profile.logoUrl) setFreelancerLogoUrl((v) => v || profile.logoUrl || '');
+        const addr = [profile.addressLine, profile.city, profile.country].filter(Boolean).join(', ');
+        if (addr) setFreelancerAddress((v) => v || addr);
+        if (profile.defaultCurrency) setCurrency(profile.defaultCurrency);
+        if (profile.defaultPayoutMethod) setPayoutMethod(profile.defaultPayoutMethod);
+        if (profile.defaultPayoutAlias) setPayoutAlias((a) => a || profile.defaultPayoutAlias || '');
+      } catch {
+        // Profile is optional — ignore failures and let the user fill manually.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [publicKey]);
 
   const subtotal = isDirect
     ? parseFloat(directAmount) || 0
@@ -287,9 +357,14 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
           freelancerName: freelancerName || undefined,
           freelancerEmail: freelancerEmail || undefined,
           freelancerCompany: freelancerCompany || undefined,
+          freelancerTaxId: freelancerTaxId || undefined,
+          freelancerAddress: freelancerAddress || undefined,
+          freelancerPhone: freelancerPhone || undefined,
+          freelancerLogoUrl: freelancerLogoUrl || undefined,
           clientName: clientName.trim() || (isDirect ? 'Payer' : clientName),
           clientEmail: clientEmail.trim() || (isDirect ? `payer@link2pay.io` : clientEmail),
           clientCompany: clientCompany || undefined,
+          clientTaxId: clientTaxId || undefined,
           title,
           description: description || undefined,
           notes: notes || undefined,
@@ -460,7 +535,11 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
       {!isDirect && (
         <>
           <section className="card p-5 sm:p-6">
-            <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.yourInformation}</h3>
+            <h3 className="text-sm font-semibold text-ink-0 mb-1 uppercase tracking-wider">{copy.yourInformation}</h3>
+            {hasProfile && (
+              <p className="mb-4 text-[11px] text-ink-3">{copy.prefillHint}</p>
+            )}
+            {!hasProfile && <div className="mb-4" />}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="label">{copy.name}</label>
@@ -478,7 +557,24 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
                   value={freelancerCompany} onChange={(e) => setFreelancerCompany(e.target.value)} />
               </div>
             </div>
-            <div className="mt-3">
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="label">{copy.taxId}</label>
+                <input type="text" className="input" placeholder={copy.taxIdPlaceholder}
+                  value={freelancerTaxId} onChange={(e) => setFreelancerTaxId(e.target.value)} />
+              </div>
+              <div>
+                <label className="label">{copy.phone}</label>
+                <input type="text" className="input" placeholder={copy.phonePlaceholder}
+                  value={freelancerPhone} onChange={(e) => setFreelancerPhone(e.target.value)} />
+              </div>
+              <div>
+                <label className="label">{copy.address}</label>
+                <input type="text" className="input" placeholder={copy.addressPlaceholder}
+                  value={freelancerAddress} onChange={(e) => setFreelancerAddress(e.target.value)} />
+              </div>
+            </div>
+            <div className="mt-4">
               <label className="label">{copy.walletAddress}</label>
               <div className="input bg-surface-1 font-mono text-xs text-ink-2 cursor-default break-all">{publicKey}</div>
             </div>
@@ -505,6 +601,11 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
                 <label className="label">{copy.company}</label>
                 <input type="text" className="input" placeholder={copy.optional}
                   value={clientCompany} onChange={(e) => setClientCompany(e.target.value)} />
+              </div>
+              <div>
+                <label className="label">{copy.clientTaxId}</label>
+                <input type="text" className="input" placeholder={copy.optional}
+                  value={clientTaxId} onChange={(e) => setClientTaxId(e.target.value)} />
               </div>
             </div>
           </section>

@@ -14,6 +14,8 @@ import type {
   DashboardStats,
   SavedClient,
   SaveClientData,
+  BusinessProfile,
+  SaveProfileData,
 } from '../types';
 
 const API_BASE = config.apiUrl + '/api';
@@ -280,6 +282,28 @@ export async function updateClientFavorite(
     {
       method: 'PATCH',
       body: JSON.stringify({ isFavorite }),
+    },
+    walletAddress
+  );
+}
+
+// ─── Business profile API ─────────────────────────────────────────
+
+export async function getBusinessProfile(
+  walletAddress: string
+): Promise<BusinessProfile | null> {
+  return request<BusinessProfile | null>('/profile', {}, walletAddress);
+}
+
+export async function saveBusinessProfile(
+  data: SaveProfileData,
+  walletAddress: string
+): Promise<BusinessProfile> {
+  return request<BusinessProfile>(
+    '/profile',
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
     },
     walletAddress
   );

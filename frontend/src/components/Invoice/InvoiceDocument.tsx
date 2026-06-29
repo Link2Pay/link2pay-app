@@ -17,18 +17,27 @@ export default function InvoiceDocument({ invoice }: Props) {
     <div className="text-sm">
       {/* Header */}
       <div className="flex items-start justify-between pb-5 border-b border-surface-3 mb-5">
-        <div>
-          {invoice.freelancerCompany && (
-            <p className="text-base font-bold text-ink-0 leading-tight">{invoice.freelancerCompany}</p>
+        <div className="flex items-start gap-3">
+          {invoice.freelancerLogoUrl && (
+            <img
+              src={invoice.freelancerLogoUrl}
+              alt=""
+              className="h-11 w-11 flex-shrink-0 rounded-lg object-contain bg-surface-1"
+            />
           )}
-          {invoice.freelancerName && (
-            <p className={`text-sm ${!invoice.freelancerCompany ? 'font-semibold text-ink-0' : 'text-ink-2'}`}>
-              {invoice.freelancerName}
-            </p>
-          )}
-          {!invoice.freelancerName && !invoice.freelancerCompany && (
-            <p className="text-sm text-ink-3">{invoice.invoiceNumber}</p>
-          )}
+          <div>
+            {invoice.freelancerCompany && (
+              <p className="text-base font-bold text-ink-0 leading-tight">{invoice.freelancerCompany}</p>
+            )}
+            {invoice.freelancerName && (
+              <p className={`text-sm ${!invoice.freelancerCompany ? 'font-semibold text-ink-0' : 'text-ink-2'}`}>
+                {invoice.freelancerName}
+              </p>
+            )}
+            {!invoice.freelancerName && !invoice.freelancerCompany && (
+              <p className="text-sm text-ink-3">{invoice.invoiceNumber}</p>
+            )}
+          </div>
         </div>
         <div className="text-right">
           <p className="text-xl font-black uppercase tracking-widest text-ink-0">Invoice</p>
@@ -46,12 +55,33 @@ export default function InvoiceDocument({ invoice }: Props) {
           {invoice.freelancerName && (
             <p className="text-xs text-ink-2">{invoice.freelancerName}</p>
           )}
+          {invoice.freelancerTaxId && (
+            <p className="text-[11px] text-ink-3 mt-1">Tax ID: {invoice.freelancerTaxId}</p>
+          )}
+          {invoice.freelancerAddress && (
+            <p className="text-[11px] text-ink-3">{invoice.freelancerAddress}</p>
+          )}
+          {invoice.freelancerEmail && (
+            <p className="text-[11px] text-ink-3 break-all">{invoice.freelancerEmail}</p>
+          )}
+          {invoice.freelancerPhone && (
+            <p className="text-[11px] text-ink-3">{invoice.freelancerPhone}</p>
+          )}
         </div>
         <div className="rounded-lg bg-surface-1 p-3">
           <p className="text-[10px] uppercase tracking-wider text-ink-3 mb-1.5 font-medium">Bill To</p>
           <p className="font-semibold text-ink-0 text-sm">{invoice.clientName}</p>
           {invoice.clientCompany && (
             <p className="text-xs text-ink-2">{invoice.clientCompany}</p>
+          )}
+          {invoice.clientTaxId && (
+            <p className="text-[11px] text-ink-3 mt-1">Tax ID: {invoice.clientTaxId}</p>
+          )}
+          {invoice.clientAddress && (
+            <p className="text-[11px] text-ink-3">{invoice.clientAddress}</p>
+          )}
+          {invoice.clientEmail && (
+            <p className="text-[11px] text-ink-3 break-all">{invoice.clientEmail}</p>
           )}
         </div>
       </div>
