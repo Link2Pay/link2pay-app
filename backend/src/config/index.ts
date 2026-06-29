@@ -57,6 +57,12 @@ const envSchema = z.object({
     .string()
     .min(1)
     .default('testanchor.stellar.org'),
+  // mock-breb only: the testnet account the payer sends USDC to (must hold a
+  // USDC trustline). Defaults to a built-in placeholder when unset.
+  MOCK_DEPOSIT_ADDRESS: z
+    .string()
+    .regex(stellarAddressRegex, 'MOCK_DEPOSIT_ADDRESS must be a valid Stellar address')
+    .optional(),
   RECEIPT_CONTRACT_ID: z.string().optional(),
   // Admin signer for the receipt contract (attestation only — NOT a funds key).
   // When unset, receipt writing is skipped (the off-ramp still settles).
@@ -106,6 +112,7 @@ export const config = {
   anchor: {
     provider: env.ANCHOR_PROVIDER,
     homeDomain: env.ANCHOR_HOME_DOMAIN,
+    mockDepositAddress: env.MOCK_DEPOSIT_ADDRESS,
   },
 
   receiptContractId: env.RECEIPT_CONTRACT_ID,

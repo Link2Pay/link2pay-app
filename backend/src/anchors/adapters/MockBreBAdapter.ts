@@ -12,9 +12,10 @@ import { log } from '../../utils/logger';
 
 const SIMULATED_USDC_COP_RATE = '4120.50';
 
-// Testnet deposit address — we generate a deterministic one from the
-// app's testnet keypair. In production this would come from the Bre-B rail.
-const MOCK_DEPOSIT_ADDRESS = 'GBKZZZWCJUUVUXNBFYGZ3EKWB725DKCLJECUSO3EG2CCFAFOX7XD3GIW';
+// Testnet deposit address the payer sends USDC to. Override via
+// MOCK_DEPOSIT_ADDRESS env so it points at a real funded account that holds a
+// USDC trustline. In production this would come from the Bre-B rail.
+const DEFAULT_MOCK_DEPOSIT_ADDRESS = 'GBKZZZWCJUUVUXNBFYGZ3EKWB725DKCLJECUSO3EG2CCFAFOX7XD3GIW';
 
 export class MockBreBAdapter implements AnchorAdapter {
   readonly id = 'mock-breb' as const;
@@ -63,8 +64,9 @@ export class MockBreBAdapter implements AnchorAdapter {
   }): Promise<OffRampIntent> {
     const anchorTxId = `mock-breb-tx-${Date.now()}`;
 
-    // Generate a deterministic memo from the payout alias + timestamp
-    const memo = `bre-b:${params.payoutAlias}:${anchorTxId}`;
+    // Short text memo (<=28 bytes) so it fits a Stellar text memo on the
+    // real on-chain USDC payment. Derived from the tx timestamp.
+    const memo = `brb-${anchorTxId.slice(-12)}`;
     const amount = '0'; // Will be filled by the actual USDC payment
 
     // Store initial state
@@ -90,7 +92,7 @@ export class MockBreBAdapter implements AnchorAdapter {
 
     return {
       anchorTxId,
-      depositAddress: MOCK_DEPOSIT_ADDRESS,
+      depositAddress: config.anchor.mockDepositAddress || DEFAULT_MOCK_DEPOSIT_ADDRESS,
       memo,
       memoType: 'text',
       asset: 'USDC',

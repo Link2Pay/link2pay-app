@@ -312,30 +312,48 @@ export class OffRampService {
     }
   }
 
+  // Forward-only ordering so anchor polling can never regress the invoice
+  // (e.g. a poll-driven mock reporting AWAITING_PAYMENT after we already
+  // detected the on-chain payment and moved to PROCESSING).
+  private static readonly STATE_RANK: Partial<Record<InvoiceStatus, number>> = {
+    AWAITING_ANCHOR: 0,
+    AWAITING_PAYMENT: 1,
+    PROCESSING: 2,
+    SETTLING: 3,
+    SETTLED_FIAT: 4,
+  };
+
   private mapAnchorToInvoiceStatus(
     anchorStatus: AnchorStatus,
     current: InvoiceStatus
   ): InvoiceStatus | null {
-    switch (anchorStatus) {
-      case 'INITIATED':
-        return null; // already set during initiate
-      case 'AWAITING_PAYMENT':
-        return 'AWAITING_PAYMENT';
-      case 'PAYMENT_DETECTED':
-        if (current === 'AWAITING_PAYMENT') return 'PROCESSING';
-        return null;
-      case 'SETTLING':
-        if (current === 'PROCESSING') return 'SETTLING';
-        return null;
-      case 'SETTLED':
-        return 'SETTLED_FIAT';
-      case 'ERROR':
-        return 'ANCHOR_ERROR';
-      case 'EXPIRED':
-        return 'EXPIRED';
-      default:
-        return null;
-    }
+    // Terminal failures override the happy-path ordering.
+    if (anchorStatus === 'ERROR') return 'ANCHOR_ERROR';
+    if (anchorStatus === 'EXPIRED') return 'EXPIRED';
+
+    const target: InvoiceStatus | null = (() => {
+      switch (anchorStatus) {
+        case 'AWAITING_PAYMENT':
+          return 'AWAITING_PAYMENT';
+        case 'PAYMENT_DETECTED':
+          return 'PROCESSING';
+        case 'SETTLING':
+          return 'SETTLING';
+        case 'SETTLED':
+          return 'SETTLED_FIAT';
+        case 'INITIATED':
+        default:
+          return null;
+      }
+    })();
+
+    if (!target) return null;
+
+    const rank = OffRampService.STATE_RANK;
+    const currentRank = rank[current] ?? -1;
+    const targetRank = rank[target] ?? -1;
+    // Only ever advance forward.
+    return targetRank > currentRank ? target : null;
   }
 }
 
