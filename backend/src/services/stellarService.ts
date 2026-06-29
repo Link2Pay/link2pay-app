@@ -108,6 +108,37 @@ export class StellarService {
   }
 
   /**
+   * Construct a Stellar Memo honoring the anchor-required type.
+   * - `id`   → numeric memo (anchors typically use this for withdraw_memo)
+   * - `hash` → 32-byte hash, provided as hex
+   * - `text` → UTF-8 text (max 28 bytes)
+   * When no explicit memo is given, falls back to a text memo derived from the
+   * invoiceId (regular crypto invoice path).
+   */
+  private buildMemo(
+    memo: string | undefined,
+    memoType: 'text' | 'id' | 'hash' | undefined,
+    invoiceId: string
+  ): StellarSdk.Memo {
+    if (!memo) {
+      return StellarSdk.Memo.text(invoiceId.substring(0, 28));
+    }
+    switch (memoType) {
+      case 'id':
+        return StellarSdk.Memo.id(memo);
+      case 'hash':
+        // Anchor hash memos are 32-byte values, conventionally hex-encoded.
+        return StellarSdk.Memo.hash(Buffer.from(memo, 'hex'));
+      case 'text':
+      default:
+        if (Buffer.byteLength(memo, 'utf8') > 28) {
+          throw new Error('OFFRAMP_TEXT_MEMO_TOO_LONG');
+        }
+        return StellarSdk.Memo.text(memo);
+    }
+  }
+
+  /**
    * Build a payment transaction for an invoice
    */
   async buildPaymentTransaction(params: {
@@ -118,6 +149,14 @@ export class StellarService {
     invoiceId: string;
     networkPassphrase?: string;
     activateNewAccounts?: boolean;
+    /**
+     * Off-ramp path: the exact memo the anchor requires and its type. When
+     * provided, the memo is attached verbatim with the correct type (anchors
+     * match incoming payments by this memo). When omitted, falls back to a
+     * text memo derived from invoiceId for the regular crypto path.
+     */
+    memo?: string;
+    memoType?: 'text' | 'id' | 'hash';
   }) {
     const {
       senderPublicKey,
@@ -127,6 +166,8 @@ export class StellarService {
       invoiceId,
       networkPassphrase,
       activateNewAccounts,
+      memo,
+      memoType,
     } = params;
 
     // Use provided networkPassphrase or fall back to default
@@ -185,7 +226,7 @@ export class StellarService {
 
     // Build transaction
     const transaction = txBuilder
-      .addMemo(StellarSdk.Memo.text(invoiceId.substring(0, 28)))
+      .addMemo(this.buildMemo(memo, memoType, invoiceId))
       .setTimeout(300) // 5 minutes
       .build();
 

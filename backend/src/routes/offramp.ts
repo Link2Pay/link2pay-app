@@ -143,7 +143,11 @@ router.post('/:id/offramp/pay-intent', async (req: Request, res: Response) => {
       recipientPublicKey: intent.depositAddress,
       amount: intent.amount || invoice.total.toString(),
       assetCode: invoice.currency,
-      invoiceId: intent.memo,
+      invoiceId: invoice.id,
+      // The anchor matches the incoming payment by this exact memo + type.
+      // Honor the anchor's memoType (testanchor uses `id`, not text).
+      memo: intent.memo,
+      memoType: intent.memoType,
       networkPassphrase,
     });
 
