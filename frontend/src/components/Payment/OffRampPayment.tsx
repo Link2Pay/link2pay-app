@@ -183,16 +183,28 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
             </p>
             <p className="mt-1 text-[11px] text-amber-700">{t('payment.simulatedSettlement')}</p>
           </div>
-          {txHash && (
-            <a
-              href={`https://stellar.expert/explorer/${isTestnet ? 'testnet' : 'public'}/tx/${txHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-stellar-600 hover:underline"
-            >
-              View on-chain USDC payment <ExternalLink className="h-3 w-3" />
-            </a>
-          )}
+          <div className="flex flex-col items-center gap-1">
+            {txHash && (
+              <a
+                href={`https://stellar.expert/explorer/${isTestnet ? 'testnet' : 'public'}/tx/${txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-stellar-600 hover:underline"
+              >
+                View on-chain USDC payment <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+            {invoice.receiptTxHash && (
+              <a
+                href={`https://stellar.expert/explorer/${isTestnet ? 'testnet' : 'public'}/tx/${invoice.receiptTxHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-stellar-600 hover:underline"
+              >
+                View on-chain receipt <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+          </div>
         </div>
       )}
 
