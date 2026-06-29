@@ -5,7 +5,6 @@ import {
   BarChart3,
   ChevronDown,
   FilePlus2,
-  KeyRound,
   LayoutDashboard,
   LogOut,
   Receipt,
@@ -47,7 +46,6 @@ export default function Layout() {
     { path: '/dashboard', label: t('layout.nav.dashboard'), icon: LayoutDashboard },
     { path: '/dashboard/transactions', label: t('layout.nav.transactions'), icon: ArrowLeftRight },
     { path: '/dashboard/links', label: t('layout.nav.invoices'), icon: Receipt },
-    { path: '/dashboard/api-keys', label: t('layout.nav.apiKeys'), icon: KeyRound },
     { path: '/dashboard/analytics', label: t('layout.nav.analytics'), icon: BarChart3 },
     { path: '/dashboard/create-link', label: t('layout.nav.createInvoice'), icon: FilePlus2 },
   ];

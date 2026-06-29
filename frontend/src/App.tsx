@@ -12,7 +12,6 @@ import MarketingLayout from './components/marketing/MarketingLayout';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Clients = lazy(() => import('./pages/Clients'));
 const Transactions = lazy(() => import('./pages/Transactions'));
-const ApiKeys = lazy(() => import('./pages/ApiKeys'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const CreateInvoice = lazy(() => import('./pages/CreateInvoice'));
 const InvoiceList = lazy(() => import('./components/Invoice/InvoiceList'));
@@ -92,7 +91,7 @@ export default function App() {
             <Route path="transactions" element={<Transactions />} />
             <Route path="links" element={<InvoiceList />} />
             <Route path="links/:id" element={<InvoiceDetail />} />
-            <Route path="api-keys" element={<ApiKeys />} />
+            <Route path="api-keys" element={<Navigate to="/dashboard" replace />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="profile-options" element={<ProfileOptions />} />
             <Route path="create-link" element={<CreateInvoice />} />
