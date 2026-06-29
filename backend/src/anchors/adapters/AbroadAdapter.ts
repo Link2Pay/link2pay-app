@@ -79,14 +79,18 @@ export class AbroadAdapter implements AnchorAdapter {
     buyCurrency: 'COP';
     payoutAlias: string;
   }): Promise<Quote> {
+    // Field names per the Abroad API reference (docs.abroad.finance/reference/api):
+    // crypto_currency (always USDC, the source), target_currency (COP/BRL),
+    // payment_method (BREB/PIX), network (STELLAR). Off-ramp only — there is no
+    // COP→USDC on-ramp. /quote/reverse exists for fixing the exact COP output.
     const data = await this.call<AbroadQuoteResponse>('/quote', {
       method: 'POST',
       body: JSON.stringify({
-        source_currency: 'USDC',
-        source_network: 'STELLAR',
+        crypto_currency: 'USDC',
+        network: 'STELLAR',
         target_currency: params.buyCurrency,
-        source_amount: params.sellAmount,
-        payout_alias: params.payoutAlias,
+        payment_method: 'BREB',
+        amount: params.sellAmount,
       }),
     });
 
@@ -110,12 +114,13 @@ export class AbroadAdapter implements AnchorAdapter {
     receiverAccount: string;
     payoutAlias: string;
   }): Promise<OffRampIntent> {
+    // payment_method=BREB; the Bre-B llave is the payout account identifier.
     const data = await this.call<AbroadTransactionResponse>('/transaction', {
       method: 'POST',
       body: JSON.stringify({
         quote_id: params.quoteId,
-        payout_alias: params.payoutAlias,
-        receiver_account: params.receiverAccount,
+        payment_method: 'BREB',
+        account_number: params.payoutAlias,
       }),
     });
 
