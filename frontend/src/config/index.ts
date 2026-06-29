@@ -8,6 +8,8 @@ export const config = {
   networkPassphrase:
     import.meta.env.VITE_NETWORK_PASSPHRASE ||
     'Test SDF Network ; September 2015',
+  // Phase 5: let payers pay a non-USDC asset (routed to USDC via the DEX).
+  enablePathPayments: import.meta.env.VITE_ENABLE_PATH_PAYMENTS === 'true',
 } as const;
 
 export const CURRENCY_LABELS: Record<string, string> = {

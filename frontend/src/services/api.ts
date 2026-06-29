@@ -383,11 +383,13 @@ export async function offrampInitiate(
   );
 }
 
-/** Public: build the USDC payment XDR the payer signs (payer → anchor, exact memo). */
+/** Public: build the USDC payment XDR the payer signs (payer → anchor, exact memo).
+ * Pass `sourceAsset` (non-USDC) to pay via a path payment (Phase 5). */
 export async function offrampPayIntent(
   invoiceId: string,
   senderPublicKey: string,
-  networkPassphraseOverride?: string
+  networkPassphraseOverride?: string,
+  sourceAsset?: string
 ): Promise<{
   transactionXdr: string;
   networkPassphrase: string;
@@ -395,11 +397,30 @@ export async function offrampPayIntent(
   depositAddress: string;
   asset: string;
   amount: string;
+  sendMax?: string;
+  sourceAmount?: string;
+  sendAsset?: string;
 }> {
   const networkPassphrase = networkPassphraseOverride || useNetworkStore.getState().networkPassphrase;
   return request(`/invoices/${invoiceId}/offramp/pay-intent`, {
     method: 'POST',
-    body: JSON.stringify({ senderPublicKey, networkPassphrase }),
+    body: JSON.stringify({ senderPublicKey, networkPassphrase, sourceAsset }),
+  });
+}
+
+/** Public: preview a path payment (how much sourceAsset to send). Phase 5. */
+export async function offrampPathQuote(
+  invoiceId: string,
+  sourceAsset: string,
+  networkPassphraseOverride?: string
+): Promise<
+  | { found: false }
+  | { found: true; sendAssetCode: string; sourceAmount: string; sendMax: string }
+> {
+  const networkPassphrase = networkPassphraseOverride || useNetworkStore.getState().networkPassphrase;
+  return request(`/invoices/${invoiceId}/offramp/path-quote`, {
+    method: 'POST',
+    body: JSON.stringify({ sourceAsset, networkPassphrase }),
   });
 }
 

@@ -4,11 +4,13 @@ import {
   offrampPayIntent,
   offrampSubmit,
   offrampStatus,
+  offrampPathQuote,
 } from '../../services/api';
 import { useWalletStore } from '../../store/walletStore';
 import WalletConnect from '../Wallet/WalletConnect';
 import type { PublicInvoice } from '../../types';
 import { useI18n } from '../../i18n/I18nProvider';
+import { config } from '../../config';
 
 type OffRampStep = 'idle' | 'paying' | 'settling' | 'settled' | 'error';
 
@@ -36,6 +38,12 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(invoice.transactionHash || null);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Phase 5: pay-in-any-asset (flagged). sourceAsset === invoice.currency means a direct payment.
+  const pathEnabled = config.enablePathPayments;
+  const [sourceAsset, setSourceAsset] = useState<string>(invoice.currency);
+  const [pathPreview, setPathPreview] = useState<string | null>(null);
+  const isPathPay = pathEnabled && sourceAsset !== invoice.currency;
 
   const isTestnet = invoice.networkPassphrase?.includes('Test');
   const copAmount = formatCop(invoice.quoteBuyAmount);
@@ -77,12 +85,36 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inFlight, step]);
 
+  // Preview how much of the chosen asset the payer would send (path payment).
+  useEffect(() => {
+    let cancelled = false;
+    if (!isPathPay) {
+      setPathPreview(null);
+      return;
+    }
+    setPathPreview('…');
+    offrampPathQuote(invoice.id, sourceAsset, invoice.networkPassphrase)
+      .then((q) => {
+        if (cancelled) return;
+        setPathPreview(q.found ? `≈ ${parseFloat(q.sendMax).toFixed(4)} ${sourceAsset} (max)` : 'No route found');
+      })
+      .catch(() => !cancelled && setPathPreview('No route found'));
+    return () => {
+      cancelled = true;
+    };
+  }, [isPathPay, sourceAsset, invoice.id, invoice.networkPassphrase]);
+
   const handlePay = async () => {
     if (!publicKey) return;
     setStep('paying');
     setError(null);
     try {
-      const intent = await offrampPayIntent(invoice.id, publicKey, invoice.networkPassphrase);
+      const intent = await offrampPayIntent(
+        invoice.id,
+        publicKey,
+        invoice.networkPassphrase,
+        isPathPay ? sourceAsset : undefined
+      );
       const signedXdr = await signTransaction(intent.transactionXdr, intent.networkPassphrase);
       const result = await offrampSubmit(invoice.id, signedXdr, intent.depositAddress);
       if (!result.success) throw new Error('Transaction submission failed.');
@@ -90,6 +122,13 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
       setStep('settling');
       onRefresh();
     } catch (err: any) {
+      // Thin liquidity — guide the payer back to paying USDC directly.
+      if (err?.message === 'NO_PATH_FOUND' || err?.status === 409) {
+        setSourceAsset(invoice.currency);
+        setError(`No swap route for ${sourceAsset} right now — pay ${invoice.currency} directly instead.`);
+        setStep('idle');
+        return;
+      }
       setError(err?.message || 'Payment failed.');
       setStep('error');
     }
@@ -148,8 +187,32 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
           <div className="text-center text-xs text-ink-3">
             Paying from <span className="font-mono">{publicKey.slice(0, 8)}...{publicKey.slice(-4)}</span>
           </div>
-          <button onClick={handlePay} className="btn-primary w-full py-3 text-base">
-            Pay {parseFloat(invoice.total).toFixed(2)} {invoice.currency} to anchor
+          {pathEnabled && (
+            <div>
+              <label className="text-[11px] font-medium uppercase tracking-wide text-ink-3">Pay with</label>
+              <select
+                value={sourceAsset}
+                onChange={(e) => setSourceAsset(e.target.value)}
+                className="mt-1 w-full rounded-md border border-surface-3 bg-card px-3 py-2 text-sm"
+              >
+                <option value={invoice.currency}>{invoice.currency} (direct)</option>
+                {['XLM', 'USDC', 'EURC']
+                  .filter((a) => a !== invoice.currency)
+                  .map((a) => (
+                    <option key={a} value={a}>{a} → {invoice.currency}</option>
+                  ))}
+              </select>
+              {isPathPay && pathPreview && (
+                <p className="mt-1 text-[11px] text-ink-3">You send {pathPreview}; anchor receives exactly {parseFloat(invoice.total).toFixed(2)} {invoice.currency}.</p>
+              )}
+            </div>
+          )}
+          <button
+            onClick={handlePay}
+            disabled={isPathPay && pathPreview === 'No route found'}
+            className="btn-primary w-full py-3 text-base disabled:opacity-50"
+          >
+            Pay {isPathPay ? `with ${sourceAsset}` : `${parseFloat(invoice.total).toFixed(2)} ${invoice.currency}`} to anchor
           </button>
           <p className="text-center text-[11px] text-ink-4">
             Your wallet pays the anchor directly with the exact memo. Link2Pay never holds your funds.
