@@ -10,6 +10,7 @@ import {
   offrampInitiateSchema,
   offrampSubmitPaymentSchema,
 } from '../middleware/validation';
+import { config } from '../config';
 import { log } from '../utils/logger';
 
 const router = Router();
@@ -114,7 +115,7 @@ router.post('/:id/offramp/pay-intent', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invoice not ready for payment' });
     }
 
-    const { senderPublicKey, networkPassphrase } = req.body;
+    const { senderPublicKey, networkPassphrase, sourceAsset } = req.body;
 
     // Deposit instructions are captured and persisted at initiate time —
     // no re-initiation needed. If they're missing, the interactive SEP-24
@@ -126,6 +127,42 @@ router.post('/:id/offramp/pay-intent', async (req: Request, res: Response) => {
     }
 
     const memoType = (invoice.anchorMemoType as 'text' | 'id' | 'hash' | null) || undefined;
+
+    // Phase 5: pay in a non-USDC asset via path payment (the anchor still
+    // receives the exact USDC amount). Falls through to a direct payment when
+    // disabled or when sourceAsset matches the invoice asset.
+    const wantsPath =
+      config.pathPayments.enabled && sourceAsset && sourceAsset !== invoice.currency;
+
+    if (wantsPath) {
+      try {
+        const pathResult = await stellarService.buildPathPaymentTransaction({
+          senderPublicKey,
+          recipientPublicKey: invoice.anchorDepositAddress,
+          sendAssetCode: sourceAsset,
+          destAssetCode: invoice.currency,
+          destAmount: invoice.total.toString(),
+          memo: invoice.anchorMemo || undefined,
+          memoType,
+          invoiceId: invoice.id,
+          slippageBps: config.pathPayments.slippageBps,
+          networkPassphrase,
+        });
+        return res.json({
+          ...pathResult,
+          memo: invoice.anchorMemo,
+          depositAddress: invoice.anchorDepositAddress,
+          asset: invoice.currency,
+          amount: invoice.total.toString(),
+        });
+      } catch (e: any) {
+        // No route (thin liquidity) — tell the client to fall back to USDC.
+        if (e?.message === 'NO_PATH_FOUND') {
+          return res.status(409).json({ error: 'NO_PATH_FOUND' });
+        }
+        throw e;
+      }
+    }
 
     const txResult = await stellarService.buildPaymentTransaction({
       senderPublicKey,
@@ -198,5 +235,40 @@ router.post(
     }
   }
 );
+
+/**
+ * POST /api/invoices/:id/offramp/path-quote
+ * Preview a path payment: how much of `sourceAsset` the payer would send to
+ * deliver the exact USDC the anchor requires. Public. Returns { found:false }
+ * when no route exists (thin liquidity).
+ */
+router.post('/:id/offramp/path-quote', async (req: Request, res: Response) => {
+  try {
+    if (!config.pathPayments.enabled) {
+      return res.status(404).json({ error: 'Path payments are disabled' });
+    }
+    const invoice = await invoiceService.getInvoice(req.params.id);
+    if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+
+    const { sourceAsset, networkPassphrase } = req.body;
+    if (!sourceAsset) return res.status(400).json({ error: 'sourceAsset is required' });
+    if (sourceAsset === invoice.currency) {
+      return res.status(400).json({ error: 'sourceAsset matches the invoice asset' });
+    }
+
+    const quote = await stellarService.quoteStrictReceivePath({
+      sendAssetCode: sourceAsset,
+      destAssetCode: invoice.currency,
+      destAmount: invoice.total.toString(),
+      slippageBps: config.pathPayments.slippageBps,
+      networkPassphrase,
+    });
+
+    res.json(quote);
+  } catch (error: any) {
+    log.error('[OfframpRoutes] Path quote error', { error: error?.message });
+    res.status(500).json({ error: error.message });
+  }
+});
 
 export default router;

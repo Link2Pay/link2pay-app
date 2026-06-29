@@ -42,6 +42,14 @@ const envSchema = z.object({
 
   WATCHER_POLL_INTERVAL_MS: z.coerce.number().default(5000),
 
+  // Phase 5: allow payers to pay a non-USDC asset (routed to USDC via the DEX).
+  PATH_PAYMENTS_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+  // Slippage guard for path payments, in basis points (100 = 1%).
+  PATH_PAYMENT_SLIPPAGE_BPS: z.coerce.number().min(0).max(5000).default(100),
+
   ANCHOR_PROVIDER: z
     .enum(['testnet', 'mock-breb', 'abroad'])
     .default('testnet'),
@@ -89,6 +97,11 @@ export const config = {
   },
 
   watcherPollInterval: env.WATCHER_POLL_INTERVAL_MS,
+
+  pathPayments: {
+    enabled: env.PATH_PAYMENTS_ENABLED,
+    slippageBps: env.PATH_PAYMENT_SLIPPAGE_BPS,
+  },
 
   anchor: {
     provider: env.ANCHOR_PROVIDER,

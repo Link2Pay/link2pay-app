@@ -139,6 +139,122 @@ export class StellarService {
   }
 
   /**
+   * Find a strict-receive path so the payer can pay `sendAssetCode` while the
+   * recipient receives an exact `destAmount` of `destAssetCode` (USDC). Returns
+   * the estimated source amount and the slippage-guarded sendMax, or
+   * `{ found: false }` when no path exists (thin liquidity → caller falls back).
+   */
+  async quoteStrictReceivePath(params: {
+    sendAssetCode: string;
+    destAssetCode: string;
+    destAmount: string;
+    slippageBps?: number;
+    networkPassphrase?: string;
+  }): Promise<
+    | { found: false }
+    | { found: true; sendAssetCode: string; sourceAmount: string; sendMax: string; pathRaw: any[] }
+  > {
+    const effectiveNetworkPassphrase = params.networkPassphrase || this.networkPassphrase;
+    const server = this.getServerForNetwork(effectiveNetworkPassphrase);
+    const sendAsset = this.getAsset(params.sendAssetCode, effectiveNetworkPassphrase);
+    const destAsset = this.getAsset(params.destAssetCode, effectiveNetworkPassphrase);
+
+    const result = await this.withRetry(() =>
+      server
+        .strictReceivePaths([sendAsset], destAsset, params.destAmount)
+        .call()
+    );
+
+    const records = (result as any).records || [];
+    if (!records.length) return { found: false };
+
+    // Cheapest source amount first.
+    const best = records.sort(
+      (a: any, b: any) => Number(a.source_amount) - Number(b.source_amount)
+    )[0];
+
+    const slippageBps = params.slippageBps ?? 100;
+    const sendMax = (Number(best.source_amount) * (1 + slippageBps / 10_000)).toFixed(7);
+
+    return {
+      found: true,
+      sendAssetCode: params.sendAssetCode,
+      sourceAmount: String(best.source_amount),
+      sendMax,
+      pathRaw: best.path || [],
+    };
+  }
+
+  /**
+   * Build a path-payment-strict-receive transaction: the payer sends
+   * `sendAssetCode` (capped at sendMax) and the recipient receives exactly
+   * `destAmount` of `destAssetCode`. Honors the anchor memo + type.
+   */
+  async buildPathPaymentTransaction(params: {
+    senderPublicKey: string;
+    recipientPublicKey: string;
+    sendAssetCode: string;
+    destAssetCode: string;
+    destAmount: string;
+    memo?: string;
+    memoType?: 'text' | 'id' | 'hash';
+    invoiceId: string;
+    slippageBps?: number;
+    networkPassphrase?: string;
+  }) {
+    const effectiveNetworkPassphrase = params.networkPassphrase || this.networkPassphrase;
+    if (!this.isValidAddress(params.senderPublicKey)) throw new Error('INVALID_SENDER_ADDRESS');
+    if (!this.isValidAddress(params.recipientPublicKey)) throw new Error('INVALID_RECIPIENT_ADDRESS');
+
+    const server = this.getServerForNetwork(effectiveNetworkPassphrase);
+    const sendAsset = this.getAsset(params.sendAssetCode, effectiveNetworkPassphrase);
+    const destAsset = this.getAsset(params.destAssetCode, effectiveNetworkPassphrase);
+
+    const quote = await this.quoteStrictReceivePath({
+      sendAssetCode: params.sendAssetCode,
+      destAssetCode: params.destAssetCode,
+      destAmount: params.destAmount,
+      slippageBps: params.slippageBps,
+      networkPassphrase: effectiveNetworkPassphrase,
+    });
+    if (!quote.found) throw new Error('NO_PATH_FOUND');
+
+    const senderAccount = await this.withRetry(() => server.loadAccount(params.senderPublicKey));
+
+    const path = quote.pathRaw.map((p: any) =>
+      p.asset_type === 'native'
+        ? StellarSdk.Asset.native()
+        : new StellarSdk.Asset(p.asset_code, p.asset_issuer)
+    );
+
+    const transaction = new StellarSdk.TransactionBuilder(senderAccount, {
+      fee: StellarSdk.BASE_FEE,
+      networkPassphrase: effectiveNetworkPassphrase,
+    })
+      .addOperation(
+        StellarSdk.Operation.pathPaymentStrictReceive({
+          sendAsset,
+          sendMax: quote.sendMax,
+          destination: params.recipientPublicKey,
+          destAsset,
+          destAmount: params.destAmount,
+          path,
+        })
+      )
+      .addMemo(this.buildMemo(params.memo, params.memoType, params.invoiceId))
+      .setTimeout(300)
+      .build();
+
+    return {
+      transactionXdr: transaction.toXDR(),
+      networkPassphrase: effectiveNetworkPassphrase,
+      sendMax: quote.sendMax,
+      sourceAmount: quote.sourceAmount,
+      sendAsset: params.sendAssetCode,
+    };
+  }
+
+  /**
    * Build a payment transaction for an invoice
    */
   async buildPaymentTransaction(params: {
