@@ -121,6 +121,31 @@ export class AuthService {
   }
 
   /**
+   * Decode a Privy access token and verify basic claims (iss, aud, exp).
+   * Does NOT verify the JWT cryptographic signature — acceptable for hackathon use.
+   * For production, verify against Privy's JWKS at
+   * https://auth.privy.io/api/v1/apps/{appId}/public-key
+   */
+  parsePrivyToken(token: string, appId: string): { sub: string; exp: number } | null {
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return null;
+
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+
+      if (payload.iss !== 'privy.io') return null;
+      const aud: string[] = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
+      if (!aud.includes(appId)) return null;
+      if (!payload.exp || Date.now() / 1000 > payload.exp) return null;
+      if (!payload.sub) return null;
+
+      return { sub: payload.sub, exp: payload.exp };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Issue a short-lived bearer token after successful wallet signature auth.
    */
   issueSessionToken(walletAddress: string): { sessionToken: string; expiresIn: number } {

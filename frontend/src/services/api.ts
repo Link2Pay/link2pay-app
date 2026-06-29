@@ -67,9 +67,9 @@ async function request<T>(
   };
 
   if (walletAddress) {
-    const { signMessage } = useWalletStore.getState();
+    const { signMessage, _privyGetToken } = useWalletStore.getState();
     try {
-      const authHeaders = await getAuthHeaders(walletAddress, signMessage);
+      const authHeaders = await getAuthHeaders(walletAddress, signMessage, _privyGetToken);
       Object.assign(headers, authHeaders);
     } catch (error: any) {
       notifyUserError(

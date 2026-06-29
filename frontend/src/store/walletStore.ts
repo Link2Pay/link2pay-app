@@ -18,12 +18,15 @@ interface WalletState {
   _externalSigner: ExternalSigner | null;
   /** True while Privy is authenticated but the Stellar wallet bridge is still initializing. */
   privyLoading: boolean;
+  /** Privy getAccessToken function, set when authenticated; used by auth.ts instead of nonce signing. */
+  _privyGetToken: (() => Promise<string | null>) | null;
   connect: () => Promise<void>;
   disconnect: () => void;
   /** Bridge for Privy (or any non-Freighter) embedded wallet. */
   setExternalWallet: (publicKey: string, signer: ExternalSigner) => void;
   clearExternalWallet: () => void;
   setPrivyLoading: (v: boolean) => void;
+  setPrivyGetToken: (fn: (() => Promise<string | null>) | null) => void;
   signTransaction: (xdr: string, networkPassphrase?: string) => Promise<string>;
   /** Sign an arbitrary UTF-8 message (used for auth nonce). Returns hex signature. */
   signMessage: (message: string) => Promise<string>;
@@ -266,8 +269,10 @@ export const useWalletStore = create<WalletState>()(
       error: null,
       _externalSigner: null,
       privyLoading: false,
+      _privyGetToken: null,
 
       setPrivyLoading: (v: boolean) => set({ privyLoading: v }),
+      setPrivyGetToken: (fn) => set({ _privyGetToken: fn }),
 
       setExternalWallet: (publicKey: string, signer: ExternalSigner) => {
         clearAuthToken();
@@ -276,7 +281,7 @@ export const useWalletStore = create<WalletState>()(
 
       clearExternalWallet: () => {
         clearAuthToken();
-        set({ connected: false, publicKey: null, _externalSigner: null, error: null, privyLoading: false });
+        set({ connected: false, publicKey: null, _externalSigner: null, error: null, privyLoading: false, _privyGetToken: null });
       },
 
       restoreConnection: async () => {

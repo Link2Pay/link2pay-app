@@ -12,14 +12,17 @@ function getStellarAddress(user: any): string | null {
 }
 
 export default function PrivyLogin({ variant = 'compact' }: { variant?: 'compact' | 'large' }) {
-  const { authenticated, login, logout, ready, user } = usePrivy();
+  const { authenticated, login, logout, ready, user, getAccessToken } = usePrivy();
   const { createWallet } = useCreateWallet();
   const { signRawHash } = useSignRawHash();
 
-  const { setExternalWallet, clearExternalWallet, setPrivyLoading, connected } = useWalletStore();
+  const { setExternalWallet, clearExternalWallet, setPrivyLoading, connected, setPrivyGetToken } = useWalletStore();
 
   const signRef = useRef(signRawHash);
   useEffect(() => { signRef.current = signRawHash; }, [signRawHash]);
+
+  const getAccessTokenRef = useRef(getAccessToken);
+  useEffect(() => { getAccessTokenRef.current = getAccessToken; }, [getAccessToken]);
 
   const stellarAddress = getStellarAddress(user);
 
@@ -30,6 +33,16 @@ export default function PrivyLogin({ variant = 'compact' }: { variant?: 'compact
       createWallet({ chainType: 'stellar' } as any).catch(() => setPrivyLoading(false));
     }
   }, [authenticated, stellarAddress, createWallet, setPrivyLoading]);
+
+  // Register/unregister the Privy token getter (used by auth.ts instead of nonce signing)
+  useEffect(() => {
+    if (authenticated) {
+      const getter = () => getAccessTokenRef.current();
+      setPrivyGetToken(getter);
+    } else {
+      setPrivyGetToken(null);
+    }
+  }, [authenticated, setPrivyGetToken]);
 
   // Bridge Stellar wallet → walletStore once address is available
   useEffect(() => {

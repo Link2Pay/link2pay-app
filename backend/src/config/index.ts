@@ -80,6 +80,9 @@ const envSchema = z.object({
     .optional(),
   ABROAD_API_BASE: z.string().url().optional(),
   ABROAD_API_KEY: z.string().optional(),
+
+  // Privy social login — required to accept POST /api/auth/privy-session
+  PRIVY_APP_ID: z.string().optional(),
 });
 
 const parseResult = envSchema.safeParse(process.env);
@@ -134,6 +137,8 @@ export const config = {
     apiBase: env.ABROAD_API_BASE,
     apiKey: env.ABROAD_API_KEY,
   },
+
+  privyAppId: env.PRIVY_APP_ID ?? null,
 } as const;
 
 // Network configurations for both testnet and mainnet

@@ -59,90 +59,122 @@ async function withTimeout<T>(
 }
 
 /**
- * Obtain a fresh nonce, sign it once, and exchange for bearer session token.
- * The session token is cached and reused until close to expiry.
+ * Obtain a bearer session token and return auth headers.
  *
- * Concurrent callers for the same wallet share one in-flight promise.
+ * Two paths:
+ *  - Privy: exchange a Privy access token for a session token via /api/auth/privy-session
+ *  - Freighter: nonce-sign flow via /api/auth/nonce + /api/auth/session
  *
- * @param walletAddress — Stellar public key
- * @param signMessage   — Function from walletStore that calls Freighter.signMessage
+ * The session token is cached and shared across concurrent callers.
  */
 export async function getAuthHeaders(
   walletAddress: string,
-  signMessage: (msg: string) => Promise<string>
+  signMessage: (msg: string) => Promise<string>,
+  getPrivyToken?: (() => Promise<string | null>) | null
 ): Promise<Record<string, string>> {
-  // Return cached session if still valid for the same wallet
-  if (
-    cachedSession &&
-    cachedSession.walletAddress === walletAddress &&
-    isSessionValid(cachedSession)
-  ) {
+  if (cachedSession?.walletAddress === walletAddress && isSessionValid(cachedSession)) {
     return buildHeaders(cachedSession);
   }
 
-  // If a session creation is already in flight for this wallet, wait for it
   const inflight = inflightByWallet.get(walletAddress);
   if (inflight) {
-    const session = await inflight;
-    return buildHeaders(session);
+    return buildHeaders(await inflight);
   }
 
-  const createSessionPromise = (async (): Promise<AuthSession> => {
-    try {
-      const nonceResponse = await fetchWithTimeout(
-        `${API_BASE}/auth/nonce`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ walletAddress }),
-        },
-        AUTH_REQUEST_TIMEOUT_MS
-      );
-
-      if (!nonceResponse.ok) {
-        throw new Error('Failed to get auth nonce');
-      }
-
-      const { nonce, message } = await nonceResponse.json();
-
-      // Sign the message with Freighter
-      const signature = await withTimeout(
-        signMessage(message),
-        AUTH_SIGN_TIMEOUT_MS,
-        'Wallet signature timed out. Please unlock Freighter and try again.'
-      );
-
-      const sessionResponse = await fetchWithTimeout(
-        `${API_BASE}/auth/session`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ walletAddress, nonce, signature }),
-        },
-        AUTH_REQUEST_TIMEOUT_MS
-      );
-
-      const sessionData = await sessionResponse.json().catch(() => null);
-      if (!sessionResponse.ok || !sessionData?.sessionToken || !sessionData?.expiresIn) {
-        throw new Error(sessionData?.error || 'Failed to create auth session');
-      }
-
-      const session: AuthSession = {
-        walletAddress,
-        sessionToken: sessionData.sessionToken,
-        expiresAt: Date.now() + sessionData.expiresIn * 1000,
-      };
-
-      cachedSession = session;
-      return session;
-    } finally {
-      inflightByWallet.delete(walletAddress);
-    }
-  })();
+  const createSessionPromise = getPrivyToken
+    ? createPrivySession(walletAddress, getPrivyToken)
+    : createFreighterSession(walletAddress, signMessage);
 
   inflightByWallet.set(walletAddress, createSessionPromise);
   const session = await createSessionPromise;
   return buildHeaders(session);
+}
+
+async function createPrivySession(
+  walletAddress: string,
+  getPrivyToken: () => Promise<string | null>
+): Promise<AuthSession> {
+  try {
+    const privyToken = await getPrivyToken();
+    if (!privyToken) throw new Error('Not authenticated with Privy');
+
+    const response = await fetchWithTimeout(
+      `${API_BASE}/auth/privy-session`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ privyToken, walletAddress }),
+      },
+      AUTH_REQUEST_TIMEOUT_MS
+    );
+
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data?.sessionToken || !data?.expiresIn) {
+      throw new Error(data?.error || 'Privy auth failed');
+    }
+
+    const session: AuthSession = {
+      walletAddress,
+      sessionToken: data.sessionToken,
+      expiresAt: Date.now() + data.expiresIn * 1000,
+    };
+    cachedSession = session;
+    return session;
+  } finally {
+    inflightByWallet.delete(walletAddress);
+  }
+}
+
+async function createFreighterSession(
+  walletAddress: string,
+  signMessage: (msg: string) => Promise<string>
+): Promise<AuthSession> {
+  try {
+    const nonceResponse = await fetchWithTimeout(
+      `${API_BASE}/auth/nonce`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress }),
+      },
+      AUTH_REQUEST_TIMEOUT_MS
+    );
+
+    if (!nonceResponse.ok) throw new Error('Failed to get auth nonce');
+
+    const { nonce, message } = await nonceResponse.json();
+
+    const signature = await withTimeout(
+      signMessage(message),
+      AUTH_SIGN_TIMEOUT_MS,
+      'Wallet signature timed out. Please unlock Freighter and try again.'
+    );
+
+    const sessionResponse = await fetchWithTimeout(
+      `${API_BASE}/auth/session`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress, nonce, signature }),
+      },
+      AUTH_REQUEST_TIMEOUT_MS
+    );
+
+    const sessionData = await sessionResponse.json().catch(() => null);
+    if (!sessionResponse.ok || !sessionData?.sessionToken || !sessionData?.expiresIn) {
+      throw new Error(sessionData?.error || 'Failed to create auth session');
+    }
+
+    const session: AuthSession = {
+      walletAddress,
+      sessionToken: sessionData.sessionToken,
+      expiresAt: Date.now() + sessionData.expiresIn * 1000,
+    };
+    cachedSession = session;
+    return session;
+  } finally {
+    inflightByWallet.delete(walletAddress);
+  }
 }
 
 /** Clear cached auth session (call on wallet disconnect) */
