@@ -1,11 +1,15 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
 import {
   ArrowLeftRight,
   BarChart3,
+  ChevronDown,
   FilePlus2,
   KeyRound,
   LayoutDashboard,
+  LogOut,
   Receipt,
+  UserCircle2,
 } from 'lucide-react';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
@@ -21,9 +25,23 @@ import { config } from '../config';
 
 export default function Layout() {
   const location = useLocation();
-  const { connected, publicKey, privyLoading } = useWalletStore();
+  const { connected, publicKey, privyLoading, disconnect } = useWalletStore();
   const { network } = useNetworkStore();
   const { t } = useI18n();
+
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => { setAccountMenuOpen(false); }, [location.pathname]);
+
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+    const handlePointerDown = (e: MouseEvent) => {
+      if (!accountMenuRef.current?.contains(e.target as Node)) setAccountMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => document.removeEventListener('mousedown', handlePointerDown);
+  }, [accountMenuOpen]);
 
   const navItems = [
     { path: '/dashboard', label: t('layout.nav.dashboard'), icon: LayoutDashboard },
@@ -81,15 +99,66 @@ export default function Layout() {
           </div>
         </nav>
 
-        <div className="border-t border-sidebar-border px-4 py-3">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span
-              className={`h-2 w-2 rounded-full animate-pulse-slow ${
-                network === 'testnet' ? 'bg-emerald-400' : 'bg-amber-400'
-              }`}
-            />
-            {network === 'testnet' ? 'Stellar Testnet' : 'Stellar Mainnet'}
-          </div>
+        <div ref={accountMenuRef} className="relative border-t border-sidebar-border px-4 py-4">
+          {accountMenuOpen && (
+            <div className="absolute bottom-full left-4 right-4 z-40 mb-2 overflow-hidden rounded-2xl border border-surface-3 bg-surface-1 shadow-[0_18px_40px_hsl(var(--background)_/_0.55)]">
+              <div className="flex items-center gap-2.5 px-3 pt-3 pb-3 border-b border-surface-3">
+                <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+                  {profileInitial}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {publicKey ? shortenAddress(publicKey) : 'Link2Pay User'}
+                  </p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <span className={`h-1.5 w-1.5 rounded-full ${network === 'testnet' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                    {network === 'testnet' ? 'Testnet' : 'Mainnet'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-0.5 px-1.5 py-2">
+                <Link
+                  to="/dashboard/profile-options"
+                  className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
+                >
+                  <UserCircle2 className="h-4 w-4 text-muted-foreground" />
+                  Profile
+                </Link>
+              </div>
+
+              <div className="border-t border-surface-3 px-1.5 py-2">
+                <button
+                  onClick={() => { setAccountMenuOpen(false); disconnect(); }}
+                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
+                >
+                  <LogOut className="h-4 w-4 text-muted-foreground" />
+                  Disconnect
+                </button>
+              </div>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setAccountMenuOpen((o) => !o)}
+            className="w-full rounded-xl border border-surface-3 bg-surface-1 p-2.5 text-left transition-colors hover:bg-sidebar-accent"
+          >
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+                {profileInitial}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {publicKey ? shortenAddress(publicKey) : 'Link2Pay User'}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {connected ? 'Connected' : 'Not connected'}
+                </p>
+              </div>
+              <ChevronDown className={`h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform ${accountMenuOpen ? 'rotate-180' : ''}`} />
+            </div>
+          </button>
         </div>
       </aside>
 

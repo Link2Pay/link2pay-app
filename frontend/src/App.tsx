@@ -27,6 +27,7 @@ const RoleSelect = lazy(() => import('./pages/RoleSelect'));
 const Register = lazy(() => import('./pages/Register'));
 const ClientInvoiceLookup = lazy(() => import('./pages/ClientInvoiceLookup'));
 const Login = lazy(() => import('./pages/Login'));
+const ProfileOptions = lazy(() => import('./pages/ProfileOptions'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -93,7 +94,7 @@ export default function App() {
             <Route path="links/:id" element={<InvoiceDetail />} />
             <Route path="api-keys" element={<ApiKeys />} />
             <Route path="analytics" element={<Analytics />} />
-            <Route path="profile-options" element={<Navigate to="/dashboard" replace />} />
+            <Route path="profile-options" element={<ProfileOptions />} />
             <Route path="create-link" element={<CreateInvoice />} />
 
             {/* Backward-compatible nested redirects */}
