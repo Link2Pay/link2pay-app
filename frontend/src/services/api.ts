@@ -329,6 +329,13 @@ export async function getXlmPrice(): Promise<{ usd: number }> {
   return request<{ usd: number }>('/prices/xlm');
 }
 
+/** Phase 7: live Reflector FX estimate (e.g. COP). available:false if not in the feed. */
+export async function getFxRate(
+  symbol: string
+): Promise<{ available: boolean; estimate?: boolean; symbol: string; rate?: string; asOf?: string }> {
+  return request(`/prices/fx/${encodeURIComponent(symbol)}`);
+}
+
 // ─── Off-ramp (USDC→COP / Bre-B) API ──────────────────────────────
 
 export interface OffRampQuote {

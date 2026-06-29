@@ -12,6 +12,9 @@ export const config = {
   enablePathPayments: import.meta.env.VITE_ENABLE_PATH_PAYMENTS === 'true',
   // Phase 6: offer multi-wallet connect (Stellar Wallets Kit) on the payer flow.
   enableWalletsKit: import.meta.env.VITE_ENABLE_WALLETS_KIT !== 'false',
+  // Phase 7: live Reflector oracle FX estimate. Off by default — no public
+  // testnet oracle carries COP, so it only shows when a feed actually has it.
+  enableFxPreview: import.meta.env.VITE_ENABLE_FX_PREVIEW === 'true',
 } as const;
 
 export const CURRENCY_LABELS: Record<string, string> = {

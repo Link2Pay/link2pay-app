@@ -5,6 +5,7 @@ import {
   offrampSubmit,
   offrampStatus,
   offrampPathQuote,
+  getFxRate,
 } from '../../services/api';
 import { useWalletStore } from '../../store/walletStore';
 import WalletConnect from '../Wallet/WalletConnect';
@@ -46,6 +47,9 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   const [kitAddress, setKitAddress] = useState<string | null>(null);
   // Effective payer: a Wallets-Kit wallet if connected, else Freighter via the store.
   const effectiveKey = kitAddress || publicKey;
+
+  // Phase 7: optional live Reflector FX estimate (dormant unless the feed has COP).
+  const [fxEstimate, setFxEstimate] = useState<string | null>(null);
 
   // Phase 5: pay-in-any-asset (flagged). sourceAsset === invoice.currency means a direct payment.
   const pathEnabled = config.enablePathPayments;
@@ -130,6 +134,21 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
     };
   }, [walletsKit, readyToPay, effectiveKey, invoice.networkPassphrase]);
 
+  // Fetch the live oracle estimate once (flagged; only shows if the feed has it).
+  useEffect(() => {
+    if (!config.enableFxPreview) return;
+    let cancelled = false;
+    getFxRate('COP')
+      .then((r) => {
+        if (cancelled || !r.available || !r.rate || !invoice.quoteBuyAmount) return;
+        // Show an oracle-derived COP estimate from the USDC total.
+        const est = parseFloat(invoice.total) * parseFloat(r.rate);
+        if (Number.isFinite(est)) setFxEstimate(est.toLocaleString('es-CO', { maximumFractionDigits: 0 }));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [invoice.total, invoice.quoteBuyAmount]);
+
   const handlePay = async () => {
     if (!effectiveKey) return;
     setStep('paying');
@@ -188,6 +207,11 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
         {invoice.payoutAlias && (
           <p className="mt-2 text-center text-[11px] text-ink-3">
             To Bre-B llave <span className="font-mono">{invoice.payoutAlias}</span>
+          </p>
+        )}
+        {fxEstimate && (
+          <p className="mt-2 text-center text-[11px] text-ink-3">
+            Live oracle estimate: ≈ ${fxEstimate} COP <span className="text-ink-4">(Reflector — not the firm quote)</span>
           </p>
         )}
         <p className="mt-3 rounded-md bg-amber-100 px-2.5 py-1.5 text-center text-[11px] font-medium text-amber-800">
