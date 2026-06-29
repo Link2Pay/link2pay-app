@@ -19,6 +19,7 @@ export interface CreateInvoiceInput {
   favoriteClient?: boolean;
   payoutMethod?: 'CRYPTO' | 'BRE_B';
   payoutAlias?: string;
+  invoiceType?: 'DIRECT_PAYMENT' | 'BUSINESS_INVOICE' | 'SERVICE_INVOICE';
   lineItems: LineItemInput[];
 }
 
@@ -76,6 +77,7 @@ export interface InvoicePublicView {
   anchorTxId?: string | null;
   quoteBuyAmount?: string | null;
   receiptTxHash?: string | null;
+  invoiceType?: string | null;
   lineItems: {
     description: string;
     quantity: string;

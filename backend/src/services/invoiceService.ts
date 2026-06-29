@@ -1,4 +1,4 @@
-import { InvoiceStatus, Prisma } from '@prisma/client';
+import { InvoiceStatus, InvoiceType, Prisma } from '@prisma/client';
 import { CreateInvoiceInput, InvoicePublicView } from '../types';
 import { generateInvoiceNumber } from '../utils/generators';
 import { config } from '../config';
@@ -63,6 +63,7 @@ export class InvoiceService {
           networkPassphrase: input.networkPassphrase || config.stellar.networkPassphrase,
           payoutMethod: input.payoutMethod === 'BRE_B' ? 'BRE_B' : 'CRYPTO',
           payoutAlias: input.payoutMethod === 'BRE_B' ? input.payoutAlias : null,
+          invoiceType: (input.invoiceType as InvoiceType) ?? 'DIRECT_PAYMENT',
           // Bre-B off-ramp invoices skip DRAFT so the receiver can request a quote immediately.
           status: input.payoutMethod === 'BRE_B' ? 'PENDING' : undefined,
           lineItems: {
@@ -142,6 +143,7 @@ export class InvoiceService {
       anchorTxId: invoice.anchorTxId,
       quoteBuyAmount: invoice.quoteBuyAmount,
       receiptTxHash: invoice.receiptTxHash,
+      invoiceType: invoice.invoiceType,
       lineItems: invoice.lineItems.map((item) => ({
         description: item.description,
         quantity: item.quantity.toString(),

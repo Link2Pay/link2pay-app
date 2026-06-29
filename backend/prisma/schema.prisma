@@ -43,10 +43,17 @@ enum Currency {
   EURC
 }
 
+enum InvoiceType {
+  DIRECT_PAYMENT
+  BUSINESS_INVOICE
+  SERVICE_INVOICE
+}
+
 model Invoice {
   id            String        @id @default(cuid())
   invoiceNumber String        @unique @map("invoice_number")
   status        InvoiceStatus @default(DRAFT)
+  invoiceType   InvoiceType   @default(DIRECT_PAYMENT) @map("invoice_type")
 
   // Freelancer (creator) info
   freelancerWallet  String  @map("freelancer_wallet")
