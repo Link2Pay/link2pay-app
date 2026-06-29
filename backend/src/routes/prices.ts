@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
+import { reflectorService } from '../services/reflectorService';
 
 const router = Router();
 
@@ -50,6 +51,19 @@ router.get('/xlm', priceLimiter, async (_req: Request, res: Response) => {
     }
     res.status(503).json({ error: 'Price feed temporarily unavailable' });
   }
+});
+
+/**
+ * GET /api/prices/fx/:symbol
+ * Live FX estimate from the Reflector SEP-40 oracle (e.g. /fx/COP).
+ * Returns { available:false } when the symbol isn't in the feed — callers
+ * must keep using the firm SEP-38/adapter quote for actual pricing.
+ */
+router.get('/fx/:symbol', priceLimiter, async (req: Request, res: Response) => {
+  const symbol = String(req.params.symbol || '').toUpperCase().slice(0, 12);
+  const rate = await reflectorService.getFxRate(symbol);
+  if (!rate) return res.json({ available: false, symbol });
+  res.json({ available: true, estimate: true, ...rate });
 });
 
 export default router;

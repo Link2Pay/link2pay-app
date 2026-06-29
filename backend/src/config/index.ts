@@ -63,6 +63,14 @@ const envSchema = z.object({
     .string()
     .regex(stellarAddressRegex, 'MOCK_DEPOSIT_ADDRESS must be a valid Stellar address')
     .optional(),
+  // Phase 7: Reflector FX oracle (SEP-40) for a live "receiver gets ≈ COP X"
+  // estimate, shown alongside (never replacing) the firm SEP-38/adapter quote.
+  // Defaults to the public testnet FX oracle. Empty disables the preview.
+  REFLECTOR_FX_CONTRACT: z
+    .string()
+    .default('CCYOZJCOPG34LLQQ7N24YXBM7LL62R7ONMZ3G6WZAAYPB5OYKOMJRN63'),
+  REFLECTOR_DECIMALS: z.coerce.number().default(14),
+
   RECEIPT_CONTRACT_ID: z.string().optional(),
   // Admin signer for the receipt contract (attestation only — NOT a funds key).
   // When unset, receipt writing is skipped (the off-ramp still settles).
@@ -113,6 +121,11 @@ export const config = {
     provider: env.ANCHOR_PROVIDER,
     homeDomain: env.ANCHOR_HOME_DOMAIN,
     mockDepositAddress: env.MOCK_DEPOSIT_ADDRESS,
+  },
+
+  reflector: {
+    fxContract: env.REFLECTOR_FX_CONTRACT,
+    decimals: env.REFLECTOR_DECIMALS,
   },
 
   receiptContractId: env.RECEIPT_CONTRACT_ID,
