@@ -1,8 +1,12 @@
 /**
- * Seed XLM↔USDC liquidity on TESTNET so path payments (Phase 5) have a route.
+ * OPTIONAL fallback: seed XLM↔USDC liquidity on TESTNET for path payments.
+ *
+ * Usually NOT needed — testnet already has a deep native/USDC (XLM/USDC) AMM
+ * pool, so Horizon finds an XLM→USDC route out of the box. Use this only for
+ * thin pairs (e.g. EURC/USDC) or if the pool drains.
  *
  * Posts two SDEX offers from a funded account that holds XLM + faucet USDC,
- * adding the USDC trustline first if needed. This is for DEMO liquidity only —
+ * adding the USDC trustline first if needed. DEMO liquidity only —
  * on mainnet you rely on real market depth, never self-seeded offers.
  *
  * Usage:
