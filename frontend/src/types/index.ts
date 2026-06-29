@@ -15,6 +15,8 @@ export type InvoiceStatus =
 
 export type Currency = 'XLM' | 'USDC' | 'EURC';
 
+export type InvoiceType = 'DIRECT_PAYMENT' | 'BUSINESS_INVOICE' | 'SERVICE_INVOICE';
+
 export type LinkStatus =
   | 'CREATED'
   | 'PENDING'
@@ -67,6 +69,7 @@ export interface Invoice {
   quoteBuyAmount?: string | null;
   anchorTxId?: string | null;
   receiptTxHash?: string | null;
+  invoiceType?: InvoiceType | null;
   lineItems: LineItem[];
 }
 
@@ -97,6 +100,7 @@ export interface PublicInvoice {
   anchorTxId?: string | null;
   quoteBuyAmount?: string | null;
   receiptTxHash?: string | null;
+  invoiceType?: InvoiceType | null;
   lineItems: {
     description: string;
     quantity: string;
@@ -126,6 +130,7 @@ export interface CreateInvoiceData {
   favoriteClient?: boolean;
   payoutMethod?: 'CRYPTO' | 'BRE_B';
   payoutAlias?: string;
+  invoiceType?: InvoiceType;
   lineItems: { description: string; quantity: number; rate: number }[];
 }
 
