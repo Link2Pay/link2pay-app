@@ -84,7 +84,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { invoiceId } = req.params;
-      const { senderPublicKey, networkPassphrase } = req.body;
+      const { senderPublicKey, networkPassphrase, amount: payerAmount } = req.body;
 
       // Get invoice
       const invoice = await invoiceService.getInvoice(invoiceId);
@@ -105,7 +105,21 @@ router.post(
         return res.status(400).json({ error: 'Cannot pay your own invoice' });
       }
 
-      const amount = formatStellarAmount(invoice.total.toString());
+      // Open-amount invoices: the payer supplies the amount. Persist it so the
+      // confirmation/matching pipeline (which compares against invoice.total)
+      // and receipts reflect what was actually charged.
+      let effectiveTotal = invoice.total.toString();
+      if (invoice.isOpenAmount) {
+        if (!payerAmount || payerAmount <= 0) {
+          return res.status(400).json({
+            error: 'This payment link requires you to enter an amount',
+          });
+        }
+        const updated = await invoiceService.setInvoiceAmount(invoiceId, payerAmount);
+        effectiveTotal = updated.total.toString();
+      }
+
+      const amount = formatStellarAmount(effectiveTotal);
       const assetCode = invoice.currency;
 
       if (networkPassphrase !== invoice.networkPassphrase) {

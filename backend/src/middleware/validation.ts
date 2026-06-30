@@ -48,7 +48,19 @@ export const createInvoiceSchema = z.object({
   favoriteClient: z.boolean().optional(),
   payoutMethod: z.enum(['CRYPTO', 'BRE_B']).optional(),
   payoutAlias: z.string().min(1).max(200).optional(),
-  lineItems: z.array(lineItemSchema).min(1).max(50),
+  invoiceType: z.enum(['DIRECT_PAYMENT', 'BUSINESS_INVOICE', 'SERVICE_INVOICE']).optional(),
+  // Open-amount invoices carry no line items — the payer enters the amount at
+  // pay time. Otherwise at least one line item is required (enforced below).
+  isOpenAmount: z.boolean().optional(),
+  lineItems: z.array(lineItemSchema).max(50).optional(),
+}).superRefine((data, ctx) => {
+  if (!data.isOpenAmount && (!data.lineItems || data.lineItems.length < 1)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'At least one line item is required',
+      path: ['lineItems'],
+    });
+  }
 });
 
 export const createPaymentLinkSchema = z.object({
@@ -118,6 +130,8 @@ export const payIntentSchema = z.object({
     .max(56)
     .regex(/^G[A-Z2-7]{55}$/, 'Invalid Stellar address')
     .optional(),
+  // Payer-supplied amount — only used (and required) for open-amount invoices.
+  amount: z.coerce.number().positive().max(999999999).optional(),
   networkPassphrase: z
     .string()
     .min(1)

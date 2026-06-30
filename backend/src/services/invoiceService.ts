@@ -13,8 +13,9 @@ export class InvoiceService {
   async createInvoice(input: CreateInvoiceInput) {
     const invoiceNumber = generateInvoiceNumber();
 
-    // Calculate line item amounts
-    const lineItems = input.lineItems.map((item) => ({
+    // Calculate line item amounts. Open-amount invoices carry no line items —
+    // the payer sets the amount at pay time, so subtotal/total start at 0.
+    const lineItems = (input.lineItems ?? []).map((item) => ({
       description: item.description,
       quantity: new Prisma.Decimal(item.quantity),
       rate: new Prisma.Decimal(item.rate),
@@ -69,6 +70,7 @@ export class InvoiceService {
           payoutMethod: input.payoutMethod === 'BRE_B' ? 'BRE_B' : 'CRYPTO',
           payoutAlias: input.payoutMethod === 'BRE_B' ? input.payoutAlias : null,
           invoiceType: (input.invoiceType as InvoiceType) ?? 'DIRECT_PAYMENT',
+          isOpenAmount: input.isOpenAmount ?? false,
           // Bre-B off-ramp invoices skip DRAFT so the receiver can request a quote immediately.
           status: input.payoutMethod === 'BRE_B' ? 'PENDING' : undefined,
           lineItems: {
@@ -88,6 +90,25 @@ export class InvoiceService {
     });
 
     return invoice;
+  }
+
+  /**
+   * Persist a payer-chosen amount onto an open-amount invoice.
+   * Sets subtotal = total = amount and clears tax/discount so the downstream
+   * payment + confirmation pipeline (which matches against invoice.total) works.
+   */
+  async setInvoiceAmount(id: string, amount: number | string) {
+    const value = new Prisma.Decimal(amount);
+    return prisma.invoice.update({
+      where: { id },
+      data: {
+        subtotal: value,
+        taxRate: null,
+        taxAmount: new Prisma.Decimal(0),
+        discount: new Prisma.Decimal(0),
+        total: value,
+      },
+    });
   }
 
   /**
@@ -157,6 +178,7 @@ export class InvoiceService {
       quoteBuyAmount: invoice.quoteBuyAmount,
       receiptTxHash: invoice.receiptTxHash,
       invoiceType: invoice.invoiceType,
+      isOpenAmount: invoice.isOpenAmount,
       lineItems: invoice.lineItems.map((item) => ({
         description: item.description,
         quantity: item.quantity.toString(),

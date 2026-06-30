@@ -86,6 +86,11 @@ model Invoice {
   total     Decimal  @db.Decimal(18, 7)
   currency  Currency @default(XLM)
 
+  // Open amount: when true the invoice is created with no fixed total and the
+  // payer enters the amount at pay time (DIRECT_PAYMENT only). The pay-intent
+  // then persists the chosen amount into subtotal/total.
+  isOpenAmount Boolean @default(false) @map("is_open_amount")
+
   // Dates
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
