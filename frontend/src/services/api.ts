@@ -213,6 +213,17 @@ export async function deleteInvoice(
   );
 }
 
+export async function cancelInvoice(
+  id: string,
+  walletAddress: string
+): Promise<Invoice> {
+  return request<Invoice>(
+    `/invoices/${id}/cancel`,
+    { method: 'POST' },
+    walletAddress
+  );
+}
+
 export async function getDashboardStats(
   walletAddress: string,
   options?: { excludePreview?: boolean; networkPassphrase?: string }

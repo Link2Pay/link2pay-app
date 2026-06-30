@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { deleteInvoice, getOwnerInvoice, sendInvoice } from '../../services/api';
+import { cancelInvoice, deleteInvoice, getOwnerInvoice, sendInvoice } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
@@ -18,6 +18,9 @@ const COPY: Record<Language, {
   stellarLumens: string;
   sendInvoice: string;
   delete: string;
+  cancelLink: string;
+  confirmCancel: string;
+  linkCancelled: string;
   copied: string;
   copyPaymentLink: string;
   paymentLink: string;
@@ -52,6 +55,9 @@ const COPY: Record<Language, {
     stellarLumens: 'Stellar Lumens',
     sendInvoice: 'Send Invoice',
     delete: 'Delete',
+    cancelLink: 'Cancel link',
+    confirmCancel: 'Cancel this payment link? The payer will no longer be able to pay it.',
+    linkCancelled: 'Link cancelled',
     copied: 'Copied!',
     copyPaymentLink: 'Copy Payment Link',
     paymentLink: 'Payment Link',
@@ -86,6 +92,9 @@ const COPY: Record<Language, {
     stellarLumens: 'Stellar Lumens',
     sendInvoice: 'Enviar factura',
     delete: 'Eliminar',
+    cancelLink: 'Cancelar link',
+    confirmCancel: '¿Cancelar este link de pago? El pagador ya no podrá pagarlo.',
+    linkCancelled: 'Link cancelado',
     copied: 'Copiado!',
     copyPaymentLink: 'Copiar link de pago',
     paymentLink: 'Link de pago',
@@ -120,6 +129,9 @@ const COPY: Record<Language, {
     stellarLumens: 'Stellar Lumens',
     sendInvoice: 'Enviar fatura',
     delete: 'Excluir',
+    cancelLink: 'Cancelar link',
+    confirmCancel: 'Cancelar este link de pagamento? O pagador não poderá mais pagá-lo.',
+    linkCancelled: 'Link cancelado',
     copied: 'Copiado!',
     copyPaymentLink: 'Copiar link de pagamento',
     paymentLink: 'Link de pagamento',
@@ -225,6 +237,24 @@ export default function InvoiceDetail() {
     }
   };
 
+  const handleCancel = async () => {
+    if (!invoice || !publicKey) return;
+    if (!window.confirm(copy.confirmCancel)) return;
+
+    setActionLoading(true);
+    try {
+      const updated = await cancelInvoice(invoice.id, publicKey);
+      setInvoice(updated);
+      toast.success(copy.linkCancelled);
+    } catch (err: any) {
+      const msg = err.message || 'Failed to cancel link';
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleDownloadPdf = async () => {
     if (!invoice) return;
     setPdfLoading(true);
@@ -320,6 +350,11 @@ export default function InvoiceDetail() {
           <button onClick={handleSendByEmail} disabled={pdfLoading} className="btn-secondary text-sm">
             {pdfLoading ? copy.generatingPdf : copy.sendByEmail}
           </button>
+          {!['DRAFT', 'PAID', 'SETTLING', 'SETTLED_FIAT', 'CANCELLED', 'EXPIRED', 'FAILED'].includes(invoice.status) && (
+            <button onClick={handleCancel} disabled={actionLoading} className="btn-danger text-sm">
+              {copy.cancelLink}
+            </button>
+          )}
         </div>
       )}
 

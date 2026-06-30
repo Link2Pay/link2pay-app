@@ -233,6 +233,47 @@ router.post('/:id/send', requireWallet, async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/invoices/:id/cancel
+ * Cancel a payment link (owner only). Allowed from any open status; a link
+ * that has already been paid or is settling fiat can no longer be cancelled.
+ */
+router.post('/:id/cancel', requireWallet, async (req: Request, res: Response) => {
+  try {
+    const invoice = await invoiceService.getInvoice(req.params.id);
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+    if (invoice.freelancerWallet !== req.walletAddress) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    if (['PAID', 'SETTLING', 'SETTLED_FIAT'].includes(invoice.status)) {
+      return res.status(400).json({ error: 'This link can no longer be cancelled' });
+    }
+    if (invoice.status === 'CANCELLED') {
+      return res.json(invoice); // idempotent
+    }
+
+    const from = invoice.status;
+    const updated = await invoiceService.updateStatus(req.params.id, 'CANCELLED');
+    // Fire-and-forget audit log — non-fatal
+    invoiceService
+      .addAuditLog(req.params.id, 'CANCELLED', req.walletAddress as string, {
+        status: { from, to: 'CANCELLED' },
+      })
+      .catch((auditError: unknown) => {
+        log.warn('Audit log failed for invoice cancel', {
+          invoiceId: req.params.id,
+          error: (auditError as Error)?.message,
+        });
+      });
+    res.json(updated);
+  } catch (error: any) {
+    log.error('Cancel invoice error', { error: error?.message });
+    res.status(500).json({ error: 'Failed to cancel link' });
+  }
+});
+
+/**
  * DELETE /api/invoices/:id
  * Delete invoice (DRAFT only, requires wallet auth)
  */
