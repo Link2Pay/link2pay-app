@@ -44,3 +44,7 @@ frontend/.cert/
 # Claude Code and reference files
 .claude/
 references/
+
+# Agent files
+.agent/
+.agents/

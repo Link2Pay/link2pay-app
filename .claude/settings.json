@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Read(//d/Workspace/Hackathon/GIT/stellarpay/backend/src/**)"
-    ]
-  }
-}
