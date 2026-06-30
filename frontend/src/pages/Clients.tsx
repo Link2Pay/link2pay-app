@@ -54,7 +54,7 @@ const COPY: Record<Language, {
 }> = {
   en: {
     loadingClients: 'Loading clients...',
-    title: 'Clients',
+    title: 'Contacts',
     subtitle: 'Save, search, and reuse client details while creating payment links.',
     close: 'Close',
     addClient: 'Add Client',
@@ -83,7 +83,7 @@ const COPY: Record<Language, {
   },
   es: {
     loadingClients: 'Cargando clientes...',
-    title: 'Clientes',
+    title: 'Contactos',
     subtitle: 'Guarda, busca y reutiliza clientes al crear links de pago.',
     close: 'Cerrar',
     addClient: 'Agregar cliente',
@@ -112,7 +112,7 @@ const COPY: Record<Language, {
   },
   pt: {
     loadingClients: 'Carregando clientes...',
-    title: 'Clientes',
+    title: 'Contatos',
     subtitle: 'Salve, busque e reutilize clientes ao criar links de pagamento.',
     close: 'Fechar',
     addClient: 'Adicionar cliente',
