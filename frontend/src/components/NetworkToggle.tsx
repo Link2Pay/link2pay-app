@@ -60,14 +60,14 @@ export default function NetworkToggle({ compact = false }: NetworkToggleProps) {
       onClick={toggleNetwork}
       className={`btn rounded-lg border shadow-sm ${
         isTestnet
-          ? 'border-emerald-500/45 bg-emerald-500/12 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-300'
-          : 'border-amber-500/45 bg-amber-500/12 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300'
-      } ${compact ? 'min-w-[88px] px-2.5 py-1.5 text-[11px]' : 'min-w-[116px] px-3 py-2 text-xs sm:text-sm'}`}
+          ? 'border-info/40 bg-info/10 text-info hover:bg-info/20'
+          : 'border-warning/40 bg-warning/10 text-warning hover:bg-warning/20'
+      } ${compact ? 'min-w-[88px] px-2.5 py-1.5 text-2xs' : 'min-w-[116px] px-3 py-2 text-xs sm:text-sm'}`}
       aria-label={`Current network: ${currentLabel}. Switch to ${nextLabel}.`}
       title={`Current network: ${currentLabel}. Switch to ${nextLabel}.`}
     >
       <span
-        className={`h-2 w-2 rounded-full animate-pulse-slow ${isTestnet ? 'bg-emerald-500' : 'bg-amber-500'}`}
+        className={`h-2 w-2 rounded-full animate-pulse-slow ${isTestnet ? 'bg-info' : 'bg-warning'}`}
         aria-hidden="true"
       />
       {isTestnet ? <TestTube2 className="h-4 w-4" /> : <Network className="h-4 w-4" />}

@@ -15,12 +15,14 @@ export function getStoredTheme(): ThemeMode | null {
 }
 
 export function getSystemTheme(): ThemeMode {
-  if (typeof window === 'undefined') return 'dark';
+  if (typeof window === 'undefined') return 'light';
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
+// Direction A (fintech) is light-first: default to light unless the user has
+// explicitly stored a preference. Respect that stored choice thereafter.
 export function getPreferredTheme(): ThemeMode {
-  return getStoredTheme() ?? getSystemTheme();
+  return getStoredTheme() ?? 'light';
 }
 
 export function applyTheme(theme: ThemeMode) {

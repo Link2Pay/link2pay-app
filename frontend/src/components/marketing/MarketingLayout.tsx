@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import { ArrowRight, Globe2, Heart, LayoutDashboard } from 'lucide-react';
+import { Globe2, Heart } from 'lucide-react';
 import ThemeToggle from '../ThemeToggle';
 import LanguageToggle from '../LanguageToggle';
 import BrandMark from '../BrandMark';
@@ -60,24 +60,8 @@ export default function MarketingLayout() {
             </nav>
 
             <div className="flex items-center gap-2">
-              <Link
-                to="/app"
-                aria-label={t('marketing.dashboard')}
-                title={t('marketing.dashboard')}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/12 text-primary transition-colors hover:bg-primary/20 hover:text-primary md:hidden"
-              >
-                <LayoutDashboard className="h-4 w-4" />
-              </Link>
-
               <LanguageToggle />
               <ThemeToggle />
-
-              <div className="hidden items-center gap-2 md:flex">
-                <Link to="/app" className="btn-secondary px-3 py-2 text-sm">
-                  {t('marketing.dashboard')}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
             </div>
           </div>
 

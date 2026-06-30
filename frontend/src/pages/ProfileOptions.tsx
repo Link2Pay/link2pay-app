@@ -358,7 +358,7 @@ export default function ProfileOptions() {
             )}
           </div>
           {publicKey && (
-            <span className="mt-3 inline-flex items-center rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-600">
+            <span className="mt-3 inline-flex items-center rounded-full bg-success/10 px-2.5 py-1 text-xs font-medium text-success">
               {copy.connected}
             </span>
           )}

@@ -247,15 +247,15 @@ export default function Transactions() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="card p-5">
           <p className="text-xs text-ink-3">{copy.settled}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-emerald-600">{settledCount}</p>
+          <p className="mt-2 text-2xl font-semibold font-mono text-success">{settledCount}</p>
         </div>
         <div className="card p-5">
           <p className="text-xs text-ink-3">{copy.inProgress}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-amber-600">{inProgressCount}</p>
+          <p className="mt-2 text-2xl font-semibold font-mono text-warning">{inProgressCount}</p>
         </div>
         <div className="card p-5">
           <p className="text-xs text-ink-3">{copy.failed}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-rose-600">{failedCount}</p>
+          <p className="mt-2 text-2xl font-semibold font-mono text-destructive">{failedCount}</p>
         </div>
         <div className="card p-5">
           <p className="text-xs text-ink-3">{copy.successRate}</p>

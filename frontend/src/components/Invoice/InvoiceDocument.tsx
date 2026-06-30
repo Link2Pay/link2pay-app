@@ -48,7 +48,7 @@ export default function InvoiceDocument({ invoice }: Props) {
       {/* Bill From / Bill To */}
       <div className="grid grid-cols-2 gap-3 mb-5">
         <div className="rounded-lg bg-surface-1 p-3">
-          <p className="text-[10px] uppercase tracking-wider text-ink-3 mb-1.5 font-medium">From</p>
+          <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1.5 font-medium">From</p>
           {invoice.freelancerCompany && (
             <p className="font-semibold text-ink-0 text-sm">{invoice.freelancerCompany}</p>
           )}
@@ -56,32 +56,32 @@ export default function InvoiceDocument({ invoice }: Props) {
             <p className="text-xs text-ink-2">{invoice.freelancerName}</p>
           )}
           {invoice.freelancerTaxId && (
-            <p className="text-[11px] text-ink-3 mt-1">Tax ID: {invoice.freelancerTaxId}</p>
+            <p className="text-2xs text-ink-3 mt-1">Tax ID: {invoice.freelancerTaxId}</p>
           )}
           {invoice.freelancerAddress && (
-            <p className="text-[11px] text-ink-3">{invoice.freelancerAddress}</p>
+            <p className="text-2xs text-ink-3">{invoice.freelancerAddress}</p>
           )}
           {invoice.freelancerEmail && (
-            <p className="text-[11px] text-ink-3 break-all">{invoice.freelancerEmail}</p>
+            <p className="text-2xs text-ink-3 break-all">{invoice.freelancerEmail}</p>
           )}
           {invoice.freelancerPhone && (
-            <p className="text-[11px] text-ink-3">{invoice.freelancerPhone}</p>
+            <p className="text-2xs text-ink-3">{invoice.freelancerPhone}</p>
           )}
         </div>
         <div className="rounded-lg bg-surface-1 p-3">
-          <p className="text-[10px] uppercase tracking-wider text-ink-3 mb-1.5 font-medium">Bill To</p>
+          <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1.5 font-medium">Bill To</p>
           <p className="font-semibold text-ink-0 text-sm">{invoice.clientName}</p>
           {invoice.clientCompany && (
             <p className="text-xs text-ink-2">{invoice.clientCompany}</p>
           )}
           {invoice.clientTaxId && (
-            <p className="text-[11px] text-ink-3 mt-1">Tax ID: {invoice.clientTaxId}</p>
+            <p className="text-2xs text-ink-3 mt-1">Tax ID: {invoice.clientTaxId}</p>
           )}
           {invoice.clientAddress && (
-            <p className="text-[11px] text-ink-3">{invoice.clientAddress}</p>
+            <p className="text-2xs text-ink-3">{invoice.clientAddress}</p>
           )}
           {invoice.clientEmail && (
-            <p className="text-[11px] text-ink-3 break-all">{invoice.clientEmail}</p>
+            <p className="text-2xs text-ink-3 break-all">{invoice.clientEmail}</p>
           )}
         </div>
       </div>
@@ -119,10 +119,10 @@ export default function InvoiceDocument({ invoice }: Props) {
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-surface-3">
-              <th className="text-left pb-2 text-[10px] uppercase tracking-wider text-ink-3 font-medium w-[50%]">Description</th>
-              <th className="text-right pb-2 text-[10px] uppercase tracking-wider text-ink-3 font-medium">{qtyLabel}</th>
-              <th className="text-right pb-2 text-[10px] uppercase tracking-wider text-ink-3 font-medium">{rateLabel}</th>
-              <th className="text-right pb-2 text-[10px] uppercase tracking-wider text-ink-3 font-medium">Amount</th>
+              <th className="text-left pb-2 text-3xs uppercase tracking-wider text-ink-3 font-medium w-[50%]">Description</th>
+              <th className="text-right pb-2 text-3xs uppercase tracking-wider text-ink-3 font-medium">{qtyLabel}</th>
+              <th className="text-right pb-2 text-3xs uppercase tracking-wider text-ink-3 font-medium">{rateLabel}</th>
+              <th className="text-right pb-2 text-3xs uppercase tracking-wider text-ink-3 font-medium">Amount</th>
             </tr>
           </thead>
           <tbody>
@@ -168,7 +168,7 @@ export default function InvoiceDocument({ invoice }: Props) {
       {/* Notes */}
       {invoice.notes && (
         <div className="mt-5 pt-4 border-t border-surface-2">
-          <p className="text-[10px] uppercase tracking-wider text-ink-3 mb-1 font-medium">Notes</p>
+          <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1 font-medium">Notes</p>
           <p className="text-xs text-ink-2 leading-relaxed">{invoice.notes}</p>
         </div>
       )}

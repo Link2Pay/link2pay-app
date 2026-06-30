@@ -525,9 +525,9 @@ export default function Home() {
       <section className="relative overflow-hidden border-b border-border bg-card">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_at_top,_hsl(175_75%_45%_/_0.12),transparent_68%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(ellipse_at_bottom,_hsl(175_75%_45%_/_0.06),transparent_68%)]" />
-        <div className="relative mx-auto max-w-[1480px] px-4 pb-[clamp(2.75rem,7svh,5rem)] pt-[clamp(2.75rem,8svh,6rem)] sm:px-6 sm:pb-[clamp(3rem,8svh,5.5rem)] sm:pt-[clamp(3.25rem,10svh,6.5rem)]">
-          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-            <div className="text-center lg:text-left">
+        <div className="relative mx-auto max-w-6xl px-4 pb-[clamp(2.75rem,7svh,5rem)] pt-[clamp(2.75rem,8svh,6rem)] sm:px-6 sm:pb-[clamp(3rem,8svh,5.5rem)] sm:pt-[clamp(3.25rem,10svh,6.5rem)]">
+          <div className="flex flex-col items-center gap-16">
+            <div className="text-center">
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary animate-fade-in">
                 <Sparkles className="h-3.5 w-3.5" />
                 {copy.badge}
@@ -542,13 +542,13 @@ export default function Home() {
                 <span className="block">{copy.heroTitleEnd}</span>
               </h1>
               <p
-                className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg lg:mx-0 animate-slide-up"
+                className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg animate-slide-up"
                 style={{ animationDelay: '0.16s' }}
               >
                 {copy.heroDescription}
               </p>
               <div
-                className="mt-10 flex flex-wrap items-center justify-center gap-4 lg:justify-start animate-slide-up"
+                className="mt-10 flex flex-wrap items-center justify-center gap-4 animate-slide-up"
                 style={{ animationDelay: '0.24s' }}
               >
                 <Link to="/app" className="btn-primary px-6 py-3.5 text-sm">
@@ -561,9 +561,9 @@ export default function Home() {
                   </span>
                   <span className="flex flex-col">
                     <span className="text-sm font-semibold leading-tight text-foreground">{copy.heroSecondaryCta}</span>
-                    <span className="text-[11px] leading-tight text-muted-foreground">{copy.heroSecondaryNote}</span>
+                    <span className="text-2xs leading-tight text-muted-foreground">{copy.heroSecondaryNote}</span>
                   </span>
-                  <span className="rounded-full border border-primary/35 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
+                  <span className="rounded-full border border-primary/35 bg-primary/10 px-2 py-0.5 text-3xs font-semibold uppercase tracking-[0.14em] text-primary">
                     {copy.heroSecondaryBadge}
                   </span>
                 </div>
@@ -571,7 +571,7 @@ export default function Home() {
               <p className="mt-4 text-xs text-muted-foreground animate-slide-up" style={{ animationDelay: '0.32s' }}>
                 {copy.heroFootnote}
               </p>
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-[11px] uppercase tracking-[0.24em] text-muted-foreground lg:justify-start">
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-2xs uppercase tracking-[0.24em] text-muted-foreground">
                 <span className="inline-flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
                   {copy.heroTag1}
@@ -587,7 +587,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="w-full animate-fade-in lg:mt-4" style={{ animationDelay: '0.2s' }}>
+            <div className="w-full max-w-2xl animate-fade-in" style={{ animationDelay: '0.2s' }}>
               <div className="relative h-full overflow-hidden rounded-[2.5rem] border border-border/70 bg-card/90 p-8 shadow-[0_40px_120px_hsl(var(--primary)_/_0.2)] backdrop-blur sm:p-10 lg:p-12">
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,_hsl(var(--card)),_hsl(var(--background)))]" />
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)_/_0.2),transparent_60%)]" />
@@ -607,7 +607,7 @@ export default function Home() {
             <article className="relative overflow-hidden rounded-2xl border border-border bg-card p-7 sm:p-8">
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)_/_0.16),transparent_62%)]" />
               <div className="relative">
-                <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-primary">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-2xs font-medium uppercase tracking-[0.12em] text-primary">
                   <Send className="h-3.5 w-3.5" />
                   {copy.badge}
                 </span>
@@ -669,7 +669,7 @@ export default function Home() {
             <p className="mt-3 text-base text-muted-foreground">{copy.howSubtitle}</p>
 
             <div className="mt-8 rounded-2xl border border-border bg-card p-5">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{copy.heroTag2}</p>
+              <p className="text-2xs uppercase tracking-[0.18em] text-muted-foreground">{copy.heroTag2}</p>
               <div className="mt-4 space-y-3">
                 {flowSteps.map((step) => (
                   <div key={step.step} className="flex items-center gap-3 rounded-lg border border-border bg-background/70 px-3 py-2.5">
@@ -847,7 +847,7 @@ export default function Home() {
                       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{currency.desc}</p>
                     </div>
                   </div>
-                  <span className="hidden shrink-0 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-primary sm:inline-flex">
+                  <span className="hidden shrink-0 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-2xs font-medium uppercase tracking-[0.12em] text-primary sm:inline-flex">
                     {copy.heroTag2}
                   </span>
                 </div>

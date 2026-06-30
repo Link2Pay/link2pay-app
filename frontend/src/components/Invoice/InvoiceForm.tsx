@@ -453,19 +453,19 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
           }`}
         >
           <span className="block font-medium">Crypto</span>
-          <span className="block text-[11px] text-ink-3">Receiver keeps {currency} on-chain</span>
+          <span className="block text-2xs text-ink-3">Receiver keeps {currency} on-chain</span>
         </button>
         <button
           type="button"
           onClick={() => setPayoutMethod('BRE_B')}
           className={`rounded-lg border px-3 py-2.5 text-left text-sm transition ${
             payoutMethod === 'BRE_B'
-              ? 'border-amber-400 bg-amber-50 text-amber-700'
+              ? 'border-warning-border bg-warning-subtle text-warning'
               : 'border-surface-3 bg-card text-ink-2'
           }`}
         >
           <span className="block font-medium">Fiat off-ramp · Bre-B (COP)</span>
-          <span className="block text-[11px] text-ink-3">Payer pays {currency}, receiver gets pesos</span>
+          <span className="block text-2xs text-ink-3">Payer pays {currency}, receiver gets pesos</span>
         </button>
       </div>
       {payoutMethod === 'BRE_B' && (
@@ -476,7 +476,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
             value={payoutAlias}
             onChange={(e) => setPayoutAlias(e.target.value)}
           />
-          <p className="mt-1 text-[11px] text-amber-700">Simulated Bre-B settlement (testnet demo)</p>
+          <p className="mt-1 text-2xs text-warning">Simulated Bre-B settlement (testnet demo)</p>
         </div>
       )}
     </div>
@@ -485,7 +485,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 animate-in sm:space-y-8">
       {error && (
-        <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
+        <div className="p-4 rounded-lg bg-destructive-subtle border border-destructive-border text-destructive text-sm">{error}</div>
       )}
 
       {/* ── DIRECT PAYMENT layout (minimal: amount + currency + expiration) ── */}
@@ -522,7 +522,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
               <div>
                 <label className="label">{copy.expiration}</label>
                 <input type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-                <p className="mt-1 text-[11px] text-ink-4">{copy.noExpiryHint}</p>
+                <p className="mt-1 text-2xs text-ink-4">{copy.noExpiryHint}</p>
               </div>
             </div>
 
@@ -535,7 +535,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
               />
               {copy.openAmountLabel}
             </label>
-            {isOpenAmount && <p className="text-[11px] text-ink-3">{copy.openAmountHint}</p>}
+            {isOpenAmount && <p className="text-2xs text-ink-3">{copy.openAmountHint}</p>}
           </div>
         </section>
       )}
@@ -546,7 +546,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
           <section className="card p-5 sm:p-6">
             <h3 className="text-sm font-semibold text-ink-0 mb-1 uppercase tracking-wider">{copy.yourInformation}</h3>
             {hasProfile && (
-              <p className="mb-4 text-[11px] text-ink-3">{copy.prefillHint}</p>
+              <p className="mb-4 text-2xs text-ink-3">{copy.prefillHint}</p>
             )}
             {!hasProfile && <div className="mb-4" />}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -641,7 +641,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
                 <div>
                   <label className="label">{copy.dueDate}</label>
                   <input type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-                  <p className="mt-1 text-[11px] text-ink-4">{copy.noExpiryHint}</p>
+                  <p className="mt-1 text-2xs text-ink-4">{copy.noExpiryHint}</p>
                 </div>
               </div>
 
@@ -674,14 +674,14 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
               {lineItems.map((item, index) => (
                 <div key={index} className="rounded-lg border border-surface-3 p-3 sm:grid sm:grid-cols-12 sm:items-center sm:gap-3 sm:rounded-none sm:border-0 sm:p-0">
                   <div className="sm:col-span-5">
-                    <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-3 sm:hidden">
+                    <label className="mb-1 block text-2xs font-medium uppercase tracking-wider text-ink-3 sm:hidden">
                       {copy.description}
                     </label>
                     <input type="text" className="input" placeholder={isService ? copy.serviceDescriptionPlaceholder : copy.itemDescriptionPlaceholder}
                       value={item.description} onChange={(e) => updateLineItem(index, 'description', e.target.value)} required />
                   </div>
                   <div className="mt-3 sm:col-span-2 sm:mt-0">
-                    <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-3 sm:hidden">
+                    <label className="mb-1 block text-2xs font-medium uppercase tracking-wider text-ink-3 sm:hidden">
                       {isService ? copy.hours : copy.qty}
                     </label>
                     <input type="number" className="input text-center" min="0.01" step="0.01"
@@ -689,7 +689,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
                       onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)} required />
                   </div>
                   <div className="mt-3 sm:col-span-2 sm:mt-0">
-                    <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-3 sm:hidden">
+                    <label className="mb-1 block text-2xs font-medium uppercase tracking-wider text-ink-3 sm:hidden">
                       {isService ? copy.ratePerHour : copy.rate}
                     </label>
                     <input type="number" className="input" min="0" step="0.01" placeholder="0.00"
@@ -697,7 +697,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
                       onChange={(e) => updateLineItem(index, 'rate', parseFloat(e.target.value) || 0)} required />
                   </div>
                   <div className="mt-3 flex items-center justify-between text-sm sm:col-span-2 sm:mt-0 sm:block sm:text-right">
-                    <span className="text-[11px] font-medium uppercase tracking-wider text-ink-3 sm:hidden">{copy.amount}</span>
+                    <span className="text-2xs font-medium uppercase tracking-wider text-ink-3 sm:hidden">{copy.amount}</span>
                     <span className="font-mono text-ink-1">{(item.quantity * item.rate).toFixed(2)}</span>
                   </div>
                   <div className="mt-3 text-right sm:col-span-1 sm:mt-0 sm:text-center">

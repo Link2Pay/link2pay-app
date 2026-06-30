@@ -391,7 +391,7 @@ export default function Features() {
             <h2 className="text-3xl font-semibold text-foreground">{copy.sdkSectionTitle}</h2>
             <p className="mt-3 text-base text-muted-foreground">{copy.sdkSectionSubtitle}</p>
             <div className="mt-5 rounded-xl border border-surface-3 bg-background p-4">
-              <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{copy.sdkSectionQuickstartLabel}</p>
+              <p className="text-2xs uppercase tracking-[0.14em] text-muted-foreground">{copy.sdkSectionQuickstartLabel}</p>
               <pre className="mt-2 overflow-x-auto whitespace-pre-wrap text-xs leading-relaxed text-ink-1">
 {`Create link request
 -> receive checkoutUrl
@@ -480,11 +480,11 @@ Share checkoutUrl
               <h3 className="text-sm font-semibold text-foreground">{row.feature}</h3>
               <div className="mt-3 space-y-2 text-sm">
                 <div>
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Link2Pay</p>
+                  <p className="text-2xs uppercase tracking-wide text-muted-foreground">Link2Pay</p>
                   <p className="font-medium text-primary">{row.stellarPay}</p>
                 </div>
                 <div>
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{copy.colTraditional}</p>
+                  <p className="text-2xs uppercase tracking-wide text-muted-foreground">{copy.colTraditional}</p>
                   <p className="text-muted-foreground">{row.traditional}</p>
                 </div>
               </div>

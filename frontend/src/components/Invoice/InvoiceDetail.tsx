@@ -461,11 +461,11 @@ export default function InvoiceDetail() {
       )}
 
       {invoice.status === 'PAID' && invoice.transactionHash && (
-        <div className="card p-5 bg-emerald-50 border-emerald-200">
-          <h4 className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-3">{copy.paymentConfirmed}</h4>
+        <div className="card p-5 bg-success-subtle border-success-border">
+          <h4 className="text-xs font-semibold text-success uppercase tracking-wider mb-3">{copy.paymentConfirmed}</h4>
           <div className="space-y-2 text-sm">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-emerald-600">{copy.transactionHash}</span>
+              <span className="text-success">{copy.transactionHash}</span>
               <a
                 href={`https://stellar.expert/explorer/${invoice.networkPassphrase?.includes('Test') ? 'testnet' : 'public'}/tx/${invoice.transactionHash}`}
                 target="_blank"
@@ -477,16 +477,16 @@ export default function InvoiceDetail() {
             </div>
             {invoice.paidAt && (
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-emerald-600">{copy.paidAt}</span>
-                <span className="text-emerald-700">
+                <span className="text-success">{copy.paidAt}</span>
+                <span className="text-success">
                   {new Date(invoice.paidAt).toLocaleString(LOCALE_BY_LANGUAGE[language])}
                 </span>
               </div>
             )}
             {invoice.payerWallet && (
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-emerald-600">{copy.payer}</span>
-                <span className="font-mono text-xs text-emerald-700">
+                <span className="text-success">{copy.payer}</span>
+                <span className="font-mono text-xs text-success">
                   {invoice.payerWallet.slice(0, 8)}...{invoice.payerWallet.slice(-4)}
                 </span>
               </div>

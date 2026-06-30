@@ -74,12 +74,12 @@ export default function ReceiverOffRamp({ invoice, onUpdated }: Props) {
   const cop = quote ? parseFloat(quote.buyAmount).toLocaleString('es-CO', { maximumFractionDigits: 0 }) : null;
 
   return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-      <div className="flex items-center gap-2 text-amber-800">
+    <div className="rounded-lg border border-warning-border bg-warning-subtle p-4">
+      <div className="flex items-center gap-2 text-warning">
         <Landmark className="h-4 w-4" aria-hidden="true" />
         <span className="text-sm font-semibold">Bre-B fiat off-ramp (COP)</span>
       </div>
-      <p className="mt-1 text-[11px] text-amber-700">{t('payment.simulatedSettlement')}</p>
+      <p className="mt-1 text-2xs text-warning">{t('payment.simulatedSettlement')}</p>
 
       {ready || intent ? (
         <div className="mt-3 space-y-2 text-sm">
@@ -88,7 +88,7 @@ export default function ReceiverOffRamp({ invoice, onUpdated }: Props) {
             and the COP payout lands on your llave.
           </p>
           {(intent || invoice.anchorTxId) && (
-            <div className="rounded-md bg-white/70 p-2 text-xs">
+            <div className="rounded-md bg-muted p-2 text-xs">
               {intent?.depositAddress && (
                 <p className="break-all">
                   <span className="text-ink-3">Anchor account: </span>
@@ -121,7 +121,7 @@ export default function ReceiverOffRamp({ invoice, onUpdated }: Props) {
       ) : (
         <div className="mt-3 space-y-3">
           <div>
-            <label className="text-[11px] font-medium uppercase tracking-wide text-ink-3">
+            <label className="text-2xs font-medium uppercase tracking-wide text-ink-3">
               Bre-B llave (payout alias)
             </label>
             <input
@@ -142,10 +142,10 @@ export default function ReceiverOffRamp({ invoice, onUpdated }: Props) {
             </button>
           ) : (
             <div className="space-y-2">
-              <div className="rounded-md bg-white/70 p-3 text-sm">
+              <div className="rounded-md bg-muted p-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-ink-3">Receiver gets</span>
-                  <span className="font-mono font-semibold text-amber-700">≈ ${cop} COP</span>
+                  <span className="font-mono font-semibold text-warning">≈ ${cop} COP</span>
                 </div>
                 <div className="flex justify-between text-xs text-ink-3">
                   <span>Rate</span>

@@ -112,7 +112,7 @@ export default function CreateInvoice() {
                 <div className="flex items-start justify-between mb-3">
                   <span className="text-2xl">{TYPE_ICONS[type]}</span>
                   {info.badge && (
-                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-stellar-100 text-stellar-700">
+                    <span className="text-3xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-stellar-100 text-stellar-700">
                       {info.badge}
                     </span>
                   )}

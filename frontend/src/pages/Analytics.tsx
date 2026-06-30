@@ -324,11 +324,11 @@ export default function Analytics() {
         </div>
         <div className="card p-5">
           <p className="text-xs text-ink-3">{copy.activeLinks}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-amber-600">{pendingLinks}</p>
+          <p className="mt-2 text-2xl font-semibold font-mono text-warning">{pendingLinks}</p>
         </div>
         <div className="card p-5">
           <p className="text-xs text-ink-3">{copy.settledLinks}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-emerald-600">{paidLinks}</p>
+          <p className="mt-2 text-2xl font-semibold font-mono text-success">{paidLinks}</p>
         </div>
         <div className="card p-5">
           <p className="text-xs text-ink-3">{copy.settleSpeed}</p>
@@ -350,10 +350,10 @@ export default function Analytics() {
           ) : (
             <div className="mt-5 space-y-3">
               {[
-                { label: copy.paid, value: paidLinks, color: 'bg-emerald-500' },
-                { label: copy.inProgress, value: pendingLinks, color: 'bg-amber-500' },
-                { label: copy.failed, value: failedLinks, color: 'bg-rose-500' },
-                { label: copy.other, value: otherStatusLinks, color: 'bg-slate-400' },
+                { label: copy.paid, value: paidLinks, color: 'bg-success' },
+                { label: copy.inProgress, value: pendingLinks, color: 'bg-warning' },
+                { label: copy.failed, value: failedLinks, color: 'bg-destructive' },
+                { label: copy.other, value: otherStatusLinks, color: 'bg-muted-foreground' },
               ].map((item) => {
                 const width = totalLinks > 0 ? (item.value / totalLinks) * 100 : 0;
                 return (
@@ -439,7 +439,7 @@ export default function Analytics() {
           <div className="mt-5 grid gap-2" style={{ gridTemplateColumns: `repeat(${activityTrend.length}, minmax(0, 1fr))` }}>
             {activityTrend.map((bucket) => (
               <div key={bucket.startMs} className="rounded-lg border border-surface-3 bg-surface-1 p-2">
-                <p className="mb-2 truncate text-center text-[10px] text-ink-3">{bucket.label}</p>
+                <p className="mb-2 truncate text-center text-3xs text-ink-3">{bucket.label}</p>
                 <div className="mx-auto flex h-20 w-6 items-end rounded bg-muted">
                   <div
                     className="w-full rounded bg-primary"

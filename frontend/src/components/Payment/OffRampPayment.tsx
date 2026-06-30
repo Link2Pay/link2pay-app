@@ -184,8 +184,8 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   return (
     <div className="space-y-4">
       {/* COP payout summary */}
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-        <div className="flex items-center gap-2 text-amber-800">
+      <div className="rounded-lg border border-warning-border bg-warning-subtle p-4">
+        <div className="flex items-center gap-2 text-warning">
           <Landmark className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
           <span className="text-xs font-semibold uppercase tracking-wide">Fiat off-ramp · Bre-B (COP)</span>
         </div>
@@ -194,27 +194,27 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
             <p className="font-mono text-base font-bold text-ink-0">
               {parseFloat(invoice.total).toFixed(2)} {invoice.currency}
             </p>
-            <p className="text-[10px] uppercase tracking-wider text-ink-3">You pay</p>
+            <p className="text-3xs uppercase tracking-wider text-ink-3">You pay</p>
           </div>
           <ArrowRight className="h-4 w-4 text-ink-3" aria-hidden="true" />
           <div className="text-center">
-            <p className="font-mono text-base font-bold text-amber-700">
+            <p className="font-mono text-base font-bold text-warning">
               {copAmount ? `≈ $${copAmount} COP` : '—'}
             </p>
-            <p className="text-[10px] uppercase tracking-wider text-ink-3">Receiver gets</p>
+            <p className="text-3xs uppercase tracking-wider text-ink-3">Receiver gets</p>
           </div>
         </div>
         {invoice.payoutAlias && (
-          <p className="mt-2 text-center text-[11px] text-ink-3">
+          <p className="mt-2 text-center text-2xs text-ink-3">
             To Bre-B llave <span className="font-mono">{invoice.payoutAlias}</span>
           </p>
         )}
         {fxEstimate && (
-          <p className="mt-2 text-center text-[11px] text-ink-3">
+          <p className="mt-2 text-center text-2xs text-ink-3">
             Live oracle estimate: ≈ ${fxEstimate} COP <span className="text-ink-4">(Reflector — not the firm quote)</span>
           </p>
         )}
-        <p className="mt-3 rounded-md bg-amber-100 px-2.5 py-1.5 text-center text-[11px] font-medium text-amber-800">
+        <p className="mt-3 rounded-md bg-warning-subtle px-2.5 py-1.5 text-center text-2xs font-medium text-warning">
           {t('payment.simulatedSettlement')}
         </p>
       </div>
@@ -245,7 +245,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
           </div>
           {pathEnabled && (
             <div>
-              <label className="text-[11px] font-medium uppercase tracking-wide text-ink-3">Pay with</label>
+              <label className="text-2xs font-medium uppercase tracking-wide text-ink-3">Pay with</label>
               <select
                 value={sourceAsset}
                 onChange={(e) => setSourceAsset(e.target.value)}
@@ -259,7 +259,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
                   ))}
               </select>
               {isPathPay && pathPreview && (
-                <p className="mt-1 text-[11px] text-ink-3">You send {pathPreview}; anchor receives exactly {parseFloat(invoice.total).toFixed(2)} {invoice.currency}.</p>
+                <p className="mt-1 text-2xs text-ink-3">You send {pathPreview}; anchor receives exactly {parseFloat(invoice.total).toFixed(2)} {invoice.currency}.</p>
               )}
             </div>
           )}
@@ -270,7 +270,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
           >
             Pay {isPathPay ? `with ${sourceAsset}` : `${parseFloat(invoice.total).toFixed(2)} ${invoice.currency}`} to anchor
           </button>
-          <p className="text-center text-[11px] text-ink-4">
+          <p className="text-center text-2xs text-ink-4">
             Your wallet pays the anchor directly with the exact memo. Link2Pay never holds your funds.
           </p>
         </div>
@@ -292,15 +292,15 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
 
       {settled && (
         <div role="status" className="space-y-3 py-4 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-            <Check className="h-7 w-7 text-emerald-600" aria-hidden="true" />
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-success-subtle">
+            <Check className="h-7 w-7 text-success" aria-hidden="true" />
           </div>
           <div>
             <h3 className="text-base font-semibold text-ink-0">Settled to fiat</h3>
             <p className="mt-1 text-sm text-ink-3">
               {copAmount ? `≈ $${copAmount} COP delivered to ${invoice.payoutAlias || 'the Bre-B llave'}` : 'COP delivered to the Bre-B llave'}
             </p>
-            <p className="mt-1 text-[11px] text-amber-700">{t('payment.simulatedSettlement')}</p>
+            <p className="mt-1 text-2xs text-warning">{t('payment.simulatedSettlement')}</p>
           </div>
           <div className="flex flex-col items-center gap-1">
             {txHash && (
@@ -329,7 +329,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
 
       {failed && (
         <div role="alert" className="space-y-3 py-4 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-destructive-subtle">
             <X className="h-7 w-7 text-danger" aria-hidden="true" />
           </div>
           <p className="text-sm text-danger">{error || 'The off-ramp could not be completed.'}</p>

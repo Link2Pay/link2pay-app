@@ -222,7 +222,7 @@ export default function HeroQuickLink() {
 
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <label className="mb-2 block text-[13px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+            <label className="mb-2 block text-sm font-medium uppercase tracking-[0.12em] text-muted-foreground">
               {copy.network}
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -244,7 +244,7 @@ export default function HeroQuickLink() {
           </div>
 
           <div>
-            <label className="mb-2 block text-[13px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+            <label className="mb-2 block text-sm font-medium uppercase tracking-[0.12em] text-muted-foreground">
               {copy.asset}
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -273,7 +273,7 @@ export default function HeroQuickLink() {
 
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <label className="mb-2 block text-[13px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+            <label className="mb-2 block text-sm font-medium uppercase tracking-[0.12em] text-muted-foreground">
               {copy.amount}
             </label>
             <input
@@ -286,7 +286,7 @@ export default function HeroQuickLink() {
             />
           </div>
           <div>
-            <label className="mb-2 block text-[13px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+            <label className="mb-2 block text-sm font-medium uppercase tracking-[0.12em] text-muted-foreground">
               {copy.expires}
             </label>
             <div className="input flex items-center justify-between bg-muted/40 text-lg text-foreground">
@@ -360,7 +360,7 @@ export default function HeroQuickLink() {
         </div>
         <div className="mt-3 rounded-lg border border-border bg-card/80 px-3 py-2.5 text-sm text-foreground">
           {linkUrl ? (
-            <code className="block break-all whitespace-pre-wrap font-mono text-[13px] leading-relaxed">
+            <code className="block break-all whitespace-pre-wrap font-mono text-sm leading-relaxed">
               {linkUrl}
             </code>
           ) : (

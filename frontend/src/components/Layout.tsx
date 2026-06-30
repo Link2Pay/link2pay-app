@@ -69,7 +69,7 @@ export default function Layout() {
               <BrandMark className="h-9 w-9 rounded-lg" />
               <BrandWordmark className="text-lg font-semibold leading-snug" />
             </Link>
-            <span className="mt-1 block text-[10px] uppercase tracking-wider text-muted-foreground">
+            <span className="mt-1 block text-3xs uppercase tracking-wider text-muted-foreground">
               {t('layout.invoicePlatform')}
             </span>
           </div>
@@ -111,7 +111,7 @@ export default function Layout() {
                     {publicKey ? shortenAddress(publicKey) : 'Link2Pay User'}
                   </p>
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <span className={`h-1.5 w-1.5 rounded-full ${network === 'testnet' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                    <span className={`h-1.5 w-1.5 rounded-full ${network === 'testnet' ? 'bg-info' : 'bg-warning'}`} />
                     {network === 'testnet' ? 'Testnet' : 'Mainnet'}
                   </p>
                 </div>

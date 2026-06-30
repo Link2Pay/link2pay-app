@@ -146,7 +146,7 @@ export default function GetPaid() {
                 </div>
               </div>
 
-              <p className="mt-4 text-[10px] uppercase tracking-wider text-ink-3">{copy.walletAddress}</p>
+              <p className="mt-4 text-3xs uppercase tracking-wider text-ink-3">{copy.walletAddress}</p>
               <p className="mt-1 break-all rounded-lg border border-surface-3 bg-surface-1 px-3 py-2 font-mono text-xs text-ink-1">
                 {shorten(publicKey)}
               </p>
@@ -165,7 +165,7 @@ export default function GetPaid() {
             {/* Receive in COP via Bre-B */}
             <div className="card p-5">
               <div className="mb-1 flex items-center gap-2">
-                <Landmark className="h-4 w-4 text-amber-500" />
+                <Landmark className="h-4 w-4 text-warning" />
                 <h3 className="text-sm font-semibold text-ink-0">{copy.receiveCop}</h3>
               </div>
               <p className="mb-4 text-xs text-ink-3">{copy.receiveCopDesc}</p>
@@ -185,7 +185,7 @@ export default function GetPaid() {
                       <Copy className="h-3.5 w-3.5" />
                       {copy.copyAddress}
                     </button>
-                    <span className="text-[11px] text-amber-600">{copy.simulated}</span>
+                    <span className="text-2xs text-warning">{copy.simulated}</span>
                   </div>
                 </>
               ) : (
