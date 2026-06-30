@@ -88,32 +88,32 @@ const COPY: Record<Language, HomeCopy> = {
   },
   es: {
     badge: 'Pagos globales sobre Stellar',
-    heroTitleStart: 'Tu cliente paga en cripto.',
-    heroTitleHighlight: 'Tú recibes',
+    heroTitleStart: 'Tu cliente paga en crypto.',
+    heroTitleHighlight: 'Vos recibís',
     heroTitleEnd: 'en tu moneda local',
     heroDescription:
-      'Link2Pay convierte un QR o un link en un puente entre las cripto y tu cuenta bancaria. Tu cliente paga con dólares digitales desde cualquier parte del mundo y tú recibes en tu moneda, directo en tu cuenta de siempre. Sin saber nada de cripto.',
+      'Link2Pay convierte un QR o un link en un puente entre crypto y tu cuenta bancaria. Tu cliente paga con dólares digitales desde cualquier parte del mundo y vos recibís en pesos, directo en tu cuenta de siempre. Sin saber nada de crypto.',
     heroPrimaryCta: 'Crear mi primer link',
-    heroFootnote: 'Empieza gratis y lanza en vivo en Stellar cuando estés listo.',
-    howTitle: 'Empieza a cobrar en 3 pasos',
-    howSubtitle: 'Conecta tu cuenta, genera un link o QR, y recibe el pago confirmado en segundos.',
+    heroFootnote: 'Empezá gratis y lanzá en vivo en Stellar cuando estés listo.',
+    howTitle: 'Empezá a cobrar en 3 pasos',
+    howSubtitle: 'Conectá tu cuenta, generá un link o QR, y recibí el pago confirmado en segundos.',
     benefitsTitle: 'Por qué elegir Link2Pay',
-    benefitsSubtitle: 'Cobras más rápido, pagas menos comisión y recibes en tu moneda de siempre.',
-    audienceTitle: 'Hecho para ti',
+    benefitsSubtitle: 'Cobrás más rápido, pagás menos comisión y recibís en tu moneda de siempre.',
+    audienceTitle: 'Hecho para vos',
     audienceSubtitle: 'Desde el comercio de la esquina hasta el freelancer que cobra desde el exterior.',
     impactTitle: 'El problema que resolvemos',
     impactSubtitle:
       'Las remesas son caras y lentas. Las stablecoins ya son la forma en que Latinoamérica mueve su dinero. Link2Pay conecta las dos puntas.',
-    moneyTitle: 'Acepta los activos que tus clientes ya usan',
-    moneySubtitle: 'Cobra en USDC, el dólar digital, y conviértelo a tu moneda al instante. También aceptas XLM y EURC.',
-    finalTitle: 'Conecta tu negocio con el mundo',
+    moneyTitle: 'Aceptá los activos que tus clientes ya usan',
+    moneySubtitle: 'Cobrá en USDC, el dólar digital, y convertilo a tu moneda al instante. También aceptás XLM y EURC.',
+    finalTitle: 'Conectá tu negocio con el mundo',
     finalDescription:
-      'Genera tu primer link o QR en minutos, compártelo donde quieras y recibe en tu moneda local.',
+      'Generá tu primer link o QR en minutos, compartilo donde quieras y recibí en tu moneda local.',
     finalPrimaryCta: 'Crear mi primer link',
     finalSecondaryCta: 'Comparar planes',
-    heroTag1: 'Recibes en tu moneda',
+    heroTag1: 'Recibís en tu moneda',
     heroTag2: 'Liquidación en ~5s',
-    heroTag3: 'Sin saber de cripto',
+    heroTag3: 'Sin saber de crypto',
   },
   pt: {
     badge: 'Pagamentos globais sobre Stellar',
@@ -167,18 +167,18 @@ const FLOW_STEPS: Record<Language, Array<Item & { step: string }>> = {
   es: [
     {
       step: '01',
-      title: 'Conecta tu cuenta de forma segura',
-      description: 'Tus llaves quedan siempre en tu dispositivo. Tú tienes el control total.',
+      title: 'Conectá tu cuenta de forma segura',
+      description: 'Tus llaves quedan siempre en tu dispositivo. Vos tenés el control total.',
     },
     {
       step: '02',
-      title: 'Genera tu link o QR en segundos',
-      description: 'Elige el monto y compártelo. Listo para cobrar.',
+      title: 'Generá tu link o QR en segundos',
+      description: 'Elegí el monto y compartilo. Listo para cobrar.',
     },
     {
       step: '03',
-      title: 'Recibe en tu moneda local',
-      description: 'Tu cliente paga, y tú recibes tu moneda local en tu cuenta bancaria. Sigue el estado en tiempo real.',
+      title: 'Recibí en tu moneda local',
+      description: 'Tu cliente paga, y vos recibís pesos en tu cuenta bancaria. Seguí el estado en tiempo real.',
     },
   ],
   pt: [
@@ -221,11 +221,11 @@ const BENEFITS: Record<Language, Item[]> = {
   ],
   es: [
     {
-      title: 'Recibe en tu moneda local',
-      description: 'Tu cliente paga en cripto desde cualquier parte del mundo y tú recibes en tu moneda directo en tu cuenta bancaria. Sin exchanges, sin vueltas.',
+      title: 'Recibí en tu moneda local',
+      description: 'Tu cliente paga en crypto desde cualquier parte del mundo y vos recibís pesos directo en tu cuenta bancaria. Sin exchanges, sin vueltas.',
     },
     {
-      title: 'Cobras más rápido',
+      title: 'Cobrás más rápido',
       description: 'La mayoría de los pagos se liquidan en unos 5 segundos sobre Stellar.',
     },
     {
@@ -233,7 +233,7 @@ const BENEFITS: Record<Language, Item[]> = {
       description: 'Las comisiones de red son casi cero, desde montos chicos hasta grandes.',
     },
     {
-      title: 'Tú tienes el control',
+      title: 'Vos tenés el control',
       description: 'El dinero llega directo a tu cuenta. Link2Pay nunca retiene tu plata.',
     },
   ],
@@ -275,15 +275,15 @@ const AUDIENCES: Record<Language, Item[]> = {
   es: [
     {
       title: 'Negocios y comercios',
-      description: 'Acepta pagos en cripto sin saber nada de cripto. Tu cliente escanea un QR y tú recibes en tu moneda.',
+      description: 'Aceptá pagos en crypto sin saber nada de crypto. Tu cliente escanea un QR y vos recibís en pesos.',
     },
     {
       title: 'Freelancers y personas',
-      description: 'Cobra del exterior sin perder en comisiones ni esperar días. Mandas un link y recibes en tu moneda.',
+      description: 'Cobrá del exterior sin perder en comisiones ni esperar días. Mandás un link y recibís en tu moneda.',
     },
     {
       title: 'Negocios digitales y plataformas',
-      description: 'Integra pagos a tu app o plataforma y sigue cada transacción de principio a fin.',
+      description: 'Integrá pagos a tu app o plataforma y seguí cada transacción de principio a fin.',
     },
   ],
   pt: [
@@ -773,15 +773,6 @@ export default function Home() {
               <article key={item.label} className="flex flex-col rounded-2xl border border-border bg-background p-6">
                 <div className="text-3xl font-semibold text-primary">{item.value}</div>
                 <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{item.label}</p>
-                <a
-                  href={item.source}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 inline-flex w-fit items-center gap-1 text-2xs font-medium uppercase tracking-[0.12em] text-primary hover:underline"
-                >
-                  {extras.sourceLabel}
-                  <ArrowUpRight className="h-3 w-3" />
-                </a>
               </article>
             ))}
           </div>

@@ -156,7 +156,7 @@ const es: Record<TranslationKey, string> = {
   'marketing.disconnect': 'Desconectar',
   'marketing.dashboard': 'Panel',
   'marketing.footerDescription':
-    'El puente entre las cripto y tu cuenta bancaria. Tu cliente paga global, tú recibes local. Sobre la red Stellar.',
+    'El puente entre crypto y tu cuenta bancaria. Tu cliente paga global, vos recibís local. Sobre la red Stellar.',
   'marketing.availableWorldwide': 'Disponible globalmente en la red Stellar',
   'marketing.product': 'Producto',
   'marketing.company': 'Empresa',
