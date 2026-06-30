@@ -79,6 +79,7 @@ const COPY: Record<Language, {
   openAmountPlaceholder: string;
   expiration: string;
   defaultDirectTitle: string;
+  noExpiryHint: string;
 }> = {
   en: {
     failedCreateInvoice: 'Failed to create invoice',
@@ -141,6 +142,7 @@ const COPY: Record<Language, {
     openAmountPlaceholder: 'Payer decides',
     expiration: 'Expiration',
     defaultDirectTitle: 'Payment request',
+    noExpiryHint: 'Leave blank for no expiration',
   },
   es: {
     failedCreateInvoice: 'No se pudo crear la factura',
@@ -203,6 +205,7 @@ const COPY: Record<Language, {
     openAmountPlaceholder: 'El pagador decide',
     expiration: 'Vencimiento',
     defaultDirectTitle: 'Solicitud de pago',
+    noExpiryHint: 'Déjalo en blanco para que no expire',
   },
   pt: {
     failedCreateInvoice: 'Falha ao criar fatura',
@@ -265,6 +268,7 @@ const COPY: Record<Language, {
     openAmountPlaceholder: 'O pagador decide',
     expiration: 'Validade',
     defaultDirectTitle: 'Solicitação de pagamento',
+    noExpiryHint: 'Deixe em branco para não expirar',
   },
 };
 
@@ -518,6 +522,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
               <div>
                 <label className="label">{copy.expiration}</label>
                 <input type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                <p className="mt-1 text-[11px] text-ink-4">{copy.noExpiryHint}</p>
               </div>
             </div>
 
@@ -636,6 +641,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
                 <div>
                   <label className="label">{copy.dueDate}</label>
                   <input type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                  <p className="mt-1 text-[11px] text-ink-4">{copy.noExpiryHint}</p>
                 </div>
               </div>
 
