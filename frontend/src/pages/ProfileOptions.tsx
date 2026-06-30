@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Building2, Copy, LogOut, Save, Settings2, UserCircle2 } from 'lucide-react';
+import { Building2, Copy, LogOut, Save, Settings2, ShieldCheck, UserCircle2 } from 'lucide-react';
 import LanguageToggle from '../components/LanguageToggle';
-import NetworkToggle from '../components/NetworkToggle';
 import ThemeToggle from '../components/ThemeToggle';
+import KycGate from '../components/Kyc/KycGate';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import { useWalletStore } from '../store/walletStore';
@@ -46,6 +46,8 @@ const COPY: Record<
     saved: string;
     saveError: string;
     optional: string;
+    kycTitle: string;
+    kycDesc: string;
   }
 > = {
   en: {
@@ -82,6 +84,8 @@ const COPY: Record<
     saved: 'Business profile saved',
     saveError: 'Failed to save profile',
     optional: 'Optional',
+    kycTitle: 'Identity verification',
+    kycDesc: 'Required to receive fiat (Bre-B) payouts. Crypto payouts need no verification.',
   },
   es: {
     title: 'Perfil y opciones',
@@ -117,6 +121,8 @@ const COPY: Record<
     saved: 'Perfil de negocio guardado',
     saveError: 'No se pudo guardar el perfil',
     optional: 'Opcional',
+    kycTitle: 'Verificación de identidad',
+    kycDesc: 'Requerida para recibir pagos en fiat (Bre-B). Los pagos en cripto no requieren verificación.',
   },
   pt: {
     title: 'Perfil e opcoes',
@@ -152,6 +158,8 @@ const COPY: Record<
     saved: 'Perfil de negocio salvo',
     saveError: 'Falha ao salvar o perfil',
     optional: 'Opcional',
+    kycTitle: 'Verificação de identidade',
+    kycDesc: 'Necessária para receber pagamentos em fiat (Bre-B). Pagamentos em cripto não exigem verificação.',
   },
 };
 
@@ -334,6 +342,16 @@ export default function ProfileOptions() {
         </div>
       </div>
 
+      {/* Merchant KYC — proactively verify so fiat (Bre-B) links can be created */}
+      <div className="card p-5">
+        <div className="mb-1 flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold text-ink-0">{copy.kycTitle}</h3>
+        </div>
+        <p className="mb-1 text-xs text-ink-3">{copy.kycDesc}</p>
+        <KycGate active />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="card p-5">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink-0">
@@ -373,7 +391,6 @@ export default function ProfileOptions() {
           <div className="flex flex-wrap items-center gap-2">
             <LanguageToggle />
             <ThemeToggle />
-            <NetworkToggle />
           </div>
         </div>
       </div>

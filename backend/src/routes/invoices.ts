@@ -8,6 +8,7 @@ import {
   requireWallet,
   createInvoiceSchema,
 } from '../middleware/validation';
+import { requireKycForFiat } from '../middleware/requireKyc';
 import { InvoiceStatus } from '@prisma/client';
 import { log } from '../utils/logger';
 
@@ -36,6 +37,7 @@ router.post(
   requireWallet,
   createInvoiceLimiter,
   validateBody(createInvoiceSchema),
+  requireKycForFiat, // fiat (Bre-B) payouts require a verified merchant; crypto passes through
   async (req: Request, res: Response) => {
     try {
       const walletAddress = req.walletAddress as string;

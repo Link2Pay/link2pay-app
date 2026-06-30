@@ -5,6 +5,7 @@ import { createInvoice, getBusinessProfile } from '../../services/api';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
 import { useNetworkStore } from '../../store/networkStore';
+import KycGate from '../Kyc/KycGate';
 import type { Currency, InvoiceType } from '../../types';
 import type { Language } from '../../i18n/translations';
 
@@ -80,6 +81,7 @@ const COPY: Record<Language, {
   expiration: string;
   defaultDirectTitle: string;
   noExpiryHint: string;
+  kycRequiredError: string;
 }> = {
   en: {
     failedCreateInvoice: 'Failed to create invoice',
@@ -143,6 +145,7 @@ const COPY: Record<Language, {
     expiration: 'Expiration',
     defaultDirectTitle: 'Payment request',
     noExpiryHint: 'Leave blank for no expiration',
+    kycRequiredError: 'Verify your identity to create a fiat (Bre-B) payment link.',
   },
   es: {
     failedCreateInvoice: 'No se pudo crear la factura',
@@ -206,6 +209,7 @@ const COPY: Record<Language, {
     expiration: 'Vencimiento',
     defaultDirectTitle: 'Solicitud de pago',
     noExpiryHint: 'Déjalo en blanco para que no expire',
+    kycRequiredError: 'Verifica tu identidad para crear un link de pago en fiat (Bre-B).',
   },
   pt: {
     failedCreateInvoice: 'Falha ao criar fatura',
@@ -269,6 +273,7 @@ const COPY: Record<Language, {
     expiration: 'Validade',
     defaultDirectTitle: 'Solicitação de pagamento',
     noExpiryHint: 'Deixe em branco para não expirar',
+    kycRequiredError: 'Verifique sua identidade para criar um link de pagamento em fiat (Bre-B).',
   },
 };
 
@@ -303,6 +308,9 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   const [currency, setCurrency] = useState<Currency>('USDC');
   const [payoutMethod, setPayoutMethod] = useState<'CRYPTO' | 'BRE_B'>('CRYPTO');
   const [payoutAlias, setPayoutAlias] = useState('');
+  // Cleared to create a fiat (Bre-B) invoice: verified merchant, or gate disabled.
+  // Crypto invoices ignore this entirely.
+  const [kycVerified, setKycVerified] = useState(false);
   const [taxRate, setTaxRate] = useState<string>('');
   const [dueDate, setDueDate] = useState('');
 
@@ -369,6 +377,13 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!publicKey) return;
+
+    // Fiat (Bre-B) payouts require a verified merchant. Crypto has no gate.
+    if (payoutMethod === 'BRE_B' && !kycVerified) {
+      setError(copy.kycRequiredError);
+      toast.error(copy.kycRequiredError);
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
@@ -476,7 +491,8 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
             value={payoutAlias}
             onChange={(e) => setPayoutAlias(e.target.value)}
           />
-          <p className="mt-1 text-2xs text-warning">Simulated Bre-B settlement (testnet demo)</p>
+          <p className="mt-1 text-2xs text-warning">Simulated Bre-B settlement (demo)</p>
+          <KycGate active={payoutMethod === 'BRE_B'} onVerifiedChange={setKycVerified} />
         </div>
       )}
     </div>
@@ -536,6 +552,8 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
               {copy.openAmountLabel}
             </label>
             {isOpenAmount && <p className="text-2xs text-ink-3">{copy.openAmountHint}</p>}
+
+            <div className="border-t border-surface-3 pt-4">{settlementSection}</div>
           </div>
         </section>
       )}
@@ -749,7 +767,11 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
         <button type="button" onClick={() => navigate(-1)} className="btn-secondary w-full sm:w-auto">
           {copy.cancel}
         </button>
-        <button type="submit" disabled={isSubmitting} className="btn-primary w-full sm:w-auto">
+        <button
+          type="submit"
+          disabled={isSubmitting || (payoutMethod === 'BRE_B' && !kycVerified)}
+          className="btn-primary w-full sm:w-auto"
+        >
           {isSubmitting ? (
             <span className="flex items-center gap-2">
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">

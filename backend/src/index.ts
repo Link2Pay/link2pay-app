@@ -11,6 +11,7 @@ import profileRoutes from './routes/profile';
 import authRoutes from './routes/auth';
 import priceRoutes from './routes/prices';
 import offrampRoutes from './routes/offramp';
+import kycRoutes from './routes/kyc';
 import { watcherService } from './services/watcherService';
 
 const app = express();
@@ -111,7 +112,16 @@ app.use('/api/', generalLimiter);
 app.use('/api/payments/*/pay-intent', payIntentLimiter);
 
 // ─── Body Parsing ───────────────────────────────────────────────────
-app.use(express.json({ limit: '1mb' }));
+// Capture the raw body so signed webhooks (e.g. KYC provider callbacks) can be
+// verified via HMAC over the exact bytes received.
+app.use(
+  express.json({
+    limit: '1mb',
+    verify: (req, _res, buf) => {
+      (req as typeof req & { rawBody?: Buffer }).rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 
 // ─── Routes ─────────────────────────────────────────────────────────
@@ -146,6 +156,9 @@ app.use('/api/clients', clientRoutes);
 
 // Business profile routes
 app.use('/api/profile', profileRoutes);
+
+// Merchant KYC routes (seller onboarding gate for fiat off-ramp)
+app.use('/api/kyc', kycRoutes);
 
 // Off-ramp routes (Bre-B)
 app.use('/api/invoices', offrampRoutes);

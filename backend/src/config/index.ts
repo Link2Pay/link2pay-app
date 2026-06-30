@@ -83,6 +83,20 @@ const envSchema = z.object({
 
   // Privy social login — required to accept POST /api/auth/privy-session
   PRIVY_APP_ID: z.string().optional(),
+
+  // ─── Merchant KYC (seller onboarding gate) ──────────────────────────────
+  // Verifies the seller before a wallet may create invoices. 'mock' (default)
+  // simulates verification with no external dependency; 'didit' uses the real
+  // Didit hosted flow (set DIDIT_API_KEY to activate).
+  KYC_PROVIDER: z.enum(['mock', 'didit']).default('mock'),
+  // When false, requireKyc becomes a passthrough (gate disabled). Default on.
+  KYC_ENFORCED: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((v) => v === 'true'),
+  DIDIT_API_BASE: z.string().url().default('https://verification.didit.me'),
+  DIDIT_API_KEY: z.string().optional(),
+  DIDIT_WEBHOOK_SECRET: z.string().optional(),
 });
 
 const parseResult = envSchema.safeParse(process.env);
@@ -139,6 +153,16 @@ export const config = {
   },
 
   privyAppId: env.PRIVY_APP_ID ?? null,
+
+  kyc: {
+    provider: env.KYC_PROVIDER,
+    enforced: env.KYC_ENFORCED,
+    didit: {
+      apiBase: env.DIDIT_API_BASE,
+      apiKey: env.DIDIT_API_KEY,
+      webhookSecret: env.DIDIT_WEBHOOK_SECRET,
+    },
+  },
 } as const;
 
 // Network configurations for both testnet and mainnet

@@ -224,6 +224,45 @@ export async function cancelInvoice(
   );
 }
 
+// ─── Merchant KYC API ─────────────────────────────────────────────
+// Gates fiat (Bre-B) off-ramp invoices on seller identity verification.
+// Crypto invoices require none of this.
+
+export type KycStatusValue = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+
+export interface KycStatusView {
+  status: KycStatusValue;
+  provider: string | null;
+  verifiedAt: string | null;
+  enforced: boolean;
+}
+
+export interface StartKycResult {
+  status: KycStatusValue;
+  provider: string;
+  ref?: string;
+  verificationUrl?: string;
+}
+
+export async function getKycStatus(walletAddress: string): Promise<KycStatusView> {
+  return request<KycStatusView>('/kyc/status', {}, walletAddress);
+}
+
+export async function startKyc(walletAddress: string): Promise<StartKycResult> {
+  return request<StartKycResult>('/kyc/start', { method: 'POST' }, walletAddress);
+}
+
+export async function completeMockKyc(
+  walletAddress: string,
+  approve = true
+): Promise<KycStatusView> {
+  return request<KycStatusView>(
+    '/kyc/mock/complete',
+    { method: 'POST', body: JSON.stringify({ approve }) },
+    walletAddress
+  );
+}
+
 export async function getDashboardStats(
   walletAddress: string,
   options?: { excludePreview?: boolean; networkPassphrase?: string }

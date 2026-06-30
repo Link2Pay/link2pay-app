@@ -49,6 +49,16 @@ enum InvoiceType {
   SERVICE_INVOICE
 }
 
+// Merchant (seller) identity verification, gated at signup before a wallet
+// may create invoices. The off-ramp payer's KYC is separate — that is the
+// anchor's responsibility, handled in its SEP-24 interactive flow.
+enum KycStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
 model Invoice {
   id            String        @id @default(cuid())
   invoiceNumber String        @unique @map("invoice_number")
@@ -172,6 +182,13 @@ model BusinessProfile {
   defaultCurrency     Currency     @default(USDC) @map("default_currency")
   defaultPayoutMethod PayoutMethod @default(CRYPTO) @map("default_payout_method")
   defaultPayoutAlias  String?      @map("default_payout_alias")
+
+  // Merchant onboarding KYC — a wallet must reach VERIFIED before it can
+  // create invoices (enforced by the requireKyc middleware).
+  kycStatus     KycStatus @default(UNVERIFIED) @map("kyc_status")
+  kycProvider   String?   @map("kyc_provider")
+  kycRef        String?   @map("kyc_ref")
+  kycVerifiedAt DateTime? @map("kyc_verified_at")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
