@@ -75,6 +75,7 @@ export interface Invoice {
   anchorTxId?: string | null;
   receiptTxHash?: string | null;
   invoiceType?: InvoiceType | null;
+  isOpenAmount?: boolean;
   lineItems: LineItem[];
 }
 
@@ -114,6 +115,7 @@ export interface PublicInvoice {
   quoteBuyAmount?: string | null;
   receiptTxHash?: string | null;
   invoiceType?: InvoiceType | null;
+  isOpenAmount?: boolean;
   lineItems: {
     description: string;
     quantity: string;
@@ -149,6 +151,7 @@ export interface CreateInvoiceData {
   payoutMethod?: 'CRYPTO' | 'BRE_B';
   payoutAlias?: string;
   invoiceType?: InvoiceType;
+  isOpenAmount?: boolean;
   lineItems: { description: string; quantity: number; rate: number }[];
 }
 

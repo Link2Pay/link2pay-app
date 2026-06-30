@@ -314,14 +314,18 @@ export async function saveBusinessProfile(
 export async function createPayIntent(
   invoiceId: string,
   senderPublicKey?: string | null,
-  networkPassphraseOverride?: string
+  networkPassphraseOverride?: string,
+  amount?: number | string
 ): Promise<PayIntentResponse> {
   const networkPassphrase = networkPassphraseOverride || useNetworkStore.getState().networkPassphrase;
-  const payload: { networkPassphrase: string; senderPublicKey?: string } = {
+  const payload: { networkPassphrase: string; senderPublicKey?: string; amount?: number | string } = {
     networkPassphrase,
   };
   if (senderPublicKey) {
     payload.senderPublicKey = senderPublicKey;
+  }
+  if (amount !== undefined && amount !== '') {
+    payload.amount = amount;
   }
   return request<PayIntentResponse>(`/payments/${invoiceId}/pay-intent`, {
     method: 'POST',

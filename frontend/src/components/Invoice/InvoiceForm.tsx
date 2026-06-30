@@ -74,6 +74,11 @@ const COPY: Record<Language, {
   phonePlaceholder: string;
   clientTaxId: string;
   prefillHint: string;
+  openAmountLabel: string;
+  openAmountHint: string;
+  openAmountPlaceholder: string;
+  expiration: string;
+  defaultDirectTitle: string;
 }> = {
   en: {
     failedCreateInvoice: 'Failed to create invoice',
@@ -131,6 +136,11 @@ const COPY: Record<Language, {
     phonePlaceholder: '+57 ...',
     clientTaxId: 'Client Tax ID',
     prefillHint: 'Prefilled from your business profile',
+    openAmountLabel: 'Let the payer enter the amount',
+    openAmountHint: 'No fixed amount — the payer chooses how much to send on the payment page.',
+    openAmountPlaceholder: 'Payer decides',
+    expiration: 'Expiration',
+    defaultDirectTitle: 'Payment request',
   },
   es: {
     failedCreateInvoice: 'No se pudo crear la factura',
@@ -188,6 +198,11 @@ const COPY: Record<Language, {
     phonePlaceholder: '+57 ...',
     clientTaxId: 'ID fiscal del cliente',
     prefillHint: 'Rellenado desde tu perfil de negocio',
+    openAmountLabel: 'Que el pagador ingrese el monto',
+    openAmountHint: 'Sin monto fijo — el pagador elige cuánto enviar en la página de pago.',
+    openAmountPlaceholder: 'El pagador decide',
+    expiration: 'Vencimiento',
+    defaultDirectTitle: 'Solicitud de pago',
   },
   pt: {
     failedCreateInvoice: 'Falha ao criar fatura',
@@ -245,6 +260,11 @@ const COPY: Record<Language, {
     phonePlaceholder: '+55 ...',
     clientTaxId: 'ID fiscal do cliente',
     prefillHint: 'Preenchido do seu perfil de negocio',
+    openAmountLabel: 'Deixar o pagador inserir o valor',
+    openAmountHint: 'Sem valor fixo — o pagador escolhe quanto enviar na página de pagamento.',
+    openAmountPlaceholder: 'O pagador decide',
+    expiration: 'Validade',
+    defaultDirectTitle: 'Solicitação de pagamento',
   },
 };
 
@@ -284,6 +304,9 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
 
   // DIRECT_PAYMENT: single amount field
   const [directAmount, setDirectAmount] = useState<string>('');
+  // DIRECT_PAYMENT: when true the amount is left open and the payer enters it
+  // on the payment page (no fixed total at create time).
+  const [isOpenAmount, setIsOpenAmount] = useState(false);
 
   // BUSINESS/SERVICE: line items
   const [lineItems, setLineItems] = useState<LineItemForm[]>([{ description: '', quantity: 1, rate: 0 }]);
@@ -332,7 +355,9 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   }, [publicKey]);
 
   const subtotal = isDirect
-    ? parseFloat(directAmount) || 0
+    ? isOpenAmount
+      ? 0
+      : parseFloat(directAmount) || 0
     : lineItems.reduce((sum, item) => sum + item.quantity * item.rate, 0);
   const taxAmount = taxRate ? subtotal * (parseFloat(taxRate) / 100) : 0;
   const total = subtotal + taxAmount;
@@ -359,8 +384,14 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
         return;
       }
 
+      // Direct links auto-title when left blank; open-amount links carry no
+      // line items (the payer's amount is persisted at pay time).
+      const openAmount = isDirect && isOpenAmount;
+      const resolvedTitle = isDirect ? title.trim() || copy.defaultDirectTitle : title;
       const resolvedLineItems = isDirect
-        ? [{ description: title, quantity: 1, rate: parseFloat(directAmount) || 0 }]
+        ? openAmount
+          ? []
+          : [{ description: resolvedTitle, quantity: 1, rate: parseFloat(directAmount) || 0 }]
         : lineItems.filter((item) => item.description && item.rate > 0);
 
       const invoice = await createInvoice(
@@ -377,7 +408,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
           clientEmail: clientEmail.trim() || (isDirect ? `payer@link2pay.io` : clientEmail),
           clientCompany: clientCompany || undefined,
           clientTaxId: clientTaxId || undefined,
-          title,
+          title: resolvedTitle,
           description: description || undefined,
           notes: notes || undefined,
           currency,
@@ -387,6 +418,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
           dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
           networkPassphrase,
           invoiceType,
+          isOpenAmount: openAmount || undefined,
           lineItems: resolvedLineItems,
         },
         publicKey
@@ -452,95 +484,55 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
         <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
       )}
 
-      {/* ── DIRECT PAYMENT layout ── */}
+      {/* ── DIRECT PAYMENT layout (minimal: amount + currency + expiration) ── */}
       {isDirect && (
-        <>
-          <section className="card p-5 sm:p-6">
-            <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.yourInformation}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="label">{copy.name}</label>
-                <input type="text" className="input" placeholder={copy.yourNamePlaceholder}
-                  value={freelancerName} onChange={(e) => setFreelancerName(e.target.value)} />
-              </div>
-              <div>
-                <label className="label">{copy.company}</label>
-                <input type="text" className="input" placeholder={copy.optional}
-                  value={freelancerCompany} onChange={(e) => setFreelancerCompany(e.target.value)} />
-              </div>
-            </div>
-            <div className="mt-3">
-              <label className="label">{copy.walletAddress}</label>
-              <div className="input bg-surface-1 font-mono text-xs text-ink-2 cursor-default break-all">{publicKey}</div>
-            </div>
-          </section>
-
-          <section className="card p-5 sm:p-6">
-            <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.paymentDetails}</h3>
-            <div className="space-y-4">
+        <section className="card p-5 sm:p-6">
+          <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.paymentDetails}</h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
                 <label className="label">
-                  {copy.title} <span className="text-danger">*</span>
+                  {copy.amount}
+                  {!isOpenAmount && <span className="text-danger"> *</span>}
                 </label>
-                <input type="text" className="input" placeholder={copy.titleDirectPlaceholder}
-                  value={title} onChange={(e) => setTitle(e.target.value)} required />
+                <input
+                  type="number"
+                  className={`input ${isOpenAmount ? 'opacity-50' : ''}`}
+                  min="0.01"
+                  step="0.01"
+                  placeholder={isOpenAmount ? copy.openAmountPlaceholder : copy.amountPlaceholder}
+                  value={isOpenAmount ? '' : directAmount}
+                  onChange={(e) => setDirectAmount(e.target.value)}
+                  disabled={isOpenAmount}
+                  required={!isOpenAmount}
+                />
               </div>
-
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="label">
-                    {copy.amount} <span className="text-danger">*</span>
-                  </label>
-                  <input type="number" className="input" min="0.01" step="0.01"
-                    placeholder={copy.amountPlaceholder}
-                    value={directAmount} onChange={(e) => setDirectAmount(e.target.value)} required />
-                </div>
-                <div>
-                  <label className="label">{copy.currency}</label>
-                  <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value as Currency)}>
-                    <option value="USDC">USDC</option>
-                    <option value="EURC">EURC</option>
-                    <option value="XLM">XLM</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="label">{copy.dueDate}</label>
-                  <input type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-                </div>
-              </div>
-
-              {settlementSection}
-
               <div>
-                <label className="label">{copy.description}</label>
-                <textarea className="input min-h-[60px] resize-y" placeholder={copy.descriptionPlaceholder}
-                  value={description} onChange={(e) => setDescription(e.target.value)} />
+                <label className="label">{copy.currency}</label>
+                <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value as Currency)}>
+                  <option value="USDC">USDC</option>
+                  <option value="EURC">EURC</option>
+                  <option value="XLM">XLM</option>
+                </select>
+              </div>
+              <div>
+                <label className="label">{copy.expiration}</label>
+                <input type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
               </div>
             </div>
-          </section>
 
-          <section className="card p-5 sm:p-6">
-            <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.clientOptional}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="label">{copy.clientName}</label>
-                <input type="text" className="input" placeholder={copy.clientNamePlaceholder}
-                  value={clientName} onChange={(e) => setClientName(e.target.value)} />
-              </div>
-              <div>
-                <label className="label">{copy.clientEmail}</label>
-                <input type="email" className="input" placeholder={copy.clientEmailPlaceholder}
-                  value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} />
-              </div>
-            </div>
-          </section>
-
-          <section className="card p-5 sm:p-6">
-            <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.notes}</h3>
-            <textarea className="input min-h-[80px] resize-y" placeholder={copy.notesPlaceholder}
-              value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </section>
-        </>
+            <label className="flex items-center gap-2 text-sm text-ink-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-surface-3"
+                checked={isOpenAmount}
+                onChange={(e) => setIsOpenAmount(e.target.checked)}
+              />
+              {copy.openAmountLabel}
+            </label>
+            {isOpenAmount && <p className="text-[11px] text-ink-3">{copy.openAmountHint}</p>}
+          </div>
+        </section>
       )}
 
       {/* ── BUSINESS / SERVICE layout ── */}

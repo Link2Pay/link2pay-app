@@ -113,6 +113,8 @@ export default function PaymentFlow() {
   const [freighterNetwork, setFreighterNetwork] = useState<string | null>(null);
   const [hasNetworkMismatch, setHasNetworkMismatch] = useState(false);
   const [showMismatchDetails, setShowMismatchDetails] = useState(false);
+  // Open-amount invoices: the payer types the amount here at pay time.
+  const [payAmount, setPayAmount] = useState('');
   const stepLabels = CHECKOUT_STEP_LABELS[language];
 
   useEffect(() => {
@@ -277,6 +279,12 @@ export default function PaymentFlow() {
       return;
     }
 
+    // Open-amount links require the payer to enter a positive amount.
+    if (invoice.isOpenAmount && !(parseFloat(payAmount) > 0)) {
+      setError(t('payment.enterAmountPrompt'));
+      return;
+    }
+
     // On desktop, prefer in-page Freighter signing over SEP-7 deep links.
     // This avoids "no handler registered" failures for web+stellar URIs.
     if (!canSignInPage && !mobileDevice) {
@@ -294,7 +302,8 @@ export default function PaymentFlow() {
       const payIntent = await createPayIntent(
         id,
         canSignInPage ? publicKey : undefined,
-        invoice.networkPassphrase
+        invoice.networkPassphrase,
+        invoice.isOpenAmount ? payAmount : undefined
       );
 
       // When no in-page wallet is connected, use SEP-7 deep link flow.
@@ -535,6 +544,13 @@ export default function PaymentFlow() {
                 </div>
               </div>
 
+              {invoice.isOpenAmount ? (
+                <div className="border-b border-surface-3 bg-stellar-50 p-4 sm:p-6">
+                  <p className="text-sm font-semibold text-stellar-700">{t('payment.openAmountTitle')}</p>
+                  <p className="mt-1 text-xs text-stellar-600">{t('payment.openAmountSubtitle')}</p>
+                </div>
+              ) : (
+              <>
               <div className="border-b border-surface-3 p-4 sm:p-6">
                 <div className="space-y-2">
                   {invoice.lineItems.map((item, index) => (
@@ -579,6 +595,8 @@ export default function PaymentFlow() {
                   </div>
                 </div>
               </div>
+              </>
+              )}
             </>
           )}
 
@@ -612,6 +630,29 @@ export default function PaymentFlow() {
 
             {invoice.payoutMethod !== 'BRE_B' && step === 'view' && (
               <div className="space-y-4">
+                {invoice.isOpenAmount && (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-ink-3">
+                      {t('payment.enterAmount')}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        inputMode="decimal"
+                        autoFocus
+                        value={payAmount}
+                        onChange={(e) => setPayAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="input pr-16 text-lg font-mono"
+                      />
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-ink-3">
+                        {invoice.currency}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 {publicKey && (
                   <div className="text-xs text-ink-3 text-center">
                     {t('payment.payingFrom')}{' '}
@@ -622,10 +663,16 @@ export default function PaymentFlow() {
                 )}
                 <button
                   onClick={handlePay}
-                  disabled={hasNetworkMismatch}
-                  className={`w-full py-3 text-base ${hasNetworkMismatch ? 'btn-disabled cursor-not-allowed' : 'btn-primary'}`}
+                  disabled={hasNetworkMismatch || (invoice.isOpenAmount && !(parseFloat(payAmount) > 0))}
+                  className={`w-full py-3 text-base ${hasNetworkMismatch || (invoice.isOpenAmount && !(parseFloat(payAmount) > 0)) ? 'btn-disabled cursor-not-allowed' : 'btn-primary'}`}
                 >
-                  {hasNetworkMismatch ? 'Payment Blocked - Wrong Network' : t('payment.payAmount', { amount: formatAmount(invoice.total, invoice.currency) })}
+                  {hasNetworkMismatch
+                    ? 'Payment Blocked - Wrong Network'
+                    : invoice.isOpenAmount
+                    ? parseFloat(payAmount) > 0
+                      ? t('payment.payAmount', { amount: formatAmount(payAmount, invoice.currency) })
+                      : t('payment.enterAmountPrompt')
+                    : t('payment.payAmount', { amount: formatAmount(invoice.total, invoice.currency) })}
                 </button>
                 <p className="text-[11px] text-ink-4 text-center">{t('payment.approveTransaction')}</p>
               </div>
