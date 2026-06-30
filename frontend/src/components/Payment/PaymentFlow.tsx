@@ -8,7 +8,6 @@ import WalletConnect from '../Wallet/WalletConnect';
 import OffRampPayment from './OffRampPayment';
 import LanguageToggle from '../LanguageToggle';
 import ThemeToggle from '../ThemeToggle';
-import NetworkToggle from '../NetworkToggle';
 import BrandMark from '../BrandMark';
 import BrandWordmark from '../BrandWordmark';
 import type { PublicInvoice, InvoiceStatus } from '../../types';
@@ -391,7 +390,6 @@ export default function PaymentFlow() {
     <div className="min-h-screen bg-surface-1 p-4 sm:p-6">
       <div className="mx-auto w-full max-w-lg animate-in">
         <div className="mb-4 flex justify-end gap-2">
-          <NetworkToggle />
           <LanguageToggle />
           <ThemeToggle />
         </div>

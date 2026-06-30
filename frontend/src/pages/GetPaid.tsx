@@ -45,7 +45,7 @@ const COPY: Record<
     needItemized: 'Need an itemized request with line items and tax?',
     createLink: 'Create a payment link',
     notConnected: 'Connect your wallet to see your QR.',
-    simulated: 'Simulated Bre-B (testnet demo)',
+    simulated: 'Simulated Bre-B (demo)',
   },
   es: {
     title: 'Cobrar',
@@ -63,7 +63,7 @@ const COPY: Record<
     needItemized: '¿Necesitas una solicitud con items e impuestos?',
     createLink: 'Crear un link de pago',
     notConnected: 'Conecta tu wallet para ver tu QR.',
-    simulated: 'Bre-B simulado (demo testnet)',
+    simulated: 'Bre-B simulado (demo)',
   },
   pt: {
     title: 'Receber',
@@ -81,7 +81,7 @@ const COPY: Record<
     needItemized: 'Precisa de uma solicitacao com itens e impostos?',
     createLink: 'Criar um link de pagamento',
     notConnected: 'Conecte sua wallet para ver seu QR.',
-    simulated: 'Bre-B simulado (demo testnet)',
+    simulated: 'Bre-B simulado (demo)',
   },
 };
 

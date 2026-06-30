@@ -17,7 +17,6 @@ import WalletConnect from './Wallet/WalletConnect';
 import PrivyLogin from './Auth/PrivyLogin';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
-import NetworkToggle from './NetworkToggle';
 import BrandMark from './BrandMark';
 import BrandWordmark from './BrandWordmark';
 import { useI18n } from '../i18n/I18nProvider';
@@ -166,7 +165,6 @@ export default function Layout() {
         <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md">
           <div className="flex flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-6 md:px-8">
             <div className="flex flex-wrap items-center justify-end gap-2">
-              <NetworkToggle compact />
               <LanguageToggle />
               <ThemeToggle />
               {config.privyAppId ? <PrivyLogin /> : <WalletConnect />}
