@@ -60,6 +60,9 @@ const COPY: Record<Language, {
   titlePlaceholder: string;
   descriptionPlaceholder: string;
   serviceDescriptionPlaceholder: string;
+  itemDescriptionPlaceholder: string;
+  titleBusinessPlaceholder: string;
+  descriptionBusinessPlaceholder: string;
   taxPlaceholder: string;
   notesPlaceholder: string;
   networkMismatch: string;
@@ -97,7 +100,7 @@ const COPY: Record<Language, {
     addItem: 'Add Item',
     qty: 'Qty',
     hours: 'Hours',
-    rate: 'Rate',
+    rate: 'Unit price',
     ratePerHour: 'Rate/hr',
     subtotal: 'Subtotal',
     taxRate: 'Tax Rate (%)',
@@ -114,6 +117,9 @@ const COPY: Record<Language, {
     titlePlaceholder: 'Website Development',
     descriptionPlaceholder: 'Project description...',
     serviceDescriptionPlaceholder: 'Service description',
+    itemDescriptionPlaceholder: 'Item or product',
+    titleBusinessPlaceholder: 'Product sale',
+    descriptionBusinessPlaceholder: 'Items, quantities, order details...',
     taxPlaceholder: '0',
     notesPlaceholder: 'Payment terms, additional notes...',
     networkMismatch: 'Network mismatch: You selected {selected} but Freighter wallet is on {freighter}. Please switch your Freighter wallet to {selected}, disconnect and reconnect your wallet.',
@@ -151,7 +157,7 @@ const COPY: Record<Language, {
     addItem: 'Agregar item',
     qty: 'Cant.',
     hours: 'Horas',
-    rate: 'Tarifa',
+    rate: 'Precio unit.',
     ratePerHour: 'Tarifa/hr',
     subtotal: 'Subtotal',
     taxRate: 'Impuesto (%)',
@@ -168,6 +174,9 @@ const COPY: Record<Language, {
     titlePlaceholder: 'Desarrollo web',
     descriptionPlaceholder: 'Descripcion del proyecto...',
     serviceDescriptionPlaceholder: 'Descripcion del servicio',
+    itemDescriptionPlaceholder: 'Articulo o producto',
+    titleBusinessPlaceholder: 'Venta de productos',
+    descriptionBusinessPlaceholder: 'Articulos, cantidades, detalles del pedido...',
     taxPlaceholder: '0',
     notesPlaceholder: 'Terminos de pago, notas adicionales...',
     networkMismatch: 'Red incorrecta: Seleccionaste {selected} pero Freighter esta en {freighter}. Por favor cambia tu wallet Freighter a {selected}, desconecta y reconecta tu wallet.',
@@ -205,7 +214,7 @@ const COPY: Record<Language, {
     addItem: 'Adicionar item',
     qty: 'Qtd.',
     hours: 'Horas',
-    rate: 'Taxa',
+    rate: 'Preço unit.',
     ratePerHour: 'Taxa/hr',
     subtotal: 'Subtotal',
     taxRate: 'Imposto (%)',
@@ -222,6 +231,9 @@ const COPY: Record<Language, {
     titlePlaceholder: 'Desenvolvimento de site',
     descriptionPlaceholder: 'Descricao do projeto...',
     serviceDescriptionPlaceholder: 'Descricao do servico',
+    itemDescriptionPlaceholder: 'Item ou produto',
+    titleBusinessPlaceholder: 'Venda de produtos',
+    descriptionBusinessPlaceholder: 'Itens, quantidades, detalhes do pedido...',
     taxPlaceholder: '0',
     notesPlaceholder: 'Termos de pagamento, notas adicionais...',
     networkMismatch: 'Rede incorreta: Voce selecionou {selected} mas Freighter esta em {freighter}. Por favor, mude sua carteira Freighter para {selected}, desconecte e reconecte sua carteira.',
@@ -617,7 +629,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
                 <label className="label">
                   {copy.title} <span className="text-danger">*</span>
                 </label>
-                <input type="text" className="input" placeholder={copy.titlePlaceholder}
+                <input type="text" className="input" placeholder={isService ? copy.titlePlaceholder : copy.titleBusinessPlaceholder}
                   value={title} onChange={(e) => setTitle(e.target.value)} required />
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -639,7 +651,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
             </div>
             <div>
               <label className="label">{copy.description}</label>
-              <textarea className="input min-h-[80px] resize-y" placeholder={copy.descriptionPlaceholder}
+              <textarea className="input min-h-[80px] resize-y" placeholder={isService ? copy.descriptionPlaceholder : copy.descriptionBusinessPlaceholder}
                 value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
           </section>
@@ -667,7 +679,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
                     <label className="mb-1 block text-[11px] font-medium uppercase tracking-wider text-ink-3 sm:hidden">
                       {copy.description}
                     </label>
-                    <input type="text" className="input" placeholder={copy.serviceDescriptionPlaceholder}
+                    <input type="text" className="input" placeholder={isService ? copy.serviceDescriptionPlaceholder : copy.itemDescriptionPlaceholder}
                       value={item.description} onChange={(e) => updateLineItem(index, 'description', e.target.value)} required />
                   </div>
                   <div className="mt-3 sm:col-span-2 sm:mt-0">
