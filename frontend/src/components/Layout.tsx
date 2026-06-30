@@ -166,16 +166,6 @@ export default function Layout() {
         <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md">
           <div className="flex flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-6 md:px-8">
             <div className="flex flex-wrap items-center justify-end gap-2">
-              {connected && publicKey && (
-                <div className="flex items-center gap-2 rounded-full border border-surface-3 bg-surface-1 px-2 py-1">
-                  <span className="hidden font-mono text-xs text-ink-2 min-[420px]:inline">
-                    {shortenAddress(publicKey)}
-                  </span>
-                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
-                    {profileInitial}
-                  </span>
-                </div>
-              )}
               <NetworkToggle compact />
               <LanguageToggle />
               <ThemeToggle />
