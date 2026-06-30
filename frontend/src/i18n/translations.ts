@@ -38,7 +38,7 @@ const en = {
   'marketing.disconnect': 'Disconnect',
   'marketing.dashboard': 'Dashboard',
   'marketing.footerDescription':
-    'The developer API for instant Stellar payment links. Non-custodial, multi-asset, and production-ready.',
+    'The bridge between crypto and your bank account. Your customer pays global, you receive local. On the Stellar network.',
   'marketing.availableWorldwide': 'Available globally on the Stellar network',
   'marketing.product': 'Product',
   'marketing.company': 'Company',
@@ -156,7 +156,7 @@ const es: Record<TranslationKey, string> = {
   'marketing.disconnect': 'Desconectar',
   'marketing.dashboard': 'Panel',
   'marketing.footerDescription':
-    'La API para links de pago instantáneos en Stellar. No custodial, multi-activo y listo para producción.',
+    'El puente entre las cripto y tu cuenta bancaria. Tu cliente paga global, tú recibes local. Sobre la red Stellar.',
   'marketing.availableWorldwide': 'Disponible globalmente en la red Stellar',
   'marketing.product': 'Producto',
   'marketing.company': 'Empresa',
@@ -272,7 +272,7 @@ const pt: Record<TranslationKey, string> = {
   'marketing.disconnect': 'Desconectar',
   'marketing.dashboard': 'Painel',
   'marketing.footerDescription':
-    'A API para links de pagamento instantâneos em Stellar. Non-custodial, multi-ativo e pronto para produção.',
+    'A ponte entre as cripto e a sua conta bancária. Seu cliente paga global, você recebe local. Na rede Stellar.',
   'marketing.availableWorldwide': 'Disponível globalmente na rede Stellar',
   'marketing.product': 'Produto',
   'marketing.company': 'Empresa',
