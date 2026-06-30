@@ -1,5 +1,5 @@
 import express from 'express';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { config } from './config';
@@ -60,29 +60,26 @@ app.use(
     permittedCrossDomainPolicies: false,
   })
 );
-const localDevOrigins = [
-  'http://localhost:5173',
-  'http://localhost:4173',
-  'http://localhost:3000',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:4173',
-  'http://127.0.0.1:3000',
-  'https://localhost:5173',
-  'https://localhost:4173',
-  'https://localhost:3000',
-  'https://127.0.0.1:5173',
-  'https://127.0.0.1:4173',
-  'https://127.0.0.1:3000',
-];
+// Production locks CORS to the configured FRONTEND_URL. In development we allow
+// any localhost / 127.0.0.1 origin regardless of port, because the Vite dev
+// server frequently auto-bumps its port (5173 -> 5174 -> 5180 ...) and chasing
+// it via env every time is brittle.
+const localhostOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
-const allowedOrigins =
+const corsOrigin: CorsOptions['origin'] =
   config.nodeEnv === 'production'
     ? [config.frontendUrl]
-    : [config.frontendUrl, ...localDevOrigins];
+    : (origin, callback) => {
+        if (!origin || origin === config.frontendUrl || localhostOrigin.test(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error(`Not allowed by CORS: ${origin}`));
+        }
+      };
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: corsOrigin,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',
