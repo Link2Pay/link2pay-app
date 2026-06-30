@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
-import HeroQuickLink from '../components/marketing/HeroQuickLink';
+import HeroPaymentMockup from '../components/marketing/HeroPaymentMockup';
 
 const FLOW_STEP_ICONS = [Wallet, FileText, Send] as const;
 const BENEFIT_ICONS = [Zap, DollarSign, Globe2, ShieldCheck] as const;
@@ -68,7 +68,7 @@ const COPY: Record<Language, HomeCopy> = {
     heroSecondaryCta: 'SDK + Docs',
     heroSecondaryNote: 'Integration guides and API reference coming soon',
     heroSecondaryBadge: 'Soon',
-    heroFootnote: 'Start free on Testnet and switch to Mainnet when you are ready.',
+    heroFootnote: 'Start free and go live on Stellar whenever you are ready.',
     howTitle: 'How teams launch in one afternoon',
     howSubtitle: 'Connect wallet, generate a link, and confirm payment with real-time status.',
     benefitsTitle: 'Why teams switch to Link2Pay',
@@ -99,7 +99,7 @@ const COPY: Record<Language, HomeCopy> = {
     heroSecondaryCta: 'SDK + Docs',
     heroSecondaryNote: 'Guías de integración y referencia API muy pronto',
     heroSecondaryBadge: 'Pronto',
-    heroFootnote: 'Empieza gratis en Testnet y pasa a Mainnet cuando estés listo.',
+    heroFootnote: 'Empieza gratis y lanza en vivo en Stellar cuando estés listo.',
     howTitle: 'Cómo lanzar en una tarde',
     howSubtitle: 'Conecta wallet, genera el link y confirma el pago con estado en tiempo real.',
     benefitsTitle: 'Por qué los equipos eligen Link2Pay',
@@ -130,7 +130,7 @@ const COPY: Record<Language, HomeCopy> = {
     heroSecondaryCta: 'SDK + Docs',
     heroSecondaryNote: 'Guias de integração e referência de API em breve',
     heroSecondaryBadge: 'Em breve',
-    heroFootnote: 'Comece grátis na Testnet e mude para Mainnet quando estiver pronto.',
+    heroFootnote: 'Comece grátis e entre no ar na Stellar quando estiver pronto.',
     howTitle: 'Como lançar em uma tarde',
     howSubtitle: 'Conecte a wallet, gere o link e confirme o pagamento em tempo real.',
     benefitsTitle: 'Por que os times escolhem Link2Pay',
@@ -526,14 +526,14 @@ export default function Home() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_at_top,_hsl(175_75%_45%_/_0.12),transparent_68%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(ellipse_at_bottom,_hsl(175_75%_45%_/_0.06),transparent_68%)]" />
         <div className="relative mx-auto max-w-6xl px-4 pb-[clamp(2.75rem,7svh,5rem)] pt-[clamp(2.75rem,8svh,6rem)] sm:px-6 sm:pb-[clamp(3rem,8svh,5.5rem)] sm:pt-[clamp(3.25rem,10svh,6.5rem)]">
-          <div className="flex flex-col items-center gap-16">
-            <div className="text-center">
+          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-12 xl:gap-16">
+            <div className="text-center lg:text-left">
               <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary animate-fade-in">
                 <Sparkles className="h-3.5 w-3.5" />
                 {copy.badge}
               </span>
               <h1
-                className="mt-8 text-4xl font-semibold tracking-tight leading-[1.04] text-foreground md:text-6xl md:leading-[1.04] lg:text-7xl lg:leading-[1.02] animate-slide-up"
+                className="mt-8 text-4xl font-semibold tracking-tight leading-[1.04] text-foreground md:text-6xl md:leading-[1.04] lg:text-4xl lg:leading-[1.08] xl:text-5xl animate-slide-up"
                 style={{ animationDelay: '0.08s' }}
               >
                 <span className="block">
@@ -542,13 +542,13 @@ export default function Home() {
                 <span className="block">{copy.heroTitleEnd}</span>
               </h1>
               <p
-                className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg animate-slide-up"
+                className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg animate-slide-up lg:mx-0"
                 style={{ animationDelay: '0.16s' }}
               >
                 {copy.heroDescription}
               </p>
               <div
-                className="mt-10 flex flex-wrap items-center justify-center gap-4 animate-slide-up"
+                className="mt-10 flex flex-wrap items-center justify-center gap-4 animate-slide-up lg:justify-start"
                 style={{ animationDelay: '0.24s' }}
               >
                 <Link to="/app" className="btn-primary px-6 py-3.5 text-sm">
@@ -571,7 +571,7 @@ export default function Home() {
               <p className="mt-4 text-xs text-muted-foreground animate-slide-up" style={{ animationDelay: '0.32s' }}>
                 {copy.heroFootnote}
               </p>
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-2xs uppercase tracking-[0.24em] text-muted-foreground">
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-2xs uppercase tracking-[0.24em] text-muted-foreground lg:justify-start">
                 <span className="inline-flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
                   {copy.heroTag1}
@@ -593,7 +593,7 @@ export default function Home() {
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)_/_0.2),transparent_60%)]" />
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,_hsl(var(--primary)_/_0.07)_1px,transparent_1px),linear-gradient(180deg,_hsl(var(--primary)_/_0.05)_1px,transparent_1px)] bg-[size:48px_48px] opacity-60" />
                 <div className="relative">
-                  <HeroQuickLink />
+                  <HeroPaymentMockup />
                 </div>
               </div>
             </div>

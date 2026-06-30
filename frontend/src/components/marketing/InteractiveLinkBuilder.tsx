@@ -111,7 +111,7 @@ const TTL_OPTIONS = [
 
 const QUICK_AMOUNTS = [49, 199, 499] as const;
 
-const toPositiveAmount = (raw: string, fallback = 1): number => {
+export const toPositiveAmount = (raw: string, fallback = 1): number => {
   const normalized = raw.replace(',', '.').replace(/[^0-9.]/g, '');
   const firstDot = normalized.indexOf('.');
   const clean =
