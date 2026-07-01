@@ -147,8 +147,8 @@ export default function Layout() {
                   <p className="truncate text-sm font-semibold text-foreground">
                     {publicKey ? shortenAddress(publicKey) : 'Link2Pay User'}
                   </p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <span className={`h-1.5 w-1.5 rounded-full ${network === 'testnet' ? 'bg-info' : 'bg-warning'}`} />
+                  <p className={`text-xs flex items-center gap-1 ${network === 'testnet' ? 'text-warning' : 'text-success'}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${network === 'testnet' ? 'bg-warning' : 'bg-success'}`} />
                     {network === 'testnet' ? 'Testnet' : 'Mainnet'}
                   </p>
                 </div>

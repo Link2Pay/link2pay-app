@@ -42,10 +42,17 @@ export const useNetworkStore = create<NetworkState>()(
       version: 2,
       // The network is deployment-fixed (mainnet here, testnet on its own
       // subdomain) — there is no in-app toggle. Always heal any persisted
-      // value back to the origin's resolved network so a stale pre-split
-      // session can never pin the dashboard to the wrong network.
-      migrate: (persisted) => ({
-        ...(persisted as NetworkState),
+      // value back to the origin's resolved network so a stale session can
+      // never pin the dashboard to the wrong network.
+      //
+      // This must be `merge`, not `migrate`: migrate fires only on a version
+      // bump, so a same-version session persisted on a different network (e.g.
+      // an earlier testnet run) would otherwise survive unhealed. `merge` runs
+      // on every hydration, and spreading `resolved` last makes the resolved
+      // network win over whatever was stored.
+      merge: (persisted, current) => ({
+        ...current,
+        ...(persisted as Partial<NetworkState>),
         ...resolved,
       }),
     }
