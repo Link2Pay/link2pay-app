@@ -1,28 +1,34 @@
-import { useEffect, useRef, type ComponentType, type RefObject } from 'react';
-import { Link } from 'react-router-dom';
+import {
+  useEffect,
+  useRef,
+  type ComponentType,
+  type ReactNode,
+  type RefObject,
+} from 'react';
+import { NavLink } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { useI18n } from '../i18n/I18nProvider';
-import { config } from '../config';
 import BrandMark from './BrandMark';
 import BrandWordmark from './BrandWordmark';
-import LanguageToggle from './LanguageToggle';
-import ThemeToggle from './ThemeToggle';
-import WalletConnect from './Wallet/WalletConnect';
-import PrivyLogin from './Auth/PrivyLogin';
 
 export interface MobileNavItem {
   path: string;
   label: string;
-  icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean | 'true' | 'false' }>;
+  icon?: ComponentType<{ className?: string; 'aria-hidden'?: boolean | 'true' | 'false' }>;
+  /** Match the route exactly (used for index routes like "/" or "/dashboard"). */
+  end?: boolean;
 }
 
 interface MobileNavDrawerProps {
   open: boolean;
   onClose: () => void;
-  navItems: MobileNavItem[];
-  isActivePath: (path: string) => boolean;
+  items: MobileNavItem[];
   /** Element to restore focus to when the drawer closes (the hamburger button). */
   triggerRef: RefObject<HTMLElement | null>;
+  /** Accessible label / heading for the drawer. Defaults to the translated "Menu". */
+  title?: string;
+  /** Controls rendered in the drawer footer (e.g. toggles, disconnect). */
+  footer?: ReactNode;
 }
 
 const FOCUSABLE_SELECTOR =
@@ -31,13 +37,15 @@ const FOCUSABLE_SELECTOR =
 export default function MobileNavDrawer({
   open,
   onClose,
-  navItems,
-  isActivePath,
+  items,
   triggerRef,
+  title,
+  footer,
 }: MobileNavDrawerProps) {
   const { t } = useI18n();
   const panelRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const drawerTitle = title ?? t('layout.menu.title');
 
   // Escape to close + lightweight focus trap while the drawer is open.
   useEffect(() => {
@@ -110,7 +118,7 @@ export default function MobileNavDrawer({
         id="mobile-nav-drawer"
         role="dialog"
         aria-modal="true"
-        aria-label={t('layout.menu.title')}
+        aria-label={drawerTitle}
         className={`fixed right-0 top-0 z-50 flex h-full w-[85%] max-w-xs flex-col border-l border-surface-3 bg-surface-1 shadow-modal transition-transform duration-200 ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
@@ -133,42 +141,46 @@ export default function MobileNavDrawer({
         </div>
 
         {/* Nav list */}
-        <nav aria-label={t('layout.menu.title')} className="flex-1 overflow-y-auto px-3 py-4">
+        <nav aria-label={drawerTitle} className="flex-1 overflow-y-auto px-3 py-4">
           <div className="space-y-1">
-            {navItems.map((item) => {
-              const isActive = isActivePath(item.path);
+            {items.map((item) => {
               const Icon = item.icon;
 
               return (
-                <Link
+                <NavLink
                   key={item.path}
                   to={item.path}
+                  end={item.end}
                   onClick={onClose}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
-                    isActive
-                      ? 'bg-sidebar-accent text-primary'
-                      : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
-                  }`}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+                      isActive
+                        ? 'bg-sidebar-accent text-primary'
+                        : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
+                    }`
+                  }
                 >
-                  <Icon
-                    aria-hidden="true"
-                    className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
-                  />
-                  {item.label}
-                </Link>
+                  {({ isActive }) => (
+                    <>
+                      {Icon && (
+                        <Icon
+                          aria-hidden="true"
+                          className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
+                        />
+                      )}
+                      {item.label}
+                    </>
+                  )}
+                </NavLink>
               );
             })}
           </div>
         </nav>
 
-        {/* Controls footer: Language, Theme, Disconnect */}
-        <div className="space-y-3 border-t border-surface-3 px-4 py-4">
-          <div className="flex items-center gap-2">
-            <LanguageToggle />
-            <ThemeToggle />
-          </div>
-          {config.privyAppId ? <PrivyLogin /> : <WalletConnect />}
-        </div>
+        {/* Controls footer */}
+        {footer && (
+          <div className="space-y-3 border-t border-surface-3 px-4 py-4">{footer}</div>
+        )}
       </div>
     </div>
   );

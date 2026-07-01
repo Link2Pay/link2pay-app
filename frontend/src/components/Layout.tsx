@@ -252,9 +252,17 @@ export default function Layout() {
         <MobileNavDrawer
           open={mobileNavOpen}
           onClose={() => setMobileNavOpen(false)}
-          navItems={navItems}
-          isActivePath={isActivePath}
+          items={navItems.map((item) => ({ ...item, end: item.path === '/dashboard' }))}
           triggerRef={mobileNavTriggerRef}
+          footer={
+            <>
+              <div className="flex items-center gap-2">
+                <LanguageToggle />
+                <ThemeToggle />
+              </div>
+              {config.privyAppId ? <PrivyLogin /> : <WalletConnect />}
+            </>
+          }
         />
 
         <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 md:px-8">
