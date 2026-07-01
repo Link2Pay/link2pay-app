@@ -256,10 +256,6 @@ const FAQS: Record<Language, FaqItem[]> = {
       q: 'How do transaction fees work?',
       a: 'Every settled payment has a fee. Higher tiers reduce your fee rate and may include volume discounts.',
     },
-    {
-      q: 'Which assets are currently supported?',
-      a: 'Link2Pay currently supports Stellar assets XLM, USDC, and EURC.',
-    },
   ],
   es: [
     {
@@ -282,10 +278,6 @@ const FAQS: Record<Language, FaqItem[]> = {
       q: '¿Cómo funcionan las tarifas por transacción?',
       a: 'Cada pago liquidado tiene una tarifa. Los tiers superiores reducen esa tarifa y pueden incluir descuentos por volumen.',
     },
-    {
-      q: '¿Qué activos están soportados hoy?',
-      a: 'Actualmente Link2Pay soporta XLM, USDC y EURC en Stellar.',
-    },
   ],
   pt: [
     {
@@ -307,10 +299,6 @@ const FAQS: Record<Language, FaqItem[]> = {
     {
       q: 'Como funcionam as taxas por transação?',
       a: 'Cada pagamento liquidado tem uma taxa. Tiers superiores reduzem a taxa e podem incluir descontos por volume.',
-    },
-    {
-      q: 'Quais ativos são suportados hoje?',
-      a: 'Atualmente o Link2Pay suporta XLM, USDC e EURC na Stellar.',
     },
   ],
 };
