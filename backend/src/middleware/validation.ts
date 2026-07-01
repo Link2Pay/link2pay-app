@@ -19,10 +19,15 @@ export const createInvoiceSchema = z.object({
   freelancerName: z.string().max(200).optional(),
   freelancerEmail: z.string().email().optional(),
   freelancerCompany: z.string().max(200).optional(),
+  freelancerTaxId: z.string().max(50).optional(),
+  freelancerAddress: z.string().max(500).optional(),
+  freelancerPhone: z.string().max(50).optional(),
+  freelancerLogoUrl: z.string().url().max(500).optional(),
   clientName: z.string().min(1).max(200),
   clientEmail: z.string().email(),
   clientCompany: z.string().max(200).optional(),
   clientAddress: z.string().max(500).optional(),
+  clientTaxId: z.string().max(50).optional(),
   title: z.string().min(1).max(300),
   description: z.string().max(2000).optional(),
   notes: z.string().max(2000).optional(),
@@ -41,7 +46,21 @@ export const createInvoiceSchema = z.object({
     .optional(),
   saveClient: z.boolean().optional(),
   favoriteClient: z.boolean().optional(),
-  lineItems: z.array(lineItemSchema).min(1).max(50),
+  payoutMethod: z.enum(['CRYPTO', 'BRE_B']).optional(),
+  payoutAlias: z.string().min(1).max(200).optional(),
+  invoiceType: z.enum(['DIRECT_PAYMENT', 'BUSINESS_INVOICE', 'SERVICE_INVOICE']).optional(),
+  // Open-amount invoices carry no line items — the payer enters the amount at
+  // pay time. Otherwise at least one line item is required (enforced below).
+  isOpenAmount: z.boolean().optional(),
+  lineItems: z.array(lineItemSchema).max(50).optional(),
+}).superRefine((data, ctx) => {
+  if (!data.isOpenAmount && (!data.lineItems || data.lineItems.length < 1)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'At least one line item is required',
+      path: ['lineItems'],
+    });
+  }
 });
 
 export const createPaymentLinkSchema = z.object({
@@ -87,6 +106,23 @@ export const updateClientFavoriteSchema = z.object({
   isFavorite: z.boolean(),
 });
 
+// Business profile — all fields optional so the form can be saved incrementally.
+// Empty strings are allowed for email/logoUrl so a previously-set value can be cleared.
+export const saveProfileSchema = z.object({
+  displayName: z.string().max(200).optional(),
+  legalName: z.string().max(200).optional(),
+  taxId: z.string().max(50).optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().max(50).optional(),
+  addressLine: z.string().max(500).optional(),
+  city: z.string().max(120).optional(),
+  country: z.string().max(120).optional(),
+  logoUrl: z.string().url().max(500).optional().or(z.literal('')),
+  defaultCurrency: z.enum(['XLM', 'USDC', 'EURC']).optional(),
+  defaultPayoutMethod: z.enum(['CRYPTO', 'BRE_B']).optional(),
+  defaultPayoutAlias: z.string().max(200).optional(),
+});
+
 export const payIntentSchema = z.object({
   senderPublicKey: z
     .string()
@@ -94,6 +130,8 @@ export const payIntentSchema = z.object({
     .max(56)
     .regex(/^G[A-Z2-7]{55}$/, 'Invalid Stellar address')
     .optional(),
+  // Payer-supplied amount — only used (and required) for open-amount invoices.
+  amount: z.coerce.number().positive().max(999999999).optional(),
   networkPassphrase: z
     .string()
     .min(1)
@@ -113,6 +151,26 @@ export const submitPaymentSchema = z.object({
 export const confirmPaymentSchema = z.object({
   invoiceId: z.string().min(1),
   transactionHash: z.string().min(64).max(64),
+});
+
+export const offrampQuoteSchema = z.object({
+  sellAmount: z.string().min(1),
+  payoutAlias: z.string().min(1).max(200),
+});
+
+export const offrampInitiateSchema = z.object({
+  quoteId: z.string().min(1),
+});
+
+// Payer-driven amount for an open-amount Bre-B invoice (public checkout).
+export const offrampOpenAmountSchema = z.object({
+  sellAmount: z.coerce.number().positive().max(999999999),
+});
+
+export const offrampSubmitPaymentSchema = z.object({
+  invoiceId: z.string().min(1),
+  signedTransactionXdr: z.string().min(1),
+  depositAddress: z.string().min(56).max(56).regex(/^G[A-Z2-7]{55}$/, 'Invalid Stellar address'),
 });
 
 /**

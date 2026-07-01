@@ -2,6 +2,7 @@ import { stellarService } from './stellarService';
 import { config } from '../config';
 import prisma from '../db';
 import { log } from '../utils/logger';
+import { offRampService } from './offRampService';
 
 /**
  * WatcherService monitors the Stellar network for incoming payments
@@ -66,7 +67,7 @@ export class WatcherService {
   }
 
   /**
-   * Check all pending/processing invoices for on-chain payments
+   * Check all pending/processing/awaiting-payment invoices for on-chain payments
    */
   async checkPendingInvoices() {
     // Run expiry check on every poll cycle
@@ -74,7 +75,7 @@ export class WatcherService {
 
     const pendingInvoices = await prisma.invoice.findMany({
       where: {
-        status: { in: ['PENDING', 'PROCESSING'] },
+        status: { in: ['PENDING', 'PROCESSING', 'AWAITING_PAYMENT', 'SETTLING'] },
       },
       select: {
         id: true,
@@ -83,14 +84,39 @@ export class WatcherService {
         networkPassphrase: true,
         total: true,
         currency: true,
+        payoutMethod: true,
+        anchorTxId: true,
+        status: true,
       },
     });
 
     if (pendingInvoices.length === 0) return;
 
+    // Handle BRE_B invoices by polling anchor status
+    const brebInvoices = pendingInvoices.filter(
+      (inv) => inv.payoutMethod === 'BRE_B'
+    );
+    for (const invoice of brebInvoices) {
+      try {
+        if (invoice.anchorTxId) {
+          await offRampService.pollStatus(invoice.id);
+        }
+      } catch (error: any) {
+        log.warn('[Watcher] BRE_B poll skipped', {
+          invoiceId: invoice.id,
+          error: error?.message,
+        });
+      }
+    }
+
+    // Handle crypto invoices via wallet monitoring
+    const cryptoInvoices = pendingInvoices.filter(
+      (inv) => inv.payoutMethod !== 'BRE_B'
+    );
+
     // Group by wallet + network so we query the correct Horizon endpoint.
-    const walletInvoices = new Map<string, typeof pendingInvoices>();
-    for (const invoice of pendingInvoices) {
+    const walletInvoices = new Map<string, typeof cryptoInvoices>();
+    for (const invoice of cryptoInvoices) {
       const key = `${invoice.freelancerWallet}:${invoice.networkPassphrase}`;
       const existing = walletInvoices.get(key) || [];
       existing.push(invoice);

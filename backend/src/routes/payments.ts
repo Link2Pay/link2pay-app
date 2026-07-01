@@ -84,7 +84,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { invoiceId } = req.params;
-      const { senderPublicKey, networkPassphrase } = req.body;
+      const { senderPublicKey, networkPassphrase, amount: payerAmount } = req.body;
 
       // Get invoice
       const invoice = await invoiceService.getInvoice(invoiceId);
@@ -105,7 +105,21 @@ router.post(
         return res.status(400).json({ error: 'Cannot pay your own invoice' });
       }
 
-      const amount = formatStellarAmount(invoice.total.toString());
+      // Open-amount invoices: the payer supplies the amount. Persist it so the
+      // confirmation/matching pipeline (which compares against invoice.total)
+      // and receipts reflect what was actually charged.
+      let effectiveTotal = invoice.total.toString();
+      if (invoice.isOpenAmount) {
+        if (!payerAmount || payerAmount <= 0) {
+          return res.status(400).json({
+            error: 'This payment link requires you to enter an amount',
+          });
+        }
+        const updated = await invoiceService.setInvoiceAmount(invoiceId, payerAmount);
+        effectiveTotal = updated.total.toString();
+      }
+
+      const amount = formatStellarAmount(effectiveTotal);
       const assetCode = invoice.currency;
 
       if (networkPassphrase !== invoice.networkPassphrase) {
@@ -192,12 +206,46 @@ router.post(
       );
 
       if (result.successful) {
+        // Horizon accepting the transaction only proves it's validly signed —
+        // not that it pays *this* invoice. Re-fetch it and require a matching
+        // payment op before marking paid, same check /confirm already does.
+        // Without this, any successfully-submitted transaction (regardless of
+        // destination or amount) would flip the invoice to PAID.
+        const txDetails = await stellarService.verifyTransaction(
+          result.hash,
+          invoice.networkPassphrase
+        );
+
+        const matchingPayment = txDetails?.payments.find(
+          (p: any) => p.to === invoice.freelancerWallet && p.assetCode === invoice.currency
+        );
+
+        if (!matchingPayment) {
+          log.error('Submitted transaction does not pay this invoice', {
+            invoiceId,
+            transactionHash: result.hash,
+          });
+          return res.status(400).json({
+            error: 'Submitted transaction does not match this invoice\'s payment details',
+            transactionHash: result.hash,
+          });
+        }
+
+        const paidAmount = parseFloat(matchingPayment.amount);
+        const expectedAmount = parseFloat(invoice.total.toString());
+        if (paidAmount < expectedAmount) {
+          return res.status(400).json({
+            error: `Underpayment: paid ${paidAmount}, expected ${expectedAmount}`,
+            transactionHash: result.hash,
+          });
+        }
+
         // Mark as paid
         await invoiceService.markAsPaid(
           invoiceId,
           result.hash,
           result.ledger,
-          '' // Will be filled by watcher or verification
+          matchingPayment.from
         );
       }
 

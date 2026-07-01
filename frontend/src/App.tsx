@@ -12,7 +12,6 @@ import MarketingLayout from './components/marketing/MarketingLayout';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Clients = lazy(() => import('./pages/Clients'));
 const Transactions = lazy(() => import('./pages/Transactions'));
-const ApiKeys = lazy(() => import('./pages/ApiKeys'));
 const Analytics = lazy(() => import('./pages/Analytics'));
 const CreateInvoice = lazy(() => import('./pages/CreateInvoice'));
 const InvoiceList = lazy(() => import('./components/Invoice/InvoiceList'));
@@ -26,6 +25,10 @@ const About = lazy(() => import('./pages/About'));
 const RoleSelect = lazy(() => import('./pages/RoleSelect'));
 const Register = lazy(() => import('./pages/Register'));
 const ClientInvoiceLookup = lazy(() => import('./pages/ClientInvoiceLookup'));
+const Login = lazy(() => import('./pages/Login'));
+const ProfileOptions = lazy(() => import('./pages/ProfileOptions'));
+const GetPaid = lazy(() => import('./pages/GetPaid'));
+const Wallet = lazy(() => import('./pages/Wallet'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,7 +50,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster
-        position="top-right"
+        position="bottom-right"
         toastOptions={{
           duration: 4000,
           style: { fontSize: '13px' },
@@ -58,6 +61,9 @@ export default function App() {
       <BrowserRouter>
         <Suspense fallback={null}>
           <Routes>
+          {/* Login */}
+          <Route path="/login" element={<Login />} />
+
           {/* Role selection (gateway to app) */}
           <Route path="/app" element={<RoleSelect />} />
 
@@ -87,9 +93,11 @@ export default function App() {
             <Route path="transactions" element={<Transactions />} />
             <Route path="links" element={<InvoiceList />} />
             <Route path="links/:id" element={<InvoiceDetail />} />
-            <Route path="api-keys" element={<ApiKeys />} />
+            <Route path="get-paid" element={<GetPaid />} />
+            <Route path="wallet" element={<Wallet />} />
+            <Route path="api-keys" element={<Navigate to="/dashboard" replace />} />
             <Route path="analytics" element={<Analytics />} />
-            <Route path="profile-options" element={<Navigate to="/dashboard" replace />} />
+            <Route path="profile-options" element={<ProfileOptions />} />
             <Route path="create-link" element={<CreateInvoice />} />
 
             {/* Backward-compatible nested redirects */}

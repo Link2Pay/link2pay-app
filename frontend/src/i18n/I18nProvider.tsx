@@ -18,12 +18,13 @@ const isLanguage = (value: string): value is Language =>
   value === 'en' || value === 'es' || value === 'pt';
 
 const getInitialLanguage = (): Language => {
-  if (typeof window === 'undefined') return 'en';
+  // Spanish-first: the product targets LATAM/Colombia merchants and freelancers.
+  if (typeof window === 'undefined') return 'es';
 
   const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
   if (stored && isLanguage(stored)) return stored;
 
-  return 'en';
+  return 'es';
 };
 
 const interpolate = (template: string, values?: TranslationValues): string => {

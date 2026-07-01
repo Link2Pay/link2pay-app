@@ -1,6 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  // Theme is toggled by adding `.dark` to <html> (see src/lib/theme.ts), matching
+  // the shadcn/ui convention so any future `dark:` utilities track the same class.
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -18,6 +21,14 @@ export default {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',
         },
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
@@ -29,6 +40,14 @@ export default {
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
+          subtle: 'hsl(var(--destructive-subtle))',
+          border: 'hsl(var(--destructive-border))',
+        },
+        info: {
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
+          subtle: 'hsl(var(--info-subtle))',
+          border: 'hsl(var(--info-border))',
         },
         neon: {
           DEFAULT: 'hsl(var(--neon-glow))',
@@ -36,18 +55,19 @@ export default {
         },
         'surface-elevated': 'hsl(var(--surface-elevated))',
 
-        // Backward-compatible aliases mapped to dark values
+        // Legacy cyan ramp — remapped to the brand (indigo) semantic tokens so
+        // existing `stellar-*` usages adopt Direction A and stay theme-aware.
         stellar: {
-          50: 'hsl(190 70% 55% / 0.08)',
-          100: 'hsl(190 70% 55% / 0.14)',
-          200: 'hsl(190 70% 55% / 0.24)',
-          300: 'hsl(190 70% 55% / 0.38)',
-          400: 'hsl(188 67% 66%)',
-          500: 'hsl(190 70% 55%)',
-          600: 'hsl(199 65% 50%)',
-          700: 'hsl(204 64% 51%)',
-          800: 'hsl(204 64% 43%)',
-          900: 'hsl(219 23% 15%)',
+          50: 'hsl(var(--primary) / 0.08)',
+          100: 'hsl(var(--primary) / 0.14)',
+          200: 'hsl(var(--primary) / 0.24)',
+          300: 'hsl(var(--primary) / 0.38)',
+          400: 'hsl(var(--primary) / 0.6)',
+          500: 'hsl(var(--primary))',
+          600: 'hsl(var(--primary))',
+          700: 'hsl(var(--accent))',
+          800: 'hsl(var(--accent))',
+          900: 'hsl(var(--secondary))',
         },
         surface: {
           0: 'hsl(var(--card))',
@@ -66,10 +86,14 @@ export default {
         success: {
           DEFAULT: 'hsl(var(--success))',
           foreground: 'hsl(var(--success-foreground))',
+          subtle: 'hsl(var(--success-subtle))',
+          border: 'hsl(var(--success-border))',
         },
         warning: {
           DEFAULT: 'hsl(var(--warning))',
           foreground: 'hsl(var(--warning-foreground))',
+          subtle: 'hsl(var(--warning-subtle))',
+          border: 'hsl(var(--warning-border))',
         },
         danger: 'hsl(var(--destructive))',
 
@@ -87,6 +111,11 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['"Space Grotesk"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
+      },
+      fontSize: {
+        // Sub-xs steps to retire hardcoded text-[10px]/text-[11px]
+        '3xs': ['0.625rem', { lineHeight: '0.875rem' }], // 10px
+        '2xs': ['0.6875rem', { lineHeight: '1rem' }], // 11px
       },
       borderRadius: {
         lg: 'var(--radius)',

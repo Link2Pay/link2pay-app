@@ -70,7 +70,7 @@ const PLANS: Record<Language, Plan[]> = {
         '3-hour transaction history retention',
         'Up to 3 concurrent active links',
         'REST polling for payment confirmation',
-        'Full Stellar Testnet access',
+        'Full Stellar network access',
         'Standard transaction fee tier',
       ],
       cta: 'Start Free',
@@ -128,7 +128,7 @@ const PLANS: Record<Language, Plan[]> = {
         'Retención de historial por 3 horas',
         'Hasta 3 links activos simultáneos',
         'Polling REST para confirmar pagos',
-        'Acceso completo a Stellar Testnet',
+        'Acceso completo a la red Stellar',
         'Tarifa estándar por transacción',
       ],
       cta: 'Empezar gratis',
@@ -186,7 +186,7 @@ const PLANS: Record<Language, Plan[]> = {
         'Retenção de histórico por 3 horas',
         'Até 3 links ativos ao mesmo tempo',
         'Polling REST para confirmar pagamentos',
-        'Acesso completo a Stellar Testnet',
+        'Acesso completo à rede Stellar',
         'Tarifa padrão por transação',
       ],
       cta: 'Começar grátis',
@@ -242,7 +242,7 @@ const FAQS: Record<Language, FaqItem[]> = {
     },
     {
       q: 'What is Sandbox best for?',
-      a: 'Sandbox is ideal for prototyping and integration testing before launch, including Stellar Testnet access.',
+      a: 'Sandbox is ideal for prototyping and integration testing before launch, including full Stellar network access.',
     },
     {
       q: 'When should I upgrade to Pro?',
@@ -256,10 +256,6 @@ const FAQS: Record<Language, FaqItem[]> = {
       q: 'How do transaction fees work?',
       a: 'Every settled payment has a fee. Higher tiers reduce your fee rate and may include volume discounts.',
     },
-    {
-      q: 'Which assets are currently supported?',
-      a: 'Link2Pay currently supports Stellar assets XLM, USDC, and EURC.',
-    },
   ],
   es: [
     {
@@ -268,7 +264,7 @@ const FAQS: Record<Language, FaqItem[]> = {
     },
     {
       q: '¿Para qué sirve mejor Sandbox?',
-      a: 'Sandbox es ideal para prototipos y pruebas de integración antes del lanzamiento, con acceso a Stellar Testnet.',
+      a: 'Sandbox es ideal para prototipos y pruebas de integración antes del lanzamiento, con acceso completo a la red Stellar.',
     },
     {
       q: '¿Cuándo conviene actualizar a Pro?',
@@ -282,10 +278,6 @@ const FAQS: Record<Language, FaqItem[]> = {
       q: '¿Cómo funcionan las tarifas por transacción?',
       a: 'Cada pago liquidado tiene una tarifa. Los tiers superiores reducen esa tarifa y pueden incluir descuentos por volumen.',
     },
-    {
-      q: '¿Qué activos están soportados hoy?',
-      a: 'Actualmente Link2Pay soporta XLM, USDC y EURC en Stellar.',
-    },
   ],
   pt: [
     {
@@ -294,7 +286,7 @@ const FAQS: Record<Language, FaqItem[]> = {
     },
     {
       q: 'Para que o Sandbox é melhor?',
-      a: 'Sandbox é ideal para prototipação e testes de integração antes do lançamento, com acesso a Stellar Testnet.',
+      a: 'Sandbox é ideal para prototipação e testes de integração antes do lançamento, com acesso completo à rede Stellar.',
     },
     {
       q: 'Quando devo fazer upgrade para Pro?',
@@ -307,10 +299,6 @@ const FAQS: Record<Language, FaqItem[]> = {
     {
       q: 'Como funcionam as taxas por transação?',
       a: 'Cada pagamento liquidado tem uma taxa. Tiers superiores reduzem a taxa e podem incluir descontos por volume.',
-    },
-    {
-      q: 'Quais ativos são suportados hoje?',
-      a: 'Atualmente o Link2Pay suporta XLM, USDC e EURC na Stellar.',
     },
   ],
 };

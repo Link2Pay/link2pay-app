@@ -90,7 +90,7 @@ const LOCALE_BY_LANGUAGE: Record<Language, string> = {
 export default function InvoiceList() {
   const { publicKey } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
-  const { showPreviewLinks, toggleShowPreviewLinks } = useDashboardViewStore();
+  const { showPreviewLinks } = useDashboardViewStore();
   const { language } = useI18n();
   const copy = COPY[language];
 
@@ -155,15 +155,6 @@ export default function InvoiceList() {
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-          <button
-            type="button"
-            onClick={toggleShowPreviewLinks}
-            className="btn-secondary w-full text-sm sm:w-auto"
-          >
-            {showPreviewLinks
-              ? 'Demo links: ON (showing all)'
-              : 'Demo links: OFF (real links only)'}
-          </button>
           <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
             + {copy.newInvoice}
           </Link>

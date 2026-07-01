@@ -107,7 +107,7 @@ export default function Register() {
           <div className="card p-5 sm:p-6">
             <div className="mb-6 p-3 rounded-lg bg-muted border border-border">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="w-2 h-2 rounded-full bg-success" />
                 <span className="text-xs text-muted-foreground">{copy.connectedAs}</span>
               </div>
               <p className="text-sm font-mono text-foreground mt-1">{truncateAddress(publicKey)}</p>

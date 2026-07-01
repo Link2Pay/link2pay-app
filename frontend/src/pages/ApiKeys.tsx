@@ -273,7 +273,7 @@ const links = await linksRes.json();`,
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="card p-5 lg:col-span-2">
           <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-ink-0">
-            <ShieldCheck className="h-4 w-4 text-emerald-600" />
+            <ShieldCheck className="h-4 w-4 text-success" />
             {copy.authModelTitle}
           </h3>
           <p className="text-sm text-ink-3">{copy.authModelDesc}</p>
@@ -421,7 +421,7 @@ const links = await linksRes.json();`,
           </button>
         </div>
 
-        <pre className="max-h-[360px] overflow-auto rounded-lg border border-surface-3 bg-surface-1 p-3 text-[11px] leading-relaxed text-ink-1">
+        <pre className="max-h-[360px] overflow-auto rounded-lg border border-surface-3 bg-surface-1 p-3 text-2xs leading-relaxed text-ink-1">
           {snippet}
         </pre>
       </div>

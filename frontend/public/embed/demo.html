@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Link2Pay — "Pay with USDC" embed demo</title>
+  <style>
+    body { font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; max-width: 640px; margin: 64px auto; padding: 0 20px; color: #1a1a2e; }
+    .card { border: 1px solid #e6e6f0; border-radius: 14px; padding: 24px; }
+    code { background: #f3f3fa; padding: 2px 6px; border-radius: 6px; font-size: 13px; }
+    .muted { color: #6b6b80; font-size: 14px; }
+    label { display:block; font-size: 13px; font-weight: 600; margin: 14px 0 4px; }
+    input { width: 100%; padding: 8px 10px; border: 1px solid #d8d8e6; border-radius: 8px; font: inherit; }
+  </style>
+</head>
+<body>
+  <h1>Merchant checkout demo</h1>
+  <p class="muted">
+    This static page embeds the Link2Pay "Pay with USDC" button. The merchant
+    pre-creates a payment link (CRYPTO or Bre-B off-ramp) in the Link2Pay
+    dashboard, then drops the button with that link id. Clicking it opens the
+    hosted checkout in a popup — no API keys, nothing custodial.
+  </p>
+
+  <div class="card">
+    <h2 style="margin-top:0">Order #1042 — Annual plan</h2>
+    <p>Total: <strong>25.00 USDC</strong> → receiver settles to COP via Bre-B (demo).</p>
+
+    <!-- Configure these for the demo -->
+    <label for="base">Link2Pay base URL</label>
+    <input id="base" value="http://localhost:5173" />
+    <label for="inv">Payment link / invoice id</label>
+    <input id="inv" placeholder="paste a link id from the dashboard" />
+
+    <p style="margin-top:18px">
+      <span id="mount"></span>
+    </p>
+    <p class="muted">Embed code:</p>
+    <pre><code>&lt;div data-l2p-invoice="INVOICE_ID" data-l2p-base="https://your-link2pay.app"&gt;&lt;/div&gt;
+&lt;script src="https://your-link2pay.app/embed/link2pay-button.js" async&gt;&lt;/script&gt;</code></pre>
+  </div>
+
+  <script>
+    // Wire the inputs to (re)render the button for the demo.
+    function mount() {
+      var host = document.getElementById('mount');
+      host.innerHTML = '';
+      var el = document.createElement('div');
+      el.setAttribute('data-l2p-invoice', document.getElementById('inv').value.trim());
+      el.setAttribute('data-l2p-base', document.getElementById('base').value.trim());
+      host.appendChild(el);
+      if (window.Link2Pay) window.Link2Pay.render();
+    }
+    document.getElementById('inv').addEventListener('change', mount);
+    document.getElementById('base').addEventListener('change', mount);
+    window.addEventListener('load', mount);
+  </script>
+  <script src="/embed/link2pay-button.js" async></script>
+</body>
+</html>

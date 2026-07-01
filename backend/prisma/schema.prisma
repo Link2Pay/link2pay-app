@@ -13,11 +13,28 @@ datasource db {
 enum InvoiceStatus {
   DRAFT
   PENDING
+  AWAITING_ANCHOR
+  AWAITING_PAYMENT
   PROCESSING
   PAID
+  SETTLING
+  SETTLED_FIAT
+  ANCHOR_ERROR
+  NEEDS_KYC
   FAILED
   EXPIRED
   CANCELLED
+}
+
+enum PayoutMethod {
+  CRYPTO
+  BRE_B
+}
+
+enum AnchorProvider {
+  TESTNET
+  MOCK_BREB
+  ABROAD
 }
 
 enum Currency {
@@ -26,22 +43,44 @@ enum Currency {
   EURC
 }
 
+enum InvoiceType {
+  DIRECT_PAYMENT
+  BUSINESS_INVOICE
+  SERVICE_INVOICE
+}
+
+// Merchant (seller) identity verification, gated at signup before a wallet
+// may create invoices. The off-ramp payer's KYC is separate — that is the
+// anchor's responsibility, handled in its SEP-24 interactive flow.
+enum KycStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
 model Invoice {
   id            String        @id @default(cuid())
   invoiceNumber String        @unique @map("invoice_number")
   status        InvoiceStatus @default(DRAFT)
+  invoiceType   InvoiceType   @default(DIRECT_PAYMENT) @map("invoice_type")
 
-  // Freelancer (creator) info
+  // Freelancer (creator) info — snapshot of the issuer at invoice time
   freelancerWallet  String  @map("freelancer_wallet")
   freelancerName    String? @map("freelancer_name")
   freelancerEmail   String? @map("freelancer_email")
   freelancerCompany String? @map("freelancer_company")
+  freelancerTaxId   String? @map("freelancer_tax_id")
+  freelancerAddress String? @map("freelancer_address")
+  freelancerPhone   String? @map("freelancer_phone")
+  freelancerLogoUrl String? @map("freelancer_logo_url")
 
   // Client (payer) info
   clientName    String  @map("client_name")
   clientEmail   String  @map("client_email")
   clientCompany String? @map("client_company")
   clientAddress String? @map("client_address")
+  clientTaxId   String? @map("client_tax_id")
   clientWallet  String? @map("client_wallet")
 
   // Invoice details
@@ -57,6 +96,11 @@ model Invoice {
   total     Decimal  @db.Decimal(18, 7)
   currency  Currency @default(XLM)
 
+  // Open amount: when true the invoice is created with no fixed total and the
+  // payer enters the amount at pay time (DIRECT_PAYMENT only). The pay-intent
+  // then persists the chosen amount into subtotal/total.
+  isOpenAmount Boolean @default(false) @map("is_open_amount")
+
   // Dates
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -68,6 +112,20 @@ model Invoice {
   ledgerNumber      Int?    @map("ledger_number")
   payerWallet       String? @map("payer_wallet")
   networkPassphrase String  @default("Test SDF Network ; September 2015") @map("network_passphrase")
+
+  // Off-ramp fields
+  payoutMethod   PayoutMethod   @default(CRYPTO) @map("payout_method")
+  payoutAlias    String?                         @map("payout_alias")
+  anchorProvider  AnchorProvider?                 @map("anchor_provider")
+  anchorTxId     String?                         @map("anchor_tx_id")
+  quoteId        String?                         @map("quote_id")
+  quoteBuyAmount String?                         @map("quote_buy_amount")
+  receiptTxHash  String?                         @map("receipt_tx_hash")
+  // Anchor deposit instructions captured at initiate time (payer pays these).
+  anchorDepositAddress String?                   @map("anchor_deposit_address")
+  anchorMemo           String?                   @map("anchor_memo")
+  anchorMemoType       String?                   @map("anchor_memo_type")
+  anchorInteractiveUrl String?                   @map("anchor_interactive_url")
 
   // Soft delete — set instead of hard DELETE
   deletedAt DateTime? @map("deleted_at")
@@ -102,6 +160,40 @@ model Client {
   @@index([freelancerWallet])
   @@index([isFavorite])
   @@map("clients")
+}
+
+// Persisted business identity for a wallet — entered once, reused on every
+// invoice instead of re-typing freelancer details each time. Also holds the
+// default payout alias so the off-ramp llave isn't re-entered per invoice.
+model BusinessProfile {
+  id            String @id @default(cuid())
+  walletAddress String @unique @map("wallet_address")
+
+  displayName String? @map("display_name")
+  legalName   String? @map("legal_name")
+  taxId       String? @map("tax_id")
+  email       String?
+  phone       String?
+  addressLine String? @map("address_line")
+  city        String?
+  country     String?
+  logoUrl     String? @map("logo_url")
+
+  defaultCurrency     Currency     @default(USDC) @map("default_currency")
+  defaultPayoutMethod PayoutMethod @default(CRYPTO) @map("default_payout_method")
+  defaultPayoutAlias  String?      @map("default_payout_alias")
+
+  // Merchant onboarding KYC — a wallet must reach VERIFIED before it can
+  // create invoices (enforced by the requireKyc middleware).
+  kycStatus     KycStatus @default(UNVERIFIED) @map("kyc_status")
+  kycProvider   String?   @map("kyc_provider")
+  kycRef        String?   @map("kyc_ref")
+  kycVerifiedAt DateTime? @map("kyc_verified_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("business_profiles")
 }
 
 model LineItem {
@@ -149,6 +241,11 @@ enum AuditAction {
   UPDATED
   SENT
   PAID
+  OFFRAMP_INITIATED
+  OFFRAMP_AWAITING_PAYMENT
+  OFFRAMP_PROCESSING
+  OFFRAMP_SETTLED
+  OFFRAMP_ERROR
   EXPIRED
   CANCELLED
   DELETED

@@ -26,7 +26,7 @@ export default function LanguageToggle() {
           key={option.code}
           type="button"
           onClick={() => setLanguage(option.code)}
-          className={`rounded-md px-2.5 py-1.5 text-[11px] font-semibold tracking-wide transition-colors ${
+          className={`rounded-md px-2.5 py-1.5 text-2xs font-semibold tracking-wide transition-colors ${
             language === option.code
               ? 'bg-primary text-primary-foreground'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'

@@ -1,25 +1,33 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
-import { ArrowRight, Globe2, Heart, LayoutDashboard } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Globe2, Heart, Menu } from 'lucide-react';
 import ThemeToggle from '../ThemeToggle';
 import LanguageToggle from '../LanguageToggle';
 import BrandMark from '../BrandMark';
 import BrandWordmark from '../BrandWordmark';
+import MobileNavDrawer from '../MobileNavDrawer';
 import { useI18n } from '../../i18n/I18nProvider';
 
 export default function MarketingLayout() {
   const { t } = useI18n();
+  const location = useLocation();
+
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const mobileNavTriggerRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [location.pathname]);
 
   const navItems = [
     { path: '/', label: t('marketing.nav.home'), end: true },
     { path: '/payment-links', label: t('marketing.nav.features') },
-    { path: '/sdk', label: t('marketing.nav.sdk') },
     { path: '/plans', label: t('marketing.nav.pricing') },
     { path: '/why-link2pay', label: t('marketing.nav.about') },
   ];
 
   const footerProduct = [
     { label: t('marketing.nav.features'), to: '/payment-links' },
-    { label: t('marketing.nav.sdk'), to: '/sdk' },
     { label: t('marketing.nav.pricing'), to: '/plans' },
     { label: t('marketing.dashboard'), to: '/app' },
   ];
@@ -59,48 +67,41 @@ export default function MarketingLayout() {
               ))}
             </nav>
 
-            <div className="flex items-center gap-2">
-              <Link
-                to="/app"
-                aria-label={t('marketing.dashboard')}
-                title={t('marketing.dashboard')}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary/40 bg-primary/12 text-primary transition-colors hover:bg-primary/20 hover:text-primary md:hidden"
-              >
-                <LayoutDashboard className="h-4 w-4" />
-              </Link>
-
+            {/* Desktop: language / theme controls */}
+            <div className="hidden items-center gap-2 md:flex">
               <LanguageToggle />
               <ThemeToggle />
-
-              <div className="hidden items-center gap-2 md:flex">
-                <Link to="/app" className="btn-secondary px-3 py-2 text-sm">
-                  {t('marketing.dashboard')}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
             </div>
-          </div>
 
-          <nav className="flex items-center gap-1 overflow-x-auto pb-2 md:hidden">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end={item.end}
-                className={({ isActive }) =>
-                  `whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                    isActive
-                      ? 'border-primary/40 bg-primary/12 text-primary'
-                      : 'border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
+            {/* Mobile: hamburger */}
+            <button
+              ref={mobileNavTriggerRef}
+              type="button"
+              onClick={() => setMobileNavOpen(true)}
+              aria-label={t('layout.menu.open')}
+              aria-haspopup="dialog"
+              aria-expanded={mobileNavOpen}
+              aria-controls="mobile-nav-drawer"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-muted md:hidden"
+            >
+              <Menu aria-hidden="true" className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </header>
+
+      <MobileNavDrawer
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        items={navItems}
+        triggerRef={mobileNavTriggerRef}
+        footer={
+          <div className="flex items-center gap-2">
+            <LanguageToggle />
+            <ThemeToggle />
+          </div>
+        }
+      />
 
       <main>
         <Outlet />

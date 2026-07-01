@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { deleteInvoice, getOwnerInvoice, sendInvoice } from '../../services/api';
+import { cancelInvoice, deleteInvoice, getOwnerInvoice, sendInvoice } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
@@ -9,6 +9,7 @@ import type { Invoice, InvoiceStatus } from '../../types';
 import { CURRENCY_SYMBOLS, config } from '../../config';
 import type { Language } from '../../i18n/translations';
 import { downloadInvoicePDF } from './InvoicePDF';
+import ReceiverOffRamp from './ReceiverOffRamp';
 
 const COPY: Record<Language, {
   loadingInvoice: string;
@@ -17,6 +18,9 @@ const COPY: Record<Language, {
   stellarLumens: string;
   sendInvoice: string;
   delete: string;
+  cancelLink: string;
+  confirmCancel: string;
+  linkCancelled: string;
   copied: string;
   copyPaymentLink: string;
   paymentLink: string;
@@ -51,6 +55,9 @@ const COPY: Record<Language, {
     stellarLumens: 'Stellar Lumens',
     sendInvoice: 'Send Invoice',
     delete: 'Delete',
+    cancelLink: 'Cancel link',
+    confirmCancel: 'Cancel this payment link? The payer will no longer be able to pay it.',
+    linkCancelled: 'Link cancelled',
     copied: 'Copied!',
     copyPaymentLink: 'Copy Payment Link',
     paymentLink: 'Payment Link',
@@ -85,6 +92,9 @@ const COPY: Record<Language, {
     stellarLumens: 'Stellar Lumens',
     sendInvoice: 'Enviar factura',
     delete: 'Eliminar',
+    cancelLink: 'Cancelar link',
+    confirmCancel: '¿Cancelar este link de pago? El pagador ya no podrá pagarlo.',
+    linkCancelled: 'Link cancelado',
     copied: 'Copiado!',
     copyPaymentLink: 'Copiar link de pago',
     paymentLink: 'Link de pago',
@@ -119,6 +129,9 @@ const COPY: Record<Language, {
     stellarLumens: 'Stellar Lumens',
     sendInvoice: 'Enviar fatura',
     delete: 'Excluir',
+    cancelLink: 'Cancelar link',
+    confirmCancel: 'Cancelar este link de pagamento? O pagador não poderá mais pagá-lo.',
+    linkCancelled: 'Link cancelado',
     copied: 'Copiado!',
     copyPaymentLink: 'Copiar link de pagamento',
     paymentLink: 'Link de pagamento',
@@ -224,6 +237,24 @@ export default function InvoiceDetail() {
     }
   };
 
+  const handleCancel = async () => {
+    if (!invoice || !publicKey) return;
+    if (!window.confirm(copy.confirmCancel)) return;
+
+    setActionLoading(true);
+    try {
+      const updated = await cancelInvoice(invoice.id, publicKey);
+      setInvoice(updated);
+      toast.success(copy.linkCancelled);
+    } catch (err: any) {
+      const msg = err.message || 'Failed to cancel link';
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleDownloadPdf = async () => {
     if (!invoice) return;
     setPdfLoading(true);
@@ -319,6 +350,11 @@ export default function InvoiceDetail() {
           <button onClick={handleSendByEmail} disabled={pdfLoading} className="btn-secondary text-sm">
             {pdfLoading ? copy.generatingPdf : copy.sendByEmail}
           </button>
+          {!['DRAFT', 'PAID', 'SETTLING', 'SETTLED_FIAT', 'CANCELLED', 'EXPIRED', 'FAILED'].includes(invoice.status) && (
+            <button onClick={handleCancel} disabled={actionLoading} className="btn-danger text-sm">
+              {copy.cancelLink}
+            </button>
+          )}
         </div>
       )}
 
@@ -415,12 +451,21 @@ export default function InvoiceDetail() {
         </div>
       )}
 
+      {isOwner && invoice.payoutMethod === 'BRE_B' && invoice.status !== 'SETTLED_FIAT' && (
+        <ReceiverOffRamp
+          invoice={invoice}
+          onUpdated={() => {
+            if (id && publicKey) getOwnerInvoice(id, publicKey).then(setInvoice).catch(() => {});
+          }}
+        />
+      )}
+
       {invoice.status === 'PAID' && invoice.transactionHash && (
-        <div className="card p-5 bg-emerald-50 border-emerald-200">
-          <h4 className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-3">{copy.paymentConfirmed}</h4>
+        <div className="card p-5 bg-success-subtle border-success-border">
+          <h4 className="text-xs font-semibold text-success uppercase tracking-wider mb-3">{copy.paymentConfirmed}</h4>
           <div className="space-y-2 text-sm">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-emerald-600">{copy.transactionHash}</span>
+              <span className="text-success">{copy.transactionHash}</span>
               <a
                 href={`https://stellar.expert/explorer/${invoice.networkPassphrase?.includes('Test') ? 'testnet' : 'public'}/tx/${invoice.transactionHash}`}
                 target="_blank"
@@ -432,16 +477,16 @@ export default function InvoiceDetail() {
             </div>
             {invoice.paidAt && (
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-emerald-600">{copy.paidAt}</span>
-                <span className="text-emerald-700">
+                <span className="text-success">{copy.paidAt}</span>
+                <span className="text-success">
                   {new Date(invoice.paidAt).toLocaleString(LOCALE_BY_LANGUAGE[language])}
                 </span>
               </div>
             )}
             {invoice.payerWallet && (
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <span className="text-emerald-600">{copy.payer}</span>
-                <span className="font-mono text-xs text-emerald-700">
+                <span className="text-success">{copy.payer}</span>
+                <span className="font-mono text-xs text-success">
                   {invoice.payerWallet.slice(0, 8)}...{invoice.payerWallet.slice(-4)}
                 </span>
               </div>

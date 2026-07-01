@@ -1,30 +1,33 @@
-﻿import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   ArrowRight,
-  DollarSign,
-  FileText,
+  ArrowUpRight,
+  Coins,
   Globe2,
+  Landmark,
+  Layers,
+  QrCode,
   Rocket,
   Send,
   ShieldCheck,
   Sparkles,
-  TrendingUp,
-  Users,
+  Store,
   Wallet,
   Zap,
 } from 'lucide-react';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
-import HeroQuickLink from '../components/marketing/HeroQuickLink';
+import HeroPaymentMockup from '../components/marketing/HeroPaymentMockup';
 
-const FLOW_STEP_ICONS = [Wallet, FileText, Send] as const;
-const BENEFIT_ICONS = [Zap, DollarSign, Globe2, ShieldCheck] as const;
-const AUDIENCE_ICONS = [Users, TrendingUp, Globe2] as const;
-const STATS_ICONS = [Rocket, TrendingUp, Wallet, Globe2] as const;
+const FLOW_STEP_ICONS = [Wallet, QrCode, Landmark] as const;
+const BENEFIT_ICONS = [Landmark, Zap, Coins, ShieldCheck] as const;
+const AUDIENCE_ICONS = [Store, Globe2, Layers] as const;
+const STATS_ICONS = [Zap, Coins, Layers, Globe2] as const;
 
 type Item = { title: string; description: string };
 type StatItem = { value: string; label: string };
-type CurrencyCard = { code: string; name: string; desc: string };
+type ImpactStat = { value: string; label: string; source: string };
+type CurrencyCard = { code: string; name: string; desc: string; featured?: boolean };
 
 type HomeCopy = {
   badge: string;
@@ -32,10 +35,10 @@ type HomeCopy = {
   heroTitleHighlight: string;
   heroTitleEnd: string;
   heroDescription: string;
+  heroDescStart: string;
+  heroDescHighlight: string;
+  heroDescEnd: string;
   heroPrimaryCta: string;
-  heroSecondaryCta: string;
-  heroSecondaryNote: string;
-  heroSecondaryBadge: string;
   heroFootnote: string;
   howTitle: string;
   howSubtitle: string;
@@ -43,8 +46,8 @@ type HomeCopy = {
   benefitsSubtitle: string;
   audienceTitle: string;
   audienceSubtitle: string;
-  testimonialsTitle: string;
-  testimonialsSubtitle: string;
+  impactTitle: string;
+  impactSubtitle: string;
   moneyTitle: string;
   moneySubtitle: string;
   finalTitle: string;
@@ -59,96 +62,99 @@ type HomeCopy = {
 const COPY: Record<Language, HomeCopy> = {
   en: {
     badge: 'Global payments powered by Stellar',
-    heroTitleStart: 'Turn every invoice into',
-    heroTitleHighlight: 'an instant checkout link',
-    heroTitleEnd: 'and get paid in seconds',
+    heroTitleStart: 'Your customer pays in crypto.',
+    heroTitleHighlight: 'You get paid',
+    heroTitleEnd: 'in your local currency',
     heroDescription:
-      'Link2Pay helps freelancers, agencies, and product teams collect payments without banking delays. Create a link, share it, and settle on-chain in about 5 seconds.',
+      'Link2Pay turns a QR or a link into a bridge between crypto and your bank account. Your customer pays with digital dollars from anywhere in the world and you receive your local currency, straight into your usual account. No crypto knowledge required.',
+    heroDescStart: 'Link2Pay turns a QR or a link into a bridge between crypto and your bank account. Your customer pays with digital dollars from anywhere in the world and you receive your ',
+    heroDescHighlight: 'local currency',
+    heroDescEnd: ', straight into your usual account. No crypto knowledge required.',
     heroPrimaryCta: 'Create Your First Link',
-    heroSecondaryCta: 'SDK + Docs',
-    heroSecondaryNote: 'Integration guides and API reference coming soon',
-    heroSecondaryBadge: 'Soon',
-    heroFootnote: 'Start free on Testnet and switch to Mainnet when you are ready.',
-    howTitle: 'How teams launch in one afternoon',
-    howSubtitle: 'Connect wallet, generate a link, and confirm payment with real-time status.',
-    benefitsTitle: 'Why teams switch to Link2Pay',
-    benefitsSubtitle: 'Faster cash flow, lower friction, and a checkout your clients trust.',
-    audienceTitle: 'Made for modern payment teams',
-    audienceSubtitle: 'From solo operators to scaling platforms, Link2Pay keeps operations simple.',
-    testimonialsTitle: 'Go live with confidence',
-    testimonialsSubtitle: 'Use this checklist to launch on Mainnet without surprises.',
+    heroFootnote: 'Start free and go live on Stellar whenever you are ready.',
+    howTitle: 'Start getting paid in 3 steps',
+    howSubtitle: 'Connect your account, generate a link or QR, and receive a confirmed payment in seconds.',
+    benefitsTitle: 'Why choose Link2Pay',
+    benefitsSubtitle: 'Get paid faster, pay lower fees, and receive in the currency you already use.',
+    audienceTitle: 'Made for you',
+    audienceSubtitle: 'From the shop on the corner to the freelancer getting paid from abroad.',
+    impactTitle: 'The problem we solve',
+    impactSubtitle:
+      'Remittances are slow and expensive. Stablecoins are already how Latin America moves money. Link2Pay connects both ends.',
     moneyTitle: 'Accept the assets your clients already use',
-    moneySubtitle: 'Collect XLM, USDC, and EURC in one checkout flow with fast finality.',
-    finalTitle: 'Launch your next payment flow today',
+    moneySubtitle: 'Charge in USDC, the digital dollar, and convert it to local currency instantly. You also accept XLM and EURC.',
+    finalTitle: 'Connect your business to the world',
     finalDescription:
-      'Create a payment link in minutes, share it anywhere, and track every status update from CREATED to CONFIRMED. Upgrade when you need webhooks, branding, and team controls.',
+      'Create your first link or QR in minutes, share it anywhere, and receive in your local currency.',
     finalPrimaryCta: 'Create Your First Link',
     finalSecondaryCta: 'Compare Plans',
-    heroTag1: '150+ Countries',
-    heroTag2: '5s Settlement',
-    heroTag3: 'API + Webhooks',
+    heroTag1: 'Paid in your currency',
+    heroTag2: '~5s settlement',
+    heroTag3: 'No crypto know-how',
   },
   es: {
-    badge: 'Pagos globales impulsados por Stellar',
-    heroTitleStart: 'Convierte cada factura en',
-    heroTitleHighlight: 'un link de checkout instantáneo',
-    heroTitleEnd: 'y cobra en segundos',
+    badge: 'Pagos globales sobre Stellar',
+    heroTitleStart: 'Tu cliente paga en crypto.',
+    heroTitleHighlight: 'Vos recibís',
+    heroTitleEnd: 'en tu moneda local',
     heroDescription:
-      'Link2Pay ayuda a freelancers, agencias y equipos de producto a cobrar sin demoras bancarias. Crea un link, compártelo y liquida on-chain en unos 5 segundos.',
+      'Link2Pay convierte un QR o un link en un puente entre crypto y tu cuenta bancaria. Tu cliente paga con dólares digitales desde cualquier parte del mundo y vos recibís en pesos, directo en tu cuenta de siempre. Sin saber nada de crypto.',
+    heroDescStart: 'Link2Pay convierte un QR o un link en un puente entre crypto y tu cuenta bancaria. Tu cliente paga con dólares digitales desde cualquier parte del mundo y vos recibís en ',
+    heroDescHighlight: 'pesos',
+    heroDescEnd: ', directo en tu cuenta de siempre. Sin saber nada de crypto.',
     heroPrimaryCta: 'Crear mi primer link',
-    heroSecondaryCta: 'SDK + Docs',
-    heroSecondaryNote: 'Guías de integración y referencia API muy pronto',
-    heroSecondaryBadge: 'Pronto',
-    heroFootnote: 'Empieza gratis en Testnet y pasa a Mainnet cuando estés listo.',
-    howTitle: 'Cómo lanzar en una tarde',
-    howSubtitle: 'Conecta wallet, genera el link y confirma el pago con estado en tiempo real.',
-    benefitsTitle: 'Por qué los equipos eligen Link2Pay',
-    benefitsSubtitle: 'Mejor flujo de caja, menos fricción y checkout confiable para tus clientes.',
-    audienceTitle: 'Hecho para equipos de pagos modernos',
-    audienceSubtitle: 'Desde operadores independientes hasta plataformas en crecimiento.',
-    testimonialsTitle: 'Lanza en vivo con confianza',
-    testimonialsSubtitle: 'Usa este checklist para pasar a Mainnet sin sorpresas.',
-    moneyTitle: 'Acepta los activos que tus clientes ya usan',
-    moneySubtitle: 'Cobra XLM, USDC y EURC en un solo flujo con finalidad rápida.',
-    finalTitle: 'Lanza tu siguiente flujo de pago hoy',
+    heroFootnote: 'Empezá gratis y lanzá en vivo en Stellar cuando estés listo.',
+    howTitle: 'Empezá a cobrar en 3 pasos',
+    howSubtitle: 'Conectá tu cuenta, generá un link o QR, y recibí el pago confirmado en segundos.',
+    benefitsTitle: 'Por qué elegir Link2Pay',
+    benefitsSubtitle: 'Cobrás más rápido, pagás menos comisión y recibís en tu moneda de siempre.',
+    audienceTitle: 'Hecho para vos',
+    audienceSubtitle: 'Desde el comercio de la esquina hasta el freelancer que cobra desde el exterior.',
+    impactTitle: 'El problema que resolvemos',
+    impactSubtitle:
+      'Las remesas son caras y lentas. Las stablecoins ya son la forma en que Latinoamérica mueve su dinero. Link2Pay conecta las dos puntas.',
+    moneyTitle: 'Aceptá los activos que tus clientes ya usan',
+    moneySubtitle: 'Cobrá en USDC, el dólar digital, y convertilo a tu moneda al instante. También aceptás XLM y EURC.',
+    finalTitle: 'Conectá tu negocio con el mundo',
     finalDescription:
-      'Crea un link de pago en minutos, compártelo en cualquier canal y sigue cada estado desde CREATED hasta CONFIRMED. Escala con webhooks, branding y control de equipo.',
+      'Generá tu primer link o QR en minutos, compartilo donde quieras y recibí en tu moneda local.',
     finalPrimaryCta: 'Crear mi primer link',
     finalSecondaryCta: 'Comparar planes',
-    heroTag1: '150+ Países',
-    heroTag2: 'Liquidación en 5s',
-    heroTag3: 'API + Webhooks',
+    heroTag1: 'Recibís en tu moneda',
+    heroTag2: 'Liquidación en ~5s',
+    heroTag3: 'Sin saber de crypto',
   },
   pt: {
-    badge: 'Pagamentos globais com Stellar',
-    heroTitleStart: 'Transforme cada fatura em',
-    heroTitleHighlight: 'um link de checkout instantâneo',
-    heroTitleEnd: 'e receba em segundos',
+    badge: 'Pagamentos globais sobre Stellar',
+    heroTitleStart: 'Seu cliente paga em cripto.',
+    heroTitleHighlight: 'Você recebe',
+    heroTitleEnd: 'na sua moeda local',
     heroDescription:
-      'Link2Pay ajuda freelancers, agências e times de produto a receber sem atrasos bancários. Crie um link, compartilhe e liquide on-chain em cerca de 5 segundos.',
+      'A Link2Pay transforma um QR ou um link em uma ponte entre as cripto e a sua conta bancária. Seu cliente paga com dólares digitais de qualquer parte do mundo e você recebe na sua moeda, direto na conta de sempre. Sem saber nada de cripto.',
+    heroDescStart: 'A Link2Pay transforma um QR ou um link em uma ponte entre as cripto e a sua conta bancária. Seu cliente paga com dólares digitais de qualquer parte do mundo e você recebe na sua ',
+    heroDescHighlight: 'moeda local',
+    heroDescEnd: ', direto na conta de sempre. Sem saber nada de cripto.',
     heroPrimaryCta: 'Criar meu primeiro link',
-    heroSecondaryCta: 'SDK + Docs',
-    heroSecondaryNote: 'Guias de integração e referência de API em breve',
-    heroSecondaryBadge: 'Em breve',
-    heroFootnote: 'Comece grátis na Testnet e mude para Mainnet quando estiver pronto.',
-    howTitle: 'Como lançar em uma tarde',
-    howSubtitle: 'Conecte a wallet, gere o link e confirme o pagamento em tempo real.',
-    benefitsTitle: 'Por que os times escolhem Link2Pay',
-    benefitsSubtitle: 'Mais velocidade de caixa, menos fricção e checkout confiável.',
-    audienceTitle: 'Feito para times de pagamentos modernos',
-    audienceSubtitle: 'De operadores independentes a plataformas em crescimento.',
-    testimonialsTitle: 'Entre em producao com confianca',
-    testimonialsSubtitle: 'Use este checklist para ir para Mainnet sem surpresas.',
+    heroFootnote: 'Comece grátis e entre no ar na Stellar quando estiver pronto.',
+    howTitle: 'Comece a receber em 3 passos',
+    howSubtitle: 'Conecte sua conta, gere um link ou QR, e receba o pagamento confirmado em segundos.',
+    benefitsTitle: 'Por que escolher a Link2Pay',
+    benefitsSubtitle: 'Receba mais rápido, pague menos taxa e receba na moeda que você já usa.',
+    audienceTitle: 'Feito para você',
+    audienceSubtitle: 'Do comércio da esquina ao freelancer que recebe do exterior.',
+    impactTitle: 'O problema que resolvemos',
+    impactSubtitle:
+      'As remessas são caras e lentas. As stablecoins já são como a América Latina movimenta dinheiro. A Link2Pay conecta as duas pontas.',
     moneyTitle: 'Aceite os ativos que seus clientes já usam',
-    moneySubtitle: 'Receba XLM, USDC e EURC em um único fluxo com finalidade rápida.',
-    finalTitle: 'Lance seu próximo fluxo de pagamento hoje',
+    moneySubtitle: 'Receba em USDC, o dólar digital, e converta para a sua moeda na hora. Você também aceita XLM e EURC.',
+    finalTitle: 'Conecte seu negócio com o mundo',
     finalDescription:
-      'Crie um link de pagamento em minutos, compartilhe em qualquer canal e acompanhe cada status de CREATED a CONFIRMED. Escale com webhooks, branding e controles de equipe.',
+      'Gere seu primeiro link ou QR em minutos, compartilhe onde quiser e receba na sua moeda local.',
     finalPrimaryCta: 'Criar meu primeiro link',
     finalSecondaryCta: 'Comparar planos',
-    heroTag1: '150+ Países',
-    heroTag2: 'Liquidação em 5s',
-    heroTag3: 'API + Webhooks',
+    heroTag1: 'Recebe na sua moeda',
+    heroTag2: 'Liquidação em ~5s',
+    heroTag3: 'Sem saber de cripto',
   },
 };
 
@@ -156,52 +162,52 @@ const FLOW_STEPS: Record<Language, Array<Item & { step: string }>> = {
   en: [
     {
       step: '01',
-      title: 'Connect your wallet securely',
-      description: 'Sign in with Freighter. Your private keys stay on your device.',
+      title: 'Connect your account securely',
+      description: 'Your keys always stay on your device. You keep full control.',
     },
     {
       step: '02',
-      title: 'Create a payment link in seconds',
-      description: 'Set amount, choose asset, define expiration, and add metadata when needed.',
+      title: 'Generate your link or QR in seconds',
+      description: 'Pick the amount and share it. Ready to get paid.',
     },
     {
       step: '03',
-      title: 'Share the link and confirm settlement',
-      description: 'Send the checkout URL and track status in real time until CONFIRMED.',
+      title: 'Receive in your local currency',
+      description: 'Your customer pays, and you receive your local currency in your bank account. Track the status in real time.',
     },
   ],
   es: [
     {
       step: '01',
-      title: 'Conecta tu wallet de forma segura',
-      description: 'Inicia sesión con Freighter. Tus llaves privadas se quedan en tu dispositivo.',
+      title: 'Conectá tu cuenta de forma segura',
+      description: 'Tus llaves quedan siempre en tu dispositivo. Vos tenés el control total.',
     },
     {
       step: '02',
-      title: 'Crea un link de pago en segundos',
-      description: 'Define monto, activo, expiración y metadata cuando la necesites.',
+      title: 'Generá tu link o QR en segundos',
+      description: 'Elegí el monto y compartilo. Listo para cobrar.',
     },
     {
       step: '03',
-      title: 'Comparte el link y confirma la liquidación',
-      description: 'Envía la URL de checkout y sigue el estado en tiempo real hasta CONFIRMED.',
+      title: 'Recibí en tu moneda local',
+      description: 'Tu cliente paga, y vos recibís pesos en tu cuenta bancaria. Seguí el estado en tiempo real.',
     },
   ],
   pt: [
     {
       step: '01',
-      title: 'Conecte sua wallet com seguranca',
-      description: 'Entre com Freighter. Suas chaves privadas ficam no seu dispositivo.',
+      title: 'Conecte sua conta com segurança',
+      description: 'Suas chaves ficam sempre no seu dispositivo. Você tem o controle total.',
     },
     {
       step: '02',
-      title: 'Crie um link de pagamento em segundos',
-      description: 'Defina valor, ativo, expiração e metadata quando precisar.',
+      title: 'Gere seu link ou QR em segundos',
+      description: 'Escolha o valor e compartilhe. Pronto para receber.',
     },
     {
       step: '03',
-      title: 'Compartilhe o link e confirme a liquidação',
-      description: 'Envie a URL de checkout e acompanhe o status em tempo real até CONFIRMED.',
+      title: 'Receba na sua moeda local',
+      description: 'Seu cliente paga, e você recebe na sua moeda direto na conta bancária. Acompanhe o status em tempo real.',
     },
   ],
 };
@@ -209,56 +215,56 @@ const FLOW_STEPS: Record<Language, Array<Item & { step: string }>> = {
 const BENEFITS: Record<Language, Item[]> = {
   en: [
     {
-      title: 'Faster cash flow',
-      description: 'Most payments finalize on Stellar in about 5 seconds, so your team moves faster.',
+      title: 'Receive in your local currency',
+      description: 'Your customer pays in crypto from anywhere and you receive your local currency straight into your bank account. No exchanges, no detours.',
     },
     {
-      title: 'Low transaction costs',
-      description: 'Network fees stay near zero, from small invoices to high-value transactions.',
+      title: 'Get paid faster',
+      description: 'Most payments settle on Stellar in about 5 seconds.',
     },
     {
-      title: 'Global collection',
-      description: 'Accept payments across borders with one checkout flow and no banking bottlenecks.',
+      title: 'Ultra-low fees',
+      description: 'Network fees are near zero, from small amounts to large ones.',
     },
     {
-      title: 'Non-custodial control',
-      description: 'Funds settle directly to your wallet. Link2Pay does not hold customer balances.',
+      title: 'You stay in control',
+      description: 'The money lands directly in your account. Link2Pay never holds your funds.',
     },
   ],
   es: [
     {
-      title: 'Flujo de caja más rápido',
-      description: 'La mayoría de pagos en Stellar se confirma en unos 5 segundos.',
+      title: 'Recibí en tu moneda local',
+      description: 'Tu cliente paga en crypto desde cualquier parte del mundo y vos recibís pesos directo en tu cuenta bancaria. Sin exchanges, sin vueltas.',
     },
     {
-      title: 'Costos de transacción bajos',
-      description: 'Las comisiones de red se mantienen casi en cero para montos chicos o grandes.',
+      title: 'Cobrás más rápido',
+      description: 'La mayoría de los pagos se liquidan en unos 5 segundos sobre Stellar.',
     },
     {
-      title: 'Cobro global',
-      description: 'Acepta pagos transfronterizos con un solo flujo de checkout.',
+      title: 'Comisiones bajísimas',
+      description: 'Las comisiones de red son casi cero, desde montos chicos hasta grandes.',
     },
     {
-      title: 'Control non-custodial',
-      description: 'Los fondos llegan directo a tu wallet. Link2Pay no retiene balances.',
+      title: 'Vos tenés el control',
+      description: 'El dinero llega directo a tu cuenta. Link2Pay nunca retiene tu plata.',
     },
   ],
   pt: [
     {
-      title: 'Fluxo de caixa mais rápido',
-      description: 'A maioria dos pagamentos na Stellar confirma em cerca de 5 segundos.',
+      title: 'Receba na sua moeda local',
+      description: 'Seu cliente paga em cripto de qualquer lugar e você recebe na sua moeda direto na conta bancária. Sem corretoras, sem voltas.',
     },
     {
-      title: 'Custos de transação baixos',
-      description: 'As taxas de rede ficam quase em zero para valores pequenos ou altos.',
+      title: 'Receba mais rápido',
+      description: 'A maioria dos pagamentos é liquidada em cerca de 5 segundos na Stellar.',
     },
     {
-      title: 'Recebimento global',
-      description: 'Aceite pagamentos internacionais com um único fluxo de checkout.',
+      title: 'Taxas baixíssimas',
+      description: 'As taxas de rede são quase zero, de valores pequenos a grandes.',
     },
     {
-      title: 'Controle non-custodial',
-      description: 'Os fundos chegam direto na sua wallet. Link2Pay não retém saldos.',
+      title: 'Você no controle',
+      description: 'O dinheiro chega direto na sua conta. A Link2Pay nunca retém o seu dinheiro.',
     },
   ],
 };
@@ -266,52 +272,52 @@ const BENEFITS: Record<Language, Item[]> = {
 const AUDIENCES: Record<Language, Item[]> = {
   en: [
     {
-      title: 'Freelancers and agencies',
-      description: 'Send one payment link per project and reduce back-and-forth on collection.',
+      title: 'Businesses and shops',
+      description: 'Accept crypto payments without knowing anything about crypto. Your customer scans a QR and you receive your local currency.',
     },
     {
-      title: 'SaaS and product teams',
-      description: 'Add payment links to your app quickly without maintaining custom checkout logic.',
+      title: 'Freelancers and individuals',
+      description: 'Get paid from abroad without losing money on fees or waiting days. Send a link and receive in your currency.',
     },
     {
-      title: 'Marketplaces and platforms',
-      description: 'Create payment intents at scale and monitor each transaction lifecycle.',
+      title: 'Digital businesses and platforms',
+      description: 'Integrate payments into your app or platform and track every transaction end to end.',
     },
   ],
   es: [
     {
-      title: 'Freelancers y agencias',
-      description: 'Comparte un link por proyecto y reduce fricción al cobrar.',
+      title: 'Negocios y comercios',
+      description: 'Aceptá pagos en crypto sin saber nada de crypto. Tu cliente escanea un QR y vos recibís en pesos.',
     },
     {
-      title: 'SaaS y equipos de producto',
-      description: 'Agrega links de pago en tu app sin mantener logica de checkout personalizada.',
+      title: 'Freelancers y personas',
+      description: 'Cobrá del exterior sin perder en comisiones ni esperar días. Mandás un link y recibís en tu moneda.',
     },
     {
-      title: 'Marketplaces y plataformas',
-      description: 'Genera intents de pago a escala y monitorea cada ciclo de transacción.',
+      title: 'Negocios digitales y plataformas',
+      description: 'Integrá pagos a tu app o plataforma y seguí cada transacción de principio a fin.',
     },
   ],
   pt: [
     {
-      title: 'Freelancers e agencias',
-      description: 'Compartilhe um link por projeto e reduza atrito na cobrança.',
+      title: 'Negócios e comércios',
+      description: 'Aceite pagamentos em cripto sem saber nada de cripto. Seu cliente escaneia um QR e você recebe na sua moeda.',
     },
     {
-      title: 'SaaS e times de produto',
-      description: 'Adicione links de pagamento no app sem manter checkout customizado.',
+      title: 'Freelancers e pessoas',
+      description: 'Receba do exterior sem perder em taxas nem esperar dias. Envia um link e recebe na sua moeda.',
     },
     {
-      title: 'Marketplaces e plataformas',
-      description: 'Gere intents de pagamento em escala e acompanhe cada ciclo da transação.',
+      title: 'Negócios digitais e plataformas',
+      description: 'Integre pagamentos ao seu app ou plataforma e acompanhe cada transação de ponta a ponta.',
     },
   ],
 };
 
 const AUDIENCE_FITS: Record<Language, string[]> = {
-  en: ['Best for project-based billing', 'Best for embedded checkout flows', 'Best for high-volume payment operations'],
-  es: ['Ideal para facturacion por proyecto', 'Ideal para checkout embebido en producto', 'Ideal para operaciones de cobro en alto volumen'],
-  pt: ['Ideal para faturamento por projeto', 'Ideal para checkout embutido no produto', 'Ideal para operacoes de pagamento em alto volume'],
+  en: ['Ideal for local sales', 'Ideal for international payments', 'Ideal for high volume'],
+  es: ['Ideal para venta local', 'Ideal para pagos internacionales', 'Ideal para alto volumen'],
+  pt: ['Ideal para venda local', 'Ideal para pagamentos internacionais', 'Ideal para alto volume'],
 };
 
 const STATS: Record<Language, StatItem[]> = {
@@ -335,59 +341,86 @@ const STATS: Record<Language, StatItem[]> = {
   ],
 };
 
-const LAUNCH_CHECKLIST: Record<Language, Item[]> = {
+const IMPACT_STATS: Record<Language, ImpactStat[]> = {
   en: [
     {
-      title: 'Validate in Sandbox',
-      description: 'Create test links and run the checkout flow end-to-end before going live.',
+      value: '6.36%',
+      label: 'Average cost to send a remittance worldwide — over double the UN target.',
+      source: 'https://remittanceprices.worldbank.org/',
     },
     {
-      title: 'Confirm settlement tracking',
-      description: 'Use polling or webhooks to monitor CREATED, PENDING, and CONFIRMED states.',
+      value: 'USD 11.85B',
+      label: 'Remittances Colombia received in 2024: its second-largest source of foreign currency (2.3% of GDP).',
+      source: 'https://www.bbvaresearch.com/en/publicaciones/colombia-remittances-matter-and-more-than-ever/',
     },
     {
-      title: 'Align wallet network',
-      description: 'Keep Freighter network aligned with your dashboard network before creating live links.',
+      value: '48%',
+      label: 'Of all crypto purchases in Colombia in 2024 were stablecoins.',
+      source: 'https://dune.com/blog/latam-crypto-2025-report',
     },
     {
-      title: 'Switch to Mainnet',
-      description: 'Reconnect wallet on Mainnet and start issuing production payment links.',
+      value: '~5s · $0.00001',
+      label: 'Stellar settles in seconds at a near-zero cost per transaction.',
+      source: 'https://stellar.org/faq',
+    },
+    {
+      value: 'PayPal & Visa',
+      label: 'Already run stablecoin payments on the Stellar network.',
+      source: 'https://www.coindesk.com/sponsored-content/stellar-and-the-stablecoin-moment-infrastructure-for-enterprise-grade-payments',
     },
   ],
   es: [
     {
-      title: 'Valida en Sandbox',
-      description: 'Crea links de prueba y valida el flujo completo de checkout antes de salir en vivo.',
+      value: '6,36%',
+      label: 'Costo promedio de enviar una remesa en el mundo — más del doble de la meta de la ONU.',
+      source: 'https://remittanceprices.worldbank.org/',
     },
     {
-      title: 'Confirma el seguimiento',
-      description: 'Usa polling o webhooks para monitorear CREATED, PENDING y CONFIRMED.',
+      value: 'USD 11.848 M',
+      label: 'Remesas que recibió Colombia en 2024: su segunda fuente de divisas (2,3% del PIB).',
+      source: 'https://www.bbvaresearch.com/en/publicaciones/colombia-remittances-matter-and-more-than-ever/',
     },
     {
-      title: 'Alinea la red de la wallet',
-      description: 'Mantén Freighter en la misma red que el dashboard antes de crear links en vivo.',
+      value: '48%',
+      label: 'De las compras de cripto en Colombia en 2024 fueron stablecoins.',
+      source: 'https://dune.com/blog/latam-crypto-2025-report',
     },
     {
-      title: 'Cambia a Mainnet',
-      description: 'Reconecta la wallet en Mainnet y emite links de pago de producción.',
+      value: '~5s · $0,00001',
+      label: 'Stellar liquida en segundos y a un costo casi nulo por transacción.',
+      source: 'https://stellar.org/faq',
+    },
+    {
+      value: 'PayPal y Visa',
+      label: 'Ya operan sus pagos con stablecoins sobre la red Stellar.',
+      source: 'https://www.coindesk.com/sponsored-content/stellar-and-the-stablecoin-moment-infrastructure-for-enterprise-grade-payments',
     },
   ],
   pt: [
     {
-      title: 'Valide no Sandbox',
-      description: 'Crie links de teste e valide o fluxo completo de checkout antes de ir para producao.',
+      value: '6,36%',
+      label: 'Custo médio para enviar uma remessa no mundo — mais que o dobro da meta da ONU.',
+      source: 'https://remittanceprices.worldbank.org/',
     },
     {
-      title: 'Confirme o rastreamento',
-      description: 'Use polling ou webhooks para monitorar CREATED, PENDING e CONFIRMED.',
+      value: 'USD 11,85 bi',
+      label: 'Remessas que a Colômbia recebeu em 2024: sua segunda fonte de divisas (2,3% do PIB).',
+      source: 'https://www.bbvaresearch.com/en/publicaciones/colombia-remittances-matter-and-more-than-ever/',
     },
     {
-      title: 'Alinhe a rede da wallet',
-      description: 'Mantenha o Freighter na mesma rede do dashboard antes de criar links ao vivo.',
+      value: '48%',
+      label: 'Das compras de cripto na Colômbia em 2024 foram stablecoins.',
+      source: 'https://dune.com/blog/latam-crypto-2025-report',
     },
     {
-      title: 'Troque para Mainnet',
-      description: 'Reconecte a wallet em Mainnet e comece a emitir links de pagamento de producao.',
+      value: '~5s · $0,00001',
+      label: 'A Stellar liquida em segundos e a um custo quase nulo por transação.',
+      source: 'https://stellar.org/faq',
+    },
+    {
+      value: 'PayPal e Visa',
+      label: 'Já operam pagamentos com stablecoins na rede Stellar.',
+      source: 'https://www.coindesk.com/sponsored-content/stellar-and-the-stablecoin-moment-infrastructure-for-enterprise-grade-payments',
     },
   ],
 };
@@ -395,14 +428,15 @@ const LAUNCH_CHECKLIST: Record<Language, Item[]> = {
 const CURRENCIES: Record<Language, CurrencyCard[]> = {
   en: [
     {
+      code: 'USDC',
+      name: 'USD Coin',
+      desc: 'The digital dollar by Circle. Charge in a stable value and convert it to your local currency instantly.',
+      featured: true,
+    },
+    {
       code: 'XLM',
       name: 'Stellar Lumens',
       desc: 'Native Stellar asset for fast settlement and very low network fees.',
-    },
-    {
-      code: 'USDC',
-      name: 'USD Coin',
-      desc: 'Dollar-pegged stablecoin by Circle for USD pricing and settlement.',
     },
     {
       code: 'EURC',
@@ -412,14 +446,15 @@ const CURRENCIES: Record<Language, CurrencyCard[]> = {
   ],
   es: [
     {
+      code: 'USDC',
+      name: 'USD Coin',
+      desc: 'El dólar digital de Circle. Cobra en un valor estable y conviértelo a tu moneda al instante.',
+      featured: true,
+    },
+    {
       code: 'XLM',
       name: 'Stellar Lumens',
       desc: 'Activo nativo de Stellar para liquidación rápida y comisiones muy bajas.',
-    },
-    {
-      code: 'USDC',
-      name: 'USD Coin',
-      desc: 'Stablecoin vinculada al dólar por Circle para cobros y liquidación en USD.',
     },
     {
       code: 'EURC',
@@ -429,19 +464,20 @@ const CURRENCIES: Record<Language, CurrencyCard[]> = {
   ],
   pt: [
     {
+      code: 'USDC',
+      name: 'USD Coin',
+      desc: 'O dólar digital da Circle. Receba em um valor estável e converta para a sua moeda na hora.',
+      featured: true,
+    },
+    {
       code: 'XLM',
       name: 'Stellar Lumens',
       desc: 'Ativo nativo da Stellar para liquidação rápida e taxas muito baixas.',
     },
     {
-      code: 'USDC',
-      name: 'USD Coin',
-      desc: 'Stablecoin pareada ao dólar pela Circle para cobrança e liquidação em USD.',
-    },
-    {
       code: 'EURC',
       name: 'Euro Coin',
-      desc: 'Stablecoin pareada ao euro pela Circle para cobrancas internacionais em EUR.',
+      desc: 'Stablecoin pareada ao euro pela Circle para cobranças internacionais em EUR.',
     },
   ],
 };
@@ -452,58 +488,46 @@ const HOME_EXTRAS: Record<
     snapshotTitle: string;
     snapshotSubtitle: string;
     benefitsCta: string;
-    ratingNote: string;
-    checklistOrderTitle: string;
-    checklistOrderSummary: string;
     assetsNote: string;
-    sdkCta: string;
-    sdkHint: string;
+    assetsEyebrow: string;
+    sourceLabel: string;
     lifecycleCreated: string;
     lifecyclePending: string;
     lifecycleConfirmed: string;
   }
 > = {
   en: {
-    snapshotTitle: 'Payments overview at a glance',
-    snapshotSubtitle: 'Monitor settlement speed, fees, and global reach before scaling your live checkout.',
+    snapshotTitle: 'Why Stellar makes the difference',
+    snapshotSubtitle: 'Settlement in seconds, near-zero fees, and global reach. This is what makes the bridge possible.',
     benefitsCta: 'Explore capabilities',
-    ratingNote: 'Average partner rating after launching live payment links.',
-    checklistOrderTitle: 'Recommended order',
-    checklistOrderSummary: 'Sandbox validation -> network check -> Mainnet go-live.',
     assetsNote: 'Use one integration pattern and choose the asset per payment request.',
-    sdkCta: 'Open SDK Section',
-    sdkHint: 'Need implementation details?',
+    assetsEyebrow: 'One flow, multiple assets',
+    sourceLabel: 'Source',
     lifecycleCreated: 'CREATED - link generated',
     lifecyclePending: 'PENDING - waiting for payer confirmation',
     lifecycleConfirmed: 'CONFIRMED - settlement completed on-chain',
   },
   es: {
-    snapshotTitle: 'Panorama de pagos en un vistazo',
-    snapshotSubtitle: 'Visualiza velocidad de liquidacion, costos y alcance global antes de escalar checkout en vivo.',
+    snapshotTitle: 'Por qué Stellar hace la diferencia',
+    snapshotSubtitle: 'Liquidación en segundos, comisiones casi en cero y alcance global. Esto es lo que hace posible el puente.',
     benefitsCta: 'Explorar capacidades',
-    ratingNote: 'Calificacion promedio de partners despues de lanzar links de pago en vivo.',
-    checklistOrderTitle: 'Orden recomendada',
-    checklistOrderSummary: 'Validacion en Sandbox -> revision de red -> salida a Mainnet.',
-    assetsNote: 'Usa un solo patron de integracion y elige el activo por solicitud de pago.',
-    sdkCta: 'Abrir seccion SDK',
-    sdkHint: 'Necesitas detalles de implementacion?',
+    assetsNote: 'Usa un solo patrón de integración y elige el activo por solicitud de pago.',
+    assetsEyebrow: 'Un flujo, varios activos',
+    sourceLabel: 'Fuente',
     lifecycleCreated: 'CREATED - link generado',
-    lifecyclePending: 'PENDING - esperando confirmacion del pagador',
-    lifecycleConfirmed: 'CONFIRMED - liquidacion completada on-chain',
+    lifecyclePending: 'PENDING - esperando confirmación del pagador',
+    lifecycleConfirmed: 'CONFIRMED - liquidación completada on-chain',
   },
   pt: {
-    snapshotTitle: 'Panorama de pagamentos em um relance',
-    snapshotSubtitle: 'Visualize velocidade de liquidacao, custos e alcance global antes de escalar checkout em producao.',
+    snapshotTitle: 'Por que a Stellar faz a diferença',
+    snapshotSubtitle: 'Liquidação em segundos, taxas quase zero e alcance global. É isso que torna a ponte possível.',
     benefitsCta: 'Explorar capacidades',
-    ratingNote: 'Nota media de parceiros apos lancar links de pagamento ao vivo.',
-    checklistOrderTitle: 'Ordem recomendada',
-    checklistOrderSummary: 'Validacao em Sandbox -> verificacao de rede -> go-live em Mainnet.',
-    assetsNote: 'Use um unico padrao de integracao e escolha o ativo por solicitacao de pagamento.',
-    sdkCta: 'Abrir secao SDK',
-    sdkHint: 'Precisa de detalhes de implementacao?',
+    assetsNote: 'Use um único padrão de integração e escolha o ativo por solicitação de pagamento.',
+    assetsEyebrow: 'Um fluxo, vários ativos',
+    sourceLabel: 'Fonte',
     lifecycleCreated: 'CREATED - link gerado',
-    lifecyclePending: 'PENDING - aguardando confirmacao do pagador',
-    lifecycleConfirmed: 'CONFIRMED - liquidacao concluida on-chain',
+    lifecyclePending: 'PENDING - aguardando confirmação do pagador',
+    lifecycleConfirmed: 'CONFIRMED - liquidação concluída on-chain',
   },
 };
 
@@ -516,84 +540,78 @@ export default function Home() {
   const audiences = AUDIENCES[language];
   const audienceFits = AUDIENCE_FITS[language];
   const stats = STATS[language];
-  const launchChecklist = LAUNCH_CHECKLIST[language];
+  const impactStats = IMPACT_STATS[language];
   const currencies = CURRENCIES[language];
   const extras = HOME_EXTRAS[language];
 
   return (
     <div>
       <section className="relative overflow-hidden border-b border-border bg-card">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_at_top,_hsl(175_75%_45%_/_0.12),transparent_68%)]" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(ellipse_at_bottom,_hsl(175_75%_45%_/_0.06),transparent_68%)]" />
-        <div className="relative mx-auto max-w-[1480px] px-4 pb-[clamp(2.75rem,7svh,5rem)] pt-[clamp(2.75rem,8svh,6rem)] sm:px-6 sm:pb-[clamp(3rem,8svh,5.5rem)] sm:pt-[clamp(3.25rem,10svh,6.5rem)]">
-          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-            <div className="text-center lg:text-left">
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary animate-fade-in">
-                <Sparkles className="h-3.5 w-3.5" />
-                {copy.badge}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_at_top,_hsl(var(--primary)_/_0.12),transparent_68%)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(ellipse_at_bottom,_hsl(var(--primary)_/_0.06),transparent_68%)]" />
+        <div className="relative mx-auto max-w-6xl px-4 pb-[clamp(2.75rem,7svh,5rem)] pt-[clamp(2.75rem,8svh,6rem)] sm:px-6 sm:pb-[clamp(3rem,8svh,5.5rem)] sm:pt-[clamp(3.25rem,10svh,6.5rem)]">
+          {/* Above the fold: only the headline and primary action */}
+          <div className="flex min-h-[52svh] flex-col items-center justify-center text-center sm:min-h-[56svh]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary animate-fade-in">
+              <Sparkles className="h-3.5 w-3.5" />
+              {copy.badge}
+            </span>
+            <h1
+              className="mt-8 text-4xl font-semibold tracking-tight leading-[1.04] text-foreground md:text-6xl md:leading-[1.04] lg:text-7xl lg:leading-[1.02] animate-slide-up"
+              style={{ animationDelay: '0.08s' }}
+            >
+              <span className="block">{copy.heroTitleStart}</span>
+              <span className="block">
+                <span className="text-gradient">{copy.heroTitleHighlight}</span> {copy.heroTitleEnd}
               </span>
-              <h1
-                className="mt-8 text-4xl font-semibold tracking-tight leading-[1.04] text-foreground md:text-6xl md:leading-[1.04] lg:text-7xl lg:leading-[1.02] animate-slide-up"
-                style={{ animationDelay: '0.08s' }}
-              >
-                <span className="block">
-                  {copy.heroTitleStart} <span className="text-gradient">{copy.heroTitleHighlight}</span>
-                </span>
-                <span className="block">{copy.heroTitleEnd}</span>
-              </h1>
-              <p
-                className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg lg:mx-0 animate-slide-up"
-                style={{ animationDelay: '0.16s' }}
-              >
-                {copy.heroDescription}
+            </h1>
+            <div
+              className="mt-10 flex flex-wrap items-center justify-center gap-4 animate-slide-up"
+              style={{ animationDelay: '0.16s' }}
+            >
+              <Link to="/app" className="btn-primary px-6 py-3.5 text-sm">
+                {copy.heroPrimaryCta}
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Supporting context (left) + live link builder card (right) */}
+      <section id="build" className="scroll-mt-40 border-b border-border bg-background">
+        <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-28">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-center lg:gap-12">
+            <div className="text-center lg:text-left animate-fade-in">
+              <p className="text-xl font-semibold leading-relaxed tracking-tight text-foreground md:text-2xl lg:text-3xl">
+                {copy.heroDescStart}
+                <span className="text-gradient">{copy.heroDescHighlight}</span>
+                {copy.heroDescEnd}
               </p>
-              <div
-                className="mt-10 flex flex-wrap items-center justify-center gap-4 lg:justify-start animate-slide-up"
-                style={{ animationDelay: '0.24s' }}
-              >
-                <Link to="/app" className="btn-primary px-6 py-3.5 text-sm">
-                  {copy.heroPrimaryCta}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <div className="inline-flex items-center gap-3 rounded-2xl border border-primary/35 bg-card/80 px-4 py-2.5 text-left shadow-[0_8px_32px_hsl(var(--primary)_/_0.1)]">
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-primary/35 bg-primary/15 text-primary">
-                    <FileText className="h-4 w-4" />
-                  </span>
-                  <span className="flex flex-col">
-                    <span className="text-sm font-semibold leading-tight text-foreground">{copy.heroSecondaryCta}</span>
-                    <span className="text-[11px] leading-tight text-muted-foreground">{copy.heroSecondaryNote}</span>
-                  </span>
-                  <span className="rounded-full border border-primary/35 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-primary">
-                    {copy.heroSecondaryBadge}
-                  </span>
-                </div>
-              </div>
-              <p className="mt-4 text-xs text-muted-foreground animate-slide-up" style={{ animationDelay: '0.32s' }}>
-                {copy.heroFootnote}
-              </p>
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-[11px] uppercase tracking-[0.24em] text-muted-foreground lg:justify-start">
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
+              <div className="mt-8 flex flex-wrap justify-center gap-3 text-2xs uppercase tracking-[0.24em] lg:justify-start">
+                <span className="inline-flex items-center gap-2 text-primary font-medium">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                   {copy.heroTag1}
                 </span>
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
+                <span className="inline-flex items-center gap-2 text-primary font-medium">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                   {copy.heroTag2}
                 </span>
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
+                <span className="inline-flex items-center gap-2 text-primary font-medium">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                   {copy.heroTag3}
                 </span>
               </div>
+              <p className="mt-4 text-xs text-muted-foreground">{copy.heroFootnote}</p>
             </div>
 
-            <div className="w-full animate-fade-in lg:mt-4" style={{ animationDelay: '0.2s' }}>
-              <div className="relative h-full overflow-hidden rounded-[2.5rem] border border-border/70 bg-card/90 p-8 shadow-[0_40px_120px_hsl(var(--primary)_/_0.2)] backdrop-blur sm:p-10 lg:p-12">
+            <div className="w-full animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              <div className="relative h-full overflow-hidden rounded-[2.5rem] border border-border/70 bg-card/90 p-6 shadow-[0_40px_120px_hsl(var(--primary)_/_0.2)] backdrop-blur sm:p-8 lg:p-8">
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,_hsl(var(--card)),_hsl(var(--background)))]" />
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)_/_0.2),transparent_60%)]" />
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,_hsl(var(--primary)_/_0.07)_1px,transparent_1px),linear-gradient(180deg,_hsl(var(--primary)_/_0.05)_1px,transparent_1px)] bg-[size:48px_48px] opacity-60" />
                 <div className="relative">
-                  <HeroQuickLink />
+                  <HeroPaymentMockup />
                 </div>
               </div>
             </div>
@@ -607,21 +625,12 @@ export default function Home() {
             <article className="relative overflow-hidden rounded-2xl border border-border bg-card p-7 sm:p-8">
               <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_hsl(var(--primary)_/_0.16),transparent_62%)]" />
               <div className="relative">
-                <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-primary">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-2xs font-medium uppercase tracking-[0.12em] text-primary">
                   <Send className="h-3.5 w-3.5" />
                   {copy.badge}
                 </span>
                 <h2 className="mt-4 text-2xl font-semibold text-foreground sm:text-3xl">{extras.snapshotTitle}</h2>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">{extras.snapshotSubtitle}</p>
-
-                <div className="mt-7 space-y-3">
-                  {[copy.heroTag1, copy.heroTag2, copy.heroTag3].map((tag) => (
-                    <div key={tag} className="flex items-center gap-3 rounded-xl border border-border bg-background/80 px-4 py-3">
-                      <span className="h-2 w-2 rounded-full bg-primary" />
-                      <p className="text-xs font-medium text-muted-foreground">{tag}</p>
-                    </div>
-                  ))}
-                </div>
 
                 <div className="mt-8 flex flex-wrap gap-3">
                   <Link to="/app" className="btn-primary px-5 py-2.5 text-sm">
@@ -629,12 +638,6 @@ export default function Home() {
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  {extras.sdkHint}{' '}
-                  <Link to="/sdk" className="font-medium text-primary hover:underline">
-                    {extras.sdkCta}
-                  </Link>
-                </p>
               </div>
             </article>
 
@@ -669,7 +672,7 @@ export default function Home() {
             <p className="mt-3 text-base text-muted-foreground">{copy.howSubtitle}</p>
 
             <div className="mt-8 rounded-2xl border border-border bg-card p-5">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{copy.heroTag2}</p>
+              <p className="text-2xs uppercase tracking-[0.18em] text-muted-foreground">{copy.heroTag2}</p>
               <div className="mt-4 space-y-3">
                 {flowSteps.map((step) => (
                   <div key={step.step} className="flex items-center gap-3 rounded-lg border border-border bg-background/70 px-3 py-2.5">
@@ -728,8 +731,14 @@ export default function Home() {
             <div className="grid gap-4 sm:grid-cols-2">
               {benefits.map((benefit, index) => {
                 const Icon = BENEFIT_ICONS[index];
+                const featured = index === 0;
                 return (
-                  <article key={benefit.title} className="rounded-2xl border border-border bg-background p-6">
+                  <article
+                    key={benefit.title}
+                    className={`rounded-2xl border p-6 ${
+                      featured ? 'border-primary/40 bg-primary/5 sm:col-span-2' : 'border-border bg-background'
+                    }`}
+                  >
                     <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
                       <Icon className="h-5 w-5" />
                     </div>
@@ -768,37 +777,20 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="stories" className="scroll-mt-40 border-y border-border bg-card">
+      <section id="impact" className="scroll-mt-40 border-y border-border bg-card">
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)]">
-            <div>
-              <h2 className="text-3xl font-semibold text-foreground">{copy.testimonialsTitle}</h2>
-              <p className="mt-3 text-base text-muted-foreground">{copy.testimonialsSubtitle}</p>
-              <div className="mt-8 rounded-2xl border border-border bg-background p-6">
-                <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{extras.checklistOrderTitle}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{extras.checklistOrderSummary}</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Link to="/app" className="btn-primary px-4 py-2 text-xs sm:text-sm">
-                    {copy.heroPrimaryCta}
-                  </Link>
-                  <Link to="/sdk" className="btn-secondary px-4 py-2 text-xs sm:text-sm">
-                    {extras.sdkCta}
-                  </Link>
-                </div>
-              </div>
-            </div>
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-semibold text-foreground">{copy.impactTitle}</h2>
+            <p className="mt-3 text-base text-muted-foreground">{copy.impactSubtitle}</p>
+          </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              {launchChecklist.map((item) => (
-                <article key={item.title} className="rounded-2xl border border-border bg-background p-6">
-                  <div className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
-                    <ShieldCheck className="h-4 w-4" />
-                  </div>
-                  <h3 className="text-base font-semibold text-foreground">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
-                </article>
-              ))}
-            </div>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {impactStats.map((item) => (
+              <article key={item.label} className="flex flex-col rounded-2xl border border-border bg-background p-6">
+                <div className="text-3xl font-semibold text-primary">{item.value}</div>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{item.label}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -810,7 +802,7 @@ export default function Home() {
             <p className="mt-3 text-base text-muted-foreground">{copy.moneySubtitle}</p>
 
             <div className="mt-7 rounded-2xl border border-border bg-card p-6">
-              <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{copy.heroTag3}</p>
+              <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{extras.assetsEyebrow}</p>
               <p className="mt-3 text-sm text-muted-foreground">{extras.assetsNote}</p>
               <div className="mt-5 space-y-2 text-xs text-muted-foreground">
                 <div className="flex items-center gap-2">
@@ -826,16 +818,17 @@ export default function Home() {
                   <span>{extras.lifecycleConfirmed}</span>
                 </div>
               </div>
-              <Link to="/sdk" className="btn-secondary mt-5 px-4 py-2 text-sm">
-                {extras.sdkCta}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
             </div>
           </div>
 
           <div className="space-y-4">
             {currencies.map((currency) => (
-              <article key={currency.code} className="relative overflow-hidden rounded-2xl border border-border bg-card p-6">
+              <article
+                key={currency.code}
+                className={`relative overflow-hidden rounded-2xl border bg-card p-6 ${
+                  currency.featured ? 'border-primary/40 ring-1 ring-primary/20' : 'border-border'
+                }`}
+              >
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_hsl(var(--primary)_/_0.12),transparent_62%)]" />
                 <div className="relative flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4">
@@ -847,8 +840,8 @@ export default function Home() {
                       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{currency.desc}</p>
                     </div>
                   </div>
-                  <span className="hidden shrink-0 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.12em] text-primary sm:inline-flex">
-                    {copy.heroTag2}
+                  <span className="hidden shrink-0 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-2xs font-medium uppercase tracking-[0.12em] text-primary sm:inline-flex">
+                    {currency.featured ? 'USDC' : copy.heroTag2}
                   </span>
                 </div>
               </article>
@@ -859,7 +852,7 @@ export default function Home() {
 
       <section id="start" className="scroll-mt-40 mx-auto max-w-6xl px-4 pb-20 sm:px-6">
         <div className="card overflow-hidden">
-          <div className="bg-[linear-gradient(135deg,_hsl(175_75%_45%),_hsl(175_75%_35%))] p-10 sm:p-14">
+          <div className="bg-[linear-gradient(135deg,_hsl(var(--primary)),_hsl(var(--accent)))] p-10 sm:p-14">
             <div className="mx-auto max-w-2xl text-center">
               <h3 className="text-3xl font-semibold text-primary-foreground">{copy.finalTitle}</h3>
               <p className="mt-4 text-base text-primary-foreground/80">{copy.finalDescription}</p>

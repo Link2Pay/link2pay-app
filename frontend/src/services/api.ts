@@ -14,6 +14,8 @@ import type {
   DashboardStats,
   SavedClient,
   SaveClientData,
+  BusinessProfile,
+  SaveProfileData,
 } from '../types';
 
 const API_BASE = config.apiUrl + '/api';
@@ -67,9 +69,9 @@ async function request<T>(
   };
 
   if (walletAddress) {
-    const { signMessage } = useWalletStore.getState();
+    const { signMessage, _privyGetToken } = useWalletStore.getState();
     try {
-      const authHeaders = await getAuthHeaders(walletAddress, signMessage);
+      const authHeaders = await getAuthHeaders(walletAddress, signMessage, _privyGetToken);
       Object.assign(headers, authHeaders);
     } catch (error: any) {
       notifyUserError(
@@ -211,6 +213,56 @@ export async function deleteInvoice(
   );
 }
 
+export async function cancelInvoice(
+  id: string,
+  walletAddress: string
+): Promise<Invoice> {
+  return request<Invoice>(
+    `/invoices/${id}/cancel`,
+    { method: 'POST' },
+    walletAddress
+  );
+}
+
+// ─── Merchant KYC API ─────────────────────────────────────────────
+// Gates fiat (Bre-B) off-ramp invoices on seller identity verification.
+// Crypto invoices require none of this.
+
+export type KycStatusValue = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+
+export interface KycStatusView {
+  status: KycStatusValue;
+  provider: string | null;
+  verifiedAt: string | null;
+  enforced: boolean;
+}
+
+export interface StartKycResult {
+  status: KycStatusValue;
+  provider: string;
+  ref?: string;
+  verificationUrl?: string;
+}
+
+export async function getKycStatus(walletAddress: string): Promise<KycStatusView> {
+  return request<KycStatusView>('/kyc/status', {}, walletAddress);
+}
+
+export async function startKyc(walletAddress: string): Promise<StartKycResult> {
+  return request<StartKycResult>('/kyc/start', { method: 'POST' }, walletAddress);
+}
+
+export async function completeMockKyc(
+  walletAddress: string,
+  approve = true
+): Promise<KycStatusView> {
+  return request<KycStatusView>(
+    '/kyc/mock/complete',
+    { method: 'POST', body: JSON.stringify({ approve }) },
+    walletAddress
+  );
+}
+
 export async function getDashboardStats(
   walletAddress: string,
   options?: { excludePreview?: boolean; networkPassphrase?: string }
@@ -285,19 +337,45 @@ export async function updateClientFavorite(
   );
 }
 
+// ─── Business profile API ─────────────────────────────────────────
+
+export async function getBusinessProfile(
+  walletAddress: string
+): Promise<BusinessProfile | null> {
+  return request<BusinessProfile | null>('/profile', {}, walletAddress);
+}
+
+export async function saveBusinessProfile(
+  data: SaveProfileData,
+  walletAddress: string
+): Promise<BusinessProfile> {
+  return request<BusinessProfile>(
+    '/profile',
+    {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    },
+    walletAddress
+  );
+}
+
 // ─── Payment API ──────────────────────────────────────────────────
 
 export async function createPayIntent(
   invoiceId: string,
   senderPublicKey?: string | null,
-  networkPassphraseOverride?: string
+  networkPassphraseOverride?: string,
+  amount?: number | string
 ): Promise<PayIntentResponse> {
   const networkPassphrase = networkPassphraseOverride || useNetworkStore.getState().networkPassphrase;
-  const payload: { networkPassphrase: string; senderPublicKey?: string } = {
+  const payload: { networkPassphrase: string; senderPublicKey?: string; amount?: number | string } = {
     networkPassphrase,
   };
   if (senderPublicKey) {
     payload.senderPublicKey = senderPublicKey;
+  }
+  if (amount !== undefined && amount !== '') {
+    payload.amount = amount;
   }
   return request<PayIntentResponse>(`/payments/${invoiceId}/pay-intent`, {
     method: 'POST',
@@ -327,6 +405,156 @@ export async function confirmPayment(
 
 export async function getXlmPrice(): Promise<{ usd: number }> {
   return request<{ usd: number }>('/prices/xlm');
+}
+
+export interface WalletBalance {
+  asset: string;
+  code: string;
+  balance: string;
+  issuer: string | null;
+}
+
+export async function getWalletBalances(
+  publicKey: string,
+  networkPassphrase?: string
+): Promise<{ publicKey: string; balances: WalletBalance[] }> {
+  const passphrase = networkPassphrase || useNetworkStore.getState().networkPassphrase;
+  const params = new URLSearchParams();
+  if (passphrase) params.set('networkPassphrase', passphrase);
+  return request(`/wallet/${publicKey}/balances?${params.toString()}`);
+}
+
+/** Phase 7: live Reflector FX estimate (e.g. COP). available:false if not in the feed. */
+export async function getFxRate(
+  symbol: string
+): Promise<{ available: boolean; estimate?: boolean; symbol: string; rate?: string; asOf?: string }> {
+  return request(`/prices/fx/${encodeURIComponent(symbol)}`);
+}
+
+// ─── Off-ramp (USDC→COP / Bre-B) API ──────────────────────────────
+
+export interface OffRampQuote {
+  quoteId: string;
+  sellAsset: string;
+  buyAsset: string;
+  sellAmount: string;
+  buyAmount: string;
+  rate: string;
+  feeTotal: string;
+  expiresAt: string;
+}
+
+export interface OffRampIntentResponse {
+  anchorTxId: string;
+  interactiveUrl?: string | null;
+  depositAddress: string;
+  memo: string;
+  memoType: 'text' | 'id' | 'hash';
+  asset: string;
+  amount: string;
+}
+
+export interface OffRampStatusResponse {
+  status: string;
+  anchorStatus: string;
+}
+
+/** Receiver-only: request a firm USDC→COP quote (advances invoice to AWAITING_ANCHOR). */
+export async function offrampQuote(
+  invoiceId: string,
+  data: { sellAmount: string; payoutAlias: string },
+  walletAddress: string
+): Promise<OffRampQuote> {
+  return request<OffRampQuote>(
+    `/invoices/${invoiceId}/offramp/quote`,
+    { method: 'POST', body: JSON.stringify(data) },
+    walletAddress
+  );
+}
+
+/** Receiver-only: initiate the SEP-24 withdraw (advances to AWAITING_PAYMENT). */
+export async function offrampInitiate(
+  invoiceId: string,
+  quoteId: string,
+  walletAddress: string
+): Promise<OffRampIntentResponse> {
+  return request<OffRampIntentResponse>(
+    `/invoices/${invoiceId}/offramp/initiate`,
+    { method: 'POST', body: JSON.stringify({ quoteId }) },
+    walletAddress
+  );
+}
+
+/** Public: build the USDC payment XDR the payer signs (payer → anchor, exact memo).
+ * Pass `sourceAsset` (non-USDC) to pay via a path payment (Phase 5). */
+export async function offrampPayIntent(
+  invoiceId: string,
+  senderPublicKey: string,
+  networkPassphraseOverride?: string,
+  sourceAsset?: string
+): Promise<{
+  transactionXdr: string;
+  networkPassphrase: string;
+  memo: string;
+  depositAddress: string;
+  asset: string;
+  amount: string;
+  sendMax?: string;
+  sourceAmount?: string;
+  sendAsset?: string;
+}> {
+  const networkPassphrase = networkPassphraseOverride || useNetworkStore.getState().networkPassphrase;
+  return request(`/invoices/${invoiceId}/offramp/pay-intent`, {
+    method: 'POST',
+    body: JSON.stringify({ senderPublicKey, networkPassphrase, sourceAsset }),
+  });
+}
+
+/** Public: preview a path payment (how much sourceAsset to send). Phase 5. */
+export async function offrampPathQuote(
+  invoiceId: string,
+  sourceAsset: string,
+  networkPassphraseOverride?: string
+): Promise<
+  | { found: false }
+  | { found: true; sendAssetCode: string; sourceAmount: string; sendMax: string }
+> {
+  const networkPassphrase = networkPassphraseOverride || useNetworkStore.getState().networkPassphrase;
+  return request(`/invoices/${invoiceId}/offramp/path-quote`, {
+    method: 'POST',
+    body: JSON.stringify({ sourceAsset, networkPassphrase }),
+  });
+}
+
+/** Public: submit the signed off-ramp payment (advances to PROCESSING). */
+export async function offrampSubmit(
+  invoiceId: string,
+  signedTransactionXdr: string,
+  depositAddress: string
+): Promise<{ success: boolean; transactionHash: string; ledger: number }> {
+  return request(`/invoices/${invoiceId}/offramp/submit`, {
+    method: 'POST',
+    body: JSON.stringify({ invoiceId, signedTransactionXdr, depositAddress }),
+  });
+}
+
+/** Public: poll anchor status; drives PROCESSING → SETTLING → SETTLED_FIAT. */
+export async function offrampStatus(invoiceId: string): Promise<OffRampStatusResponse> {
+  return request<OffRampStatusResponse>(`/invoices/${invoiceId}/offramp/status`);
+}
+
+/**
+ * Payer-driven amount for an OPEN-AMOUNT Bre-B invoice. Sets the total, quotes,
+ * and initiates server-side so the invoice advances to AWAITING_PAYMENT.
+ */
+export async function offrampSetAmount(
+  invoiceId: string,
+  sellAmount: number | string
+): Promise<{ quoteBuyAmount: string | null; depositAddress: string | null; total: string }> {
+  return request(`/invoices/${invoiceId}/offramp/set-amount`, {
+    method: 'POST',
+    body: JSON.stringify({ sellAmount }),
+  });
 }
 
 export async function getPaymentStatus(

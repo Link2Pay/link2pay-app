@@ -1,9 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { PrivyProvider } from '@privy-io/react-auth';
 import App from './App';
 import './index.css';
 import { applyTheme, getPreferredTheme } from './lib/theme';
 import { LanguageProvider } from './i18n/I18nProvider';
+import { config } from './config';
 
 applyTheme(getPreferredTheme());
 
@@ -47,10 +49,21 @@ if (typeof window !== 'undefined') {
   });
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+const inner = (
   <React.StrictMode>
     <LanguageProvider>
       <App />
     </LanguageProvider>
   </React.StrictMode>
+);
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  config.privyAppId ? (
+    <PrivyProvider
+      appId={config.privyAppId}
+      config={{ loginMethods: ['google', 'email'] }}
+    >
+      {inner}
+    </PrivyProvider>
+  ) : inner
 );

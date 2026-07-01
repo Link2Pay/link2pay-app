@@ -8,6 +8,7 @@ import {
   requireWallet,
   createInvoiceSchema,
 } from '../middleware/validation';
+import { requireKycForFiat } from '../middleware/requireKyc';
 import { InvoiceStatus } from '@prisma/client';
 import { log } from '../utils/logger';
 
@@ -36,6 +37,7 @@ router.post(
   requireWallet,
   createInvoiceLimiter,
   validateBody(createInvoiceSchema),
+  requireKycForFiat, // fiat (Bre-B) payouts require a verified merchant; crypto passes through
   async (req: Request, res: Response) => {
     try {
       const walletAddress = req.walletAddress as string;
@@ -229,6 +231,47 @@ router.post('/:id/send', requireWallet, async (req: Request, res: Response) => {
   } catch (error: any) {
     log.error('Send invoice error', { error: error?.message });
     res.status(500).json({ error: 'Failed to send invoice' });
+  }
+});
+
+/**
+ * POST /api/invoices/:id/cancel
+ * Cancel a payment link (owner only). Allowed from any open status; a link
+ * that has already been paid or is settling fiat can no longer be cancelled.
+ */
+router.post('/:id/cancel', requireWallet, async (req: Request, res: Response) => {
+  try {
+    const invoice = await invoiceService.getInvoice(req.params.id);
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+    if (invoice.freelancerWallet !== req.walletAddress) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    if (['PAID', 'SETTLING', 'SETTLED_FIAT'].includes(invoice.status)) {
+      return res.status(400).json({ error: 'This link can no longer be cancelled' });
+    }
+    if (invoice.status === 'CANCELLED') {
+      return res.json(invoice); // idempotent
+    }
+
+    const from = invoice.status;
+    const updated = await invoiceService.updateStatus(req.params.id, 'CANCELLED');
+    // Fire-and-forget audit log — non-fatal
+    invoiceService
+      .addAuditLog(req.params.id, 'CANCELLED', req.walletAddress as string, {
+        status: { from, to: 'CANCELLED' },
+      })
+      .catch((auditError: unknown) => {
+        log.warn('Audit log failed for invoice cancel', {
+          invoiceId: req.params.id,
+          error: (auditError as Error)?.message,
+        });
+      });
+    res.json(updated);
+  } catch (error: any) {
+    log.error('Cancel invoice error', { error: error?.message });
+    res.status(500).json({ error: 'Failed to cancel link' });
   }
 });
 

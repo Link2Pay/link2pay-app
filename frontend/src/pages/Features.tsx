@@ -6,11 +6,9 @@ import {
   Clock,
   CreditCard,
   FileText,
-  Globe2,
   Link2,
   Receipt,
   RefreshCw,
-  Shield,
   Smartphone,
   Users,
   Wallet,
@@ -19,7 +17,7 @@ import {
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 
-const CORE_FEATURE_ICONS = [Link2, Wallet, Zap, Globe2, Shield, RefreshCw] as const;
+const CORE_FEATURE_ICONS = [Link2, Wallet, Zap, RefreshCw] as const;
 const INVOICE_FEATURE_ICONS = [FileText, Users, Receipt, BarChart3] as const;
 const UPCOMING_FEATURE_ICONS = [Bell, CreditCard, Smartphone] as const;
 
@@ -147,14 +145,6 @@ const CORE_FEATURES: Record<Language, Item[]> = {
       description: 'Track each link through CREATED, PENDING, CONFIRMED, or EXPIRED with deterministic status transitions.',
     },
     {
-      title: 'Fast Stellar Settlement',
-      description: 'Accept XLM, USDC, and EURC with finality in about 5 seconds and near-zero network costs.',
-    },
-    {
-      title: 'Non-custodial by default',
-      description: 'Funds go directly to merchant wallets. Link2Pay does not custody user balances.',
-    },
-    {
       title: 'Wallet-based authentication',
       description: 'Use Stellar wallet signatures for identity and access, without password-based auth flows.',
     },
@@ -173,14 +163,6 @@ const CORE_FEATURES: Record<Language, Item[]> = {
       description: 'Sigue cada link por CREATED, PENDING, CONFIRMED o EXPIRED con transiciones deterministas.',
     },
     {
-      title: 'Liquidación rápida en Stellar',
-      description: 'Acepta XLM, USDC y EURC con finalidad en unos 5 segundos y costos de red mínimos.',
-    },
-    {
-      title: 'Non-custodial por defecto',
-      description: 'Los fondos van directo a la wallet del comercio. Link2Pay no custodia balances.',
-    },
-    {
       title: 'Autenticación con wallet',
       description: 'Usa firmas de wallet Stellar para identidad y acceso, sin flujos de password.',
     },
@@ -197,14 +179,6 @@ const CORE_FEATURES: Record<Language, Item[]> = {
     {
       title: 'Estados de pagamento claros',
       description: 'Acompanhe cada link em CREATED, PENDING, CONFIRMED ou EXPIRED com transicoes deterministicas.',
-    },
-    {
-      title: 'Liquidação rápida na Stellar',
-      description: 'Aceite XLM, USDC e EURC com finalidade em cerca de 5 segundos e custo de rede mínimo.',
-    },
-    {
-      title: 'Non-custodial por padrão',
-      description: 'Os fundos vão direto para a wallet do comércio. Link2Pay não faz custódia.',
     },
     {
       title: 'Autenticação com wallet',
@@ -391,7 +365,7 @@ export default function Features() {
             <h2 className="text-3xl font-semibold text-foreground">{copy.sdkSectionTitle}</h2>
             <p className="mt-3 text-base text-muted-foreground">{copy.sdkSectionSubtitle}</p>
             <div className="mt-5 rounded-xl border border-surface-3 bg-background p-4">
-              <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{copy.sdkSectionQuickstartLabel}</p>
+              <p className="text-2xs uppercase tracking-[0.14em] text-muted-foreground">{copy.sdkSectionQuickstartLabel}</p>
               <pre className="mt-2 overflow-x-auto whitespace-pre-wrap text-xs leading-relaxed text-ink-1">
 {`Create link request
 -> receive checkoutUrl
@@ -480,11 +454,11 @@ Share checkoutUrl
               <h3 className="text-sm font-semibold text-foreground">{row.feature}</h3>
               <div className="mt-3 space-y-2 text-sm">
                 <div>
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Link2Pay</p>
+                  <p className="text-2xs uppercase tracking-wide text-muted-foreground">Link2Pay</p>
                   <p className="font-medium text-primary">{row.stellarPay}</p>
                 </div>
                 <div>
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{copy.colTraditional}</p>
+                  <p className="text-2xs uppercase tracking-wide text-muted-foreground">{copy.colTraditional}</p>
                   <p className="text-muted-foreground">{row.traditional}</p>
                 </div>
               </div>

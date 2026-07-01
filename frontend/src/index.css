@@ -2,131 +2,258 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================================
+   DESIGN TOKENS — 3-layer architecture
+   ----------------------------------------------------------------------------
+   Layer 1  Primitives (--ref-*)   raw color ramps, theme-agnostic, defined once
+   Layer 2  Semantic   (--token)   themed roles mapped from primitives
+                                    :root = light (default), .dark = overrides
+   Layer 3  Component  (@layer)    .btn/.card/.badge consume ONLY semantic tokens
+   ----------------------------------------------------------------------------
+   Identity: Direction A (fintech) — deep indigo primary + money green success.
+   All values are bare "H S L" triplets so they compose with alpha:
+   hsl(var(--primary) / 0.5).
+   ============================================================================ */
+
 @layer base {
+  /* ── Layer 1 · Primitives (reference tokens, not themed) ───────────────── */
   :root {
-    --background: 219 23% 12%;
-    --foreground: 220 27% 98%;
+    /* Brand indigo */
+    --ref-indigo-50: 226 60% 96%;
+    --ref-indigo-100: 226 58% 91%;
+    --ref-indigo-200: 225 56% 82%;
+    --ref-indigo-300: 224 52% 70%;
+    --ref-indigo-400: 223 50% 56%;
+    --ref-indigo-500: 222 48% 42%;
+    --ref-indigo-600: 222 47% 34%;
+    --ref-indigo-700: 222 47% 30%;
+    --ref-indigo-800: 223 46% 24%;
+    --ref-indigo-900: 224 44% 18%;
 
-    --card: 215 19% 17%;
-    --card-foreground: 220 27% 98%;
+    /* Money green (success) */
+    --ref-green-50: 152 50% 95%;
+    --ref-green-100: 152 48% 88%;
+    --ref-green-200: 152 44% 76%;
+    --ref-green-300: 152 42% 60%;
+    --ref-green-400: 152 50% 48%;
+    --ref-green-500: 152 55% 40%;
+    --ref-green-600: 152 55% 38%;
+    --ref-green-700: 153 56% 30%;
+    --ref-green-800: 154 56% 22%;
+    --ref-green-900: 155 56% 14%;
 
-    --popover: 215 19% 17%;
-    --popover-foreground: 220 27% 98%;
+    /* Amber (warning) */
+    --ref-amber-50: 42 95% 94%;
+    --ref-amber-100: 41 94% 86%;
+    --ref-amber-200: 40 92% 75%;
+    --ref-amber-300: 39 92% 62%;
+    --ref-amber-400: 38 92% 52%;
+    --ref-amber-500: 38 92% 45%;
+    --ref-amber-600: 35 92% 40%;
+    --ref-amber-700: 32 90% 33%;
+    --ref-amber-800: 30 88% 24%;
+    --ref-amber-900: 28 86% 15%;
 
-    --primary: 190 70% 55%;
-    --primary-foreground: 218 24% 9%;
+    /* Red (destructive) */
+    --ref-red-50: 0 80% 96%;
+    --ref-red-100: 0 78% 92%;
+    --ref-red-200: 0 75% 85%;
+    --ref-red-300: 0 73% 74%;
+    --ref-red-400: 0 72% 60%;
+    --ref-red-500: 0 72% 51%;
+    --ref-red-600: 0 72% 48%;
+    --ref-red-700: 0 70% 40%;
+    --ref-red-800: 0 68% 30%;
+    --ref-red-900: 0 66% 20%;
 
-    --secondary: 220 23% 15%;
-    --secondary-foreground: 220 27% 98%;
+    /* Blue (info) */
+    --ref-blue-50: 215 90% 96%;
+    --ref-blue-100: 215 88% 91%;
+    --ref-blue-200: 215 82% 82%;
+    --ref-blue-300: 215 78% 70%;
+    --ref-blue-400: 215 74% 56%;
+    --ref-blue-500: 215 70% 45%;
+    --ref-blue-600: 215 70% 40%;
+    --ref-blue-700: 215 70% 33%;
+    --ref-blue-800: 215 68% 25%;
+    --ref-blue-900: 215 66% 17%;
 
-    --muted: 220 23% 15%;
-    --muted-foreground: 214 12% 53%;
-
-    --accent: 199 65% 50%;
-    --accent-foreground: 220 27% 98%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 215 19% 24%;
-    --input: 215 19% 24%;
-    --ring: 190 70% 55%;
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 219 23% 12%;
-    --sidebar-foreground: 220 27% 98%;
-    --sidebar-primary: 190 70% 55%;
-    --sidebar-primary-foreground: 218 24% 9%;
-    --sidebar-accent: 215 19% 17%;
-    --sidebar-accent-foreground: 220 27% 98%;
-    --sidebar-border: 215 19% 24%;
-    --sidebar-ring: 190 70% 55%;
-
-    /* Custom tokens */
-    --neon-glow: 190 70% 55%;
-    --neon-glow-subtle: 204 64% 51%;
-    --surface-elevated: 215 19% 17%;
-    --surface-strong: 220 23% 15%;
-    --text-secondary: 210 20% 85%;
-    --text-muted: 214 12% 68%;
-    --success: 155 70% 45%;
-    --success-foreground: 155 90% 95%;
-    --warning: 45 90% 55%;
-    --warning-foreground: 45 90% 10%;
-
-    /* Brand logo palette (dark mode) */
-    --logo-badge-start: 220 23% 15%;
-    --logo-badge-end: 215 19% 17%;
-    --logo-badge-accent: 190 70% 55%;
-    --logo-ring: 190 70% 55%;
-    --logo-mark-shield: 0 0% 100%;
-    --logo-mark-link: 190 70% 55%;
-    --logo-text-left: 0 0% 100%;
-    --logo-text-right: 190 70% 55%;
-    --logo-text-solid: 0 0% 100%;
-    --logo-text-stroke: 199 65% 50%;
+    /* Neutral (slate) — surfaces & text */
+    --ref-neutral-0: 0 0% 100%;
+    --ref-neutral-50: 210 20% 98%;
+    --ref-neutral-100: 214 16% 95%;
+    --ref-neutral-200: 215 16% 90%;
+    --ref-neutral-300: 214 14% 83%;
+    --ref-neutral-400: 215 12% 65%;
+    --ref-neutral-500: 215 12% 50%;
+    --ref-neutral-600: 217 14% 40%;
+    --ref-neutral-700: 218 18% 28%;
+    --ref-neutral-800: 219 22% 18%;
+    --ref-neutral-900: 219 24% 12%;
+    --ref-neutral-950: 220 26% 9%;
   }
 
-  .light {
-    --background: 220 27% 98%;
-    --foreground: 219 23% 12%;
+  /* ── Layer 2 · Semantic tokens · LIGHT (default) ───────────────────────── */
+  :root {
+    --background: var(--ref-neutral-50);
+    --foreground: var(--ref-neutral-900);
 
-    --card: 0 0% 100%;
-    --card-foreground: 219 23% 12%;
+    --card: var(--ref-neutral-0);
+    --card-foreground: var(--ref-neutral-900);
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 219 23% 12%;
+    --popover: var(--ref-neutral-0);
+    --popover-foreground: var(--ref-neutral-900);
 
-    --primary: 190 70% 55%;
-    --primary-foreground: 218 24% 9%;
+    --primary: var(--ref-indigo-700);
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 204 17% 94%;
-    --secondary-foreground: 219 23% 12%;
+    --secondary: var(--ref-neutral-100);
+    --secondary-foreground: var(--ref-neutral-800);
 
-    --muted: 204 17% 94%;
-    --muted-foreground: 214 12% 53%;
+    --muted: var(--ref-neutral-100);
+    --muted-foreground: var(--ref-neutral-600);
 
-    --accent: 199 65% 50%;
+    --accent: var(--ref-indigo-500);
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --border: var(--ref-neutral-200);
+    --input: var(--ref-neutral-200);
+    --ring: var(--ref-indigo-500);
+
+    --radius: 0.625rem;
+
+    /* State roles — DEFAULT / -foreground / -subtle (bg) / -border
+       DEFAULT shades are biased dark (700/600) so `text-{state}` on a
+       `{state}-subtle` background clears WCAG AA 4.5:1; solids stay clearly
+       hued, and `-foreground` is the on-solid text color. */
+    --success: var(--ref-green-700);
+    --success-foreground: 0 0% 100%;
+    --success-subtle: var(--ref-green-50);
+    --success-border: var(--ref-green-200);
+
+    --warning: var(--ref-amber-700);
+    --warning-foreground: 40 90% 96%;
+    --warning-subtle: var(--ref-amber-50);
+    --warning-border: var(--ref-amber-200);
+
+    --destructive: var(--ref-red-600);
     --destructive-foreground: 0 0% 100%;
+    --destructive-subtle: var(--ref-red-50);
+    --destructive-border: var(--ref-red-200);
 
-    --border: 207 19% 89%;
-    --input: 207 19% 89%;
-    --ring: 199 65% 50%;
+    --info: var(--ref-blue-600);
+    --info-foreground: 0 0% 100%;
+    --info-subtle: var(--ref-blue-50);
+    --info-border: var(--ref-blue-200);
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 219 23% 12%;
-    --sidebar-primary: 199 65% 50%;
+    /* Sidebar */
+    --sidebar-background: var(--ref-neutral-0);
+    --sidebar-foreground: var(--ref-neutral-900);
+    --sidebar-primary: var(--ref-indigo-700);
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 204 17% 94%;
-    --sidebar-accent-foreground: 219 23% 12%;
-    --sidebar-border: 207 19% 89%;
-    --sidebar-ring: 199 65% 50%;
+    --sidebar-accent: var(--ref-neutral-100);
+    --sidebar-accent-foreground: var(--ref-neutral-900);
+    --sidebar-border: var(--ref-neutral-200);
+    --sidebar-ring: var(--ref-indigo-500);
 
-    --neon-glow: 190 70% 55%;
-    --neon-glow-subtle: 204 64% 51%;
-    --surface-elevated: 204 17% 94%;
-    --surface-strong: 207 19% 89%;
-    --text-secondary: 214 14% 34%;
-    --text-muted: 214 12% 53%;
-    --success: 155 70% 38%;
-    --success-foreground: 155 90% 95%;
-    --warning: 42 92% 45%;
-    --warning-foreground: 42 90% 12%;
+    /* Legacy alias targets (consumed by ink and surface scales in tailwind.config) */
+    --surface-elevated: var(--ref-neutral-0);
+    --surface-strong: var(--ref-neutral-200);
+    --text-secondary: var(--ref-neutral-700);
+    --text-muted: var(--ref-neutral-500);
 
+    /* Accent glow (de-emphasized in Direction A — points to brand indigo) */
+    --neon-glow: var(--ref-indigo-500);
+    --neon-glow-subtle: var(--ref-indigo-400);
+
+    /* Brand logo palette (light) */
     --logo-badge-start: 0 0% 100%;
-    --logo-badge-end: 204 17% 94%;
-    --logo-badge-accent: 199 65% 50%;
-    --logo-ring: 207 19% 89%;
-    --logo-mark-shield: 218 24% 9%;
-    --logo-mark-link: 199 65% 50%;
-    --logo-text-left: 219 23% 12%;
-    --logo-text-right: 199 65% 50%;
-    --logo-text-solid: 219 23% 12%;
-    --logo-text-stroke: 204 64% 51%;
+    --logo-badge-end: var(--ref-neutral-100);
+    --logo-badge-accent: var(--ref-indigo-600);
+    --logo-ring: var(--ref-neutral-200);
+    --logo-mark-shield: var(--ref-neutral-900);
+    --logo-mark-link: var(--ref-indigo-600);
+    --logo-text-left: var(--ref-neutral-900);
+    --logo-text-right: var(--ref-indigo-600);
+    --logo-text-solid: var(--ref-neutral-900);
+    --logo-text-stroke: var(--ref-indigo-400);
+  }
+
+  /* ── Layer 2 · Semantic tokens · DARK overrides ────────────────────────── */
+  .dark {
+    --background: var(--ref-neutral-950);
+    --foreground: var(--ref-neutral-50);
+
+    --card: var(--ref-neutral-900);
+    --card-foreground: var(--ref-neutral-50);
+
+    --popover: var(--ref-neutral-900);
+    --popover-foreground: var(--ref-neutral-50);
+
+    /* Dark-mode brand: a lifted indigo so dark text on solid primary clears AA */
+    --primary: 223 56% 64%;
+    --primary-foreground: 222 47% 12%;
+
+    --secondary: var(--ref-neutral-800);
+    --secondary-foreground: var(--ref-neutral-50);
+
+    --muted: var(--ref-neutral-800);
+    --muted-foreground: var(--ref-neutral-400);
+
+    --accent: 223 52% 72%;
+    --accent-foreground: 222 47% 12%;
+
+    --border: var(--ref-neutral-800);
+    --input: var(--ref-neutral-800);
+    --ring: 223 56% 64%;
+
+    --success: var(--ref-green-400);
+    --success-foreground: 155 60% 8%;
+    --success-subtle: 154 40% 16%;
+    --success-border: 153 35% 28%;
+
+    --warning: var(--ref-amber-400);
+    --warning-foreground: 28 90% 10%;
+    --warning-subtle: 33 50% 16%;
+    --warning-border: 32 45% 30%;
+
+    --destructive: var(--ref-red-400);
+    --destructive-foreground: 0 0% 100%;
+    --destructive-subtle: 0 42% 14%;
+    --destructive-border: 0 45% 32%;
+
+    --info: var(--ref-blue-400);
+    --info-foreground: 0 0% 100%;
+    --info-subtle: 213 50% 14%;
+    --info-border: 214 48% 32%;
+
+    --sidebar-background: var(--ref-neutral-900);
+    --sidebar-foreground: var(--ref-neutral-50);
+    --sidebar-primary: 223 56% 64%;
+    --sidebar-primary-foreground: 222 47% 12%;
+    --sidebar-accent: var(--ref-neutral-800);
+    --sidebar-accent-foreground: var(--ref-neutral-50);
+    --sidebar-border: var(--ref-neutral-800);
+    --sidebar-ring: 223 56% 64%;
+
+    --surface-elevated: var(--ref-neutral-900);
+    --surface-strong: var(--ref-neutral-700);
+    --text-secondary: var(--ref-neutral-200);
+    --text-muted: var(--ref-neutral-400);
+
+    --neon-glow: var(--ref-indigo-400);
+    --neon-glow-subtle: var(--ref-indigo-300);
+
+    --logo-badge-start: var(--ref-neutral-800);
+    --logo-badge-end: var(--ref-neutral-900);
+    --logo-badge-accent: var(--ref-indigo-400);
+    --logo-ring: var(--ref-indigo-400);
+    --logo-mark-shield: 0 0% 100%;
+    --logo-mark-link: var(--ref-indigo-400);
+    --logo-text-left: 0 0% 100%;
+    --logo-text-right: var(--ref-indigo-400);
+    --logo-text-solid: 0 0% 100%;
+    --logo-text-stroke: var(--ref-indigo-300);
   }
 
   * {
@@ -147,6 +274,7 @@
   }
 }
 
+/* ── Layer 3 · Component tokens ──────────────────────────────────────────── */
 @layer components {
   .btn {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
@@ -208,19 +336,19 @@
   }
 
   .badge-pending {
-    @apply badge bg-warning/10 text-warning border border-warning/30;
+    @apply badge bg-warning-subtle text-warning border border-warning-border;
   }
 
   .badge-processing {
-    @apply badge bg-primary/10 text-primary border border-primary/30;
+    @apply badge bg-info-subtle text-info border border-info-border;
   }
 
   .badge-paid {
-    @apply badge bg-success/10 text-success border border-success/30;
+    @apply badge bg-success-subtle text-success border border-success-border;
   }
 
   .badge-failed {
-    @apply badge bg-destructive/10 text-destructive border border-destructive/30;
+    @apply badge bg-destructive-subtle text-destructive border border-destructive-border;
   }
 
   .badge-cancelled {
@@ -229,24 +357,18 @@
 }
 
 @layer utilities {
+  /* Accent border — softened from the legacy neon treatment (Direction A) */
   .neon-border {
-    border: 1px solid hsl(var(--primary) / 0.3);
-    box-shadow:
-      0 0 10px hsl(var(--primary) / 0.06),
-      inset 0 0 10px hsl(var(--primary) / 0.03);
+    border: 1px solid hsl(var(--primary) / 0.25);
   }
 
   .neon-border-strong {
-    border: 1px solid hsl(var(--primary) / 0.5);
-    box-shadow:
-      0 0 20px hsl(var(--primary) / 0.12),
-      0 0 40px hsl(var(--primary) / 0.06),
-      inset 0 0 15px hsl(var(--primary) / 0.04);
+    border: 1px solid hsl(var(--primary) / 0.4);
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.08);
   }
 
   .neon-text {
     color: hsl(var(--primary));
-    text-shadow: 0 0 20px hsl(var(--primary) / 0.35);
   }
 
   .glass-card {
@@ -258,7 +380,7 @@
   .gradient-bg {
     background: radial-gradient(
       ellipse at 50% 0%,
-      hsl(var(--primary) / 0.12) 0%,
+      hsl(var(--primary) / 0.08) 0%,
       transparent 60%
     );
   }
@@ -317,27 +439,28 @@
   }
 
   .hover-glow:hover {
-    border-color: hsl(var(--primary) / 0.45);
+    border-color: hsl(var(--primary) / 0.35);
     box-shadow:
-      0 10px 20px hsl(var(--primary) / 0.1),
-      0 2px 8px hsl(var(--primary) / 0.12);
+      0 8px 18px hsl(var(--foreground) / 0.06),
+      0 2px 6px hsl(var(--foreground) / 0.05);
     transform: translateY(-1px);
   }
 
+  /* Light (default) */
   .brand-mark-badge {
-    background: hsl(var(--logo-badge-end));
-    border: 1px solid hsl(var(--logo-ring) / 0.65);
-    box-shadow:
-      0 1px 2px hsl(220 40% 2% / 0.25),
-      inset 0 1px 0 hsl(var(--foreground) / 0.14);
-  }
-
-  .light .brand-mark-badge {
     background: hsl(var(--logo-badge-start));
-    border-color: hsl(var(--logo-ring) / 0.8);
+    border: 1px solid hsl(var(--logo-ring) / 0.8);
     box-shadow:
       0 1px 2px hsl(210 20% 45% / 0.14),
       inset 0 1px 0 hsl(0 0% 100% / 0.16);
+  }
+
+  .dark .brand-mark-badge {
+    background: hsl(var(--logo-badge-end));
+    border-color: hsl(var(--logo-ring) / 0.65);
+    box-shadow:
+      0 1px 2px hsl(220 40% 2% / 0.25),
+      inset 0 1px 0 hsl(var(--foreground) / 0.14);
   }
 
   .brand-mark-part {

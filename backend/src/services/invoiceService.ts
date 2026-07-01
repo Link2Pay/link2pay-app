@@ -1,4 +1,4 @@
-import { InvoiceStatus, Prisma } from '@prisma/client';
+import { InvoiceStatus, InvoiceType, Prisma } from '@prisma/client';
 import { CreateInvoiceInput, InvoicePublicView } from '../types';
 import { generateInvoiceNumber } from '../utils/generators';
 import { config } from '../config';
@@ -13,8 +13,9 @@ export class InvoiceService {
   async createInvoice(input: CreateInvoiceInput) {
     const invoiceNumber = generateInvoiceNumber();
 
-    // Calculate line item amounts
-    const lineItems = input.lineItems.map((item) => ({
+    // Calculate line item amounts. Open-amount invoices carry no line items —
+    // the payer sets the amount at pay time, so subtotal/total start at 0.
+    const lineItems = (input.lineItems ?? []).map((item) => ({
       description: item.description,
       quantity: new Prisma.Decimal(item.quantity),
       rate: new Prisma.Decimal(item.rate),
@@ -46,10 +47,15 @@ export class InvoiceService {
           freelancerName: input.freelancerName,
           freelancerEmail: input.freelancerEmail,
           freelancerCompany: input.freelancerCompany,
+          freelancerTaxId: input.freelancerTaxId,
+          freelancerAddress: input.freelancerAddress,
+          freelancerPhone: input.freelancerPhone,
+          freelancerLogoUrl: input.freelancerLogoUrl,
           clientName: input.clientName,
           clientEmail: input.clientEmail,
           clientCompany: input.clientCompany,
           clientAddress: input.clientAddress,
+          clientTaxId: input.clientTaxId,
           title: input.title,
           description: input.description,
           notes: input.notes,
@@ -61,6 +67,12 @@ export class InvoiceService {
           currency: input.currency,
           dueDate: input.dueDate ? new Date(input.dueDate) : null,
           networkPassphrase: input.networkPassphrase || config.stellar.networkPassphrase,
+          payoutMethod: input.payoutMethod === 'BRE_B' ? 'BRE_B' : 'CRYPTO',
+          payoutAlias: input.payoutMethod === 'BRE_B' ? input.payoutAlias : null,
+          invoiceType: (input.invoiceType as InvoiceType) ?? 'DIRECT_PAYMENT',
+          isOpenAmount: input.isOpenAmount ?? false,
+          // Bre-B off-ramp invoices skip DRAFT so the receiver can request a quote immediately.
+          status: input.payoutMethod === 'BRE_B' ? 'PENDING' : undefined,
           lineItems: {
             create: lineItems,
           },
@@ -78,6 +90,25 @@ export class InvoiceService {
     });
 
     return invoice;
+  }
+
+  /**
+   * Persist a payer-chosen amount onto an open-amount invoice.
+   * Sets subtotal = total = amount and clears tax/discount so the downstream
+   * payment + confirmation pipeline (which matches against invoice.total) works.
+   */
+  async setInvoiceAmount(id: string, amount: number | string) {
+    const value = new Prisma.Decimal(amount);
+    return prisma.invoice.update({
+      where: { id },
+      data: {
+        subtotal: value,
+        taxRate: null,
+        taxAmount: new Prisma.Decimal(0),
+        discount: new Prisma.Decimal(0),
+        total: value,
+      },
+    });
   }
 
   /**
@@ -116,9 +147,17 @@ export class InvoiceService {
       invoiceNumber: invoice.invoiceNumber,
       status: invoice.status,
       freelancerName: invoice.freelancerName,
+      freelancerEmail: invoice.freelancerEmail,
       freelancerCompany: invoice.freelancerCompany,
+      freelancerTaxId: invoice.freelancerTaxId,
+      freelancerAddress: invoice.freelancerAddress,
+      freelancerPhone: invoice.freelancerPhone,
+      freelancerLogoUrl: invoice.freelancerLogoUrl,
       clientName: invoice.clientName,
+      clientEmail: invoice.clientEmail,
       clientCompany: invoice.clientCompany,
+      clientAddress: invoice.clientAddress,
+      clientTaxId: invoice.clientTaxId,
       title: invoice.title,
       description: invoice.description,
       notes: invoice.notes,
@@ -133,6 +172,13 @@ export class InvoiceService {
       paidAt: invoice.paidAt?.toISOString() ?? null,
       transactionHash: invoice.transactionHash,
       networkPassphrase: invoice.networkPassphrase,
+      payoutMethod: invoice.payoutMethod,
+      payoutAlias: invoice.payoutAlias,
+      anchorTxId: invoice.anchorTxId,
+      quoteBuyAmount: invoice.quoteBuyAmount,
+      receiptTxHash: invoice.receiptTxHash,
+      invoiceType: invoice.invoiceType,
+      isOpenAmount: invoice.isOpenAmount,
       lineItems: invoice.lineItems.map((item) => ({
         description: item.description,
         quantity: item.quantity.toString(),
@@ -380,7 +426,7 @@ export class InvoiceService {
    */
   async addAuditLog(
     invoiceId: string,
-    action: 'CREATED' | 'UPDATED' | 'SENT' | 'PAID' | 'EXPIRED' | 'CANCELLED' | 'DELETED',
+    action: 'CREATED' | 'UPDATED' | 'SENT' | 'PAID' | 'OFFRAMP_INITIATED' | 'OFFRAMP_AWAITING_PAYMENT' | 'OFFRAMP_PROCESSING' | 'OFFRAMP_SETTLED' | 'OFFRAMP_ERROR' | 'EXPIRED' | 'CANCELLED' | 'DELETED',
     actorWallet: string,
     changes?: Record<string, { from: unknown; to: unknown }>
   ) {

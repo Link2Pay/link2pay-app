@@ -19,7 +19,6 @@ import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
 import { useI18n } from '../i18n/I18nProvider';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
-import { useDashboardViewStore } from '../store/dashboardViewStore';
 import type { InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
 
@@ -168,25 +167,24 @@ const COPY: Record<Language, {
 export default function Dashboard() {
   const { publicKey } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
-  const { showPreviewLinks, toggleShowPreviewLinks } = useDashboardViewStore();
   const { language } = useI18n();
   const copy = COPY[language];
 
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['dashboardStats', publicKey, networkPassphrase, showPreviewLinks],
+    queryKey: ['dashboardStats', publicKey, networkPassphrase],
     queryFn: () =>
       getDashboardStats(publicKey!, {
-        excludePreview: !showPreviewLinks,
+        excludePreview: true,
         networkPassphrase,
       }),
     enabled: !!publicKey,
   });
 
   const { data: invoiceResult, isLoading: invoicesLoading } = useQuery({
-    queryKey: ['invoices', publicKey, 50, 0, networkPassphrase, showPreviewLinks],
+    queryKey: ['invoices', publicKey, 50, 0, networkPassphrase],
     queryFn: () =>
       listInvoices(publicKey!, undefined, 50, 0, {
-        excludePreview: !showPreviewLinks,
+        excludePreview: true,
         networkPassphrase,
       }),
     enabled: !!publicKey,
@@ -200,10 +198,9 @@ export default function Dashboard() {
         const matchesNetwork =
           !invoice.networkPassphrase || invoice.networkPassphrase === networkPassphrase;
         if (!matchesNetwork) return false;
-        if (showPreviewLinks) return true;
         return !invoice.notes?.includes('__hero_preview_v1__');
       }),
-    [invoices, networkPassphrase, showPreviewLinks]
+    [invoices, networkPassphrase]
   );
   const recentInvoices = filteredInvoices.slice(0, 5);
 
@@ -281,16 +278,16 @@ export default function Dashboard() {
     {
       label: copy.paid,
       value: paidLinks,
-      color: 'text-emerald-600',
+      color: 'text-success',
       icon: CheckCircle2,
-      border: 'border-l-4 border-l-emerald-500',
+      border: 'border-l-4 border-l-success',
     },
     {
       label: copy.pending,
       value: pendingLinks,
-      color: 'text-amber-600',
+      color: 'text-warning',
       icon: Clock3,
-      border: 'border-l-4 border-l-amber-500',
+      border: 'border-l-4 border-l-warning',
     },
     {
       label: copy.revenue,
@@ -345,15 +342,6 @@ export default function Dashboard() {
           <p className="text-sm text-ink-3">{copy.subtitle}</p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-          <button
-            type="button"
-            onClick={toggleShowPreviewLinks}
-            className="btn-secondary w-full text-sm sm:w-auto"
-          >
-            {showPreviewLinks
-              ? 'Demo links: ON (showing all)'
-              : 'Demo links: OFF (real links only)'}
-          </button>
           <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
             <FilePlus2 className="h-4 w-4" />
             {copy.newInvoice}
@@ -382,15 +370,15 @@ export default function Dashboard() {
       </div>
 
       {stats && toAmount(stats.pendingAmount) > 0 && (
-        <div className="card p-5 bg-amber-50 border-amber-200">
+        <div className="card p-5 bg-warning-subtle border-warning-border">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+              <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg bg-warning-subtle text-warning">
                 <AlertTriangle className="h-4 w-4" />
               </span>
               <div>
-                <p className="text-xs text-amber-600 font-medium mb-1">{copy.awaitingPayment}</p>
-                <p className="text-xl font-semibold font-mono text-amber-700">{stats.pendingAmount}</p>
+                <p className="text-xs text-warning font-medium mb-1">{copy.awaitingPayment}</p>
+                <p className="text-xl font-semibold font-mono text-warning">{stats.pendingAmount}</p>
               </div>
             </div>
             <Link to="/dashboard/links?status=PENDING" className="btn-secondary w-full text-xs sm:w-auto">
@@ -410,17 +398,17 @@ export default function Dashboard() {
               </h3>
               <p className="mt-1 text-xs text-ink-3">{copy.pipelineSubtitle}</p>
             </div>
-            <span className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+            <span className="rounded-lg border border-success-border bg-success-subtle px-2.5 py-1 text-xs font-medium text-success">
               {conversionRate.toFixed(1)}% {copy.conversionRate}
             </span>
           </div>
 
           <div className="mb-4 flex h-2 overflow-hidden rounded-full bg-muted">
             {[
-              { key: copy.stageDraft, value: draftLinks, color: 'bg-slate-400' },
-              { key: copy.stageInFlight, value: pendingLinks, color: 'bg-amber-500' },
-              { key: copy.stagePaid, value: paidLinks, color: 'bg-emerald-500' },
-              { key: copy.stageClosed, value: closedLinks, color: 'bg-rose-500' },
+              { key: copy.stageDraft, value: draftLinks, color: 'bg-muted-foreground' },
+              { key: copy.stageInFlight, value: pendingLinks, color: 'bg-warning' },
+              { key: copy.stagePaid, value: paidLinks, color: 'bg-success' },
+              { key: copy.stageClosed, value: closedLinks, color: 'bg-destructive' },
             ].map((segment) => {
               const width = totalLinks > 0 ? (segment.value / totalLinks) * 100 : 0;
               return (
@@ -436,13 +424,13 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              { key: copy.stageDraft, value: draftLinks, textColor: 'text-slate-600' },
-              { key: copy.stageInFlight, value: pendingLinks, textColor: 'text-amber-600' },
-              { key: copy.stagePaid, value: paidLinks, textColor: 'text-emerald-600' },
-              { key: copy.stageClosed, value: closedLinks, textColor: 'text-rose-600' },
+              { key: copy.stageDraft, value: draftLinks, textColor: 'text-muted-foreground' },
+              { key: copy.stageInFlight, value: pendingLinks, textColor: 'text-warning' },
+              { key: copy.stagePaid, value: paidLinks, textColor: 'text-success' },
+              { key: copy.stageClosed, value: closedLinks, textColor: 'text-destructive' },
             ].map((item) => (
               <div key={item.key} className="rounded-lg border border-surface-3 bg-surface-1 p-3">
-                <p className="text-[11px] text-ink-3">{item.key}</p>
+                <p className="text-2xs text-ink-3">{item.key}</p>
                 <p className={`mt-1 text-lg font-semibold font-mono ${item.textColor}`}>{item.value}</p>
               </div>
             ))}
@@ -481,7 +469,7 @@ export default function Dashboard() {
                   </div>
                 );
               })}
-              <p className="pt-1 text-[11px] text-ink-3">
+              <p className="pt-1 text-2xs text-ink-3">
                 {paidLinks} {copy.settledLabel}
               </p>
             </div>
@@ -527,8 +515,8 @@ export default function Dashboard() {
                   <tr key={client.name} className="border-b border-surface-3/70 last:border-0">
                     <td className="px-3 py-2.5 text-sm text-ink-1">{client.name}</td>
                     <td className="px-3 py-2.5 text-right font-mono text-sm text-ink-1">{client.links}</td>
-                    <td className="px-3 py-2.5 text-right font-mono text-sm text-emerald-600">{client.paid}</td>
-                    <td className="px-3 py-2.5 text-right font-mono text-sm text-amber-600">{client.pending}</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-sm text-success">{client.paid}</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-sm text-warning">{client.pending}</td>
                   </tr>
                 ))}
               </tbody>

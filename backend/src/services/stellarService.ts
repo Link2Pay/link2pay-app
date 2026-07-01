@@ -65,9 +65,10 @@ export class StellarService {
   /**
    * Load account details from Horizon
    */
-  async loadAccount(publicKey: string) {
+  async loadAccount(publicKey: string, networkPassphrase?: string) {
     try {
-      return await this.withRetry(() => this.server.loadAccount(publicKey));
+      const server = this.getServerForNetwork(networkPassphrase);
+      return await this.withRetry(() => server.loadAccount(publicKey));
     } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new Error('ACCOUNT_NOT_FOUND');
@@ -94,8 +95,8 @@ export class StellarService {
   /**
    * Get account balances
    */
-  async getBalances(publicKey: string) {
-    const account = await this.loadAccount(publicKey);
+  async getBalances(publicKey: string, networkPassphrase?: string) {
+    const account = await this.loadAccount(publicKey, networkPassphrase);
     return account.balances.map((balance: any) => ({
       asset:
         balance.asset_type === 'native'
@@ -105,6 +106,153 @@ export class StellarService {
       balance: balance.balance,
       issuer: balance.asset_type === 'native' ? null : balance.asset_issuer,
     }));
+  }
+
+  /**
+   * Construct a Stellar Memo honoring the anchor-required type.
+   * - `id`   → numeric memo (anchors typically use this for withdraw_memo)
+   * - `hash` → 32-byte hash, provided as hex
+   * - `text` → UTF-8 text (max 28 bytes)
+   * When no explicit memo is given, falls back to a text memo derived from the
+   * invoiceId (regular crypto invoice path).
+   */
+  private buildMemo(
+    memo: string | undefined,
+    memoType: 'text' | 'id' | 'hash' | undefined,
+    invoiceId: string
+  ): StellarSdk.Memo {
+    if (!memo) {
+      return StellarSdk.Memo.text(invoiceId.substring(0, 28));
+    }
+    switch (memoType) {
+      case 'id':
+        return StellarSdk.Memo.id(memo);
+      case 'hash':
+        // Anchor hash memos are 32-byte values, conventionally hex-encoded.
+        return StellarSdk.Memo.hash(Buffer.from(memo, 'hex'));
+      case 'text':
+      default:
+        if (Buffer.byteLength(memo, 'utf8') > 28) {
+          throw new Error('OFFRAMP_TEXT_MEMO_TOO_LONG');
+        }
+        return StellarSdk.Memo.text(memo);
+    }
+  }
+
+  /**
+   * Find a strict-receive path so the payer can pay `sendAssetCode` while the
+   * recipient receives an exact `destAmount` of `destAssetCode` (USDC). Returns
+   * the estimated source amount and the slippage-guarded sendMax, or
+   * `{ found: false }` when no path exists (thin liquidity → caller falls back).
+   */
+  async quoteStrictReceivePath(params: {
+    sendAssetCode: string;
+    destAssetCode: string;
+    destAmount: string;
+    slippageBps?: number;
+    networkPassphrase?: string;
+  }): Promise<
+    | { found: false }
+    | { found: true; sendAssetCode: string; sourceAmount: string; sendMax: string; pathRaw: any[] }
+  > {
+    const effectiveNetworkPassphrase = params.networkPassphrase || this.networkPassphrase;
+    const server = this.getServerForNetwork(effectiveNetworkPassphrase);
+    const sendAsset = this.getAsset(params.sendAssetCode, effectiveNetworkPassphrase);
+    const destAsset = this.getAsset(params.destAssetCode, effectiveNetworkPassphrase);
+
+    const result = await this.withRetry(() =>
+      server
+        .strictReceivePaths([sendAsset], destAsset, params.destAmount)
+        .call()
+    );
+
+    const records = (result as any).records || [];
+    if (!records.length) return { found: false };
+
+    // Cheapest source amount first.
+    const best = records.sort(
+      (a: any, b: any) => Number(a.source_amount) - Number(b.source_amount)
+    )[0];
+
+    const slippageBps = params.slippageBps ?? 100;
+    const sendMax = (Number(best.source_amount) * (1 + slippageBps / 10_000)).toFixed(7);
+
+    return {
+      found: true,
+      sendAssetCode: params.sendAssetCode,
+      sourceAmount: String(best.source_amount),
+      sendMax,
+      pathRaw: best.path || [],
+    };
+  }
+
+  /**
+   * Build a path-payment-strict-receive transaction: the payer sends
+   * `sendAssetCode` (capped at sendMax) and the recipient receives exactly
+   * `destAmount` of `destAssetCode`. Honors the anchor memo + type.
+   */
+  async buildPathPaymentTransaction(params: {
+    senderPublicKey: string;
+    recipientPublicKey: string;
+    sendAssetCode: string;
+    destAssetCode: string;
+    destAmount: string;
+    memo?: string;
+    memoType?: 'text' | 'id' | 'hash';
+    invoiceId: string;
+    slippageBps?: number;
+    networkPassphrase?: string;
+  }) {
+    const effectiveNetworkPassphrase = params.networkPassphrase || this.networkPassphrase;
+    if (!this.isValidAddress(params.senderPublicKey)) throw new Error('INVALID_SENDER_ADDRESS');
+    if (!this.isValidAddress(params.recipientPublicKey)) throw new Error('INVALID_RECIPIENT_ADDRESS');
+
+    const server = this.getServerForNetwork(effectiveNetworkPassphrase);
+    const sendAsset = this.getAsset(params.sendAssetCode, effectiveNetworkPassphrase);
+    const destAsset = this.getAsset(params.destAssetCode, effectiveNetworkPassphrase);
+
+    const quote = await this.quoteStrictReceivePath({
+      sendAssetCode: params.sendAssetCode,
+      destAssetCode: params.destAssetCode,
+      destAmount: params.destAmount,
+      slippageBps: params.slippageBps,
+      networkPassphrase: effectiveNetworkPassphrase,
+    });
+    if (!quote.found) throw new Error('NO_PATH_FOUND');
+
+    const senderAccount = await this.withRetry(() => server.loadAccount(params.senderPublicKey));
+
+    const path = quote.pathRaw.map((p: any) =>
+      p.asset_type === 'native'
+        ? StellarSdk.Asset.native()
+        : new StellarSdk.Asset(p.asset_code, p.asset_issuer)
+    );
+
+    const transaction = new StellarSdk.TransactionBuilder(senderAccount, {
+      fee: StellarSdk.BASE_FEE,
+      networkPassphrase: effectiveNetworkPassphrase,
+    })
+      .addOperation(
+        StellarSdk.Operation.pathPaymentStrictReceive({
+          sendAsset,
+          sendMax: quote.sendMax,
+          destination: params.recipientPublicKey,
+          destAsset,
+          destAmount: params.destAmount,
+          path,
+        })
+      )
+      .addMemo(this.buildMemo(params.memo, params.memoType, params.invoiceId))
+      .setTimeout(300)
+      .build();
+
+    return {
+      transactionXdr: transaction.toXDR(),
+      networkPassphrase: effectiveNetworkPassphrase,
+      sendMax: quote.sendMax,
+      sourceAmount: quote.sourceAmount,
+      sendAsset: params.sendAssetCode,
+    };
   }
 
   /**
@@ -118,6 +266,14 @@ export class StellarService {
     invoiceId: string;
     networkPassphrase?: string;
     activateNewAccounts?: boolean;
+    /**
+     * Off-ramp path: the exact memo the anchor requires and its type. When
+     * provided, the memo is attached verbatim with the correct type (anchors
+     * match incoming payments by this memo). When omitted, falls back to a
+     * text memo derived from invoiceId for the regular crypto path.
+     */
+    memo?: string;
+    memoType?: 'text' | 'id' | 'hash';
   }) {
     const {
       senderPublicKey,
@@ -127,6 +283,8 @@ export class StellarService {
       invoiceId,
       networkPassphrase,
       activateNewAccounts,
+      memo,
+      memoType,
     } = params;
 
     // Use provided networkPassphrase or fall back to default
@@ -185,7 +343,7 @@ export class StellarService {
 
     // Build transaction
     const transaction = txBuilder
-      .addMemo(StellarSdk.Memo.text(invoiceId.substring(0, 28)))
+      .addMemo(this.buildMemo(memo, memoType, invoiceId))
       .setTimeout(300) // 5 minutes
       .build();
 
@@ -238,8 +396,16 @@ export class StellarService {
         server.operations().forTransaction(transactionHash).call()
       );
 
+      // Include path payments (asset-conversion pay flow) and createAccount
+      // (auto-activation of a brand-new destination, which Stellar requires
+      // to be the account's *first* incoming transfer) alongside plain
+      // payments — all three represent value received by `to`/`account`.
       const paymentOps = operations.records.filter(
-        (op: any) => op.type === 'payment'
+        (op: any) =>
+          op.type === 'payment' ||
+          op.type === 'path_payment_strict_receive' ||
+          op.type === 'path_payment_strict_send' ||
+          op.type === 'create_account'
       );
 
       return {
@@ -250,13 +416,23 @@ export class StellarService {
         memoType: tx.memo_type,
         createdAt: tx.created_at,
         sourceAccount: tx.source_account,
-        payments: paymentOps.map((op: any) => ({
-          from: op.from,
-          to: op.to,
-          amount: op.amount,
-          assetCode: op.asset_type === 'native' ? 'XLM' : op.asset_code,
-          assetIssuer: op.asset_issuer || null,
-        })),
+        payments: paymentOps.map((op: any) =>
+          op.type === 'create_account'
+            ? {
+                from: op.funder,
+                to: op.account,
+                amount: op.starting_balance,
+                assetCode: 'XLM',
+                assetIssuer: null,
+              }
+            : {
+                from: op.from,
+                to: op.to,
+                amount: op.amount,
+                assetCode: op.asset_type === 'native' ? 'XLM' : op.asset_code,
+                assetIssuer: op.asset_issuer || null,
+              }
+        ),
       };
     } catch (error: any) {
       if (error?.response?.status === 404) {

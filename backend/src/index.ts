@@ -1,5 +1,5 @@
 import express from 'express';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { config } from './config';
@@ -7,8 +7,12 @@ import invoiceRoutes from './routes/invoices';
 import linkRoutes from './routes/links';
 import paymentRoutes from './routes/payments';
 import clientRoutes from './routes/clients';
+import profileRoutes from './routes/profile';
 import authRoutes from './routes/auth';
 import priceRoutes from './routes/prices';
+import offrampRoutes from './routes/offramp';
+import kycRoutes from './routes/kyc';
+import walletRoutes from './routes/wallet';
 import { watcherService } from './services/watcherService';
 
 const app = express();
@@ -32,7 +36,8 @@ app.use(
         fontSrc: ["'self'"],
         objectSrc: ["'none'"],
         mediaSrc: ["'none'"],
-        frameSrc: ["'none'"],
+        frameSrc: ["'self'", 'https://anchor-ref-ui-testanchor.stellar.org', `https://${config.anchor.homeDomain}`],
+        childSrc: ["'self'", 'https://anchor-ref-ui-testanchor.stellar.org', `https://${config.anchor.homeDomain}`],
         frameAncestors: ["'none'"],
         formAction: ["'self'"],
         baseUri: ["'self'"],
@@ -57,29 +62,26 @@ app.use(
     permittedCrossDomainPolicies: false,
   })
 );
-const localDevOrigins = [
-  'http://localhost:5173',
-  'http://localhost:4173',
-  'http://localhost:3000',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:4173',
-  'http://127.0.0.1:3000',
-  'https://localhost:5173',
-  'https://localhost:4173',
-  'https://localhost:3000',
-  'https://127.0.0.1:5173',
-  'https://127.0.0.1:4173',
-  'https://127.0.0.1:3000',
-];
+// Production locks CORS to the configured FRONTEND_URL. In development we allow
+// any localhost / 127.0.0.1 origin regardless of port, because the Vite dev
+// server frequently auto-bumps its port (5173 -> 5174 -> 5180 ...) and chasing
+// it via env every time is brittle.
+const localhostOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
-const allowedOrigins =
+const corsOrigin: CorsOptions['origin'] =
   config.nodeEnv === 'production'
     ? [config.frontendUrl]
-    : [config.frontendUrl, ...localDevOrigins];
+    : (origin, callback) => {
+        if (!origin || origin === config.frontendUrl || localhostOrigin.test(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error(`Not allowed by CORS: ${origin}`));
+        }
+      };
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: corsOrigin,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',
@@ -111,7 +113,16 @@ app.use('/api/', generalLimiter);
 app.use('/api/payments/*/pay-intent', payIntentLimiter);
 
 // ─── Body Parsing ───────────────────────────────────────────────────
-app.use(express.json({ limit: '1mb' }));
+// Capture the raw body so signed webhooks (e.g. KYC provider callbacks) can be
+// verified via HMAC over the exact bytes received.
+app.use(
+  express.json({
+    limit: '1mb',
+    verify: (req, _res, buf) => {
+      (req as typeof req & { rawBody?: Buffer }).rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 
 // ─── Routes ─────────────────────────────────────────────────────────
@@ -143,6 +154,18 @@ app.use('/api/payments', paymentRoutes);
 
 // Saved client routes
 app.use('/api/clients', clientRoutes);
+
+// Business profile routes
+app.use('/api/profile', profileRoutes);
+
+// Merchant KYC routes (seller onboarding gate for fiat off-ramp)
+app.use('/api/kyc', kycRoutes);
+
+// Off-ramp routes (Bre-B)
+app.use('/api/invoices', offrampRoutes);
+
+// Wallet routes (read-only balance lookups)
+app.use('/api/wallet', walletRoutes);
 
 // ─── Error Handling ─────────────────────────────────────────────────
 app.use(

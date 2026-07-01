@@ -5,12 +5,13 @@ import { getInvoice, createPayIntent, submitPayment, getPaymentStatus, getXlmPri
 import { useWalletStore } from '../../store/walletStore';
 import InvoiceStatusBadge from '../Invoice/InvoiceStatusBadge';
 import WalletConnect from '../Wallet/WalletConnect';
+import OffRampPayment from './OffRampPayment';
 import LanguageToggle from '../LanguageToggle';
 import ThemeToggle from '../ThemeToggle';
-import NetworkToggle from '../NetworkToggle';
 import BrandMark from '../BrandMark';
 import BrandWordmark from '../BrandWordmark';
 import type { PublicInvoice, InvoiceStatus } from '../../types';
+import InvoiceDocument from '../Invoice/InvoiceDocument';
 import { CURRENCY_SYMBOLS } from '../../config';
 import { useI18n } from '../../i18n/I18nProvider';
 import type { Language } from '../../i18n/translations';
@@ -111,6 +112,8 @@ export default function PaymentFlow() {
   const [freighterNetwork, setFreighterNetwork] = useState<string | null>(null);
   const [hasNetworkMismatch, setHasNetworkMismatch] = useState(false);
   const [showMismatchDetails, setShowMismatchDetails] = useState(false);
+  // Open-amount invoices: the payer types the amount here at pay time.
+  const [payAmount, setPayAmount] = useState('');
   const stepLabels = CHECKOUT_STEP_LABELS[language];
 
   useEffect(() => {
@@ -275,6 +278,12 @@ export default function PaymentFlow() {
       return;
     }
 
+    // Open-amount links require the payer to enter a positive amount.
+    if (invoice.isOpenAmount && !(parseFloat(payAmount) > 0)) {
+      setError(t('payment.enterAmountPrompt'));
+      return;
+    }
+
     // On desktop, prefer in-page Freighter signing over SEP-7 deep links.
     // This avoids "no handler registered" failures for web+stellar URIs.
     if (!canSignInPage && !mobileDevice) {
@@ -292,7 +301,8 @@ export default function PaymentFlow() {
       const payIntent = await createPayIntent(
         id,
         canSignInPage ? publicKey : undefined,
-        invoice.networkPassphrase
+        invoice.networkPassphrase,
+        invoice.isOpenAmount ? payAmount : undefined
       );
 
       // When no in-page wallet is connected, use SEP-7 deep link flow.
@@ -380,7 +390,6 @@ export default function PaymentFlow() {
     <div className="min-h-screen bg-surface-1 p-4 sm:p-6">
       <div className="mx-auto w-full max-w-lg animate-in">
         <div className="mb-4 flex justify-end gap-2">
-          <NetworkToggle />
           <LanguageToggle />
           <ThemeToggle />
         </div>
@@ -392,7 +401,7 @@ export default function PaymentFlow() {
           <p className="text-xs text-ink-3">{t('payment.invoicePayment')}</p>
           {invoice && (
             <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stellar-100 text-stellar-700">
-              <span className="text-[10px] font-semibold uppercase tracking-wide">
+              <span className="text-3xs font-semibold uppercase tracking-wide">
                 {invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet'} Payment
               </span>
             </div>
@@ -401,14 +410,14 @@ export default function PaymentFlow() {
 
         {/* Network Mismatch Warning Banner */}
         {hasNetworkMismatch && freighterNetwork && invoice && (
-          <div className="mb-4 rounded-lg border-2 border-red-300 bg-red-50 p-4 shadow-lg">
+          <div className="mb-4 rounded-lg border-2 border-destructive-border bg-destructive-subtle p-4 shadow-lg">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <AlertCircle className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold text-red-900 mb-2">
+                <h3 className="text-sm font-bold text-destructive mb-2">
                   {t('payment.networkMismatchTitle')}
                 </h3>
-                <p className="text-xs text-red-800 mb-3">
+                <p className="text-xs text-destructive mb-3">
                   {t('payment.networkMismatchDesc', {
                     current: freighterNetwork === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet',
                     required: invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet',
@@ -416,11 +425,11 @@ export default function PaymentFlow() {
                 </p>
 
                 {/* Collapsible instructions — always visible on md+, toggle on mobile */}
-                <div className="hidden md:block bg-white border border-red-200 rounded-lg p-3 mb-3">
-                  <p className="text-xs font-semibold text-red-900 mb-2">
+                <div className="hidden md:block bg-destructive-subtle border border-destructive-border rounded-lg p-3 mb-3">
+                  <p className="text-xs font-semibold text-destructive mb-2">
                     {t('payment.switchInstructions', { network: invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet' })}
                   </p>
-                  <ol className="text-xs text-red-800 space-y-1.5 ml-4 list-decimal">
+                  <ol className="text-xs text-destructive space-y-1.5 ml-4 list-decimal">
                     <li>{t('payment.switchStep1')}</li>
                     <li>{t('payment.switchStep2')}</li>
                     <li>{t('payment.switchStep3')}</li>
@@ -433,14 +442,14 @@ export default function PaymentFlow() {
                 <div className="md:hidden mb-3">
                   <button
                     onClick={() => setShowMismatchDetails(!showMismatchDetails)}
-                    className="flex items-center gap-1 text-xs font-semibold text-red-700 hover:text-red-900"
+                    className="flex items-center gap-1 text-xs font-semibold text-destructive hover:text-destructive"
                   >
                     {showMismatchDetails ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                     {t('payment.showInstructions')}
                   </button>
                   {showMismatchDetails && (
-                    <div className="mt-2 bg-white border border-red-200 rounded-lg p-3">
-                      <ol className="text-xs text-red-800 space-y-1.5 ml-4 list-decimal">
+                    <div className="mt-2 bg-destructive-subtle border border-destructive-border rounded-lg p-3">
+                      <ol className="text-xs text-destructive space-y-1.5 ml-4 list-decimal">
                         <li>{t('payment.switchStep1')}</li>
                         <li>{t('payment.switchStep2')}</li>
                         <li>{t('payment.switchStep3')}</li>
@@ -476,7 +485,7 @@ export default function PaymentFlow() {
             {invoice.description && <p className="text-sm text-ink-3">{invoice.description}</p>}
 
             <div className="mt-4 rounded-lg border border-surface-3 bg-surface-1 p-3">
-              <p className="text-[10px] uppercase tracking-wider text-ink-3">{stepLabels.progress}</p>
+              <p className="text-3xs uppercase tracking-wider text-ink-3">{stepLabels.progress}</p>
               <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {[stepLabels.loaded, stepLabels.wallet, stepLabels.signed, stepLabels.settled].map((label, index) => {
                   const complete = checkoutStage >= index;
@@ -485,21 +494,21 @@ export default function PaymentFlow() {
                       key={label}
                       className={`rounded-md border px-2.5 py-2 ${
                         complete
-                          ? 'border-emerald-200 bg-emerald-50'
+                          ? 'border-success-border bg-success-subtle'
                           : 'border-surface-3 bg-card'
                       }`}
                     >
                       <div className="flex items-center gap-2">
                         <span
-                          className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold ${
+                          className={`flex h-5 w-5 items-center justify-center rounded-full text-3xs font-semibold ${
                             complete
-                              ? 'bg-emerald-600 text-white'
+                              ? 'bg-success text-success-foreground'
                               : 'bg-surface-2 text-ink-3'
                           }`}
                         >
                           {complete ? <Check className="h-3 w-3" /> : index + 1}
                         </span>
-                        <span className={`text-[11px] leading-tight ${complete ? 'text-emerald-700' : 'text-ink-3'}`}>
+                        <span className={`text-2xs leading-tight ${complete ? 'text-success' : 'text-ink-3'}`}>
                           {label}
                         </span>
                       </div>
@@ -510,68 +519,96 @@ export default function PaymentFlow() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 border-b border-surface-3 bg-surface-1 p-4 sm:grid-cols-2 sm:p-6">
-            <div>
-              <p className="text-[10px] uppercase tracking-wider text-ink-3 mb-1">{t('payment.from')}</p>
-              <p className="text-sm font-medium text-ink-0">
-                {invoice.freelancerName || t('payment.freelancer')}
-              </p>
-              {invoice.freelancerCompany && <p className="text-xs text-ink-3">{invoice.freelancerCompany}</p>}
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-wider text-ink-3 mb-1">{t('payment.to')}</p>
-              <p className="text-sm font-medium text-ink-0">{invoice.clientName}</p>
-              {invoice.clientCompany && <p className="text-xs text-ink-3">{invoice.clientCompany}</p>}
-            </div>
-          </div>
-
-          <div className="border-b border-surface-3 p-4 sm:p-6">
-            <div className="space-y-2">
-              {invoice.lineItems.map((item, index) => (
-                <div key={index} className="flex items-center justify-between text-sm">
-                  <div className="pr-3">
-                    <p className="text-ink-1 break-words">{item.description}</p>
-                    <p className="text-xs text-ink-3">
-                      {parseFloat(String(item.quantity))} x {parseFloat(String(item.rate)).toFixed(2)}
-                    </p>
-                  </div>
-                  <span className="font-mono text-ink-0">{parseFloat(String(item.amount)).toFixed(2)}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-surface-3 space-y-1">
-              <div className="flex items-center justify-between text-sm text-ink-3">
-                <span>{t('payment.subtotal')}</span>
-                <span className="font-mono">{parseFloat(invoice.subtotal).toFixed(2)}</span>
+          {invoice.invoiceType === 'BUSINESS_INVOICE' || invoice.invoiceType === 'SERVICE_INVOICE' ? (
+            <>
+              <div className="border-b border-surface-3 p-4 sm:p-6">
+                <InvoiceDocument invoice={invoice} />
               </div>
-              {invoice.taxRate && parseFloat(invoice.taxRate) > 0 && (
-                <div className="flex items-center justify-between text-sm text-ink-3">
-                  <span>{t('payment.tax', { rate: invoice.taxRate })}</span>
-                  <span className="font-mono">{parseFloat(invoice.taxAmount || '0').toFixed(2)}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-stellar-50 border-b border-stellar-100 p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-stellar-700">{t('payment.totalDue')}</span>
-              <div className="text-right">
-                <span className="text-xl font-bold font-mono text-stellar-700 sm:text-2xl">
-                  {formatAmount(invoice.total, invoice.currency)}
-                </span>
-                {invoice.currency === 'XLM' && formatUsdEquivalent(invoice.total) && (
-                  <p className="text-xs text-stellar-500 mt-0.5">
-                    {t('payment.usdEquivalent', { amount: formatUsdEquivalent(invoice.total)! })}
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 gap-4 border-b border-surface-3 bg-surface-1 p-4 sm:grid-cols-2 sm:p-6">
+                <div>
+                  <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1">{t('payment.from')}</p>
+                  <p className="text-sm font-medium text-ink-0">
+                    {invoice.freelancerName || t('payment.freelancer')}
                   </p>
-                )}
+                  {invoice.freelancerCompany && <p className="text-xs text-ink-3">{invoice.freelancerCompany}</p>}
+                </div>
+                <div>
+                  <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1">{t('payment.to')}</p>
+                  <p className="text-sm font-medium text-ink-0">{invoice.clientName}</p>
+                  {invoice.clientCompany && <p className="text-xs text-ink-3">{invoice.clientCompany}</p>}
+                </div>
               </div>
-            </div>
-          </div>
+
+              {invoice.isOpenAmount ? (
+                <div className="border-b border-surface-3 bg-stellar-50 p-4 sm:p-6">
+                  <p className="text-sm font-semibold text-stellar-700">{t('payment.openAmountTitle')}</p>
+                  <p className="mt-1 text-xs text-stellar-600">{t('payment.openAmountSubtitle')}</p>
+                </div>
+              ) : (
+              <>
+              <div className="border-b border-surface-3 p-4 sm:p-6">
+                <div className="space-y-2">
+                  {invoice.lineItems.map((item, index) => (
+                    <div key={index} className="flex items-center justify-between text-sm">
+                      <div className="pr-3">
+                        <p className="text-ink-1 break-words">{item.description}</p>
+                        <p className="text-xs text-ink-3">
+                          {parseFloat(String(item.quantity))} x {parseFloat(String(item.rate)).toFixed(2)}
+                        </p>
+                      </div>
+                      <span className="font-mono text-ink-0">{parseFloat(String(item.amount)).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-surface-3 space-y-1">
+                  <div className="flex items-center justify-between text-sm text-ink-3">
+                    <span>{t('payment.subtotal')}</span>
+                    <span className="font-mono">{parseFloat(invoice.subtotal).toFixed(2)}</span>
+                  </div>
+                  {invoice.taxRate && parseFloat(invoice.taxRate) > 0 && (
+                    <div className="flex items-center justify-between text-sm text-ink-3">
+                      <span>{t('payment.tax', { rate: invoice.taxRate })}</span>
+                      <span className="font-mono">{parseFloat(invoice.taxAmount || '0').toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-stellar-50 border-b border-stellar-100 p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-stellar-700">{t('payment.totalDue')}</span>
+                  <div className="text-right">
+                    <span className="text-xl font-bold font-mono text-stellar-700 sm:text-2xl">
+                      {formatAmount(invoice.total, invoice.currency)}
+                    </span>
+                    {invoice.currency === 'XLM' && formatUsdEquivalent(invoice.total) && (
+                      <p className="text-xs text-stellar-500 mt-0.5">
+                        {t('payment.usdEquivalent', { amount: formatUsdEquivalent(invoice.total)! })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              </>
+              )}
+            </>
+          )}
 
           <div className="p-4 sm:p-6">
-            {step === 'connect' && (
+            {invoice.payoutMethod === 'BRE_B' && (
+              <OffRampPayment
+                invoice={invoice}
+                onRefresh={() => {
+                  if (id) getInvoice(id).then(setInvoice).catch(() => {});
+                }}
+              />
+            )}
+
+            {invoice.payoutMethod !== 'BRE_B' && step === 'connect' && (
               <div className="text-center space-y-4">
                 <p className="text-sm text-ink-2">{t('payment.connectWalletPrompt')}</p>
                 {error && (
@@ -589,8 +626,31 @@ export default function PaymentFlow() {
               </div>
             )}
 
-            {step === 'view' && (
+            {invoice.payoutMethod !== 'BRE_B' && step === 'view' && (
               <div className="space-y-4">
+                {invoice.isOpenAmount && (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-ink-3">
+                      {t('payment.enterAmount')}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        inputMode="decimal"
+                        autoFocus
+                        value={payAmount}
+                        onChange={(e) => setPayAmount(e.target.value)}
+                        placeholder="0.00"
+                        className="input pr-16 text-lg font-mono"
+                      />
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-ink-3">
+                        {invoice.currency}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 {publicKey && (
                   <div className="text-xs text-ink-3 text-center">
                     {t('payment.payingFrom')}{' '}
@@ -601,12 +661,18 @@ export default function PaymentFlow() {
                 )}
                 <button
                   onClick={handlePay}
-                  disabled={hasNetworkMismatch}
-                  className={`w-full py-3 text-base ${hasNetworkMismatch ? 'btn-disabled cursor-not-allowed' : 'btn-primary'}`}
+                  disabled={hasNetworkMismatch || (invoice.isOpenAmount && !(parseFloat(payAmount) > 0))}
+                  className={`w-full py-3 text-base ${hasNetworkMismatch || (invoice.isOpenAmount && !(parseFloat(payAmount) > 0)) ? 'btn-disabled cursor-not-allowed' : 'btn-primary'}`}
                 >
-                  {hasNetworkMismatch ? 'Payment Blocked - Wrong Network' : t('payment.payAmount', { amount: formatAmount(invoice.total, invoice.currency) })}
+                  {hasNetworkMismatch
+                    ? 'Payment Blocked - Wrong Network'
+                    : invoice.isOpenAmount
+                    ? parseFloat(payAmount) > 0
+                      ? t('payment.payAmount', { amount: formatAmount(payAmount, invoice.currency) })
+                      : t('payment.enterAmountPrompt')
+                    : t('payment.payAmount', { amount: formatAmount(invoice.total, invoice.currency) })}
                 </button>
-                <p className="text-[11px] text-ink-4 text-center">{t('payment.approveTransaction')}</p>
+                <p className="text-2xs text-ink-4 text-center">{t('payment.approveTransaction')}</p>
               </div>
             )}
 
@@ -670,8 +736,8 @@ export default function PaymentFlow() {
 
             {step === 'success' && (
               <div role="status" aria-live="polite" className="text-center space-y-4 py-4">
-                <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 flex items-center justify-center">
-                  <Check aria-hidden="true" className="h-7 w-7 text-emerald-600" />
+                <div className="w-14 h-14 mx-auto rounded-full bg-success-subtle flex items-center justify-center">
+                  <Check aria-hidden="true" className="h-7 w-7 text-success" />
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-ink-0">{t('payment.paymentSuccessful')}</h3>
@@ -694,7 +760,7 @@ export default function PaymentFlow() {
 
             {step === 'error' && (
               <div role="alert" className="text-center space-y-4 py-4">
-                <div className="w-14 h-14 mx-auto rounded-full bg-red-100 flex items-center justify-center">
+                <div className="w-14 h-14 mx-auto rounded-full bg-destructive-subtle flex items-center justify-center">
                   <X aria-hidden="true" className="h-7 w-7 text-danger" />
                 </div>
                 <div>
@@ -710,7 +776,7 @@ export default function PaymentFlow() {
         </div>
 
         <div className="text-center mt-6">
-          <p className="text-[11px] text-ink-4">{t('payment.poweredBy')}</p>
+          <p className="text-2xs text-ink-4">{t('payment.poweredBy')}</p>
         </div>
       </div>
     </div>

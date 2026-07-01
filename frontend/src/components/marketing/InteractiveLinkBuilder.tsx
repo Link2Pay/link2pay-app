@@ -111,7 +111,7 @@ const TTL_OPTIONS = [
 
 const QUICK_AMOUNTS = [49, 199, 499] as const;
 
-const toPositiveAmount = (raw: string, fallback = 1): number => {
+export const toPositiveAmount = (raw: string, fallback = 1): number => {
   const normalized = raw.replace(',', '.').replace(/[^0-9.]/g, '');
   const firstDot = normalized.indexOf('.');
   const clean =
@@ -200,8 +200,8 @@ export default function InteractiveLinkBuilder() {
 
           <div className="space-y-6">
             <div>
-              <div className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-primary">
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-[10px]">
+              <div className="mb-2 flex items-center gap-2 text-2xs font-medium uppercase tracking-wider text-primary">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-3xs">
                   1
                 </span>
                 {copy.stepAsset}
@@ -226,8 +226,8 @@ export default function InteractiveLinkBuilder() {
             </div>
 
             <div>
-              <div className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-primary">
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-[10px]">
+              <div className="mb-2 flex items-center gap-2 text-2xs font-medium uppercase tracking-wider text-primary">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-3xs">
                   2
                 </span>
                 {copy.stepAmount}
@@ -245,14 +245,14 @@ export default function InteractiveLinkBuilder() {
                 aria-label={copy.amount}
               />
               <div className="mt-2">
-                <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{copy.amountPresets}</p>
+                <p className="mb-2 text-2xs font-medium uppercase tracking-wider text-muted-foreground">{copy.amountPresets}</p>
                 <div className="grid grid-cols-3 gap-2">
                   {QUICK_AMOUNTS.map((preset) => (
                     <button
                       key={preset}
                       type="button"
                       onClick={() => setAmountInput(String(preset))}
-                      className={`rounded-lg border px-2 py-1.5 text-[11px] font-medium transition-colors ${
+                      className={`rounded-lg border px-2 py-1.5 text-2xs font-medium transition-colors ${
                         amount === preset
                           ? 'border-primary bg-primary/10 text-primary'
                           : 'border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'
@@ -266,8 +266,8 @@ export default function InteractiveLinkBuilder() {
             </div>
 
             <div>
-              <div className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-primary">
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-[10px]">
+              <div className="mb-2 flex items-center gap-2 text-2xs font-medium uppercase tracking-wider text-primary">
+                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-3xs">
                   3
                 </span>
                 {copy.stepTtl}
@@ -279,7 +279,7 @@ export default function InteractiveLinkBuilder() {
                     key={option.value}
                     type="button"
                     onClick={() => setTtlMinutes(option.value)}
-                    className={`rounded-lg border px-2 py-2 text-[11px] font-medium transition-colors ${
+                    className={`rounded-lg border px-2 py-2 text-2xs font-medium transition-colors ${
                       ttlMinutes === option.value
                         ? 'border-primary bg-primary/10 text-primary'
                         : 'border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground'
@@ -293,7 +293,7 @@ export default function InteractiveLinkBuilder() {
 
             <div className="rounded-lg border border-border bg-muted/30 p-3">
               <div className="mb-2 flex items-center justify-between gap-3">
-                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                <p className="text-2xs font-medium uppercase tracking-wider text-muted-foreground">
                   {copy.generatedUrl}
                 </p>
                 <button

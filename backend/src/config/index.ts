@@ -41,6 +41,62 @@ const envSchema = z.object({
     .default('GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2'),
 
   WATCHER_POLL_INTERVAL_MS: z.coerce.number().default(5000),
+
+  // Phase 5: allow payers to pay a non-USDC asset (routed to USDC via the DEX).
+  PATH_PAYMENTS_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+  // Slippage guard for path payments, in basis points (100 = 1%).
+  PATH_PAYMENT_SLIPPAGE_BPS: z.coerce.number().min(0).max(5000).default(100),
+
+  ANCHOR_PROVIDER: z
+    .enum(['testnet', 'mock-breb', 'abroad'])
+    .default('testnet'),
+  ANCHOR_HOME_DOMAIN: z
+    .string()
+    .min(1)
+    .default('testanchor.stellar.org'),
+  // mock-breb only: the testnet account the payer sends USDC to (must hold a
+  // USDC trustline). Defaults to a built-in placeholder when unset.
+  MOCK_DEPOSIT_ADDRESS: z
+    .string()
+    .regex(stellarAddressRegex, 'MOCK_DEPOSIT_ADDRESS must be a valid Stellar address')
+    .optional(),
+  // Phase 7: Reflector FX oracle (SEP-40) for a live "receiver gets ≈ COP X"
+  // estimate, shown alongside (never replacing) the firm SEP-38/adapter quote.
+  // Defaults to the public testnet FX oracle. Empty disables the preview.
+  REFLECTOR_FX_CONTRACT: z
+    .string()
+    .default('CCYOZJCOPG34LLQQ7N24YXBM7LL62R7ONMZ3G6WZAAYPB5OYKOMJRN63'),
+  REFLECTOR_DECIMALS: z.coerce.number().default(14),
+
+  RECEIPT_CONTRACT_ID: z.string().optional(),
+  // Admin signer for the receipt contract (attestation only — NOT a funds key).
+  // When unset, receipt writing is skipped (the off-ramp still settles).
+  RECEIPT_SIGNER_SECRET: z
+    .string()
+    .regex(/^S[A-Z2-7]{55}$/, 'RECEIPT_SIGNER_SECRET must be a valid Stellar secret seed')
+    .optional(),
+  ABROAD_API_BASE: z.string().url().optional(),
+  ABROAD_API_KEY: z.string().optional(),
+
+  // Privy social login — required to accept POST /api/auth/privy-session
+  PRIVY_APP_ID: z.string().optional(),
+
+  // ─── Merchant KYC (seller onboarding gate) ──────────────────────────────
+  // Verifies the seller before a wallet may create invoices. 'mock' (default)
+  // simulates verification with no external dependency; 'didit' uses the real
+  // Didit hosted flow (set DIDIT_API_KEY to activate).
+  KYC_PROVIDER: z.enum(['mock', 'didit']).default('mock'),
+  // When false, requireKyc becomes a passthrough (gate disabled). Default on.
+  KYC_ENFORCED: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((v) => v === 'true'),
+  DIDIT_API_BASE: z.string().url().default('https://verification.didit.me'),
+  DIDIT_API_KEY: z.string().optional(),
+  DIDIT_WEBHOOK_SECRET: z.string().optional(),
 });
 
 const parseResult = envSchema.safeParse(process.env);
@@ -72,6 +128,41 @@ export const config = {
   },
 
   watcherPollInterval: env.WATCHER_POLL_INTERVAL_MS,
+
+  pathPayments: {
+    enabled: env.PATH_PAYMENTS_ENABLED,
+    slippageBps: env.PATH_PAYMENT_SLIPPAGE_BPS,
+  },
+
+  anchor: {
+    provider: env.ANCHOR_PROVIDER,
+    homeDomain: env.ANCHOR_HOME_DOMAIN,
+    mockDepositAddress: env.MOCK_DEPOSIT_ADDRESS,
+  },
+
+  reflector: {
+    fxContract: env.REFLECTOR_FX_CONTRACT,
+    decimals: env.REFLECTOR_DECIMALS,
+  },
+
+  receiptContractId: env.RECEIPT_CONTRACT_ID,
+  receiptSignerSecret: env.RECEIPT_SIGNER_SECRET,
+  abroad: {
+    apiBase: env.ABROAD_API_BASE,
+    apiKey: env.ABROAD_API_KEY,
+  },
+
+  privyAppId: env.PRIVY_APP_ID ?? null,
+
+  kyc: {
+    provider: env.KYC_PROVIDER,
+    enforced: env.KYC_ENFORCED,
+    didit: {
+      apiBase: env.DIDIT_API_BASE,
+      apiKey: env.DIDIT_API_KEY,
+      webhookSecret: env.DIDIT_WEBHOOK_SECRET,
+    },
+  },
 } as const;
 
 // Network configurations for both testnet and mainnet
