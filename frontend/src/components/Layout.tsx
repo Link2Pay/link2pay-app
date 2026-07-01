@@ -6,6 +6,7 @@ import {
   ChevronDown,
   LayoutDashboard,
   LogOut,
+  Menu,
   QrCode,
   Receipt,
   UserCircle2,
@@ -19,6 +20,7 @@ import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 import BrandMark from './BrandMark';
 import BrandWordmark from './BrandWordmark';
+import MobileNavDrawer from './MobileNavDrawer';
 import { useI18n } from '../i18n/I18nProvider';
 import { config, CURRENCY_SYMBOLS } from '../config';
 import { useWalletBalances } from '../hooks/useWalletBalances';
@@ -55,7 +57,13 @@ export default function Layout() {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => { setAccountMenuOpen(false); }, [location.pathname]);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const mobileNavTriggerRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    setAccountMenuOpen(false);
+    setMobileNavOpen(false);
+  }, [location.pathname]);
 
   // Refresh the balance each time the account panel opens rather than
   // relying on the fetch from page load, which can go stale.
@@ -213,40 +221,41 @@ export default function Layout() {
 
       <main className="flex-1 md:ml-64">
         <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md">
-          <div className="flex flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-6 md:px-8">
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              <LanguageToggle />
-              <ThemeToggle />
-              {config.privyAppId ? <PrivyLogin /> : <WalletConnect />}
-            </div>
+          {/* Mobile: brand + hamburger */}
+          <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-6 md:hidden">
+            <Link to="/dashboard" className="inline-flex items-center gap-2">
+              <BrandMark className="h-8 w-8 rounded-lg" />
+              <BrandWordmark className="text-base font-semibold leading-snug" />
+            </Link>
+            <button
+              ref={mobileNavTriggerRef}
+              type="button"
+              onClick={() => setMobileNavOpen(true)}
+              aria-label={t('layout.menu.open')}
+              aria-haspopup="dialog"
+              aria-expanded={mobileNavOpen}
+              aria-controls="mobile-nav-drawer"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-muted"
+            >
+              <Menu aria-hidden="true" className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Desktop: language / theme / wallet controls */}
+          <div className="hidden flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-6 md:flex md:px-8">
+            <LanguageToggle />
+            <ThemeToggle />
+            {config.privyAppId ? <PrivyLogin /> : <WalletConnect />}
           </div>
         </header>
 
-        <div className="border-b border-border bg-background/70 px-3 py-2 backdrop-blur md:hidden">
-          <nav aria-label="Mobile navigation" className="flex items-center gap-1 overflow-x-auto">
-            {navItems.map((item) => {
-              const isActive = isActivePath(item.path);
-              const Icon = item.icon;
-
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                    isActive
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  <span className="inline-flex items-center gap-1.5">
-                    <Icon aria-hidden="true" className="h-3.5 w-3.5" />
-                    {item.label}
-                  </span>
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
+        <MobileNavDrawer
+          open={mobileNavOpen}
+          onClose={() => setMobileNavOpen(false)}
+          navItems={navItems}
+          isActivePath={isActivePath}
+          triggerRef={mobileNavTriggerRef}
+        />
 
         <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 md:px-8">
           {connected ? (
