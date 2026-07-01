@@ -35,6 +35,9 @@ type HomeCopy = {
   heroTitleHighlight: string;
   heroTitleEnd: string;
   heroDescription: string;
+  heroDescStart: string;
+  heroDescHighlight: string;
+  heroDescEnd: string;
   heroPrimaryCta: string;
   heroFootnote: string;
   howTitle: string;
@@ -64,6 +67,9 @@ const COPY: Record<Language, HomeCopy> = {
     heroTitleEnd: 'in your local currency',
     heroDescription:
       'Link2Pay turns a QR or a link into a bridge between crypto and your bank account. Your customer pays with digital dollars from anywhere in the world and you receive your local currency, straight into your usual account. No crypto knowledge required.',
+    heroDescStart: 'Link2Pay turns a QR or a link into a bridge between crypto and your bank account. Your customer pays with digital dollars from anywhere in the world and you receive your ',
+    heroDescHighlight: 'local currency',
+    heroDescEnd: ', straight into your usual account. No crypto knowledge required.',
     heroPrimaryCta: 'Create Your First Link',
     heroFootnote: 'Start free and go live on Stellar whenever you are ready.',
     howTitle: 'Start getting paid in 3 steps',
@@ -93,6 +99,9 @@ const COPY: Record<Language, HomeCopy> = {
     heroTitleEnd: 'en tu moneda local',
     heroDescription:
       'Link2Pay convierte un QR o un link en un puente entre crypto y tu cuenta bancaria. Tu cliente paga con dólares digitales desde cualquier parte del mundo y vos recibís en pesos, directo en tu cuenta de siempre. Sin saber nada de crypto.',
+    heroDescStart: 'Link2Pay convierte un QR o un link en un puente entre crypto y tu cuenta bancaria. Tu cliente paga con dólares digitales desde cualquier parte del mundo y vos recibís en ',
+    heroDescHighlight: 'pesos',
+    heroDescEnd: ', directo en tu cuenta de siempre. Sin saber nada de crypto.',
     heroPrimaryCta: 'Crear mi primer link',
     heroFootnote: 'Empezá gratis y lanzá en vivo en Stellar cuando estés listo.',
     howTitle: 'Empezá a cobrar en 3 pasos',
@@ -122,6 +131,9 @@ const COPY: Record<Language, HomeCopy> = {
     heroTitleEnd: 'na sua moeda local',
     heroDescription:
       'A Link2Pay transforma um QR ou um link em uma ponte entre as cripto e a sua conta bancária. Seu cliente paga com dólares digitais de qualquer parte do mundo e você recebe na sua moeda, direto na conta de sempre. Sem saber nada de cripto.',
+    heroDescStart: 'A Link2Pay transforma um QR ou um link em uma ponte entre as cripto e a sua conta bancária. Seu cliente paga com dólares digitais de qualquer parte do mundo e você recebe na sua ',
+    heroDescHighlight: 'moeda local',
+    heroDescEnd: ', direto na conta de sempre. Sem saber nada de cripto.',
     heroPrimaryCta: 'Criar meu primeiro link',
     heroFootnote: 'Comece grátis e entre no ar na Stellar quando estiver pronto.',
     howTitle: 'Comece a receber em 3 passos',
@@ -568,21 +580,25 @@ export default function Home() {
 
       {/* Supporting context (left) + live link builder card (right) */}
       <section id="build" className="scroll-mt-40 border-b border-border bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:items-center lg:gap-12">
+        <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-28">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-center lg:gap-12">
             <div className="text-center lg:text-left animate-fade-in">
-              <p className="text-base leading-relaxed text-muted-foreground md:text-lg">{copy.heroDescription}</p>
-              <div className="mt-8 flex flex-wrap justify-center gap-3 text-2xs uppercase tracking-[0.24em] text-muted-foreground lg:justify-start">
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
+              <p className="text-xl font-semibold leading-relaxed tracking-tight text-foreground md:text-2xl lg:text-3xl">
+                {copy.heroDescStart}
+                <span className="text-gradient">{copy.heroDescHighlight}</span>
+                {copy.heroDescEnd}
+              </p>
+              <div className="mt-8 flex flex-wrap justify-center gap-3 text-2xs uppercase tracking-[0.24em] lg:justify-start">
+                <span className="inline-flex items-center gap-2 text-primary font-medium">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                   {copy.heroTag1}
                 </span>
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
+                <span className="inline-flex items-center gap-2 text-primary font-medium">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                   {copy.heroTag2}
                 </span>
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary/70" />
+                <span className="inline-flex items-center gap-2 text-primary font-medium">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                   {copy.heroTag3}
                 </span>
               </div>
@@ -590,7 +606,7 @@ export default function Home() {
             </div>
 
             <div className="w-full animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              <div className="relative h-full overflow-hidden rounded-[2.5rem] border border-border/70 bg-card/90 p-8 shadow-[0_40px_120px_hsl(var(--primary)_/_0.2)] backdrop-blur sm:p-10 lg:p-12">
+              <div className="relative h-full overflow-hidden rounded-[2.5rem] border border-border/70 bg-card/90 p-6 shadow-[0_40px_120px_hsl(var(--primary)_/_0.2)] backdrop-blur sm:p-8 lg:p-8">
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,_hsl(var(--card)),_hsl(var(--background)))]" />
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)_/_0.2),transparent_60%)]" />
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,_hsl(var(--primary)_/_0.07)_1px,transparent_1px),linear-gradient(180deg,_hsl(var(--primary)_/_0.05)_1px,transparent_1px)] bg-[size:48px_48px] opacity-60" />
