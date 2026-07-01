@@ -279,7 +279,7 @@ const COPY: Record<Language, {
 
 export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   const navigate = useNavigate();
-  const { publicKey, getFreighterNetwork } = useWalletStore();
+  const { publicKey, getFreighterNetwork, _externalSigner } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
   const { language } = useI18n();
   const copy = COPY[language];
@@ -389,18 +389,25 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
     setError(null);
 
     try {
-      const freighterNetwork = await getFreighterNetwork();
-      if (freighterNetwork && freighterNetwork !== networkPassphrase) {
-        const selectedName = networkPassphrase.includes('Test') ? 'TESTNET' : 'MAINNET';
-        const freighterName = freighterNetwork.includes('Test') ? 'TESTNET' : 'MAINNET';
-        const errorMsg = copy.networkMismatch
-          .replace('{selected}', selectedName)
-          .replace('{freighter}', freighterName)
-          .replace('{selected}', selectedName);
-        setError(errorMsg);
-        toast.error(errorMsg, { duration: 6000 });
-        setIsSubmitting(false);
-        return;
+      // The Freighter network-mismatch guard only applies when signing through
+      // Freighter, whose browser extension carries its own selected network.
+      // Privy embedded wallets (external signer) sign for whatever passphrase we
+      // pass, so this check is irrelevant — and would false-positive if the user
+      // merely has the Freighter extension installed on a different network.
+      if (!_externalSigner) {
+        const freighterNetwork = await getFreighterNetwork();
+        if (freighterNetwork && freighterNetwork !== networkPassphrase) {
+          const selectedName = networkPassphrase.includes('Test') ? 'TESTNET' : 'MAINNET';
+          const freighterName = freighterNetwork.includes('Test') ? 'TESTNET' : 'MAINNET';
+          const errorMsg = copy.networkMismatch
+            .replace('{selected}', selectedName)
+            .replace('{freighter}', freighterName)
+            .replace('{selected}', selectedName);
+          setError(errorMsg);
+          toast.error(errorMsg, { duration: 6000 });
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       // Direct links auto-title when left blank; open-amount links carry no
