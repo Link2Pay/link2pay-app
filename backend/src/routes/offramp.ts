@@ -8,6 +8,7 @@ import {
   requireWallet,
   offrampQuoteSchema,
   offrampInitiateSchema,
+  offrampOpenAmountSchema,
   offrampSubmitPaymentSchema,
 } from '../middleware/validation';
 import { config } from '../config';
@@ -76,6 +77,35 @@ router.post(
         : 500;
       log.error('[OfframpRoutes] Initiate error', { error: error?.message });
       res.status(status).json({ error: error.message });
+    }
+  }
+);
+
+/**
+ * POST /api/invoices/:id/offramp/set-amount
+ * Payer-driven amount for an OPEN-AMOUNT Bre-B invoice: persists the total,
+ * quotes, and initiates so the pay flow can proceed. Public — the service
+ * gates it to open-amount BRE_B invoices in PENDING.
+ */
+router.post(
+  '/:id/offramp/set-amount',
+  validateBody(offrampOpenAmountSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const result = await offRampService.prepareOpenAmountOffRamp(
+        req.params.id,
+        req.body.sellAmount
+      );
+      res.json(result);
+    } catch (error: any) {
+      const msg = error?.message || 'Failed to set amount';
+      const status = msg === 'Invoice not found'
+        ? 404
+        : /open-amount|Bre-B|already set|greater than zero|payout alias/i.test(msg)
+          ? 400
+          : 500;
+      log.error('[OfframpRoutes] Set-amount error', { error: msg });
+      res.status(status).json({ error: msg });
     }
   }
 );

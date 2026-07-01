@@ -155,6 +155,114 @@ export class OffRampService {
   }
 
   /**
+   * Payer-driven open-amount off-ramp. The payer supplies the amount at
+   * checkout (the receiver never fixed one), so we persist it as the invoice
+   * total, then run quote + initiate in one shot so the normal pay-intent /
+   * submit flow can proceed. Public — no receiver auth — and gated strictly to
+   * open-amount BRE_B invoices still in PENDING, so it can't touch a normal
+   * receiver-driven invoice.
+   */
+  async prepareOpenAmountOffRamp(
+    invoiceId: string,
+    sellAmount: string | number
+  ): Promise<{ quoteBuyAmount: string | null; depositAddress: string | null; total: string }> {
+    const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
+    if (!invoice) throw new Error('Invoice not found');
+    if (invoice.payoutMethod !== 'BRE_B') throw new Error('Invoice is not a Bre-B off-ramp');
+    if (!invoice.isOpenAmount) throw new Error('Invoice is not open-amount');
+    if (invoice.status !== 'PENDING') {
+      throw new Error(`Amount already set for this invoice (status ${invoice.status})`);
+    }
+    if (!invoice.payoutAlias) throw new Error('Invoice has no Bre-B payout alias');
+
+    const amount = new Prisma.Decimal(sellAmount);
+    if (!amount.isFinite() || amount.lessThanOrEqualTo(0)) {
+      throw new Error('Amount must be greater than zero');
+    }
+    const sellAmountStr = amount.toString();
+
+    log.info('[OffRampService] Preparing open-amount off-ramp', { invoiceId, sellAmount: sellAmountStr });
+
+    // 1. Persist the payer-chosen amount + request the firm quote → AWAITING_ANCHOR.
+    const quote = await this.adapter.getQuote({
+      sellAmount: sellAmountStr,
+      buyCurrency: 'COP',
+      payoutAlias: invoice.payoutAlias,
+    });
+
+    await prisma.$transaction(async (tx) => {
+      await tx.invoice.update({
+        where: { id: invoiceId },
+        data: {
+          subtotal: amount,
+          taxRate: null,
+          taxAmount: new Prisma.Decimal(0),
+          discount: new Prisma.Decimal(0),
+          total: amount,
+          status: 'AWAITING_ANCHOR',
+          quoteId: quote.quoteId,
+          quoteBuyAmount: quote.buyAmount,
+          anchorProvider:
+            this.adapter.id === 'testnet'
+              ? 'TESTNET'
+              : this.adapter.id === 'abroad'
+                ? 'ABROAD'
+                : 'MOCK_BREB',
+        },
+      });
+      await tx.invoiceAuditLog.create({
+        data: {
+          invoiceId,
+          action: 'OFFRAMP_INITIATED',
+          actorWallet: invoice.freelancerWallet,
+          changes: {
+            status: { from: 'PENDING', to: 'AWAITING_ANCHOR' },
+            total: { from: '0', to: sellAmountStr },
+          },
+        },
+      });
+    });
+
+    // 2. Initiate the withdraw → AWAITING_PAYMENT (deposit address + memo).
+    const intent = await this.adapter.initiateOffRamp({
+      quoteId: quote.quoteId,
+      receiverAccount: invoice.freelancerWallet,
+      payoutAlias: invoice.payoutAlias,
+    });
+
+    await prisma.$transaction(async (tx) => {
+      await tx.invoice.update({
+        where: { id: invoiceId },
+        data: {
+          status: 'AWAITING_PAYMENT',
+          anchorTxId: intent.anchorTxId,
+          anchorDepositAddress: intent.depositAddress || null,
+          anchorMemo: intent.memo || null,
+          anchorMemoType: intent.memoType || null,
+          anchorInteractiveUrl: intent.interactiveUrl || null,
+        },
+      });
+      await tx.invoiceAuditLog.create({
+        data: {
+          invoiceId,
+          action: 'OFFRAMP_AWAITING_PAYMENT',
+          actorWallet: invoice.freelancerWallet,
+          changes: {
+            status: { from: 'AWAITING_ANCHOR', to: 'AWAITING_PAYMENT' },
+            anchorTxId: { from: null, to: intent.anchorTxId },
+          },
+        },
+      });
+    });
+
+    return {
+      quoteBuyAmount: quote.buyAmount,
+      depositAddress: intent.depositAddress ?? null,
+      total: sellAmountStr,
+    };
+  }
+
+  /**
    * Poll the anchor for current status and advance the state machine.
    */
   async pollStatus(invoiceId: string): Promise<{ status: InvoiceStatus; anchorStatus: AnchorStatus }> {

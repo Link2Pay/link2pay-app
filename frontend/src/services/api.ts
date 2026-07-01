@@ -543,6 +543,20 @@ export async function offrampStatus(invoiceId: string): Promise<OffRampStatusRes
   return request<OffRampStatusResponse>(`/invoices/${invoiceId}/offramp/status`);
 }
 
+/**
+ * Payer-driven amount for an OPEN-AMOUNT Bre-B invoice. Sets the total, quotes,
+ * and initiates server-side so the invoice advances to AWAITING_PAYMENT.
+ */
+export async function offrampSetAmount(
+  invoiceId: string,
+  sellAmount: number | string
+): Promise<{ quoteBuyAmount: string | null; depositAddress: string | null; total: string }> {
+  return request(`/invoices/${invoiceId}/offramp/set-amount`, {
+    method: 'POST',
+    body: JSON.stringify({ sellAmount }),
+  });
+}
+
 export async function getPaymentStatus(
   invoiceId: string
 ): Promise<{

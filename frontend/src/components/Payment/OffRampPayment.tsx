@@ -5,6 +5,7 @@ import {
   offrampSubmit,
   offrampStatus,
   offrampPathQuote,
+  offrampSetAmount,
   getFxRate,
 } from '../../services/api';
 import { useWalletStore } from '../../store/walletStore';
@@ -15,6 +16,11 @@ import { config } from '../../config';
 import { kitMountButton, kitGetAddress, kitSign } from '../../services/walletsKit';
 
 type OffRampStep = 'idle' | 'paying' | 'settling' | 'settled' | 'error';
+
+// Demo COP rate for the pre-quote estimate shown while the payer types an
+// amount. Mirrors the backend MockBreBAdapter — the firm quote comes back from
+// the server once the amount is submitted.
+const SIMULATED_USDC_COP_RATE = 4120.5;
 
 // Invoice statuses where the off-ramp is still being prepared by the receiver.
 const PREPARING = new Set(['DRAFT', 'PENDING', 'AWAITING_ANCHOR']);
@@ -41,6 +47,11 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   const [txHash, setTxHash] = useState<string | null>(invoice.transactionHash || null);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Open-amount Bre-B: the payer sets the amount here before the pay step.
+  const [amountInput, setAmountInput] = useState('');
+  const [settingAmount, setSettingAmount] = useState(false);
+  const needsAmount = invoice.isOpenAmount && invoice.status === 'PENDING';
+
   // Phase 6: multi-wallet connect via Stellar Wallets Kit (flagged on).
   const walletsKit = config.enableWalletsKit;
   const kitBtnRef = useRef<HTMLDivElement | null>(null);
@@ -60,9 +71,25 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   const isTestnet = invoice.networkPassphrase?.includes('Test');
   const copAmount = formatCop(invoice.quoteBuyAmount);
 
+  // Before the amount is set (open-amount), reflect what the payer is typing in
+  // the summary using the demo rate; afterwards use the firm quote from the server.
+  const parsedAmountInput = parseFloat(amountInput);
+  const displayPay = needsAmount
+    ? Number.isFinite(parsedAmountInput)
+      ? parsedAmountInput
+      : 0
+    : parseFloat(invoice.total);
+  const displayCop = needsAmount
+    ? parsedAmountInput > 0
+      ? formatCop((parsedAmountInput * SIMULATED_USDC_COP_RATE).toString())
+      : null
+    : copAmount;
+
   const settled = invoice.status === 'SETTLED_FIAT' || step === 'settled';
   const inFlight = IN_FLIGHT.has(invoice.status) || step === 'settling';
-  const preparing = PREPARING.has(invoice.status);
+  // An open-amount invoice sits in PENDING waiting for the payer to choose an
+  // amount — that's the amount-entry state, not "receiver still preparing".
+  const preparing = PREPARING.has(invoice.status) && !needsAmount;
   const readyToPay = invoice.status === 'AWAITING_PAYMENT' && step === 'idle';
   const failed = invoice.status === 'ANCHOR_ERROR' || invoice.status === 'EXPIRED' || step === 'error';
 
@@ -149,6 +176,26 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
     return () => { cancelled = true; };
   }, [invoice.total, invoice.quoteBuyAmount]);
 
+  const handleSetAmount = async () => {
+    const amt = parseFloat(amountInput);
+    if (!(amt > 0)) {
+      setError('Enter an amount greater than 0.');
+      return;
+    }
+    setSettingAmount(true);
+    setError(null);
+    try {
+      // Persists the amount, quotes, and initiates the anchor withdraw. On
+      // refresh the invoice comes back as AWAITING_PAYMENT and the pay UI shows.
+      await offrampSetAmount(invoice.id, amt);
+      onRefresh();
+    } catch (err: any) {
+      setError(err?.message || 'Could not set the amount.');
+    } finally {
+      setSettingAmount(false);
+    }
+  };
+
   const handlePay = async () => {
     if (!effectiveKey) return;
     setStep('paying');
@@ -192,14 +239,14 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
         <div className="mt-3 flex items-center justify-center gap-3 text-sm">
           <div className="text-center">
             <p className="font-mono text-base font-bold text-ink-0">
-              {parseFloat(invoice.total).toFixed(2)} {invoice.currency}
+              {displayPay.toFixed(2)} {invoice.currency}
             </p>
             <p className="text-3xs uppercase tracking-wider text-ink-3">You pay</p>
           </div>
           <ArrowRight className="h-4 w-4 text-ink-3" aria-hidden="true" />
           <div className="text-center">
             <p className="font-mono text-base font-bold text-warning">
-              {copAmount ? `≈ $${copAmount} COP` : '—'}
+              {displayCop ? `≈ $${displayCop} COP` : '—'}
             </p>
             <p className="text-3xs uppercase tracking-wider text-ink-3">Receiver gets</p>
           </div>
@@ -220,6 +267,47 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
       </div>
 
       {/* States */}
+      {needsAmount && (
+        <div className="space-y-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-ink-3">
+              Amount to pay ({invoice.currency})
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                inputMode="decimal"
+                autoFocus
+                value={amountInput}
+                onChange={(e) => setAmountInput(e.target.value)}
+                placeholder="0.00"
+                className="input pr-16 text-lg font-mono"
+              />
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-ink-3">
+                {invoice.currency}
+              </span>
+            </div>
+          </div>
+          {error && <p className="text-xs text-danger">{error}</p>}
+          <button
+            onClick={handleSetAmount}
+            disabled={settingAmount || !(parseFloat(amountInput) > 0)}
+            className={`w-full py-3 text-base ${
+              settingAmount || !(parseFloat(amountInput) > 0)
+                ? 'btn-disabled cursor-not-allowed'
+                : 'btn-primary'
+            }`}
+          >
+            {settingAmount ? 'Preparing…' : 'Continue'}
+          </button>
+          <p className="text-center text-2xs text-ink-4">
+            You choose the amount; the receiver gets the equivalent in COP via Bre-B.
+          </p>
+        </div>
+      )}
+
       {preparing && (
         <div className="rounded-lg border border-surface-3 bg-surface-1 p-4 text-center">
           <p className="text-sm text-ink-2">The receiver is still setting up this payout with the anchor.</p>

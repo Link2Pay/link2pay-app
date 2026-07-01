@@ -162,6 +162,11 @@ export const offrampInitiateSchema = z.object({
   quoteId: z.string().min(1),
 });
 
+// Payer-driven amount for an open-amount Bre-B invoice (public checkout).
+export const offrampOpenAmountSchema = z.object({
+  sellAmount: z.coerce.number().positive().max(999999999),
+});
+
 export const offrampSubmitPaymentSchema = z.object({
   invoiceId: z.string().min(1),
   signedTransactionXdr: z.string().min(1),
