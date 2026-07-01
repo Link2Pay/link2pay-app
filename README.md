@@ -62,8 +62,8 @@ Create professional invoices with line items, tax rates, discounts, and due date
 ### Shareable Payment Links
 Every invoice generates a unique public URL (`/pay/:invoiceId`). Clients open the link and pay directly — no account or registration required.
 
-### Non-Custodial Wallet Integration
-Freighter wallet signs all transactions client-side. Private keys never leave the user's device. The server only verifies signatures against the on-chain public key.
+### Wallet Options (Non-Custodial Signing)
+Merchants sign in with **Freighter**, a **Privy** embedded wallet (email / social login — no browser extension or seed phrase), or a wallet from **Stellar Wallets Kit**. Payers pay from any Stellar wallet, a QR / SEP-7 deep link, or Freighter — no account required. Link2Pay never holds funds; transactions are signed on the client and only the public key reaches the server.
 
 ### Cryptographic Authentication
 Nonce-based ed25519 challenge-response authentication. Every authenticated request requires a server-issued nonce signed by the Freighter wallet — no passwords, no sessions, no JWTs.
@@ -82,6 +82,24 @@ Live XLM/USD equivalent shown at payment time via CoinGecko pricing, cached serv
 
 ### Saved Client Book
 Reuse client details across invoices with an optional favorites system and quick-fill at invoice creation.
+
+### Social Login (Privy)
+Sign in with email or a social account and get a Stellar **embedded wallet** automatically — no extension, no seed phrase. Freighter and Stellar Wallets Kit remain fully supported for wallet-native users.
+
+### In-App Wallet
+A dashboard **Wallet** page shows live on-chain balances (XLM / USDC / EURC), a deposit QR + address, activation status, and one-click **USDC trustline** setup — everything an embedded-wallet merchant needs to fund and receive.
+
+### Flexible Payment Links
+Fixed-amount **or open-amount** links (the payer chooses how much to pay), optional **no-expiration** links, and the ability to **cancel** any open link — for both crypto and Bre-B (COP) payouts.
+
+### Invoice Types
+Direct-payment, business-invoice, and service-invoice types — with line items, tax, discounts, generated **PDF** documents, and reusable business-profile details.
+
+### Merchant KYC Gating
+Fiat (Bre-B) payout links require the merchant to clear KYC first (pluggable `KycProvider`; mock + Didit providers included). Crypto links are ungated.
+
+### Deployment-Fixed Network
+The network is fixed per deployment: the primary domain runs **Mainnet**, and **Testnet** lives on its own `testnet.*` subdomain (a separate origin with isolated wallet/session state). Resolution order: `VITE_STELLAR_NETWORK` → a `testnet.` hostname → Mainnet default. There is no in-app network toggle.
 
 ### USDC→COP Fiat Off-Ramp (Bre-B)
 A payer pays **USDC on Stellar** from any wallet, and the receiver gets **local fiat (Colombian pesos)** in their bank via the **Bre-B** rail — without Link2Pay ever holding funds. See **[Anchor off-ramp](#anchor-off-ramp-usdccop-via-bre-b)** below.
@@ -482,6 +500,7 @@ x-auth-signature    Hex-encoded ed25519 signature of the nonce message
 | `GET` | `/invoices/:id/owner` | Full invoice for owner | Wallet |
 | `PATCH` | `/invoices/:id` | Update DRAFT invoice | Wallet |
 | `POST` | `/invoices/:id/send` | Mark invoice PENDING | Wallet |
+| `POST` | `/invoices/:id/cancel` | Cancel an open invoice / link | Wallet |
 | `DELETE` | `/invoices/:id` | Soft-delete DRAFT invoice | Wallet |
 
 - Linux
@@ -511,6 +530,33 @@ x-auth-signature    Hex-encoded ed25519 signature of the nonce message
 | `POST` | `/clients` | Save a new client | Wallet |
 | `PATCH` | `/clients/:id/favorite` | Toggle favorite | Wallet |
 | `DELETE` | `/clients/:id` | Delete client | Wallet |
+
+### Wallet
+
+| Method | Path | Description | Auth |
+|---|---|---|---|
+| `GET` | `/wallet/:publicKey/balances` | On-chain balances for any address (network via `?networkPassphrase=`) | — |
+
+### KYC (merchant onboarding for fiat)
+
+| Method | Path | Description | Auth |
+|---|---|---|---|
+| `GET` | `/kyc/status` | Merchant KYC status | Wallet |
+| `POST` | `/kyc/start` | Begin verification | Wallet |
+| `POST` | `/kyc/mock/complete` | Complete mock verification (demo) | Wallet |
+| `POST` | `/kyc/webhook` | Provider webhook callback | — |
+
+### Off-Ramp (Bre-B · USDC→COP)
+
+| Method | Path | Description | Auth |
+|---|---|---|---|
+| `POST` | `/invoices/:id/offramp/quote` | Request a firm SEP-38 quote | Wallet |
+| `POST` | `/invoices/:id/offramp/initiate` | Initiate SEP-24 withdraw | Wallet |
+| `POST` | `/invoices/:id/offramp/set-amount` | Open-amount: payer sets amount → quote + initiate | — |
+| `GET` | `/invoices/:id/offramp/status` | Poll anchor settlement status | — |
+| `POST` | `/invoices/:id/offramp/pay-intent` | Build the USDC→anchor payment XDR | — |
+| `POST` | `/invoices/:id/offramp/submit` | Submit the signed off-ramp payment | — |
+| `POST` | `/invoices/:id/offramp/path-quote` | Preview a pay-in-any-asset route | — |
 
 ---
 
@@ -549,7 +595,7 @@ Stop local app with `Ctrl+C`.
 | Framework | React 18, TypeScript, Vite |
 | Styling | TailwindCSS |
 | State Management | Zustand, React Query |
-| Wallet | @stellar/freighter-api |
+| Wallet | Freighter · Privy (embedded) · Stellar Wallets Kit |
 | Internationalization | Custom (EN / ES / PT) |
 
 ### Backend
@@ -568,9 +614,9 @@ Stop local app with `Ctrl+C`.
 | Layer | Technology |
 |---|---|
 | Network | Stellar (testnet / mainnet) |
-| SDK | @stellar/stellar-sdk v12 |
+| SDK | @stellar/stellar-sdk v15 |
 | API | Horizon REST API |
-| Wallet | Freighter (ed25519 signing) |
+| Wallet | Freighter · Privy (embedded) · Stellar Wallets Kit (ed25519 signing) |
 | Supported Assets | XLM (native), USDC, EURC |
 
 ### Security
@@ -596,7 +642,7 @@ Link2Pay applies **STRIDE threat modeling** (see [`SECURITY.md`](./SECURITY.md))
 | **Non-custodial** | Private keys never leave Freighter. Server holds and verifies public keys only. |
 | **Cryptographic auth** | Every authenticated request requires a server-issued nonce signed with the wallet's ed25519 key. |
 | **No address spoofing** | `requireWallet` rejects requests missing `x-auth-nonce` or `x-auth-signature`. No legacy fallback. |
-| **Server-side amounts** | Invoice `total` is always read from the DB — client-supplied amounts are never trusted. |
+| **Server-side amounts** | Fixed-amount invoices read `total` from the DB. Open-amount links persist the payer's chosen amount server-side at pay time, and `/payments/submit` re-verifies the on-chain transaction actually pays the invoice (destination, asset, amount ≥ `total`) before marking PAID. |
 | **Non-sequential IDs** | CUID for database IDs, random alphanumeric for invoice numbers — prevents enumeration. |
 | **Field-level access control** | Public endpoints return `InvoicePublicView` (no wallet address). Owner endpoints require auth. |
 | **IDOR prevention** | All owner queries filter by authenticated `walletAddress` at the database level. |
@@ -611,7 +657,7 @@ Link2Pay applies **STRIDE threat modeling** (see [`SECURITY.md`](./SECURITY.md))
 |---|---|---|
 | Wallet impersonation | ✅ Mitigated | ed25519 signature verification on every request |
 | Nonce replay | ✅ Mitigated | Single-use nonces consumed on verify, 5-min TTL |
-| Amount tampering | ✅ Mitigated | Amount always read from DB, never from request body |
+| Amount tampering | ✅ Mitigated | Fixed amounts from DB; open-amount payments re-verified on-chain at `/payments/submit` before PAID |
 | XDR replay | ✅ Mitigated | 5-min transaction timeout + invoice memo binding |
 | IDOR | ✅ Mitigated | DB-level wallet filter on all owner queries |
 | ID enumeration | ✅ Mitigated | CUID + random alphanumeric invoice numbers |
