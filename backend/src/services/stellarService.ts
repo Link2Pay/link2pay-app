@@ -395,8 +395,16 @@ export class StellarService {
         server.operations().forTransaction(transactionHash).call()
       );
 
+      // Include path payments (asset-conversion pay flow) and createAccount
+      // (auto-activation of a brand-new destination, which Stellar requires
+      // to be the account's *first* incoming transfer) alongside plain
+      // payments — all three represent value received by `to`/`account`.
       const paymentOps = operations.records.filter(
-        (op: any) => op.type === 'payment'
+        (op: any) =>
+          op.type === 'payment' ||
+          op.type === 'path_payment_strict_receive' ||
+          op.type === 'path_payment_strict_send' ||
+          op.type === 'create_account'
       );
 
       return {
@@ -407,13 +415,23 @@ export class StellarService {
         memoType: tx.memo_type,
         createdAt: tx.created_at,
         sourceAccount: tx.source_account,
-        payments: paymentOps.map((op: any) => ({
-          from: op.from,
-          to: op.to,
-          amount: op.amount,
-          assetCode: op.asset_type === 'native' ? 'XLM' : op.asset_code,
-          assetIssuer: op.asset_issuer || null,
-        })),
+        payments: paymentOps.map((op: any) =>
+          op.type === 'create_account'
+            ? {
+                from: op.funder,
+                to: op.account,
+                amount: op.starting_balance,
+                assetCode: 'XLM',
+                assetIssuer: null,
+              }
+            : {
+                from: op.from,
+                to: op.to,
+                amount: op.amount,
+                assetCode: op.asset_type === 'native' ? 'XLM' : op.asset_code,
+                assetIssuer: op.asset_issuer || null,
+              }
+        ),
       };
     } catch (error: any) {
       if (error?.response?.status === 404) {
