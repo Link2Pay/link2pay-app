@@ -12,7 +12,7 @@ Create hosted crypto checkout links, embed payment flows in your app, and receiv
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)](https://react.dev/)
 [![License](https://img.shields.io/badge/License-Proprietary-red)](./LICENSE)
 
-[Live Demo](https://link2pay.vercel.app) · [API Reference](#api-endpoints) · [Quick Start](#quick-start) · [Security Model](#security-model)
+[Live App](https://www.link2pay.xyz) · [API Reference](#api-endpoints) · [Quick Start](#quick-start) · [Security Model](#security-model)
 
 ---
 
