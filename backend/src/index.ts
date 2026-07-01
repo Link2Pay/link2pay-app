@@ -12,6 +12,7 @@ import authRoutes from './routes/auth';
 import priceRoutes from './routes/prices';
 import offrampRoutes from './routes/offramp';
 import kycRoutes from './routes/kyc';
+import walletRoutes from './routes/wallet';
 import { watcherService } from './services/watcherService';
 
 const app = express();
@@ -162,6 +163,9 @@ app.use('/api/kyc', kycRoutes);
 
 // Off-ramp routes (Bre-B)
 app.use('/api/invoices', offrampRoutes);
+
+// Wallet routes (read-only balance lookups)
+app.use('/api/wallet', walletRoutes);
 
 // ─── Error Handling ─────────────────────────────────────────────────
 app.use(

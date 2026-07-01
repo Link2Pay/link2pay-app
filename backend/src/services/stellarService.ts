@@ -65,9 +65,10 @@ export class StellarService {
   /**
    * Load account details from Horizon
    */
-  async loadAccount(publicKey: string) {
+  async loadAccount(publicKey: string, networkPassphrase?: string) {
     try {
-      return await this.withRetry(() => this.server.loadAccount(publicKey));
+      const server = this.getServerForNetwork(networkPassphrase);
+      return await this.withRetry(() => server.loadAccount(publicKey));
     } catch (error: any) {
       if (error?.response?.status === 404) {
         throw new Error('ACCOUNT_NOT_FOUND');
@@ -94,8 +95,8 @@ export class StellarService {
   /**
    * Get account balances
    */
-  async getBalances(publicKey: string) {
-    const account = await this.loadAccount(publicKey);
+  async getBalances(publicKey: string, networkPassphrase?: string) {
+    const account = await this.loadAccount(publicKey, networkPassphrase);
     return account.balances.map((balance: any) => ({
       asset:
         balance.asset_type === 'native'

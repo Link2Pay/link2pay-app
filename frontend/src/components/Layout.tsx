@@ -20,18 +20,48 @@ import LanguageToggle from './LanguageToggle';
 import BrandMark from './BrandMark';
 import BrandWordmark from './BrandWordmark';
 import { useI18n } from '../i18n/I18nProvider';
-import { config } from '../config';
+import { config, CURRENCY_SYMBOLS } from '../config';
+import { useWalletBalances } from '../hooks/useWalletBalances';
+
+const KNOWN_ASSET_ORDER = ['XLM', 'USDC', 'EURC'];
+
+function sortBalances<T extends { code: string }>(balances: T[]): T[] {
+  return [...balances].sort((a, b) => {
+    const aIndex = KNOWN_ASSET_ORDER.indexOf(a.code);
+    const bIndex = KNOWN_ASSET_ORDER.indexOf(b.code);
+    if (aIndex !== -1 || bIndex !== -1) {
+      return (aIndex === -1 ? KNOWN_ASSET_ORDER.length : aIndex) -
+        (bIndex === -1 ? KNOWN_ASSET_ORDER.length : bIndex);
+    }
+    return a.code.localeCompare(b.code);
+  });
+}
+
+function formatBalance(raw: string, code: string): string {
+  const value = parseFloat(raw);
+  if (!Number.isFinite(value)) return raw;
+  const formatted = value.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+  const symbol = CURRENCY_SYMBOLS[code] || code;
+  return code === 'XLM' ? `${formatted} ${symbol}` : `${symbol}${formatted}`;
+}
 
 export default function Layout() {
   const location = useLocation();
   const { connected, publicKey, privyLoading, disconnect } = useWalletStore();
   const { network } = useNetworkStore();
   const { t } = useI18n();
+  const { balances, loading: balancesLoading, error: balancesError, refresh: refreshBalances } = useWalletBalances();
 
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => { setAccountMenuOpen(false); }, [location.pathname]);
+
+  // Refresh the balance each time the account panel opens rather than
+  // relying on the fetch from page load, which can go stale.
+  useEffect(() => {
+    if (accountMenuOpen) refreshBalances();
+  }, [accountMenuOpen, refreshBalances]);
 
   useEffect(() => {
     if (!accountMenuOpen) return;
@@ -114,6 +144,26 @@ export default function Layout() {
                     {network === 'testnet' ? 'Testnet' : 'Mainnet'}
                   </p>
                 </div>
+              </div>
+
+              <div className="px-3 py-3 border-b border-surface-3">
+                <p className="mb-1.5 text-3xs uppercase tracking-wider text-muted-foreground">Balance</p>
+                {balancesLoading ? (
+                  <div className="h-4 w-24 animate-pulse rounded bg-surface-2" />
+                ) : balancesError ? (
+                  <p className="text-xs text-muted-foreground">Balance unavailable</p>
+                ) : balances.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No balance yet</p>
+                ) : (
+                  <div className="space-y-1">
+                    {sortBalances(balances).map((b) => (
+                      <div key={b.asset} className="flex items-center justify-between text-sm">
+                        <span className="font-mono text-foreground">{formatBalance(b.balance, b.code)}</span>
+                        <span className="text-3xs text-muted-foreground">{b.code}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-0.5 px-1.5 py-2">

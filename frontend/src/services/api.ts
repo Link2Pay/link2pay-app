@@ -407,6 +407,23 @@ export async function getXlmPrice(): Promise<{ usd: number }> {
   return request<{ usd: number }>('/prices/xlm');
 }
 
+export interface WalletBalance {
+  asset: string;
+  code: string;
+  balance: string;
+  issuer: string | null;
+}
+
+export async function getWalletBalances(
+  publicKey: string,
+  networkPassphrase?: string
+): Promise<{ publicKey: string; balances: WalletBalance[] }> {
+  const passphrase = networkPassphrase || useNetworkStore.getState().networkPassphrase;
+  const params = new URLSearchParams();
+  if (passphrase) params.set('networkPassphrase', passphrase);
+  return request(`/wallet/${publicKey}/balances?${params.toString()}`);
+}
+
 /** Phase 7: live Reflector FX estimate (e.g. COP). available:false if not in the feed. */
 export async function getFxRate(
   symbol: string

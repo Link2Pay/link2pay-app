@@ -48,3 +48,5 @@ references/
 # Agent files
 .agent/
 .agents/
+# Playwright MCP scratch output
+.playwright-mcp/
