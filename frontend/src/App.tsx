@@ -49,7 +49,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster
-        position="top-right"
+        position="bottom-right"
         toastOptions={{
           duration: 4000,
           style: { fontSize: '13px' },
