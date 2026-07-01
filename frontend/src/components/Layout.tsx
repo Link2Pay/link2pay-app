@@ -11,6 +11,7 @@ import {
   Receipt,
   UserCircle2,
   Users,
+  Wallet,
 } from 'lucide-react';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
@@ -84,6 +85,7 @@ export default function Layout() {
     { path: '/dashboard', label: t('layout.nav.dashboard'), icon: LayoutDashboard },
     { path: '/dashboard/links', label: t('layout.nav.invoices'), icon: Receipt },
     { path: '/dashboard/get-paid', label: t('layout.nav.getPaid'), icon: QrCode },
+    { path: '/dashboard/wallet', label: t('layout.nav.wallet'), icon: Wallet },
     { path: '/dashboard/clients', label: t('layout.nav.contacts'), icon: Users },
     { path: '/dashboard/transactions', label: t('layout.nav.transactions'), icon: ArrowLeftRight },
     { path: '/dashboard/analytics', label: t('layout.nav.analytics'), icon: BarChart3 },
