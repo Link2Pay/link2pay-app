@@ -3,6 +3,7 @@ import { config, assetMatches } from '../config';
 import prisma from '../db';
 import { log } from '../utils/logger';
 import { offRampService } from './offRampService';
+import { invoiceService } from './invoiceService';
 
 /**
  * WatcherService monitors the Stellar network for incoming payments
@@ -70,9 +71,6 @@ export class WatcherService {
    * Check all pending/processing/awaiting-payment invoices for on-chain payments
    */
   async checkPendingInvoices() {
-    // Run expiry check on every poll cycle
-    await this.expireOverdueInvoices();
-
     const pendingInvoices = await prisma.invoice.findMany({
       where: {
         status: { in: ['PENDING', 'PROCESSING', 'AWAITING_PAYMENT', 'SETTLING'] },
@@ -134,6 +132,10 @@ export class WatcherService {
         });
       }
     }
+
+    // Expire overdue invoices AFTER scanning for payments, so an invoice paid
+    // right at its due moment is marked PAID rather than EXPIRED.
+    await this.expireOverdueInvoices();
   }
 
   /**
@@ -193,41 +195,33 @@ export class WatcherService {
 
       if (!matchingPayment) continue;
 
-      // Mark invoice as paid
+      // Mark invoice as paid through invoiceService.markAsPaid, which re-reads
+      // status under SERIALIZABLE isolation and is idempotent by tx hash — this
+      // is what prevents a double-mark when two same-memo txs land in one poll
+      // window, or when /submit races the watcher.
       try {
-        await prisma.$transaction(async (tx) => {
-          await tx.invoice.update({
-            where: { id: matchingInvoice.id },
-            data: {
-              status: 'PAID',
-              transactionHash: txDetails.hash,
-              ledgerNumber: txDetails.ledger,
-              payerWallet: matchingPayment.from,
-              clientWallet: matchingPayment.from,
-              paidAt: new Date(txDetails.createdAt),
-            },
-          });
-
-          await tx.payment.create({
-            data: {
-              invoiceId: matchingInvoice.id,
-              transactionHash: txDetails.hash,
-              ledgerNumber: txDetails.ledger,
-              fromWallet: matchingPayment.from,
-              toWallet: walletAddress,
-              amount: matchingPayment.amount,
-              asset: matchingPayment.assetCode,
-            },
-          });
-        });
+        await invoiceService.markAsPaid(
+          matchingInvoice.id,
+          txDetails.hash,
+          txDetails.ledger,
+          matchingPayment.from,
+          matchingPayment.amount
+        );
+        // Drop it from this cycle's working set so a second matching tx in the
+        // same wallet history can't re-enter the mark path.
+        invoices = invoices.filter((inv) => inv.id !== matchingInvoice.id);
 
         log.info('[Watcher] Invoice marked PAID', {
           invoiceNumber: matchingInvoice.invoiceNumber,
           txHash: txDetails.hash,
         });
       } catch (error: any) {
-        // Already paid is expected if submit and watcher race — not an error
-        if (error?.message === 'Invoice already paid') return;
+        // Already paid is expected if submit and watcher race — not an error.
+        // Keep scanning the wallet's other transactions/invoices.
+        if (error?.message === 'Invoice already paid') {
+          invoices = invoices.filter((inv) => inv.id !== matchingInvoice.id);
+          continue;
+        }
         log.error('[Watcher] Failed to mark invoice as paid', {
           invoiceId: matchingInvoice.id,
           error: error?.message,

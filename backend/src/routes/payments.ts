@@ -155,6 +155,7 @@ router.post(
         assetCode,
         assetIssuer,
         memo: invoice.invoiceNumber,
+        networkPassphrase: invoice.networkPassphrase,
       });
 
       // Update invoice status to PROCESSING

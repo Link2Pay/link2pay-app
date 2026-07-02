@@ -256,7 +256,8 @@ export class InvoiceService {
     id: string,
     transactionHash: string,
     ledgerNumber: number,
-    payerWallet: string
+    payerWallet: string,
+    paidAmount?: string
   ) {
     return prisma.$transaction(
       async (tx) => {
@@ -285,7 +286,8 @@ export class InvoiceService {
           include: { lineItems: true },
         });
 
-        // Create payment record
+        // Create payment record — record the actual on-chain amount when known
+        // (a payer may overpay), falling back to the invoice total.
         await tx.payment.create({
           data: {
             invoiceId: id,
@@ -293,7 +295,7 @@ export class InvoiceService {
             ledgerNumber,
             fromWallet: payerWallet || '',
             toWallet: invoice.freelancerWallet,
-            amount: invoice.total,
+            amount: paidAmount ? new Prisma.Decimal(paidAmount) : invoice.total,
             asset: invoice.currency,
           },
         });
@@ -365,22 +367,24 @@ export class InvoiceService {
 
       const total = subtotal.plus(taxAmount).minus(discount);
 
-      // Delete old line items and create new ones
-      await prisma.lineItem.deleteMany({ where: { invoiceId: id } });
-
       updateData.subtotal = subtotal;
       updateData.taxRate = taxRate;
       updateData.taxAmount = taxAmount;
       updateData.discount = discount;
       updateData.total = total;
 
-      return prisma.invoice.update({
-        where: { id },
-        data: {
-          ...updateData,
-          lineItems: { create: lineItems },
-        },
-        include: { lineItems: true },
+      // Delete old line items and create new ones atomically — a failure between
+      // the two would otherwise leave the invoice with no line items.
+      return prisma.$transaction(async (tx) => {
+        await tx.lineItem.deleteMany({ where: { invoiceId: id } });
+        return tx.invoice.update({
+          where: { id },
+          data: {
+            ...updateData,
+            lineItems: { create: lineItems },
+          },
+          include: { lineItems: true },
+        });
       });
     }
 
@@ -450,6 +454,7 @@ export class InvoiceService {
   ) {
     const whereWithPreviewFilter = {
       freelancerWallet,
+      deletedAt: null, // exclude soft-deleted, matching the list query
       ...(networkPassphrase && { networkPassphrase }),
       ...(excludePreview && {
         OR: [

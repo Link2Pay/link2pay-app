@@ -362,8 +362,9 @@ export class StellarService {
     assetCode: string;
     assetIssuer?: string;
     memo: string;
+    networkPassphrase?: string;
   }) {
-    const { destination, amount, assetCode, assetIssuer, memo } = params;
+    const { destination, amount, assetCode, assetIssuer, memo, networkPassphrase } = params;
 
     const queryParams = new URLSearchParams({
       destination,
@@ -375,6 +376,12 @@ export class StellarService {
 
     if (assetIssuer) {
       queryParams.set('asset_issuer', assetIssuer);
+    }
+
+    // Without network_passphrase, SEP-7 wallets default to the PUBLIC network —
+    // a testnet invoice would be paid on mainnet. Pin the network explicitly.
+    if (networkPassphrase) {
+      queryParams.set('network_passphrase', networkPassphrase);
     }
 
     return `web+stellar:pay?${queryParams.toString()}`;
@@ -460,12 +467,13 @@ export class StellarService {
           ) as StellarSdk.Transaction;
           networkToUse = expectedNetworkPassphrase;
         } catch (parseError: any) {
-          // Parsing failed - Freighter signed with wrong network
-          const expectedName = expectedNetworkPassphrase === NETWORK_CONFIG.testnet.networkPassphrase ? 'TESTNET' : 'MAINNET';
-          const wrongName = expectedNetworkPassphrase === NETWORK_CONFIG.testnet.networkPassphrase ? 'MAINNET' : 'TESTNET';
-          throw new Error(
-            `Network mismatch: This invoice requires ${expectedName} but your Freighter wallet signed with ${wrongName}. Please switch your Freighter wallet to ${expectedName}, disconnect and reconnect, then try again.`
-          );
+          // fromXDR doesn't validate the signing network (that's enforced at
+          // submit time by Horizon), so reaching here means the XDR itself is
+          // malformed — report that accurately rather than guessing "network
+          // mismatch". A genuine wrong-network signature is rejected by Horizon
+          // below with a tx_bad_auth result.
+          log.error('Failed to parse signed transaction XDR', { error: parseError?.message });
+          throw new Error('Invalid transaction: could not parse the signed XDR.');
         }
       } else {
         // Fallback: auto-detect for backwards compatibility

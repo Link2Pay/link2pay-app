@@ -115,6 +115,11 @@ export class OffRampService {
     if (invoice.status !== 'AWAITING_ANCHOR') {
       throw new Error('Invoice must be in AWAITING_ANCHOR status');
     }
+    // Bind the initiation to the quote we issued for this invoice, not an
+    // arbitrary client-supplied id.
+    if (invoice.quoteId && params.quoteId !== invoice.quoteId) {
+      throw new Error('Quote does not match this invoice');
+    }
 
     log.info('[OffRampService] Initiating off-ramp', { invoiceId, quoteId: params.quoteId });
 
@@ -181,16 +186,28 @@ export class OffRampService {
     }
     const sellAmountStr = amount.toString();
 
+    // Atomically claim the invoice (PENDING → AWAITING_ANCHOR) so two concurrent
+    // set-amount calls can't both pass the status check and double-quote.
+    const claimed = await prisma.invoice.updateMany({
+      where: { id: invoiceId, status: 'PENDING' },
+      data: { status: 'AWAITING_ANCHOR' },
+    });
+    if (claimed.count === 0) {
+      throw new Error('Amount already set for this invoice');
+    }
+
     log.info('[OffRampService] Preparing open-amount off-ramp', { invoiceId, sellAmount: sellAmountStr });
 
-    // 1. Persist the payer-chosen amount + request the firm quote → AWAITING_ANCHOR.
-    const quote = await this.adapter.getQuote({
-      sellAmount: sellAmountStr,
-      buyCurrency: 'COP',
-      payoutAlias: invoice.payoutAlias,
-    });
+    try {
+      const payoutAlias = invoice.payoutAlias;
+      // 1. Request the firm quote and persist the payer-chosen amount.
+      const quote = await this.adapter.getQuote({
+        sellAmount: sellAmountStr,
+        buyCurrency: 'COP',
+        payoutAlias,
+      });
 
-    await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx) => {
       await tx.invoice.update({
         where: { id: invoiceId },
         data: {
@@ -255,11 +272,21 @@ export class OffRampService {
       });
     });
 
-    return {
-      quoteBuyAmount: quote.buyAmount,
-      depositAddress: intent.depositAddress ?? null,
-      total: sellAmountStr,
-    };
+      return {
+        quoteBuyAmount: quote.buyAmount,
+        depositAddress: intent.depositAddress ?? null,
+        total: sellAmountStr,
+      };
+    } catch (err) {
+      // The quote/initiate failed after we claimed the invoice — roll the claim
+      // back to PENDING so the payer can retry instead of being stranded in
+      // AWAITING_ANCHOR.
+      await prisma.invoice.updateMany({
+        where: { id: invoiceId, status: 'AWAITING_ANCHOR' },
+        data: { status: 'PENDING' },
+      });
+      throw err;
+    }
   }
 
   /**
@@ -431,10 +458,24 @@ export class OffRampService {
     SETTLED_FIAT: 4,
   };
 
+  // Once an invoice reaches one of these, no anchor poll may move it — this
+  // stops a late/duplicate/mock ERROR or EXPIRED from regressing a completed
+  // settlement (the status endpoint is public).
+  private static readonly TERMINAL_STATES: ReadonlySet<InvoiceStatus> = new Set<InvoiceStatus>([
+    'SETTLED_FIAT',
+    'ANCHOR_ERROR',
+    'EXPIRED',
+    'PAID',
+    'CANCELLED',
+  ]);
+
   private mapAnchorToInvoiceStatus(
     anchorStatus: AnchorStatus,
     current: InvoiceStatus
   ): InvoiceStatus | null {
+    // Never transition out of a terminal state.
+    if (OffRampService.TERMINAL_STATES.has(current)) return null;
+
     // Terminal failures override the happy-path ordering.
     if (anchorStatus === 'ERROR') return 'ANCHOR_ERROR';
     if (anchorStatus === 'EXPIRED') return 'EXPIRED';
