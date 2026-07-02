@@ -12,7 +12,7 @@ import BrandMark from '../BrandMark';
 import BrandWordmark from '../BrandWordmark';
 import type { PublicInvoice, InvoiceStatus } from '../../types';
 import InvoiceDocument from '../Invoice/InvoiceDocument';
-import { CURRENCY_SYMBOLS } from '../../config';
+import { formatAmount } from '../../lib/format';
 import { useI18n } from '../../i18n/I18nProvider';
 import type { Language } from '../../i18n/translations';
 
@@ -374,13 +374,6 @@ export default function PaymentFlow() {
       setError(err.message || t('payment.paymentFailedDefault'));
       setStep('error');
     }
-  };
-
-  const formatAmount = (amount: string, currency: string) => {
-    const symbol = CURRENCY_SYMBOLS[currency] || currency;
-    const number = parseFloat(amount);
-    if (currency === 'XLM') return `${number.toFixed(2)} ${symbol}`;
-    return `${symbol}${number.toFixed(2)}`;
   };
 
   const formatUsdEquivalent = (amount: string): string | null => {

@@ -26,6 +26,7 @@ import { useNetworkStore } from '../store/networkStore';
 import { useWalletBalances } from '../hooks/useWalletBalances';
 import { getKnownAssetIssuer } from '../config/network';
 import { CURRENCY_SYMBOLS } from '../config';
+import { shortenAddress } from '../lib/format';
 
 const COPY: Record<
   Language,
@@ -157,7 +158,7 @@ function formatBalance(raw: string, code: string): string {
   return code === 'XLM' ? `${formatted} ${symbol}` : `${symbol}${formatted}`;
 }
 
-const shorten = (value: string) => `${value.slice(0, 10)}...${value.slice(-8)}`;
+const shorten = (value: string) => shortenAddress(value, 10, 8);
 
 export default function Wallet() {
   const { language } = useI18n();

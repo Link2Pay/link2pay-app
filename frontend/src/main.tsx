@@ -67,3 +67,17 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </PrivyProvider>
   ) : inner
 );
+
+// Once the app has stayed up for a while, whatever chunk failed earlier has
+// since loaded — clear the one-shot guard so a *future* failure (e.g. a chunk
+// hash change after a new deploy mid-session) can self-heal once more. The
+// delay is what prevents an immediately-refailing chunk from looping.
+if (typeof window !== 'undefined') {
+  window.setTimeout(() => {
+    try {
+      sessionStorage.removeItem(CHUNK_RELOAD_FLAG);
+    } catch {
+      /* sessionStorage unavailable — nothing to reset */
+    }
+  }, 10_000);
+}

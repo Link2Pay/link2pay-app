@@ -17,6 +17,7 @@ import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
 import WalletConnect from './Wallet/WalletConnect';
 import PrivyLogin from './Auth/PrivyLogin';
+import PrivyDisconnectButton from './Auth/PrivyDisconnectButton';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 import BrandMark from './BrandMark';
@@ -24,6 +25,7 @@ import BrandWordmark from './BrandWordmark';
 import MobileNavDrawer from './MobileNavDrawer';
 import { useI18n } from '../i18n/I18nProvider';
 import { config, CURRENCY_SYMBOLS } from '../config';
+import { shortenAddress } from '../lib/format';
 import { useWalletBalances } from '../hooks/useWalletBalances';
 
 const KNOWN_ASSET_ORDER = ['XLM', 'USDC', 'EURC'];
@@ -96,7 +98,6 @@ export default function Layout() {
       ? location.pathname === '/dashboard'
       : location.pathname.startsWith(path);
 
-  const shortenAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
   const profileInitial = (publicKey?.[0] || 'L').toUpperCase();
 
   return (
@@ -140,14 +141,18 @@ export default function Layout() {
 
         <div ref={accountMenuRef} className="relative border-t border-sidebar-border px-4 py-4">
           {accountMenuOpen && (
-            <div className="absolute bottom-full left-4 right-4 z-40 mb-2 overflow-hidden rounded-2xl border border-surface-3 bg-surface-1 shadow-[0_18px_40px_hsl(var(--background)_/_0.55)]">
+            <div
+              id="account-menu"
+              role="menu"
+              className="absolute bottom-full left-4 right-4 z-40 mb-2 overflow-hidden rounded-2xl border border-surface-3 bg-surface-1 shadow-[0_18px_40px_hsl(var(--background)_/_0.55)]"
+            >
               <div className="flex items-center gap-2.5 px-3 pt-3 pb-3 border-b border-surface-3">
                 <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
                   {profileInitial}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-foreground">
-                    {publicKey ? shortenAddress(publicKey) : 'Link2Pay User'}
+                    {publicKey ? shortenAddress(publicKey) : t('layout.defaultUser')}
                   </p>
                   <p className={`text-xs flex items-center gap-1 ${network === 'testnet' ? 'text-warning' : 'text-success'}`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${network === 'testnet' ? 'bg-warning' : 'bg-success'}`} />
@@ -157,13 +162,13 @@ export default function Layout() {
               </div>
 
               <div className="px-3 py-3 border-b border-surface-3">
-                <p className="mb-1.5 text-3xs uppercase tracking-wider text-muted-foreground">Balance</p>
+                <p className="mb-1.5 text-3xs uppercase tracking-wider text-muted-foreground">{t('layout.balance')}</p>
                 {balancesLoading ? (
                   <div className="h-4 w-24 animate-pulse rounded bg-surface-2" />
                 ) : balancesError ? (
-                  <p className="text-xs text-muted-foreground">Balance unavailable</p>
+                  <p className="text-xs text-muted-foreground">{t('layout.balanceUnavailable')}</p>
                 ) : balances.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">No balance yet</p>
+                  <p className="text-xs text-muted-foreground">{t('layout.noBalance')}</p>
                 ) : (
                   <div className="space-y-1">
                     {sortBalances(balances).map((b) => (
@@ -179,21 +184,33 @@ export default function Layout() {
               <div className="space-y-0.5 px-1.5 py-2">
                 <Link
                   to="/dashboard/profile-options"
+                  role="menuitem"
                   className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
                 >
                   <UserCircle2 className="h-4 w-4 text-muted-foreground" />
-                  Profile
+                  {t('layout.profile')}
                 </Link>
               </div>
 
               <div className="border-t border-surface-3 px-1.5 py-2">
-                <button
-                  onClick={() => { setAccountMenuOpen(false); disconnect(); }}
-                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
-                >
-                  <LogOut className="h-4 w-4 text-muted-foreground" />
-                  Disconnect
-                </button>
+                {config.privyAppId ? (
+                  <PrivyDisconnectButton
+                    onBefore={() => setAccountMenuOpen(false)}
+                    className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
+                  >
+                    <LogOut className="h-4 w-4 text-muted-foreground" />
+                    {t('layout.disconnect')}
+                  </PrivyDisconnectButton>
+                ) : (
+                  <button
+                    role="menuitem"
+                    onClick={() => { setAccountMenuOpen(false); disconnect(); }}
+                    className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
+                  >
+                    <LogOut className="h-4 w-4 text-muted-foreground" />
+                    {t('layout.disconnect')}
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -201,6 +218,10 @@ export default function Layout() {
           <button
             type="button"
             onClick={() => setAccountMenuOpen((o) => !o)}
+            aria-haspopup="menu"
+            aria-expanded={accountMenuOpen}
+            aria-controls="account-menu"
+            aria-label={t('layout.accountMenu')}
             className="w-full rounded-xl border border-surface-3 bg-surface-1 p-2.5 text-left transition-colors hover:bg-sidebar-accent"
           >
             <div className="flex items-center gap-2">
@@ -209,10 +230,10 @@ export default function Layout() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold text-foreground">
-                  {publicKey ? shortenAddress(publicKey) : 'Link2Pay User'}
+                  {publicKey ? shortenAddress(publicKey) : t('layout.defaultUser')}
                 </p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {connected ? 'Connected' : 'Not connected'}
+                  {connected ? t('layout.connected') : t('layout.notConnected')}
                 </p>
               </div>
               <ChevronDown className={`h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform ${accountMenuOpen ? 'rotate-180' : ''}`} />

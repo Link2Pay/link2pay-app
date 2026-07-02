@@ -6,7 +6,8 @@ import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
 import type { Invoice, InvoiceStatus } from '../../types';
-import { CURRENCY_SYMBOLS, config } from '../../config';
+import { config } from '../../config';
+import { formatAmount } from '../../lib/format';
 import type { Language } from '../../i18n/translations';
 import { downloadInvoicePDF } from './InvoicePDF';
 import ReceiverOffRamp from './ReceiverOffRamp';
@@ -289,12 +290,6 @@ export default function InvoiceDetail() {
     }
   };
 
-  const formatAmount = (amount: string, currency: string) => {
-    const symbol = CURRENCY_SYMBOLS[currency] || currency;
-    const number = parseFloat(amount);
-    if (currency === 'XLM') return `${number.toFixed(2)} ${symbol}`;
-    return `${symbol}${number.toFixed(2)}`;
-  };
 
   if (loading) {
     return <div className="text-center py-20 text-ink-3 text-sm">{copy.loadingInvoice}</div>;

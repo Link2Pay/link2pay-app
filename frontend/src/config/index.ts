@@ -6,8 +6,6 @@ export const config = {
   // Network is deployment-fixed (mainnet on the primary domain, testnet on the
   // `testnet.*` subdomain). See src/config/network.ts for resolution.
   stellarNetwork: RESOLVED_NETWORK,
-  horizonUrl:
-    import.meta.env.VITE_HORIZON_URL || RESOLVED_NETWORK_CONFIG.horizonUrl,
   networkPassphrase:
     import.meta.env.VITE_NETWORK_PASSPHRASE ||
     RESOLVED_NETWORK_CONFIG.networkPassphrase,

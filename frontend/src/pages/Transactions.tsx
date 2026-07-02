@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Copy, ExternalLink, History, Search } from 'lucide-react';
 import { listInvoices } from '../services/api';
@@ -29,6 +29,8 @@ const COPY: Record<
     loading: string;
     empty: string;
     emptyFiltered: string;
+    loadError: string;
+    retry: string;
     colInvoice: string;
     colClient: string;
     colStatus: string;
@@ -57,6 +59,8 @@ const COPY: Record<
     loading: 'Loading transactions...',
     empty: 'No transaction activity yet.',
     emptyFiltered: 'No transactions match this filter.',
+    loadError: "Couldn't load transactions. Check your connection and try again.",
+    retry: 'Retry',
     colInvoice: 'Link',
     colClient: 'Client',
     colStatus: 'Status',
@@ -84,6 +88,8 @@ const COPY: Record<
     loading: 'Cargando transacciones...',
     empty: 'Aun no hay actividad de transacciones.',
     emptyFiltered: 'No hay transacciones para este filtro.',
+    loadError: 'No se pudieron cargar las transacciones. Revisa tu conexion e intenta de nuevo.',
+    retry: 'Reintentar',
     colInvoice: 'Link',
     colClient: 'Cliente',
     colStatus: 'Estado',
@@ -111,6 +117,8 @@ const COPY: Record<
     loading: 'Carregando transacoes...',
     empty: 'Ainda nao ha atividade de transacoes.',
     emptyFiltered: 'Nenhuma transacao para este filtro.',
+    loadError: 'Nao foi possivel carregar as transacoes. Verifique sua conexao e tente novamente.',
+    retry: 'Tentar novamente',
     colInvoice: 'Link',
     colClient: 'Cliente',
     colStatus: 'Status',
@@ -144,22 +152,40 @@ export default function Transactions() {
 
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [hasError, setHasError] = useState(false);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<TransactionFilter>('ALL');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!publicKey) return;
-
+  const loadTransactions = useCallback(() => {
+    if (!publicKey) return () => {};
+    let cancelled = false;
     setLoading(true);
+    setHasError(false);
     listInvoices(publicKey, undefined, 100, 0, {
       excludePreview: !showPreviewLinks,
       networkPassphrase,
     })
-      .then(({ invoices: rows }) => setInvoices(Array.isArray(rows) ? rows : []))
-      .catch(() => setInvoices([]))
-      .finally(() => setLoading(false));
+      .then(({ invoices: rows }) => {
+        if (!cancelled) setInvoices(Array.isArray(rows) ? rows : []);
+      })
+      .catch(() => {
+        // Distinguish a failed load from a genuinely empty history — otherwise
+        // a network error silently reads as "No transaction activity yet."
+        if (!cancelled) {
+          setInvoices([]);
+          setHasError(true);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [publicKey, networkPassphrase, showPreviewLinks]);
+
+  useEffect(() => loadTransactions(), [loadTransactions]);
 
   const transactionRows = useMemo(
     () => invoices.filter((invoice) => invoice.status !== 'DRAFT'),
@@ -291,7 +317,15 @@ export default function Transactions() {
         </div>
       </div>
 
-      {transactionRows.length === 0 ? (
+      {hasError ? (
+        <div className="card p-12 text-center">
+          <History className="mx-auto mb-3 h-6 w-6 text-danger" />
+          <p className="mb-3 text-sm text-danger">{copy.loadError}</p>
+          <button onClick={loadTransactions} className="btn-secondary text-sm">
+            {copy.retry}
+          </button>
+        </div>
+      ) : transactionRows.length === 0 ? (
         <div className="card p-12 text-center">
           <History className="mx-auto mb-3 h-6 w-6 text-ink-3" />
           <p className="text-sm text-ink-3">{copy.empty}</p>

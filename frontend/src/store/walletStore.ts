@@ -357,6 +357,10 @@ export const useWalletStore = create<WalletState>()(
         publicKey,
         isConnecting: false,
         error: null,
+        // Connecting Freighter makes it the active signer — drop any external
+        // (Privy) signer/token so signing doesn't short-circuit to a stale one.
+        _externalSigner: null,
+        _privyGetToken: null,
       });
     } catch (error: any) {
       const message = error?.message || getMessage('failedConnectWallet');
@@ -384,6 +388,11 @@ export const useWalletStore = create<WalletState>()(
       publicKey: null,
       isConnecting: false,
       error: null,
+      // Fully tear down any external (Privy) session too, otherwise signing
+      // would keep routing through a signer the user just disconnected.
+      _externalSigner: null,
+      _privyGetToken: null,
+      privyLoading: false,
     });
   },
 

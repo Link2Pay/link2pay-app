@@ -56,6 +56,7 @@ const COPY: Record<Language, {
   viewAll: string;
   noInvoices: string;
   createInvoice: string;
+  loadError: string;
 }> = {
   en: {
     loading: 'Loading...',
@@ -91,6 +92,7 @@ const COPY: Record<Language, {
     viewAll: 'View All',
     noInvoices: 'No payment links yet. Generate your first one to get started.',
     createInvoice: 'Create Link',
+    loadError: "Some dashboard data couldn't be loaded. Figures may be incomplete.",
   },
   es: {
     loading: 'Cargando...',
@@ -126,6 +128,7 @@ const COPY: Record<Language, {
     viewAll: 'Ver todo',
     noInvoices: 'Aún no tienes links de pago. Genera el primero para comenzar.',
     createInvoice: 'Crear link',
+    loadError: 'No se pudieron cargar algunos datos del panel. Las cifras pueden estar incompletas.',
   },
   pt: {
     loading: 'Carregando...',
@@ -161,6 +164,7 @@ const COPY: Record<Language, {
     viewAll: 'Ver tudo',
     noInvoices: 'Nenhum link de pagamento ainda. Gere o primeiro para começar.',
     createInvoice: 'Criar link',
+    loadError: 'Nao foi possivel carregar alguns dados do painel. Os numeros podem estar incompletos.',
   },
 };
 
@@ -170,7 +174,7 @@ export default function Dashboard() {
   const { language } = useI18n();
   const copy = COPY[language];
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ['dashboardStats', publicKey, networkPassphrase],
     queryFn: () =>
       getDashboardStats(publicKey!, {
@@ -180,7 +184,7 @@ export default function Dashboard() {
     enabled: !!publicKey,
   });
 
-  const { data: invoiceResult, isLoading: invoicesLoading } = useQuery({
+  const { data: invoiceResult, isLoading: invoicesLoading, isError: invoicesError } = useQuery({
     queryKey: ['invoices', publicKey, 50, 0, networkPassphrase],
     queryFn: () =>
       listInvoices(publicKey!, undefined, 50, 0, {
@@ -191,6 +195,7 @@ export default function Dashboard() {
   });
 
   const loading = statsLoading || invoicesLoading;
+  const hasLoadError = statsError || invoicesError;
   const invoices = Array.isArray(invoiceResult?.invoices) ? invoiceResult.invoices : [];
   const filteredInvoices = useMemo(
     () =>
@@ -336,6 +341,11 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 animate-in sm:space-y-8">
+      {hasLoadError && (
+        <div role="alert" className="rounded-lg border border-warning-border bg-warning-subtle px-4 py-2.5 text-xs text-warning">
+          {copy.loadError}
+        </div>
+      )}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>

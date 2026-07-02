@@ -8,7 +8,7 @@ import { useWalletStore } from '../../store/walletStore';
 import { useNetworkStore } from '../../store/networkStore';
 import { useDashboardViewStore } from '../../store/dashboardViewStore';
 import type { InvoiceStatus } from '../../types';
-import { CURRENCY_SYMBOLS } from '../../config';
+import { formatAmount } from '../../lib/format';
 import type { Language } from '../../i18n/translations';
 
 const COPY: Record<Language, {
@@ -141,13 +141,6 @@ export default function InvoiceList() {
       day: 'numeric',
       year: 'numeric',
     });
-  };
-
-  const formatAmount = (amount: string, currency: string) => {
-    const symbol = CURRENCY_SYMBOLS[currency] || currency;
-    const number = parseFloat(amount);
-    if (currency === 'XLM') return `${number.toFixed(2)} ${symbol}`;
-    return `${symbol}${number.toFixed(2)}`;
   };
 
   return (

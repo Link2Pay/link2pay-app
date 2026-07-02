@@ -8,6 +8,7 @@ import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import { useWalletStore } from '../store/walletStore';
 import { getBusinessProfile, saveBusinessProfile } from '../services/api';
+import { shortenAddress } from '../lib/format';
 import type { Currency, SaveProfileData } from '../types';
 
 const COPY: Record<
@@ -163,7 +164,7 @@ const COPY: Record<
   },
 };
 
-const shorten = (value: string) => `${value.slice(0, 8)}...${value.slice(-8)}`;
+const shorten = (value: string) => shortenAddress(value, 8, 8);
 
 const EMPTY_FORM: SaveProfileData = {
   displayName: '',
