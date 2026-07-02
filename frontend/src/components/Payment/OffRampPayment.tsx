@@ -46,6 +46,9 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(invoice.transactionHash || null);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Guards against an in-flight poll that resolves *after* cleanup: without it,
+  // the awaited request would reschedule a fresh timeout the cleanup can't reach.
+  const pollActiveRef = useRef(false);
 
   // Open-amount Bre-B: the payer sets the amount here before the pay step.
   const [amountInput, setAmountInput] = useState('');
@@ -97,6 +100,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   const poll = useCallback(async () => {
     try {
       const res = await offrampStatus(invoice.id);
+      if (!pollActiveRef.current) return;
       if (res.status === 'SETTLED_FIAT') {
         setStep('settled');
         onRefresh();
@@ -111,14 +115,17 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
     } catch {
       /* transient — keep polling */
     }
+    if (!pollActiveRef.current) return;
     pollRef.current = setTimeout(poll, 5000);
   }, [invoice.id, onRefresh]);
 
   useEffect(() => {
     if (inFlight) {
+      pollActiveRef.current = true;
       poll();
     }
     return () => {
+      pollActiveRef.current = false;
       if (pollRef.current) clearTimeout(pollRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

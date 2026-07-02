@@ -16,7 +16,7 @@ import { CURRENCY_SYMBOLS } from '../../config';
 import { useI18n } from '../../i18n/I18nProvider';
 import type { Language } from '../../i18n/translations';
 
-type PayStep = 'loading' | 'view' | 'connect' | 'paying' | 'confirming' | 'success' | 'error';
+type PayStep = 'loading' | 'view' | 'connect' | 'paying' | 'confirming' | 'success' | 'error' | 'closed';
 
 type CheckoutStepLabels = {
   progress: string;
@@ -102,7 +102,7 @@ async function launchSep7Uri(uri: string): Promise<boolean> {
 
 export default function PaymentFlow() {
   const { id } = useParams<{ id: string }>();
-  const { connected, publicKey, signTransaction, disconnect, getFreighterNetwork } = useWalletStore();
+  const { connected, publicKey, signTransaction, disconnect, getFreighterNetwork, _externalSigner } = useWalletStore();
   const { t, language } = useI18n();
   const [invoice, setInvoice] = useState<PublicInvoice | null>(null);
   const [step, setStep] = useState<PayStep>('loading');
@@ -122,9 +122,12 @@ export default function PaymentFlow() {
     getInvoice(id)
       .then((inv) => {
         setInvoice(inv);
-        if (inv.status === 'PAID') {
+        if (inv.status === 'PAID' || inv.status === 'SETTLED_FIAT') {
           setStep('success');
           setTxHash(inv.transactionHash || null);
+        } else if (inv.status === 'CANCELLED' || inv.status === 'EXPIRED') {
+          // Terminal, non-payable states — never render an active Pay button.
+          setStep('closed');
         } else {
           // Always show pay action. If wallet is not connected in-page,
           // payment falls back to SEP-7 deep-link flow.
@@ -144,9 +147,12 @@ export default function PaymentFlow() {
     }
   }, [connected, step]);
 
-  // Detect Freighter's network when connected and check against invoice network
+  // Detect Freighter's network when connected and check against invoice network.
+  // Only applies to the Freighter browser extension — Privy (or any embedded
+  // wallet, exposed via _externalSigner) signs on the invoice's own network, so
+  // there is nothing to poll and no mismatch to guard against.
   useEffect(() => {
-    if (!connected || !invoice) {
+    if (!connected || !invoice || _externalSigner) {
       setFreighterNetwork(null);
       setHasNetworkMismatch(false);
       return;
@@ -190,7 +196,7 @@ export default function PaymentFlow() {
     // Poll for network changes every 2 seconds
     const interval = setInterval(detectFreighterNetwork, 2000);
     return () => clearInterval(interval);
-  }, [connected, disconnect, getFreighterNetwork, hasNetworkMismatch, invoice]);
+  }, [connected, disconnect, getFreighterNetwork, hasNetworkMismatch, invoice, _externalSigner]);
 
   // Fetch XLM price for USD equivalent display
   useEffect(() => {
@@ -259,12 +265,32 @@ export default function PaymentFlow() {
       if (status.status === 'PAID') {
         setTxHash(status.transactionHash);
         setStep('success');
-        const updated = await getInvoice(id);
-        setInvoice(updated);
+        getInvoice(id).then(setInvoice).catch(() => {});
       }
     } catch {
       // ignore
     }
+  };
+
+  // "Try again" after an error must not blindly re-open the pay form: the first
+  // attempt may have actually landed on-chain (client threw after submit). Check
+  // the authoritative status first, and only re-enable paying if it's still open.
+  const handleTryAgain = async () => {
+    if (id) {
+      try {
+        const status = await getPaymentStatus(id);
+        if (status.status === 'PAID') {
+          setTxHash(status.transactionHash);
+          setStep('success');
+          getInvoice(id).then(setInvoice).catch(() => {});
+          return;
+        }
+      } catch {
+        // fall through and let the payer retry
+      }
+    }
+    setError(null);
+    setStep('view');
   };
 
   const handlePay = async () => {
@@ -336,8 +362,10 @@ export default function PaymentFlow() {
       if (result.success) {
         setTxHash(result.transactionHash);
         setStep('success');
-        const updated = await getInvoice(id);
-        setInvoice(updated);
+        // The payment already succeeded — refreshing the invoice is a nice-to-have
+        // for the receipt view. Never let a failed refetch throw us into the catch
+        // and show the payer an error for a payment that actually went through.
+        getInvoice(id).then(setInvoice).catch(() => {});
       } else {
         throw new Error(t('payment.txSubmissionFailed'));
       }
@@ -364,7 +392,8 @@ export default function PaymentFlow() {
   const checkoutStage = (() => {
     if (step === 'success' || invoice?.status === 'PAID') return 3;
     if (step === 'confirming' || step === 'paying') return 2;
-    if (connected || step === 'view' || step === 'error') return 1;
+    // "Wallet connected" is only truthful once a wallet is actually connected.
+    if (connected) return 1;
     return 0;
   })();
 
@@ -742,7 +771,14 @@ export default function PaymentFlow() {
                 <div>
                   <h3 className="text-base font-semibold text-ink-0">{t('payment.paymentSuccessful')}</h3>
                   <p className="text-sm text-ink-3 mt-1">
-                    {t('payment.amountSent', { amount: formatAmount(invoice.total, invoice.currency) })}
+                    {t('payment.amountSent', {
+                      amount: formatAmount(
+                        // Open-amount links carry a 0 total until the backend refetch
+                        // lands — show what the payer actually entered.
+                        invoice.isOpenAmount && parseFloat(payAmount) > 0 ? payAmount : invoice.total,
+                        invoice.currency
+                      ),
+                    })}
                   </p>
                 </div>
                 {txHash && (
@@ -767,9 +803,29 @@ export default function PaymentFlow() {
                   <h3 className="text-base font-semibold text-ink-0">{t('payment.paymentFailed')}</h3>
                   <p className="text-sm text-danger mt-1">{error}</p>
                 </div>
-                <button onClick={() => setStep('view')} className="btn-secondary text-sm">
+                <button onClick={handleTryAgain} className="btn-secondary text-sm">
                   {t('payment.tryAgain')}
                 </button>
+              </div>
+            )}
+
+            {step === 'closed' && (
+              <div role="status" className="text-center space-y-4 py-4">
+                <div className="w-14 h-14 mx-auto rounded-full bg-surface-3 flex items-center justify-center">
+                  <X aria-hidden="true" className="h-7 w-7 text-ink-3" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-ink-0">
+                    {invoice.status === 'EXPIRED'
+                      ? t('payment.invoiceExpiredTitle')
+                      : t('payment.invoiceCancelledTitle')}
+                  </h3>
+                  <p className="text-sm text-ink-3 mt-1">
+                    {invoice.status === 'EXPIRED'
+                      ? t('payment.invoiceExpiredBody')
+                      : t('payment.invoiceCancelledBody')}
+                  </p>
+                </div>
               </div>
             )}
           </div>

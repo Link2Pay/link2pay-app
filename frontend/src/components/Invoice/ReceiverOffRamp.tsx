@@ -81,7 +81,23 @@ export default function ReceiverOffRamp({ invoice, onUpdated }: Props) {
       </div>
       <p className="mt-1 text-2xs text-warning">{t('payment.simulatedSettlement')}</p>
 
-      {ready || intent ? (
+      {!ready && !intent && invoice.isOpenAmount ? (
+        <div className="mt-3 space-y-2 text-sm">
+          <p className="text-ink-2">
+            Open-amount link — the payer chooses how much to pay, and the anchor quotes
+            and pays out the COP equivalent to your llave automatically. Just share the link.
+          </p>
+          {invoice.payoutAlias && (
+            <p className="text-xs text-ink-3">
+              Payout llave: <span className="font-mono">{invoice.payoutAlias}</span>
+            </p>
+          )}
+          <button onClick={copyLink} className="btn-secondary mt-1 inline-flex items-center gap-1.5 text-xs">
+            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? 'Copied' : 'Copy payment link'}
+          </button>
+        </div>
+      ) : ready || intent ? (
         <div className="mt-3 space-y-2 text-sm">
           <p className="text-ink-2">
             Off-ramp initiated. Share the payment link — the payer sends {invoice.currency} to the anchor,
