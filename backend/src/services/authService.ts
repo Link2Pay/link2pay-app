@@ -1,5 +1,24 @@
 import * as StellarSdk from '@stellar/stellar-sdk';
 import crypto from 'crypto';
+import { log } from '../utils/logger';
+
+// ─── Privy JWKS (ES256 verification key) ──────────────────────────────────────
+// Privy signs app access tokens with ES256. Fetch the app's public verification
+// keys from its JWKS endpoint and cache them; select by the token's `kid` so key
+// rotation is handled by a single forced refetch.
+const PRIVY_JWKS_TTL_MS = 60 * 60 * 1000; // 1 hour
+let privyJwksCache: { keys: crypto.JsonWebKey[]; fetchedAt: number } | null = null;
+
+async function getPrivyJwks(appId: string, forceRefresh = false): Promise<crypto.JsonWebKey[]> {
+  if (!forceRefresh && privyJwksCache && Date.now() - privyJwksCache.fetchedAt < PRIVY_JWKS_TTL_MS) {
+    return privyJwksCache.keys;
+  }
+  const res = await fetch(`https://auth.privy.io/api/v1/apps/${appId}/jwks.json`);
+  if (!res.ok) throw new Error(`PRIVY_JWKS_FETCH_FAILED_${res.status}`);
+  const data = (await res.json()) as { keys?: crypto.JsonWebKey[] };
+  privyJwksCache = { keys: data.keys || [], fetchedAt: Date.now() };
+  return privyJwksCache.keys;
+}
 
 // ─── In-memory nonce store ────────────────────────────────────────────────────
 // Maps walletAddress → { nonce, expiresAt }
@@ -121,26 +140,50 @@ export class AuthService {
   }
 
   /**
-   * Decode a Privy access token and verify basic claims (iss, aud, exp).
-   * Does NOT verify the JWT cryptographic signature — acceptable for hackathon use.
-   * For production, verify against Privy's JWKS at
-   * https://auth.privy.io/api/v1/apps/{appId}/public-key
+   * Verify a Privy access token: ES256 signature against the app's JWKS, plus
+   * the iss/aud/exp claims. Returns the Privy user id (`sub`) or null. Fails
+   * closed — a token that can't be cryptographically verified is rejected, so a
+   * forged token (the app id is public) can no longer mint a session.
+   *
+   * NOTE: the Stellar wallet is not a token claim, so the caller's walletAddress
+   * is still trusted here. Binding the session to the token's user (to stop an
+   * authenticated user requesting a session for someone else's wallet) needs the
+   * Privy server SDK + app secret to look up the user's linked wallets.
    */
-  parsePrivyToken(token: string, appId: string): { sub: string; exp: number } | null {
+  async verifyPrivyToken(token: string, appId: string): Promise<{ sub: string; exp: number } | null> {
     try {
       const parts = token.split('.');
       if (parts.length !== 3) return null;
 
+      const header = JSON.parse(Buffer.from(parts[0], 'base64url').toString('utf8'));
       const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
 
+      if (header.alg !== 'ES256') return null;
       if (payload.iss !== 'privy.io') return null;
       const aud: string[] = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
       if (!aud.includes(appId)) return null;
       if (!payload.exp || Date.now() / 1000 > payload.exp) return null;
       if (!payload.sub) return null;
 
+      const signingInput = Buffer.from(`${parts[0]}.${parts[1]}`);
+      const signature = Buffer.from(parts[2], 'base64url'); // raw r||s (P-1363)
+
+      const tryVerify = async (forceRefresh: boolean): Promise<boolean> => {
+        const keys = await getPrivyJwks(appId, forceRefresh);
+        const jwk = header.kid ? keys.find((k) => (k as { kid?: string }).kid === header.kid) : keys[0];
+        if (!jwk) return false;
+        const pub = crypto.createPublicKey({ key: jwk, format: 'jwk' });
+        return crypto.verify('sha256', signingInput, { key: pub, dsaEncoding: 'ieee-p1363' }, signature);
+      };
+
+      // Retry once with a forced JWKS refetch to survive key rotation.
+      let ok = await tryVerify(false);
+      if (!ok) ok = await tryVerify(true);
+      if (!ok) return null;
+
       return { sub: payload.sub, exp: payload.exp };
-    } catch {
+    } catch (e) {
+      log.error('[Auth] Privy token verification failed', { error: (e as Error)?.message });
       return null;
     }
   }

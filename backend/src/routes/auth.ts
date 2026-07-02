@@ -52,14 +52,14 @@ router.post('/session', validateBody(sessionSchema), (req: Request, res: Respons
  * Exchange a Privy access token for a short-lived bearer session token.
  * Skips nonce signing — identity is proved by the Privy JWT.
  */
-router.post('/privy-session', validateBody(privySessionSchema), (req: Request, res: Response) => {
+router.post('/privy-session', validateBody(privySessionSchema), async (req: Request, res: Response) => {
   const { privyToken, walletAddress } = req.body;
 
   if (!config.privyAppId) {
     return res.status(503).json({ error: 'Privy auth is not configured on this server' });
   }
 
-  const parsed = authService.parsePrivyToken(privyToken, config.privyAppId);
+  const parsed = await authService.verifyPrivyToken(privyToken, config.privyAppId);
   if (!parsed) {
     return res.status(401).json({ error: 'Invalid or expired Privy token' });
   }
