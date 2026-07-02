@@ -7,6 +7,13 @@ function clean(value?: string | null): string | null {
   return trimmed ? trimmed : null;
 }
 
+// Distinguish "field omitted" (undefined → leave untouched on update, default
+// to null on create) from "field explicitly cleared" ('' → set null). Prisma
+// drops `undefined` values from both update and create.
+function set(value?: string | null): string | null | undefined {
+  return value === undefined ? undefined : clean(value);
+}
+
 function toView(profile: {
   walletAddress: string;
   displayName: string | null;
@@ -60,16 +67,16 @@ export class ProfileService {
     input: SaveProfileInput
   ): Promise<BusinessProfileView> {
     const data = {
-      displayName: clean(input.displayName),
-      legalName: clean(input.legalName),
-      taxId: clean(input.taxId),
-      email: clean(input.email),
-      phone: clean(input.phone),
-      addressLine: clean(input.addressLine),
-      city: clean(input.city),
-      country: clean(input.country),
-      logoUrl: clean(input.logoUrl),
-      defaultPayoutAlias: clean(input.defaultPayoutAlias),
+      displayName: set(input.displayName),
+      legalName: set(input.legalName),
+      taxId: set(input.taxId),
+      email: set(input.email),
+      phone: set(input.phone),
+      addressLine: set(input.addressLine),
+      city: set(input.city),
+      country: set(input.country),
+      logoUrl: set(input.logoUrl),
+      defaultPayoutAlias: set(input.defaultPayoutAlias),
       ...(input.defaultCurrency && {
         defaultCurrency: input.defaultCurrency as Currency,
       }),

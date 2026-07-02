@@ -370,51 +370,6 @@ export class OffRampService {
   }
 
   /**
-   * Mark the off-ramp as settled (anchor completed the COP payout).
-   */
-  async markSettled(invoiceId: string): Promise<void> {
-    const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
-    if (!invoice) throw new Error('Invoice not found');
-    if (invoice.status !== 'SETTLING') {
-      throw new Error(`Invoice not in SETTLING (current: ${invoice.status})`);
-    }
-
-    await prisma.$transaction(async (tx) => {
-      await tx.invoice.update({
-        where: { id: invoiceId },
-        data: {
-          status: 'SETTLED_FIAT',
-        },
-      });
-
-      await tx.invoiceAuditLog.create({
-        data: {
-          invoiceId,
-          action: 'OFFRAMP_SETTLED',
-          actorWallet: invoice.freelancerWallet,
-          changes: {
-            status: { from: 'SETTLING', to: 'SETTLED_FIAT' },
-          },
-        },
-      });
-    });
-
-    await this.writeReceipt(invoiceId);
-  }
-
-  /**
-   * Mark the off-ramp as errored.
-   */
-  async markError(invoiceId: string, errorMessage: string): Promise<void> {
-    await prisma.invoice.update({
-      where: { id: invoiceId },
-      data: { status: 'ANCHOR_ERROR' },
-    });
-
-    log.error('[OffRampService] Anchor error for invoice', { invoiceId, error: errorMessage });
-  }
-
-  /**
    * Write an on-chain receipt for a settled invoice and persist the tx hash.
    * No-op when the receipt contract/signer is not configured. Never throws —
    * receipt failures must not affect settlement.

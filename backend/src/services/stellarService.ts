@@ -539,28 +539,6 @@ export class StellarService {
   }
 
   /**
-   * Stream payments to a specific account (for watcher)
-   */
-  streamPayments(
-    accountId: string,
-    onPayment: (payment: any) => void,
-    cursor?: string
-  ) {
-    const builder = this.server.payments().forAccount(accountId).limit(1);
-
-    if (cursor) {
-      builder.cursor(cursor);
-    }
-
-    return builder.stream({
-      onmessage: onPayment,
-      onerror: (error: any) => {
-        log.error('Stellar stream error', { error: error?.message });
-      },
-    });
-  }
-
-  /**
    * Get recent transactions for an account
    */
   async getTransactionHistory(
@@ -603,25 +581,6 @@ export class StellarService {
     }
 
     return new StellarSdk.Asset(code, issuer);
-  }
-
-  /**
-   * Fund a testnet account via Friendbot
-   */
-  async fundTestnetAccount(publicKey: string) {
-    if (config.stellar.network !== 'testnet') {
-      throw new Error('Friendbot is only available on testnet');
-    }
-
-    const response = await fetch(
-      `https://friendbot.stellar.org?addr=${encodeURIComponent(publicKey)}`
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to fund testnet account');
-    }
-
-    return response.json();
   }
 }
 

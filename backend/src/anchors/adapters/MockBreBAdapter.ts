@@ -90,6 +90,14 @@ export class MockBreBAdapter implements AnchorAdapter {
       memo,
     });
 
+    if (!config.anchor.mockDepositAddress) {
+      log.warn(
+        '[MockBreBAdapter] MOCK_DEPOSIT_ADDRESS is unset — using the built-in ' +
+          'testnet placeholder. Payer funds go to an address you may not control. ' +
+          'This adapter is testnet-demo only; never select mock-breb on mainnet.'
+      );
+    }
+
     return {
       anchorTxId,
       depositAddress: config.anchor.mockDepositAddress || DEFAULT_MOCK_DEPOSIT_ADDRESS,
@@ -134,9 +142,24 @@ export class MockBreBAdapter implements AnchorAdapter {
       return stored.status;
     }
 
-    // Unknown transaction — default to ERROR
-    log.warn('[MockBreBAdapter] Unknown anchorTxId', { anchorTxId });
-    return 'ERROR';
+    // Unknown tx — the in-memory store was lost (e.g. a server restart). Rather
+    // than flip an in-flight demo invoice to ANCHOR_ERROR, re-seed it and resume
+    // the simulation from AWAITING_PAYMENT.
+    log.warn('[MockBreBAdapter] Unknown anchorTxId — re-seeding after restart', { anchorTxId });
+    this.stores.set(anchorTxId, {
+      status: 'AWAITING_PAYMENT',
+      quote: {
+        quoteId: '',
+        sellAsset: 'USDC',
+        buyAsset: 'COP',
+        sellAmount: '0',
+        buyAmount: '0',
+        rate: SIMULATED_USDC_COP_RATE,
+        feeTotal: '0',
+        expiresAt: '',
+      },
+    });
+    return 'AWAITING_PAYMENT';
   }
 }
 

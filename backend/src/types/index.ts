@@ -35,27 +35,6 @@ export interface LineItemInput {
   rate: number;
 }
 
-export interface PayIntentResponse {
-  invoiceId: string;
-  transactionXdr: string | null;
-  sep7Uri: string;
-  amount: string;
-  asset: { code: string; issuer?: string };
-  memo: string;
-  networkPassphrase: string;
-  timeout: number;
-}
-
-export interface PaymentConfirmation {
-  invoiceId: string;
-  transactionHash: string;
-  ledgerNumber: number;
-  fromWallet: string;
-  toWallet: string;
-  amount: string;
-  asset: string;
-}
-
 export interface InvoicePublicView {
   id: string;
   invoiceNumber: string;
@@ -107,10 +86,6 @@ export interface SaveClientInput {
   company?: string;
   address?: string;
   isFavorite?: boolean;
-}
-
-export interface UpdateClientFavoriteInput {
-  isFavorite: boolean;
 }
 
 export interface SaveProfileInput {
