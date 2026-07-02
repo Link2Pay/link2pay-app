@@ -24,6 +24,7 @@ import type {
   Quote,
   OffRampIntent,
   AnchorStatus,
+  BuyCurrency,
 } from '../AnchorAdapter';
 
 // ── asset identifiers ────────────────────────────────────────────────────────
@@ -113,7 +114,7 @@ export class TestAnchorAdapter implements AnchorAdapter {
 
   async getQuote(params: {
     sellAmount: string;
-    buyCurrency: 'COP';
+    buyCurrency: BuyCurrency;
     payoutAlias: string;
   }): Promise<Quote> {
     const anchor = await this.authenticate();

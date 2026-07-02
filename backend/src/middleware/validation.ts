@@ -173,6 +173,15 @@ export const offrampSubmitPaymentSchema = z.object({
   depositAddress: z.string().min(56).max(56).regex(/^G[A-Z2-7]{55}$/, 'Invalid Stellar address'),
 });
 
+// Demand capture for fiat rails that aren't live yet. Only the walled rails are
+// accepted — Bre-B is already live and doesn't need a waitlist.
+export const waitlistSchema = z.object({
+  email: z.string().email().max(200),
+  rail: z.enum(['PIX', 'TRANSFERENCIA_30']),
+  country: z.string().max(4).optional(),
+  wallet: z.string().max(80).optional(),
+});
+
 /**
  * Middleware factory for validating request body with Zod
  */

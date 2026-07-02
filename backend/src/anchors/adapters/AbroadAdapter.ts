@@ -21,7 +21,7 @@
 //
 import { config } from '../../config';
 import { log } from '../../utils/logger';
-import type { AnchorAdapter, Quote, OffRampIntent, AnchorStatus } from '../AnchorAdapter';
+import type { AnchorAdapter, Quote, OffRampIntent, AnchorStatus, BuyCurrency } from '../AnchorAdapter';
 
 // POST /quote/reverse response — { quote_id, value, expiration_time } only.
 // `value` is the fiat (COP) the receiver gets; fees are baked in (no breakdown).
@@ -85,7 +85,7 @@ export class AbroadAdapter implements AnchorAdapter {
 
   async getQuote(params: {
     sellAmount: string;
-    buyCurrency: 'COP';
+    buyCurrency: BuyCurrency;
     payoutAlias: string;
   }): Promise<Quote> {
     // We sell a FIXED amount of USDC, so this is the REVERSE quote:

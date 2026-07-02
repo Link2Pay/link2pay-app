@@ -4,6 +4,9 @@
 // spec §2.2
 //
 
+import type { BuyCurrency } from '../config/rails';
+export type { BuyCurrency };
+
 export type AnchorStatus =
   | 'INITIATED'
   | 'AWAITING_PAYMENT'
@@ -48,12 +51,13 @@ export interface AnchorAdapter {
   /**
    * Request a firm off-ramp quote.
    * @param sellAmount — amount of USDC the payer intends to sell (string, e.g. "50.00")
-   * @param buyCurrency — destination fiat (always 'COP' for Link2Pay)
-   * @param payoutAlias — recipient identifier for Bre-B (phone, email, bank alias)
+   * @param buyCurrency — destination fiat for the rail (COP today; BRL/ARS once
+   *                      Pix / Transferência 3.0 go live)
+   * @param payoutAlias — recipient identifier for the rail (llave, Pix key, CBU…)
    */
   getQuote(params: {
     sellAmount: string;
-    buyCurrency: 'COP';
+    buyCurrency: BuyCurrency;
     payoutAlias: string;
   }): Promise<Quote>;
 

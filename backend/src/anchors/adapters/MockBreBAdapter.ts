@@ -6,7 +6,7 @@
 // a fixed exchange rate. Every UI surface rendering this settlement
 // MUST say "Simulated Bre-B settlement (testnet demo)".
 //
-import type { AnchorAdapter, Quote, OffRampIntent, AnchorStatus } from '../AnchorAdapter';
+import type { AnchorAdapter, Quote, OffRampIntent, AnchorStatus, BuyCurrency } from '../AnchorAdapter';
 import { config } from '../../config';
 import { log } from '../../utils/logger';
 
@@ -26,7 +26,7 @@ export class MockBreBAdapter implements AnchorAdapter {
 
   async getQuote(params: {
     sellAmount: string;
-    buyCurrency: 'COP';
+    buyCurrency: BuyCurrency;
     payoutAlias: string;
   }): Promise<Quote> {
     const sellAmountNum = parseFloat(params.sellAmount);

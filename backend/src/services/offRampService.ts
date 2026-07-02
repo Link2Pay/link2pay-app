@@ -1,5 +1,6 @@
 import { InvoiceStatus, Prisma } from '@prisma/client';
 import { config } from '../config';
+import { railById } from '../config/rails';
 import { log } from '../utils/logger';
 import prisma from '../db';
 import type { AnchorAdapter, Quote, OffRampIntent, AnchorStatus } from '../anchors/AnchorAdapter';
@@ -60,11 +61,21 @@ export class OffRampService {
       throw new Error(`Cannot request quote from status ${invoice.status}`);
     }
 
-    log.info('[OffRampService] Requesting quote', { invoiceId, sellAmount: params.sellAmount });
+    // The rail (and thus the destination fiat currency) is fixed by the
+    // invoice's payout method. Bre-B → COP today; Pix/Transferência 3.0 will
+    // add BRL/ARS once live. Falls back to COP for the legacy single-rail case.
+    const rail = railById(invoice.payoutMethod);
+    const buyCurrency = rail?.buyCurrency ?? 'COP';
+
+    log.info('[OffRampService] Requesting quote', {
+      invoiceId,
+      sellAmount: params.sellAmount,
+      buyCurrency,
+    });
 
     const quote = await this.adapter.getQuote({
       sellAmount: params.sellAmount,
-      buyCurrency: 'COP',
+      buyCurrency,
       payoutAlias: params.payoutAlias,
     });
 

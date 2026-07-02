@@ -13,6 +13,7 @@ import priceRoutes from './routes/prices';
 import offrampRoutes from './routes/offramp';
 import kycRoutes from './routes/kyc';
 import walletRoutes from './routes/wallet';
+import waitlistRoutes from './routes/waitlist';
 import { watcherService } from './services/watcherService';
 
 const app = express();
@@ -166,6 +167,9 @@ app.use('/api/invoices', offrampRoutes);
 
 // Wallet routes (read-only balance lookups)
 app.use('/api/wallet', walletRoutes);
+
+// Waitlist for coming-soon fiat rails (Pix / Transferência 3.0)
+app.use('/api/waitlist', waitlistRoutes);
 
 // ─── Error Handling ─────────────────────────────────────────────────
 app.use(

@@ -196,6 +196,21 @@ model BusinessProfile {
   @@map("business_profiles")
 }
 
+// Demand capture for fiat rails that aren't live yet (Pix / Transferência 3.0).
+// A merchant hits the "coming soon" wall for their country and leaves an email
+// so we can notify them when the rail opens. Public + rate-limited, no auth.
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String
+  rail      String // fiat rail id, e.g. 'PIX' | 'TRANSFERENCIA_30'
+  country   String? // ISO code the merchant selected (BR, AR…)
+  wallet    String? // connected wallet, if any, for follow-up
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([rail])
+  @@map("waitlist_entries")
+}
+
 model LineItem {
   id          String  @id @default(cuid())
   invoiceId   String  @map("invoice_id")
