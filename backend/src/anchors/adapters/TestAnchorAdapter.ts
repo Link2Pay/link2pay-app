@@ -93,9 +93,12 @@ export class TestAnchorAdapter implements AnchorAdapter {
     const { anchor } = this.getSdk();
     const sep10 = await anchor.sep10();
 
-    // Testnet demo keypair (freshly generated, safe for testnet only)
+    // Testnet demo keypair (not a funds key — only proves SEP-10 identity to the
+    // test anchor). Overridable via TESTANCHOR_SEP10_SECRET; falls back to the
+    // committed testnet-only key so the demo runs with no extra config.
     const accountKp = SigningKeypair.fromSecret(
-      'SCHP7WM3EXUFNBX6H5DMSMNC4SZYPEO2VHVFQDBQLD6NGRUIOPIHMRD4'
+      process.env.TESTANCHOR_SEP10_SECRET ||
+        'SCHP7WM3EXUFNBX6H5DMSMNC4SZYPEO2VHVFQDBQLD6NGRUIOPIHMRD4'
     );
 
     const authToken = await sep10.authenticate({ accountKp });

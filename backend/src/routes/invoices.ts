@@ -184,7 +184,17 @@ router.get('/:id', async (req: Request, res: Response) => {
  */
 router.patch('/:id', requireWallet, async (req: Request, res: Response) => {
   try {
-    const invoice = await invoiceService.updateInvoice(req.params.id, req.body);
+    // Ownership check — only the invoice's own wallet may edit it.
+    const existing = await invoiceService.getInvoice(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+    if (existing.freelancerWallet !== req.walletAddress) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    // Never let the body reassign ownership.
+    const { freelancerWallet, ...updates } = req.body;
+    const invoice = await invoiceService.updateInvoice(req.params.id, updates);
     res.json(invoice);
   } catch (error: any) {
     if (error.message.includes('DRAFT')) {

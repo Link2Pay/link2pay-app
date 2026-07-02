@@ -11,7 +11,7 @@ import {
   offrampOpenAmountSchema,
   offrampSubmitPaymentSchema,
 } from '../middleware/validation';
-import { config } from '../config';
+import { config, assetMatches } from '../config';
 import { log } from '../utils/logger';
 
 const router = Router();
@@ -23,6 +23,18 @@ const offrampLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Off-ramp rate limit reached' },
+});
+
+// The open-amount set-amount endpoint is public (payer-driven, no auth), so key
+// its limit by IP. Bounds griefing where anyone with the link locks an invoice
+// into an attacker-chosen amount.
+const setAmountLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 15,
+  keyGenerator: (req) => req.ip || 'unknown',
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many amount submissions, please try again later' },
 });
 
 /**
@@ -89,6 +101,7 @@ router.post(
  */
 router.post(
   '/:id/offramp/set-amount',
+  setAmountLimiter,
   validateBody(offrampOpenAmountSchema),
   async (req: Request, res: Response) => {
     try {
@@ -216,7 +229,7 @@ router.post('/:id/offramp/pay-intent', async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     log.error('[OfframpRoutes] Pay intent error', { error: error?.message });
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -239,13 +252,46 @@ router.post(
         return res.status(400).json({ error: 'Invoice not awaiting payment' });
       }
 
-      const { signedTransactionXdr, depositAddress } = req.body;
+      const { signedTransactionXdr } = req.body;
+
+      if (!invoice.anchorDepositAddress) {
+        return res.status(400).json({ error: 'Invoice has no anchor deposit address' });
+      }
 
       // Submit the transaction
       const submitResult = await stellarService.submitTransaction(
         signedTransactionXdr,
         invoice.networkPassphrase
       );
+
+      // Re-verify on-chain that this payment actually reaches the anchor before
+      // advancing the invoice — mirrors the crypto /submit hardening. Without
+      // this, any successfully-submitted signed tx (paying anyone) would mark
+      // the off-ramp PROCESSING.
+      const txDetails = await stellarService.verifyTransaction(
+        submitResult.hash,
+        invoice.networkPassphrase
+      );
+      const anchorPayment = txDetails?.payments.find(
+        (p: any) =>
+          p.to === invoice.anchorDepositAddress &&
+          assetMatches(p, invoice.currency, invoice.networkPassphrase) &&
+          parseFloat(p.amount) >= parseFloat(invoice.total.toString())
+      );
+      if (!txDetails?.successful || !anchorPayment) {
+        return res.status(400).json({
+          error: 'Submitted transaction does not pay the anchor deposit address for this invoice',
+          transactionHash: submitResult.hash,
+        });
+      }
+      // The anchor credits the payout by memo; a wrong/absent memo would orphan
+      // the funds at the anchor, so reject before we mark it PROCESSING.
+      if (invoice.anchorMemo && String(txDetails.memo ?? '') !== String(invoice.anchorMemo)) {
+        return res.status(400).json({
+          error: 'Payment memo does not match the anchor memo for this invoice',
+          transactionHash: submitResult.hash,
+        });
+      }
 
       // Mark as processing with the anchor payment
       await offRampService.markAnchorPayment(
@@ -261,7 +307,7 @@ router.post(
       });
     } catch (error: any) {
       log.error('[OfframpRoutes] Submit error', { error: error?.message });
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: 'Internal server error' });
     }
   }
 );
@@ -297,7 +343,7 @@ router.post('/:id/offramp/path-quote', async (req: Request, res: Response) => {
     res.json(quote);
   } catch (error: any) {
     log.error('[OfframpRoutes] Path quote error', { error: error?.message });
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
