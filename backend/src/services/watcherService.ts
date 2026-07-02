@@ -1,5 +1,5 @@
 import { stellarService } from './stellarService';
-import { config } from '../config';
+import { config, assetMatches } from '../config';
 import prisma from '../db';
 import { log } from '../utils/logger';
 import { offRampService } from './offRampService';
@@ -187,7 +187,7 @@ export class WatcherService {
       const matchingPayment = txDetails.payments.find(
         (p: any) =>
           p.to === walletAddress &&
-          p.assetCode === matchingInvoice.currency &&
+          assetMatches(p, matchingInvoice.currency, matchingInvoice.networkPassphrase) &&
           parseFloat(p.amount) >= parseFloat(matchingInvoice.total.toString())
       );
 

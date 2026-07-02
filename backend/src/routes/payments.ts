@@ -7,7 +7,7 @@ import {
   submitPaymentSchema,
   confirmPaymentSchema,
 } from '../middleware/validation';
-import { getAssetIssuer } from '../config';
+import { getAssetIssuer, assetMatches } from '../config';
 import { formatStellarAmount } from '../utils/generators';
 import { mapStellarError } from '../utils/stellarErrors';
 import { log } from '../utils/logger';
@@ -217,7 +217,9 @@ router.post(
         );
 
         const matchingPayment = txDetails?.payments.find(
-          (p: any) => p.to === invoice.freelancerWallet && p.assetCode === invoice.currency
+          (p: any) =>
+            p.to === invoice.freelancerWallet &&
+            assetMatches(p, invoice.currency, invoice.networkPassphrase)
         );
 
         if (!matchingPayment) {
@@ -309,7 +311,7 @@ router.post(
       const matchingPayment = txDetails.payments.find(
         (p: any) =>
           p.to === invoice.freelancerWallet &&
-          p.assetCode === invoice.currency
+          assetMatches(p, invoice.currency, invoice.networkPassphrase)
       );
 
       if (!matchingPayment) {

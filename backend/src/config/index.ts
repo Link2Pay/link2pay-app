@@ -196,6 +196,22 @@ export function getAssetIssuer(code: string, networkPassphrase?: string): string
   }
 }
 
+/**
+ * True only when an on-chain payment is the invoice's asset from the CANONICAL
+ * issuer. Anyone can issue a Stellar asset coded 'USDC'/'EURC', so matching on
+ * the asset code alone would let a worthless same-code token mark an invoice
+ * paid. XLM is native (no issuer) — require the payment be native too.
+ */
+export function assetMatches(
+  payment: { assetCode?: string | null; assetIssuer?: string | null },
+  currency: string,
+  networkPassphrase?: string
+): boolean {
+  if (payment.assetCode !== currency) return false;
+  const expectedIssuer = getAssetIssuer(currency, networkPassphrase);
+  return expectedIssuer ? payment.assetIssuer === expectedIssuer : !payment.assetIssuer;
+}
+
 export function getHorizonUrl(networkPassphrase?: string): string {
   if (!networkPassphrase) {
     return config.stellar.horizonUrl;
