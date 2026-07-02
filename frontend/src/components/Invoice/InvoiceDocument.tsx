@@ -1,4 +1,5 @@
 import type { PublicInvoice } from '../../types';
+import { useI18n } from '../../i18n/I18nProvider';
 
 interface Props {
   invoice: PublicInvoice;
@@ -9,6 +10,7 @@ function formatDate(iso: string) {
 }
 
 export default function InvoiceDocument({ invoice }: Props) {
+  const { t } = useI18n();
   const isService = invoice.invoiceType === 'SERVICE_INVOICE';
   const qtyLabel = isService ? 'Hrs' : 'Qty';
   const rateLabel = isService ? 'Rate/hr' : 'Unit';
@@ -54,6 +56,11 @@ export default function InvoiceDocument({ invoice }: Props) {
           )}
           {invoice.freelancerName && (
             <p className="text-xs text-ink-2">{invoice.freelancerName}</p>
+          )}
+          {/* Neutral placeholder so the box is never blank when the merchant
+              hasn't filled in a business profile. */}
+          {!invoice.freelancerCompany && !invoice.freelancerName && (
+            <p className="text-xs text-ink-2">{t('payment.freelancer')}</p>
           )}
           {invoice.freelancerTaxId && (
             <p className="text-2xs text-ink-3 mt-1">Tax ID: {invoice.freelancerTaxId}</p>
