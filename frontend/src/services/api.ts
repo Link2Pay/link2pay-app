@@ -557,6 +557,20 @@ export async function offrampSetAmount(
   });
 }
 
+// ─── Waitlist (coming-soon fiat rails: Pix / Transferência 3.0) ────
+
+export async function joinWaitlist(input: {
+  email: string;
+  rail: 'PIX' | 'TRANSFERENCIA_30';
+  country?: string;
+  wallet?: string;
+}): Promise<{ ok: boolean }> {
+  return request<{ ok: boolean }>('/waitlist', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
 export async function getPaymentStatus(
   invoiceId: string
 ): Promise<{

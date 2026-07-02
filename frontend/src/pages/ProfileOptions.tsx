@@ -9,6 +9,7 @@ import type { Language } from '../i18n/translations';
 import { useWalletStore } from '../store/walletStore';
 import { getBusinessProfile, saveBusinessProfile } from '../services/api';
 import { shortenAddress } from '../lib/format';
+import { COUNTRY_OPTIONS, railByCountry } from '../config/rails';
 import type { Currency, SaveProfileData } from '../types';
 
 const COPY: Record<
@@ -36,6 +37,8 @@ const COPY: Record<
     addressLabel: string;
     cityLabel: string;
     countryLabel: string;
+    countrySelect: string;
+    countryOther: string;
     logoUrlLabel: string;
     defaultCurrencyLabel: string;
     defaultSettlementLabel: string;
@@ -74,6 +77,8 @@ const COPY: Record<
     addressLabel: 'Address',
     cityLabel: 'City',
     countryLabel: 'Country',
+    countrySelect: 'Select a country',
+    countryOther: 'Other / not listed',
     logoUrlLabel: 'Logo URL',
     defaultCurrencyLabel: 'Default currency',
     defaultSettlementLabel: 'Default settlement',
@@ -111,6 +116,8 @@ const COPY: Record<
     addressLabel: 'Direccion',
     cityLabel: 'Ciudad',
     countryLabel: 'Pais',
+    countrySelect: 'Selecciona un pais',
+    countryOther: 'Otro / no listado',
     logoUrlLabel: 'URL del logo',
     defaultCurrencyLabel: 'Moneda predeterminada',
     defaultSettlementLabel: 'Liquidacion predeterminada',
@@ -148,6 +155,8 @@ const COPY: Record<
     addressLabel: 'Endereco',
     cityLabel: 'Cidade',
     countryLabel: 'Pais',
+    countrySelect: 'Selecione um pais',
+    countryOther: 'Outro / nao listado',
     logoUrlLabel: 'URL do logo',
     defaultCurrencyLabel: 'Moeda padrao',
     defaultSettlementLabel: 'Liquidacao padrao',
@@ -189,6 +198,9 @@ export default function ProfileOptions() {
 
   const [form, setForm] = useState<SaveProfileData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  // True when the saved country isn't one of the three supported rails — keeps
+  // a free-text field available so legacy / other-country values aren't lost.
+  const [manualCountry, setManualCountry] = useState(false);
 
   useEffect(() => {
     if (!publicKey) return;
@@ -211,6 +223,7 @@ export default function ProfileOptions() {
           defaultPayoutMethod: profile.defaultPayoutMethod ?? 'CRYPTO',
           defaultPayoutAlias: profile.defaultPayoutAlias ?? '',
         });
+        setManualCountry(Boolean(profile.country && !railByCountry(profile.country)));
       } catch {
         // Profile is optional — leave the form empty on failure.
       }
@@ -222,6 +235,9 @@ export default function ProfileOptions() {
 
   const set = (key: keyof SaveProfileData, value: string) =>
     setForm((f) => ({ ...f, [key]: value }));
+
+  // The fiat off-ramp option and its alias adapt to the merchant's country.
+  const settlementRail = railByCountry(form.country);
 
   const handleSave = async () => {
     if (!publicKey) return;
@@ -305,8 +321,25 @@ export default function ProfileOptions() {
           </div>
           <div>
             <label className="label">{copy.countryLabel}</label>
-            <input className="input" value={form.country ?? ''}
-              onChange={(e) => set('country', e.target.value)} placeholder={copy.optional} />
+            <select
+              className="input"
+              value={manualCountry ? 'OTHER' : (railByCountry(form.country)?.country ?? '')}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === 'OTHER') { setManualCountry(true); set('country', ''); }
+                else { setManualCountry(false); set('country', v); }
+              }}
+            >
+              <option value="">{copy.countrySelect}</option>
+              {COUNTRY_OPTIONS.map((o) => (
+                <option key={o.code} value={o.code}>{o.name}</option>
+              ))}
+              <option value="OTHER">{copy.countryOther}</option>
+            </select>
+            {manualCountry && (
+              <input className="input mt-2" value={form.country ?? ''}
+                onChange={(e) => set('country', e.target.value)} placeholder={copy.optional} />
+            )}
           </div>
           <div>
             <label className="label">{copy.defaultCurrencyLabel}</label>
@@ -322,15 +355,19 @@ export default function ProfileOptions() {
             <select className="input" value={form.defaultPayoutMethod ?? 'CRYPTO'}
               onChange={(e) => set('defaultPayoutMethod', e.target.value)}>
               <option value="CRYPTO">{copy.crypto}</option>
-              <option value="BRE_B">{copy.breb}</option>
+              <option value="BRE_B">
+                {settlementRail ? `${settlementRail.railName} (${settlementRail.currency})` : copy.breb}
+              </option>
             </select>
           </div>
           {form.defaultPayoutMethod === 'BRE_B' && (
             <div className="sm:col-span-2">
-              <label className="label">{copy.defaultAliasLabel}</label>
+              <label className="label">
+                {settlementRail ? settlementRail.aliasLabel : copy.defaultAliasLabel}
+              </label>
               <input className="input" value={form.defaultPayoutAlias ?? ''}
                 onChange={(e) => set('defaultPayoutAlias', e.target.value)}
-                placeholder="@nequi-3001234567" />
+                placeholder={settlementRail?.aliasPlaceholder ?? '@nequi-3001234567'} />
             </div>
           )}
         </div>
