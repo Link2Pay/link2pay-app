@@ -12,7 +12,6 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
-    "seed": "tsx src/seed.ts",
     "test": "vitest"
   },
   "dependencies": {
@@ -24,7 +23,6 @@
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.0",
     "helmet": "^7.1.0",
-    "nanoid": "^5.0.4",
     "winston": "^3.11.0",
     "zod": "^3.22.0"
   },

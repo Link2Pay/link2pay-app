@@ -17,7 +17,7 @@ export class WatcherService {
    */
   async start() {
     if (this.isRunning) {
-      console.log('[Watcher] Already running');
+      log.info('[Watcher] Already running');
       return;
     }
 
@@ -32,7 +32,7 @@ export class WatcherService {
       try {
         await this.checkPendingInvoices();
       } catch (error) {
-        console.error('[Watcher] Poll error:', error);
+        log.error('[Watcher] Poll error', { error: (error as Error)?.message });
       }
     }, config.watcherPollInterval);
   }
