@@ -6,6 +6,8 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
 import { useNetworkStore } from '../../store/networkStore';
 import KycGate from '../Kyc/KycGate';
+import ComingSoonWall from '../Offramp/ComingSoonWall';
+import { railByCountry, FIAT_RAILS } from '../../config/rails';
 import type { Currency, InvoiceType } from '../../types';
 import type { Language } from '../../i18n/translations';
 
@@ -281,7 +283,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   const navigate = useNavigate();
   const { publicKey, getFreighterNetwork, _externalSigner } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const copy = COPY[language];
 
   const isDirect = invoiceType === 'DIRECT_PAYMENT';
@@ -308,6 +310,8 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   const [currency, setCurrency] = useState<Currency>('USDC');
   const [payoutMethod, setPayoutMethod] = useState<'CRYPTO' | 'BRE_B'>('CRYPTO');
   const [payoutAlias, setPayoutAlias] = useState('');
+  // The merchant's country decides which fiat rail the off-ramp offers.
+  const [merchantCountry, setMerchantCountry] = useState('');
   // Cleared to create a fiat (Bre-B) invoice: verified merchant, or gate disabled.
   // Crypto invoices ignore this entirely.
   const [kycVerified, setKycVerified] = useState(false);
@@ -354,6 +358,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
         if (profile.logoUrl) setFreelancerLogoUrl((v) => v || profile.logoUrl || '');
         const addr = [profile.addressLine, profile.city, profile.country].filter(Boolean).join(', ');
         if (addr) setFreelancerAddress((v) => v || addr);
+        setMerchantCountry(profile.country ?? '');
         if (profile.defaultCurrency) setCurrency(profile.defaultCurrency);
         if (profile.defaultPayoutMethod) setPayoutMethod(profile.defaultPayoutMethod);
         if (profile.defaultPayoutAlias) setPayoutAlias((a) => a || profile.defaultPayoutAlias || '');
@@ -374,12 +379,23 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   const taxAmount = taxRate ? subtotal * (parseFloat(taxRate) / 100) : 0;
   const total = subtotal + taxAmount;
 
+  // The fiat off-ramp rail is fixed by the merchant's country. Bre-B (Colombia)
+  // is live; Pix (Brazil) and Transferência 3.0 (Argentina) are walled. Falls
+  // back to Bre-B when no country is set so today's behaviour is preserved.
+  const fiatRail = railByCountry(merchantCountry) ?? FIAT_RAILS.BRE_B;
+  const fiatLive = fiatRail.status === 'live';
+  const fiatSelected = payoutMethod === 'BRE_B';
+  const fiatWalled = fiatSelected && !fiatLive;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!publicKey) return;
 
-    // Fiat (Bre-B) payouts require a verified merchant. Crypto has no gate.
-    if (payoutMethod === 'BRE_B' && !kycVerified) {
+    // Walled rails (Pix / Transferência 3.0) can't create an invoice yet.
+    if (fiatWalled) return;
+
+    // Fiat payouts require a verified merchant. Crypto has no gate.
+    if (fiatSelected && fiatLive && !kycVerified) {
       setError(copy.kycRequiredError);
       toast.error(copy.kycRequiredError);
       return;
@@ -438,8 +454,9 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
           description: description || undefined,
           notes: notes || undefined,
           currency,
-          payoutMethod,
-          payoutAlias: payoutMethod === 'BRE_B' ? payoutAlias.trim() || undefined : undefined,
+          // Only a live fiat rail becomes a BRE_B invoice; anything else is crypto.
+          payoutMethod: fiatSelected && fiatLive ? 'BRE_B' : 'CRYPTO',
+          payoutAlias: fiatSelected && fiatLive ? payoutAlias.trim() || undefined : undefined,
           taxRate: taxRate ? parseFloat(taxRate) : undefined,
           dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
           networkPassphrase,
@@ -474,34 +491,41 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
               : 'border-surface-3 bg-card text-ink-2'
           }`}
         >
-          <span className="block font-medium">Crypto</span>
-          <span className="block text-2xs text-ink-3">Receiver keeps {currency} on-chain</span>
+          <span className="block font-medium">{t('rail.cryptoLabel')}</span>
+          <span className="block text-2xs text-ink-3">{t('rail.cryptoDesc', { currency })}</span>
         </button>
         <button
           type="button"
           onClick={() => setPayoutMethod('BRE_B')}
           className={`rounded-lg border px-3 py-2.5 text-left text-sm transition ${
-            payoutMethod === 'BRE_B'
-              ? 'border-warning-border bg-warning-subtle text-warning'
+            fiatSelected
+              ? fiatLive
+                ? 'border-warning-border bg-warning-subtle text-warning'
+                : 'border-primary/40 bg-primary/5 text-primary'
               : 'border-surface-3 bg-card text-ink-2'
           }`}
         >
-          <span className="block font-medium">Fiat off-ramp · Bre-B (COP)</span>
-          <span className="block text-2xs text-ink-3">Payer pays {currency}, receiver gets pesos</span>
+          <span className="block font-medium">
+            {t('rail.fiatOfframp')} · {fiatRail.railName} ({fiatRail.currency})
+          </span>
+          <span className="block text-2xs text-ink-3">
+            {t('rail.fiatDesc', { currency, fiat: fiatRail.currency })}
+          </span>
         </button>
       </div>
-      {payoutMethod === 'BRE_B' && (
+      {fiatSelected && fiatLive && (
         <div className="mt-2">
           <input
             className="input"
-            placeholder="Bre-B llave (payout alias), e.g. @nequi-3001234567"
+            placeholder={`${fiatRail.aliasLabel} (payout alias), e.g. ${fiatRail.aliasPlaceholder}`}
             value={payoutAlias}
             onChange={(e) => setPayoutAlias(e.target.value)}
           />
-          <p className="mt-1 text-2xs text-warning">Simulated Bre-B settlement (demo)</p>
-          <KycGate active={payoutMethod === 'BRE_B'} onVerifiedChange={setKycVerified} />
+          <p className="mt-1 text-2xs text-warning">Simulated {fiatRail.railName} settlement (demo)</p>
+          <KycGate active={fiatSelected && fiatLive} onVerifiedChange={setKycVerified} />
         </div>
       )}
+      {fiatWalled && <ComingSoonWall rail={fiatRail} wallet={publicKey} />}
     </div>
   );
 
@@ -776,7 +800,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
         </button>
         <button
           type="submit"
-          disabled={isSubmitting || (payoutMethod === 'BRE_B' && !kycVerified)}
+          disabled={isSubmitting || (fiatSelected && fiatLive && !kycVerified) || fiatWalled}
           className="btn-primary w-full sm:w-auto"
         >
           {isSubmitting ? (

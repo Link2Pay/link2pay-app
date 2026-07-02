@@ -8,6 +8,8 @@ import type { Language } from '../i18n/translations';
 import { useWalletStore } from '../store/walletStore';
 import { getBusinessProfile } from '../services/api';
 import { shortenAddress } from '../lib/format';
+import { railByCountry, FIAT_RAILS } from '../config/rails';
+import ComingSoonWall from '../components/Offramp/ComingSoonWall';
 
 const COPY: Record<
   Language,
@@ -20,6 +22,7 @@ const COPY: Record<
     copyAddress: string;
     copyLink: string;
     copied: string;
+    receiveFiat: string;
     receiveCop: string;
     receiveCopDesc: string;
     noAlias: string;
@@ -39,6 +42,7 @@ const COPY: Record<
     copyAddress: 'Copy address',
     copyLink: 'Copy pay link',
     copied: 'Copied',
+    receiveFiat: 'Receive in fiat',
     receiveCop: 'Receive in COP · Bre-B',
     receiveCopDesc: 'Share your Bre-B llave so payers can send pesos.',
     noAlias: 'No Bre-B alias saved yet.',
@@ -57,6 +61,7 @@ const COPY: Record<
     copyAddress: 'Copiar direccion',
     copyLink: 'Copiar link de pago',
     copied: 'Copiado',
+    receiveFiat: 'Recibir en fiat',
     receiveCop: 'Recibir en COP · Bre-B',
     receiveCopDesc: 'Comparte tu llave Bre-B para que te envien pesos.',
     noAlias: 'Aun no guardaste una llave Bre-B.',
@@ -75,6 +80,7 @@ const COPY: Record<
     copyAddress: 'Copiar endereco',
     copyLink: 'Copiar link de pagamento',
     copied: 'Copiado',
+    receiveFiat: 'Receber em fiat',
     receiveCop: 'Receber em COP · Bre-B',
     receiveCopDesc: 'Compartilhe sua chave Bre-B para receber pesos.',
     noAlias: 'Nenhuma chave Bre-B salva ainda.',
@@ -93,6 +99,7 @@ export default function GetPaid() {
   const copy = COPY[language];
   const { publicKey } = useWalletStore();
   const [alias, setAlias] = useState<string | null>(null);
+  const [country, setCountry] = useState('');
 
   useEffect(() => {
     if (!publicKey) return;
@@ -100,7 +107,9 @@ export default function GetPaid() {
     (async () => {
       try {
         const profile = await getBusinessProfile(publicKey);
-        if (!cancelled && profile?.defaultPayoutAlias) setAlias(profile.defaultPayoutAlias);
+        if (cancelled || !profile) return;
+        if (profile.defaultPayoutAlias) setAlias(profile.defaultPayoutAlias);
+        setCountry(profile.country ?? '');
       } catch {
         // Alias is optional.
       }
@@ -109,6 +118,11 @@ export default function GetPaid() {
       cancelled = true;
     };
   }, [publicKey]);
+
+  // The fiat card follows the merchant's country. Bre-B (Colombia) is live;
+  // Pix / Transferência 3.0 render the coming-soon wall instead.
+  const fiatRail = railByCountry(country) ?? FIAT_RAILS.BRE_B;
+  const fiatLive = fiatRail.status === 'live';
 
   const payUri = publicKey ? `web+stellar:pay?destination=${publicKey}` : '';
 
@@ -163,39 +177,47 @@ export default function GetPaid() {
               </div>
             </div>
 
-            {/* Receive in COP via Bre-B */}
+            {/* Receive in local fiat — Bre-B live, Pix / Transferência 3.0 walled */}
             <div className="card p-5">
               <div className="mb-1 flex items-center gap-2">
                 <Landmark className="h-4 w-4 text-warning" />
-                <h3 className="text-sm font-semibold text-ink-0">{copy.receiveCop}</h3>
+                <h3 className="text-sm font-semibold text-ink-0">
+                  {copy.receiveFiat} · {fiatRail.railName} ({fiatRail.currency})
+                </h3>
               </div>
-              <p className="mb-4 text-xs text-ink-3">{copy.receiveCopDesc}</p>
 
-              {alias ? (
-                <>
-                  <div className="flex justify-center">
-                    <div className="rounded-xl bg-white p-3">
-                      <QRCodeSVG value={alias} size={176} level="M" />
-                    </div>
-                  </div>
-                  <p className="mt-4 break-all rounded-lg border border-surface-3 bg-surface-1 px-3 py-2 text-center font-mono text-sm text-ink-1">
-                    {alias}
-                  </p>
-                  <div className="mt-3 flex items-center justify-between">
-                    <button type="button" onClick={() => copyText(alias)} className="btn-secondary text-xs">
-                      <Copy className="h-3.5 w-3.5" />
-                      {copy.copyAddress}
-                    </button>
-                    <span className="text-2xs text-warning">{copy.simulated}</span>
-                  </div>
-                </>
+              {!fiatLive ? (
+                <ComingSoonWall rail={fiatRail} wallet={publicKey} />
               ) : (
-                <div className="rounded-lg border border-dashed border-surface-3 bg-surface-1 p-6 text-center">
-                  <p className="text-sm text-ink-2">{copy.noAlias}</p>
-                  <Link to="/dashboard/profile-options" className="mt-2 inline-block text-sm font-medium text-primary hover:underline">
-                    {copy.setupAlias}
-                  </Link>
-                </div>
+                <>
+                  <p className="mb-4 text-xs text-ink-3">{copy.receiveCopDesc}</p>
+                  {alias ? (
+                    <>
+                      <div className="flex justify-center">
+                        <div className="rounded-xl bg-white p-3">
+                          <QRCodeSVG value={alias} size={176} level="M" />
+                        </div>
+                      </div>
+                      <p className="mt-4 break-all rounded-lg border border-surface-3 bg-surface-1 px-3 py-2 text-center font-mono text-sm text-ink-1">
+                        {alias}
+                      </p>
+                      <div className="mt-3 flex items-center justify-between">
+                        <button type="button" onClick={() => copyText(alias)} className="btn-secondary text-xs">
+                          <Copy className="h-3.5 w-3.5" />
+                          {copy.copyAddress}
+                        </button>
+                        <span className="text-2xs text-warning">{copy.simulated}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="rounded-lg border border-dashed border-surface-3 bg-surface-1 p-6 text-center">
+                      <p className="text-sm text-ink-2">{copy.noAlias}</p>
+                      <Link to="/dashboard/profile-options" className="mt-2 inline-block text-sm font-medium text-primary hover:underline">
+                        {copy.setupAlias}
+                      </Link>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
