@@ -1,17 +1,20 @@
 //
 // AbroadAdapter — production Bre-B (USDC→COP) off-ramp via Abroad.
 //
-// This is the mainnet/production path. It is a DOCUMENTED, STUBBED integration:
-// Abroad has no public sandbox, so the request/response field mappings below
-// follow Abroad's documented REST shape (spec §10) and MUST be confirmed against
-// the live Swagger at `${ABROAD_API_BASE}/docs` once API credentials are issued.
+// This is the mainnet/production path. The request/response mappings below are
+// verified against Abroad's public docs (docs.abroad.finance) AND their
+// open-source server (github.com/abroad-finance/abroad) — the real TSOA
+// controllers + zod schemas. They should still be smoke-tested against the live
+// Swagger at `${ABROAD_API_BASE}/docs` once API credentials are issued, because
+// the hosted deployment can skew from GitHub main.
 //
-// REST shape (spec §10):
-//   POST /quote                  → firm quote
-//   POST /transaction            → { transaction_reference, ... }
-//   GET  /transaction/{id}       → status
+// REST shape (api.abroad.finance):
+//   POST /quote/reverse          → firm quote for a fixed USDC amount sold
+//   POST /transaction            → { id, transaction_reference, kycLink, payment_context }
+//   GET  /transaction/{id}       → { status, on_chain_tx_hash, kycLink, ... }
 //   Auth header:  X-API-Key
-//   IMPORTANT: `transaction_reference` MUST be used as the on-chain memo.
+//   IMPORTANT: the on-chain memo MUST equal `transaction_reference` verbatim
+//   (Abroad matches deposits via base64→uuid on the memo).
 //
 // Activation: set ANCHOR_PROVIDER=abroad + ABROAD_API_BASE + ABROAD_API_KEY.
 // Until then this adapter throws a clear configuration error if selected.
@@ -20,29 +23,35 @@ import { config } from '../../config';
 import { log } from '../../utils/logger';
 import type { AnchorAdapter, Quote, OffRampIntent, AnchorStatus } from '../AnchorAdapter';
 
+// POST /quote/reverse response — { quote_id, value, expiration_time } only.
+// `value` is the fiat (COP) the receiver gets; fees are baked in (no breakdown).
+// `expiration_time` is epoch milliseconds; quotes are valid for 1 hour.
 interface AbroadQuoteResponse {
   quote_id?: string;
-  id?: string;
-  source_amount?: string | number;
-  target_amount?: string | number;
-  rate?: string | number;
-  fee?: string | number;
-  total_fee?: string | number;
-  expires_at?: string;
+  value?: string | number;
+  expiration_time?: number;
+}
+
+// Abroad's PaymentContext (STELLAR): where + how the payer sends the crypto.
+// Present only when the transaction `id` is set AND `kycLink` is null.
+interface AbroadPaymentContext {
+  depositAddress?: string;
+  memo?: string;
+  memoType?: 'text' | 'id' | 'hash';
+  amount?: string | number;
 }
 
 interface AbroadTransactionResponse {
-  id?: string;
-  transaction_id?: string;
-  transaction_reference?: string;
-  deposit_address?: string;
-  stellar_account?: string;
-  amount?: string | number;
-  status?: string;
+  id?: string | null;
+  transaction_reference?: string | null;
+  kycLink?: string | null;
+  payment_context?: AbroadPaymentContext | null;
 }
 
 interface AbroadStatusResponse {
   status?: string;
+  on_chain_tx_hash?: string | null;
+  kycLink?: string | null;
 }
 
 export class AbroadAdapter implements AnchorAdapter {
@@ -79,33 +88,47 @@ export class AbroadAdapter implements AnchorAdapter {
     buyCurrency: 'COP';
     payoutAlias: string;
   }): Promise<Quote> {
-    // Field names per the Abroad API reference (docs.abroad.finance/reference/api):
-    // crypto_currency (always USDC, the source), target_currency (COP/BRL),
-    // payment_method (BREB/PIX), network (STELLAR). Off-ramp only — there is no
-    // COP→USDC on-ramp. /quote/reverse exists for fixing the exact COP output.
-    const data = await this.call<AbroadQuoteResponse>('/quote', {
+    // We sell a FIXED amount of USDC, so this is the REVERSE quote:
+    //   POST /quote        → `amount` is the fiat (COP) TARGET, `value` = crypto needed
+    //   POST /quote/reverse→ `source_amount` is the crypto SENT, `value` = fiat received
+    // Amounts MUST be JSON numbers (zod z.number().positive()); a string → 400.
+    const sourceAmount = Number(params.sellAmount);
+    if (!Number.isFinite(sourceAmount) || sourceAmount <= 0) {
+      throw new Error('ABROAD_INVALID_SELL_AMOUNT');
+    }
+
+    const data = await this.call<AbroadQuoteResponse>('/quote/reverse', {
       method: 'POST',
       body: JSON.stringify({
         crypto_currency: 'USDC',
         network: 'STELLAR',
         target_currency: params.buyCurrency,
         payment_method: 'BREB',
-        amount: params.sellAmount,
+        source_amount: sourceAmount,
       }),
     });
 
-    const quoteId = data.quote_id || data.id;
+    const quoteId = data.quote_id;
     if (!quoteId) throw new Error('ABROAD_QUOTE_MISSING_ID');
+    if (data.value === undefined || data.value === null) throw new Error('ABROAD_QUOTE_MISSING_VALUE');
+
+    const buyAmount = String(data.value);
+    // Abroad exposes no fee breakdown — fees are baked into `value`. Derive the
+    // effective rate locally for display only.
+    const rate = sourceAmount > 0 ? String(Number(data.value) / sourceAmount) : '';
+    const expiresAt = data.expiration_time
+      ? new Date(data.expiration_time).toISOString()
+      : new Date(Date.now() + 60 * 60_000).toISOString(); // real validity is 1h
 
     return {
       quoteId,
       sellAsset: 'USDC',
       buyAsset: params.buyCurrency,
-      sellAmount: String(data.source_amount ?? params.sellAmount),
-      buyAmount: String(data.target_amount ?? ''),
-      rate: String(data.rate ?? ''),
-      feeTotal: String(data.total_fee ?? data.fee ?? '0'),
-      expiresAt: data.expires_at || new Date(Date.now() + 5 * 60_000).toISOString(),
+      sellAmount: String(params.sellAmount),
+      buyAmount,
+      rate,
+      feeTotal: '0',
+      expiresAt,
     };
   }
 
@@ -114,35 +137,60 @@ export class AbroadAdapter implements AnchorAdapter {
     receiverAccount: string;
     payoutAlias: string;
   }): Promise<OffRampIntent> {
-    // payment_method=BREB; the Bre-B llave is the payout account identifier.
+    // POST /transaction requires quote_id, account_number (the Bre-B llave), and
+    // user_id (the partner's stable end-user identifier). payment_method is bound
+    // at quote time, so it is NOT a field here. We use the receiver's Stellar
+    // account as the stable per-merchant user_id.
     const data = await this.call<AbroadTransactionResponse>('/transaction', {
       method: 'POST',
       body: JSON.stringify({
         quote_id: params.quoteId,
-        payment_method: 'BREB',
         account_number: params.payoutAlias,
+        user_id: params.receiverAccount,
       }),
     });
 
-    const anchorTxId = data.transaction_id || data.id;
-    const depositAddress = data.deposit_address || data.stellar_account || '';
-    // Per Abroad's spec, the transaction_reference is the on-chain memo.
-    const memo = data.transaction_reference || '';
-
+    const anchorTxId = data.id ?? undefined;
     if (!anchorTxId) throw new Error('ABROAD_TX_MISSING_ID');
+
+    // Per Abroad's StellarListener, the on-chain memo MUST equal
+    // transaction_reference verbatim. payment_context.memo mirrors it on STELLAR.
+    const ctx = data.payment_context ?? null;
+    const memo = ctx?.memo || data.transaction_reference || '';
+
+    // When the end-user still needs KYC, Abroad returns a kycLink and suppresses
+    // payment_context. Surface that as the interactive step instead of erroring:
+    // the pay-intent route already blocks on an empty deposit address and points
+    // the user at the interactive URL.
+    if (!ctx || !ctx.depositAddress) {
+      if (data.kycLink) {
+        return {
+          anchorTxId,
+          interactiveUrl: data.kycLink,
+          depositAddress: '',
+          memo,
+          memoType: ctx?.memoType || 'text',
+          asset: 'USDC',
+          amount: ctx?.amount != null ? String(ctx.amount) : '',
+        };
+      }
+      throw new Error('ABROAD_TX_MISSING_DEPOSIT_ADDRESS');
+    }
+
     if (!memo) throw new Error('ABROAD_TX_MISSING_REFERENCE');
-    // Abroad references are alphanumeric strings → text memo (28-byte limit).
+    // transaction_reference = base64(16-byte UUID) = 24 ASCII chars, safely
+    // within Stellar's 28-byte text memo. Guard anyway.
     if (Buffer.byteLength(memo, 'utf8') > 28) {
       throw new Error('ABROAD_REFERENCE_EXCEEDS_TEXT_MEMO');
     }
 
     return {
       anchorTxId,
-      depositAddress,
+      depositAddress: ctx.depositAddress,
       memo,
-      memoType: 'text',
+      memoType: ctx.memoType || 'text',
       asset: 'USDC',
-      amount: String(data.amount ?? ''),
+      amount: ctx.amount != null ? String(ctx.amount) : '',
     };
   }
 
@@ -152,26 +200,18 @@ export class AbroadAdapter implements AnchorAdapter {
   }
 
   private mapStatus(status?: string): AnchorStatus {
-    switch ((status || '').toLowerCase()) {
-      case 'created':
-      case 'pending':
-        return 'INITIATED';
-      case 'awaiting_payment':
-      case 'awaiting_deposit':
+    // Abroad returns its Prisma TransactionStatus enum verbatim (UPPER_SNAKE).
+    switch ((status || '').toUpperCase()) {
+      case 'AWAITING_PAYMENT':
         return 'AWAITING_PAYMENT';
-      case 'payment_received':
-      case 'processing':
+      case 'PROCESSING_PAYMENT':
         return 'PAYMENT_DETECTED';
-      case 'settling':
-      case 'paying_out':
-        return 'SETTLING';
-      case 'completed':
-      case 'settled':
+      case 'PAYMENT_COMPLETED':
         return 'SETTLED';
-      case 'expired':
+      case 'PAYMENT_EXPIRED':
         return 'EXPIRED';
-      case 'failed':
-      case 'cancelled':
+      case 'PAYMENT_FAILED':
+      case 'WRONG_AMOUNT': // Abroad attempts an on-chain refund; treat as terminal error.
         return 'ERROR';
       default:
         return 'INITIATED';
