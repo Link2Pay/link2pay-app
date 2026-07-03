@@ -50,6 +50,12 @@ const envSchema = z.object({
   // Slippage guard for path payments, in basis points (100 = 1%).
   PATH_PAYMENT_SLIPPAGE_BPS: z.coerce.number().min(0).max(5000).default(100),
 
+  // Fiat (Bre-B) payout availability. Unset → decided by the network:
+  // enabled on mainnet, walled on testnet (the anchor there is simulated,
+  // so fiat would only pretend to settle). Set explicitly to override —
+  // e.g. FIAT_ENABLED=true for local off-ramp development.
+  FIAT_ENABLED: z.enum(['true', 'false']).optional(),
+
   ANCHOR_PROVIDER: z
     .enum(['testnet', 'mock-breb', 'abroad'])
     .default('testnet'),
@@ -132,6 +138,13 @@ export const config = {
   pathPayments: {
     enabled: env.PATH_PAYMENTS_ENABLED,
     slippageBps: env.PATH_PAYMENT_SLIPPAGE_BPS,
+  },
+
+  fiat: {
+    // Explicit env wins; otherwise fiat is a mainnet-only capability.
+    enabled: env.FIAT_ENABLED
+      ? env.FIAT_ENABLED === 'true'
+      : env.STELLAR_NETWORK === 'public',
   },
 
   anchor: {

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Clock, Check, Sparkles } from 'lucide-react';
+import { Clock, Check, Sparkles, ExternalLink } from 'lucide-react';
 import { joinWaitlist } from '../../services/api';
 import { useI18n } from '../../i18n/I18nProvider';
 import type { FiatRail } from '../../config/rails';
@@ -7,9 +7,11 @@ import type { FiatRail } from '../../config/rails';
 type NotifyState = 'idle' | 'submitting' | 'done' | 'error';
 
 /**
- * The "wall" shown when a merchant's country maps to a fiat rail that isn't
- * live yet (Pix, Transferência 3.0). Explains it's coming and captures an
- * email so we can notify them — while still nudging them toward crypto today.
+ * The "wall" shown when the fiat rail can't be used here. Two flavors:
+ *  - coming soon (rail not rolled out — Pix, Transferência 3.0): explains it's
+ *    on the way and captures an email for the waitlist.
+ *  - mainnet only (rail is live, but this is the testnet environment, where
+ *    the anchor only simulates settlement): points at the production app.
  */
 export default function ComingSoonWall({
   rail,
@@ -23,6 +25,29 @@ export default function ComingSoonWall({
   const [state, setState] = useState<NotifyState>('idle');
 
   const vars = { rail: rail.railName, fiat: rail.currency, country: rail.countryName };
+
+  // This component only renders when the rail is walled — so a *live* rail
+  // here means the environment (testnet) is the wall, not the rollout.
+  if (rail.status === 'live') {
+    return (
+      <div className="mt-2 rounded-lg border border-primary/25 bg-primary/5 p-4">
+        <div className="flex items-center gap-2 text-primary">
+          <Clock className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+          <span className="text-sm font-semibold">{t('rail.mainnetOnlyTitle', vars)}</span>
+        </div>
+        <p className="mt-1.5 text-xs text-ink-2">{t('rail.mainnetOnlyBody', vars)}</p>
+        <a
+          href="https://link2pay.xyz"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-primary mt-3 inline-flex items-center gap-1.5 text-sm"
+        >
+          {t('rail.mainnetOnlyCta')}
+          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+        </a>
+      </div>
+    );
+  }
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();

@@ -9,6 +9,7 @@ import { useWalletStore } from '../store/walletStore';
 import { getBusinessProfile } from '../services/api';
 import { shortenAddress } from '../lib/format';
 import { railByCountry, FIAT_RAILS } from '../config/rails';
+import { config } from '../config';
 import ComingSoonWall from '../components/Offramp/ComingSoonWall';
 
 const COPY: Record<
@@ -122,7 +123,8 @@ export default function GetPaid() {
   // The fiat card follows the merchant's country. Bre-B (Colombia) is live;
   // Pix / Transferência 3.0 render the coming-soon wall instead.
   const fiatRail = railByCountry(country) ?? FIAT_RAILS.BRE_B;
-  const fiatLive = fiatRail.status === 'live';
+  // Usable only when rolled out AND this environment allows fiat (testnet walls it).
+  const fiatLive = fiatRail.status === 'live' && config.fiatRailsEnabled;
 
   const payUri = publicKey ? `web+stellar:pay?destination=${publicKey}` : '';
 

@@ -37,6 +37,23 @@ feature/my-change ──PR──▶ develop ──auto-deploy──▶ test.link
 2. `develop` must always be deployable — it is a live environment, not a dump.
 3. Secrets never enter the repo: Render dashboard / Vercel env vars only.
 
+## Fiat wall on testnet
+
+Fiat (Bre-B) payouts are a **mainnet capability**: on testnet the anchor only
+simulates settlement, so the test environment walls fiat off entirely.
+
+- Backend: `FIAT_ENABLED` (defaults to on for `STELLAR_NETWORK=public`, walled
+  for testnet). Creating a `BRE_B` invoice on a walled environment returns
+  `403 FIAT_DISABLED`.
+- Frontend: `VITE_ENABLE_FIAT` (same default by network). Walled environments
+  show a "fiat lives on link2pay.xyz" panel instead of the Bre-B flow; the
+  Pix / Transferência 3.0 coming-soon waitlist walls are unchanged.
+- Local off-ramp development needs the flags on (`FIAT_ENABLED=true`,
+  `VITE_ENABLE_FIAT=true`) because local runs on testnet — see the
+  `.env.example` files. This is also the answer to "how do we test fiat
+  changes before prod": locally with the flag, and on mainnet the anchor
+  stays `mock-breb` until the real Abroad credentials are set.
+
 ## One-time setup checklist
 
 ### GitHub

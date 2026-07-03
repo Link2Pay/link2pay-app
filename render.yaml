@@ -46,6 +46,8 @@ services:
         value: https://mainnet.sorobanrpc.com
       - key: NETWORK_PASSPHRASE
         value: "Public Global Stellar Network ; September 2015"
+      - key: FIAT_ENABLED
+        value: "true"
       - key: USDC_ISSUER
         value: GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
       - key: EURC_ISSUER
@@ -96,6 +98,9 @@ services:
         value: https://soroban-testnet.stellar.org
       - key: NETWORK_PASSPHRASE
         value: "Test SDF Network ; September 2015"
+      # Fiat is walled on the test environment — the anchor only simulates.
+      - key: FIAT_ENABLED
+        value: "false"
       - key: USDC_ISSUER
         value: GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
       - key: EURC_ISSUER

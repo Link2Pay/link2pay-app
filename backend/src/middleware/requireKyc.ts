@@ -4,6 +4,29 @@ import { kycService } from '../services/kycService';
 import { log } from '../utils/logger';
 
 //
+// requireFiatEnabled — environment wall for fiat payouts. On testnet the
+// anchor is simulated, so a fiat invoice would only pretend to settle COP;
+// this environment refuses to create them. Driven by config.fiat.enabled
+// (FIAT_ENABLED env, defaulting to mainnet-only). Crypto passes through.
+//
+// MUST be mounted after validateBody (needs the parsed req.body.payoutMethod).
+//
+export function requireFiatEnabled(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  if (config.fiat.enabled) return next();
+  if (req.body?.payoutMethod !== 'BRE_B') return next();
+
+  return res.status(403).json({
+    error: 'FIAT_DISABLED',
+    message:
+      'Fiat (Bre-B) payouts are not available on this environment. Use the production app for fiat.',
+  });
+}
+
+//
 // requireKycForFiat — gate that enforces merchant identity verification ONLY
 // for fiat off-ramp invoices (payoutMethod === 'BRE_B'). Crypto invoices carry
 // no requirement and pass straight through.

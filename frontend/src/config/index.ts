@@ -16,6 +16,16 @@ export const config = {
   // Phase 7: live Reflector oracle FX estimate. Off by default — no public
   // testnet oracle carries COP, so it only shows when a feed actually has it.
   enableFxPreview: import.meta.env.VITE_ENABLE_FX_PREVIEW === 'true',
+  // Fiat (Bre-B) payouts are a mainnet capability: on testnet the anchor is
+  // simulated, so the test environment walls fiat off (backend enforces the
+  // same via FIAT_ENABLED). Override with VITE_ENABLE_FIAT=true for local
+  // off-ramp development.
+  fiatRailsEnabled:
+    import.meta.env.VITE_ENABLE_FIAT === 'true'
+      ? true
+      : import.meta.env.VITE_ENABLE_FIAT === 'false'
+        ? false
+        : RESOLVED_NETWORK === 'mainnet',
   // Privy social login (Google/email → Stellar embedded wallet).
   // When set, replaces the Freighter connect button in the dashboard header.
   privyAppId: import.meta.env.VITE_PRIVY_APP_ID || '',

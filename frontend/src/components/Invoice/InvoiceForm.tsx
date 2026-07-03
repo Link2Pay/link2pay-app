@@ -8,6 +8,7 @@ import { useNetworkStore } from '../../store/networkStore';
 import KycGate from '../Kyc/KycGate';
 import ComingSoonWall from '../Offramp/ComingSoonWall';
 import { railByCountry, FIAT_RAILS } from '../../config/rails';
+import { config } from '../../config';
 import type { Currency, InvoiceType } from '../../types';
 import type { Language } from '../../i18n/translations';
 
@@ -383,7 +384,9 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   // is live; Pix (Brazil) and Transferência 3.0 (Argentina) are walled. Falls
   // back to Bre-B when no country is set so today's behaviour is preserved.
   const fiatRail = railByCountry(merchantCountry) ?? FIAT_RAILS.BRE_B;
-  const fiatLive = fiatRail.status === 'live';
+  // A rail is usable when it's rolled out AND this environment allows fiat
+  // (testnet walls fiat — the anchor there only simulates settlement).
+  const fiatLive = fiatRail.status === 'live' && config.fiatRailsEnabled;
   const fiatSelected = payoutMethod === 'BRE_B';
   const fiatWalled = fiatSelected && !fiatLive;
 
