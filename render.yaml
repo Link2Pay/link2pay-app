@@ -1,35 +1,93 @@
-# Render Infrastructure-as-Code for the Link2Pay backend + Postgres.
+# Render Infrastructure-as-Code for the Link2Pay backends + Postgres.
 # Frontend deploys separately on Vercel (see frontend/vercel.json).
+# Full environment model: see ENVIRONMENTS.md.
+#
+# Two environments, same code, different config:
+#   link2pay-app       ← branch `main`     → api for link2pay.xyz       (Stellar MAINNET)
+#   link2pay-app-test  ← branch `develop`  → api for test.link2pay.xyz  (Stellar TESTNET)
 #
 # On every deploy the start command runs `prisma migrate deploy`, applying the
-# committed migration baseline (backend/prisma/migrations) to the database.
+# committed migration baseline (backend/prisma/migrations) to that service's
+# own database — so schema changes land on the test DB (develop) before ever
+# touching prod (main).
 # For an EXISTING db that was created with `db push` (no migration history),
 # baseline it once before the first deploy:
 #   npx prisma migrate resolve --applied 0_init
+
 services:
+  # ── Production — Stellar MAINNET, deploys from `main` ───────────────────
   - type: web
-    name: link2pay-backend
+    name: link2pay-app
     runtime: node
     plan: free
     rootDir: backend
+    branch: main
     buildCommand: npm ci && npm run build
     startCommand: npm run start:prod
     healthCheckPath: /api/health
-    autoDeploy: false
+    autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 3001
-      # Database — provisioned below; Render injects the connection string.
       - key: DATABASE_URL
         fromDatabase:
           name: link2pay-db
           property: connectionString
-      # CORS origin — set to the deployed Vercel URL (e.g. https://link2pay.vercel.app)
       - key: FRONTEND_URL
+        value: https://link2pay.xyz
+      # ── Stellar network: MAINNET ──
+      - key: STELLAR_NETWORK
+        value: public
+      - key: HORIZON_URL
+        value: https://horizon.stellar.org
+      - key: SOROBAN_RPC_URL
+        value: https://mainnet.sorobanrpc.com
+      - key: NETWORK_PASSPHRASE
+        value: "Public Global Stellar Network ; September 2015"
+      - key: USDC_ISSUER
+        value: GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+      - key: EURC_ISSUER
+        value: GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2
+      # ── Anchor off-ramp (real Abroad credentials go in the dashboard) ──
+      - key: ANCHOR_PROVIDER
+        value: mock-breb
+      - key: ANCHOR_HOME_DOMAIN
+        value: testanchor.stellar.org
+      # Secrets — set in the Render dashboard, never in this file
+      - key: PRIVY_APP_ID
         sync: false
-      # ── Stellar network (testnet shown; flip to public for mainnet) ──
+      - key: RECEIPT_CONTRACT_ID
+        sync: false
+      - key: ABROAD_API_BASE
+        sync: false
+      - key: ABROAD_API_KEY
+        sync: false
+
+  # ── Test — Stellar TESTNET, deploys from `develop` ──────────────────────
+  - type: web
+    name: link2pay-app-test
+    runtime: node
+    plan: free
+    rootDir: backend
+    branch: develop
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        fromDatabase:
+          name: link2pay-db-test
+          property: connectionString
+      - key: FRONTEND_URL
+        value: https://test.link2pay.xyz
+      # ── Stellar network: TESTNET ──
       - key: STELLAR_NETWORK
         value: testnet
       - key: HORIZON_URL
@@ -42,20 +100,19 @@ services:
         value: GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
       - key: EURC_ISSUER
         value: GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2
-      # ── Anchor off-ramp ──
+      # ── Anchor off-ramp: simulated on testnet ──
       - key: ANCHOR_PROVIDER
         value: mock-breb
       - key: ANCHOR_HOME_DOMAIN
         value: testanchor.stellar.org
-      # Optional: Soroban receipt contract id once deployed
+      # Secrets — set in the Render dashboard, never in this file
+      - key: PRIVY_APP_ID
+        sync: false
       - key: RECEIPT_CONTRACT_ID
-        sync: false
-      # Production-only Abroad credentials — leave unset for the demo
-      - key: ABROAD_API_BASE
-        sync: false
-      - key: ABROAD_API_KEY
         sync: false
 
 databases:
   - name: link2pay-db
+    plan: free
+  - name: link2pay-db-test
     plan: free

@@ -1,10 +1,11 @@
 // Network is fixed per deployment — there is no in-app switcher.
 //
-// The production domain runs Mainnet; Testnet lives on its own `testnet.*`
-// subdomain (a separate deploy / origin). Resolution order:
-//   1. VITE_STELLAR_NETWORK env  — explicit per-deploy override
-//   2. a `testnet.` hostname     — the testnet subdomain
-//   3. default                   — mainnet
+// The production domain runs Mainnet; Testnet lives on its own subdomain
+// (test.link2pay.xyz — the `develop` branch deploy; see ENVIRONMENTS.md).
+// Resolution order:
+//   1. VITE_STELLAR_NETWORK env       — explicit per-deploy override
+//   2. a `test.`/`testnet.` hostname  — the testnet subdomain
+//   3. default                        — mainnet
 //
 // Because each subdomain is a distinct origin, its localStorage / wallet
 // session is naturally isolated from the mainnet domain.
@@ -41,7 +42,14 @@ export function resolveNetwork(): StellarNetwork {
 
   if (typeof window !== 'undefined') {
     const host = window.location.hostname.toLowerCase();
-    if (host === 'testnet' || host.startsWith('testnet.')) return 'testnet';
+    if (
+      host === 'testnet' ||
+      host.startsWith('testnet.') ||
+      host === 'test' ||
+      host.startsWith('test.')
+    ) {
+      return 'testnet';
+    }
   }
 
   return 'mainnet';
