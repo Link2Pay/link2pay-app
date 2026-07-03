@@ -346,7 +346,17 @@ export default function Pricing() {
               <p className="mb-5 text-sm text-muted-foreground sm:mb-6">{plan.tagline}</p>
 
               <div className="mb-6 sm:mb-8">
-                <span className="text-4xl font-bold text-foreground">{plan.price}</span>
+                {/* Prices are numbers — set them in the same mono voice as every
+                    other figure on the site. Non-numeric tiers keep the display face. */}
+                <span
+                  className={
+                    plan.period
+                      ? 'font-mono text-4xl font-bold tracking-tight text-foreground [font-variant-numeric:tabular-nums]'
+                      : 'text-4xl font-bold text-foreground'
+                  }
+                >
+                  {plan.price}
+                </span>
                 {plan.period ? <span className="ml-1 text-sm text-muted-foreground">{plan.period}</span> : null}
               </div>
 

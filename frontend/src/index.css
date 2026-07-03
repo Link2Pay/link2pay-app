@@ -392,6 +392,16 @@
     background-clip: text;
   }
 
+  /* Crypto-in → money-out. Indigo is the payer/crypto side of the story,
+     money green is the "lands in your account" side. Used on the hero
+     highlight so the palette itself narrates the conversion. */
+  .text-gradient-flow {
+    background: linear-gradient(120deg, hsl(var(--primary)) 15%, hsl(var(--success)) 85%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   .animate-in {
     animation: fadeSlideIn 0.4s ease-out forwards;
   }

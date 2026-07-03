@@ -491,6 +491,7 @@ const HOME_EXTRAS: Record<
     assetsNote: string;
     assetsEyebrow: string;
     sourceLabel: string;
+    featuredLabel: string;
     lifecycleCreated: string;
     lifecyclePending: string;
     lifecycleConfirmed: string;
@@ -503,6 +504,7 @@ const HOME_EXTRAS: Record<
     assetsNote: 'Use one integration pattern and choose the asset per payment request.',
     assetsEyebrow: 'One flow, multiple assets',
     sourceLabel: 'Source',
+    featuredLabel: 'Most used',
     lifecycleCreated: 'CREATED - link generated',
     lifecyclePending: 'PENDING - waiting for payer confirmation',
     lifecycleConfirmed: 'CONFIRMED - settlement completed on-chain',
@@ -514,6 +516,7 @@ const HOME_EXTRAS: Record<
     assetsNote: 'Usa un solo patrón de integración y elige el activo por solicitud de pago.',
     assetsEyebrow: 'Un flujo, varios activos',
     sourceLabel: 'Fuente',
+    featuredLabel: 'El más usado',
     lifecycleCreated: 'CREATED - link generado',
     lifecyclePending: 'PENDING - esperando confirmación del pagador',
     lifecycleConfirmed: 'CONFIRMED - liquidación completada on-chain',
@@ -525,6 +528,7 @@ const HOME_EXTRAS: Record<
     assetsNote: 'Use um único padrão de integração e escolha o ativo por solicitação de pagamento.',
     assetsEyebrow: 'Um fluxo, vários ativos',
     sourceLabel: 'Fonte',
+    featuredLabel: 'O mais usado',
     lifecycleCreated: 'CREATED - link gerado',
     lifecyclePending: 'PENDING - aguardando confirmação do pagador',
     lifecycleConfirmed: 'CONFIRMED - liquidação concluída on-chain',
@@ -546,74 +550,75 @@ export default function Home() {
 
   return (
     <div>
+      {/* Hero: the thesis (left) + the product itself, live (right) */}
       <section className="relative overflow-hidden border-b border-border bg-card">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_at_top,_hsl(var(--primary)_/_0.12),transparent_68%)]" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(ellipse_at_bottom,_hsl(var(--primary)_/_0.06),transparent_68%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-[clamp(2.75rem,7svh,5rem)] pt-[clamp(2.75rem,8svh,6rem)] sm:px-6 sm:pb-[clamp(3rem,8svh,5.5rem)] sm:pt-[clamp(3.25rem,10svh,6.5rem)]">
-          {/* Above the fold: only the headline and primary action */}
-          <div className="flex min-h-[52svh] flex-col items-center justify-center text-center sm:min-h-[56svh]">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary animate-fade-in">
-              <Sparkles className="h-3.5 w-3.5" />
-              {copy.badge}
-            </span>
-            <h1
-              className="mt-8 text-4xl font-semibold tracking-tight leading-[1.04] text-foreground md:text-6xl md:leading-[1.04] lg:text-7xl lg:leading-[1.02] animate-slide-up"
-              style={{ animationDelay: '0.08s' }}
-            >
-              <span className="block">{copy.heroTitleStart}</span>
-              <span className="block">
-                <span className="text-gradient">{copy.heroTitleHighlight}</span> {copy.heroTitleEnd}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_at_top_left,_hsl(var(--primary)_/_0.12),transparent_68%)]" />
+        <div className="pointer-events-none absolute bottom-0 right-0 h-80 w-1/2 bg-[radial-gradient(ellipse_at_bottom_right,_hsl(var(--success)_/_0.07),transparent_70%)]" />
+        <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-14 sm:px-6 sm:pb-20 sm:pt-20 lg:pb-24 lg:pt-24">
+          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14">
+            <div className="text-center lg:text-left">
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary animate-fade-in">
+                <Sparkles className="h-3.5 w-3.5" />
+                {copy.badge}
               </span>
-            </h1>
-            <div
-              className="mt-10 flex flex-wrap items-center justify-center gap-4 animate-slide-up"
-              style={{ animationDelay: '0.16s' }}
-            >
-              <Link to="/app" className="btn-primary px-6 py-3.5 text-sm">
-                {copy.heroPrimaryCta}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Supporting context (left) + live link builder card (right) */}
-      <section id="build" className="scroll-mt-40 border-b border-border bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-28">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-center lg:gap-12">
-            <div className="text-center lg:text-left animate-fade-in">
-              <p className="text-xl font-semibold leading-relaxed tracking-tight text-foreground md:text-2xl lg:text-3xl">
+              <h1
+                className="mt-6 text-4xl font-semibold tracking-tight leading-[1.08] text-foreground sm:text-[2.75rem] sm:leading-[1.07] lg:text-[3rem] lg:leading-[1.06] animate-slide-up"
+                style={{ animationDelay: '0.08s' }}
+              >
+                <span className="block [text-wrap:balance]">{copy.heroTitleStart}</span>
+                <span className="block [text-wrap:balance]">
+                  <span className="text-gradient-flow">{copy.heroTitleHighlight}</span> {copy.heroTitleEnd}
+                </span>
+              </h1>
+              <p
+                className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted-foreground lg:mx-0 animate-slide-up"
+                style={{ animationDelay: '0.14s' }}
+              >
                 {copy.heroDescStart}
-                <span className="text-gradient">{copy.heroDescHighlight}</span>
+                <span className="font-semibold text-success">{copy.heroDescHighlight}</span>
                 {copy.heroDescEnd}
               </p>
-              <div className="mt-8 flex flex-wrap justify-center gap-3 text-2xs uppercase tracking-[0.24em] lg:justify-start">
-                <span className="inline-flex items-center gap-2 text-primary font-medium">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <div
+                className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start animate-slide-up"
+                style={{ animationDelay: '0.2s' }}
+              >
+                <Link to="/app" className="btn-primary px-6 py-3.5 text-sm">
+                  {copy.heroPrimaryCta}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link to="/plans" className="btn-secondary px-6 py-3.5 text-sm">
+                  {copy.finalSecondaryCta}
+                </Link>
+              </div>
+              <div
+                className="mt-9 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-2xs font-medium uppercase tracking-[0.2em] text-muted-foreground lg:justify-start animate-fade-in"
+                style={{ animationDelay: '0.28s' }}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success" />
                   {copy.heroTag1}
                 </span>
-                <span className="inline-flex items-center gap-2 text-primary font-medium">
+                <span className="inline-flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                   {copy.heroTag2}
                 </span>
-                <span className="inline-flex items-center gap-2 text-primary font-medium">
+                <span className="inline-flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                   {copy.heroTag3}
                 </span>
               </div>
-              <p className="mt-4 text-xs text-muted-foreground">{copy.heroFootnote}</p>
             </div>
 
-            <div className="w-full animate-fade-in" style={{ animationDelay: '0.1s' }}>
-              <div className="relative h-full overflow-hidden rounded-[2.5rem] border border-border/70 bg-card/90 p-6 shadow-[0_40px_120px_hsl(var(--primary)_/_0.2)] backdrop-blur sm:p-8 lg:p-8">
+            <div className="w-full animate-fade-in" style={{ animationDelay: '0.18s' }}>
+              <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-5 shadow-[0_32px_90px_hsl(var(--primary)_/_0.16)] backdrop-blur sm:p-7">
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,_hsl(var(--card)),_hsl(var(--background)))]" />
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)_/_0.2),transparent_60%)]" />
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)_/_0.16),transparent_60%)]" />
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,_hsl(var(--primary)_/_0.07)_1px,transparent_1px),linear-gradient(180deg,_hsl(var(--primary)_/_0.05)_1px,transparent_1px)] bg-[size:48px_48px] opacity-60" />
                 <div className="relative">
                   <HeroPaymentMockup />
                 </div>
               </div>
+              <p className="mt-3 text-center text-xs text-muted-foreground">{copy.heroFootnote}</p>
             </div>
           </div>
         </div>
@@ -654,7 +659,9 @@ export default function Home() {
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary">
                         <Icon className="h-5 w-5" />
                       </div>
-                      <div className="mt-5 text-2xl font-semibold text-primary sm:text-3xl">{stat.value}</div>
+                      <div className="mt-5 font-mono text-2xl font-semibold tracking-tight text-foreground [font-variant-numeric:tabular-nums] sm:text-3xl">
+                        {stat.value}
+                      </div>
                       <p className="mt-2 text-sm text-muted-foreground">{stat.label}</p>
                     </div>
                   </article>
@@ -666,54 +673,53 @@ export default function Home() {
       </section>
 
       <section id="flow" className="scroll-mt-40 mx-auto max-w-6xl px-4 py-20 sm:px-6">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-          <div className="lg:sticky lg:top-24 lg:h-fit">
-            <h2 className="text-3xl font-semibold text-foreground">{copy.howTitle}</h2>
-            <p className="mt-3 text-base text-muted-foreground">{copy.howSubtitle}</p>
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-semibold text-foreground">{copy.howTitle}</h2>
+          <p className="mt-3 text-base text-muted-foreground">{copy.howSubtitle}</p>
+        </div>
 
-            <div className="mt-8 rounded-2xl border border-border bg-card p-5">
-              <p className="text-2xs uppercase tracking-[0.18em] text-muted-foreground">{copy.heroTag2}</p>
-              <div className="mt-4 space-y-3">
-                {flowSteps.map((step) => (
-                  <div key={step.step} className="flex items-center gap-3 rounded-lg border border-border bg-background/70 px-3 py-2.5">
-                    <span className="text-sm font-semibold text-primary">{step.step}</span>
-                    <p className="text-xs text-muted-foreground">{step.title}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <ol className="relative space-y-5">
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute bottom-5 left-6 top-5 hidden w-px bg-gradient-to-b from-primary/0 via-primary/40 to-primary/0 md:block"
-            />
-            {flowSteps.map((step, index) => {
-              const Icon = FLOW_STEP_ICONS[index];
-              return (
-                <li
-                  key={step.title}
-                  className={`relative overflow-hidden rounded-2xl border border-border bg-card p-6 sm:p-7 ${
-                    index % 2 === 0 ? 'md:mr-10' : 'md:ml-10'
+        {/* One container, three stations: the money moves left to right and
+            lands green — the same indigo→green story as the hero. */}
+        <ol className="mt-12 grid overflow-hidden rounded-2xl border border-border bg-card md:grid-cols-3 md:divide-x md:divide-border">
+          {flowSteps.map((step, index) => {
+            const Icon = FLOW_STEP_ICONS[index];
+            const terminal = index === flowSteps.length - 1;
+            return (
+              <li
+                key={step.title}
+                className={`relative p-7 sm:p-8 ${index > 0 ? 'border-t border-border md:border-t-0' : ''}`}
+              >
+                <div
+                  className={`pointer-events-none absolute inset-x-0 top-0 h-20 ${
+                    terminal
+                      ? 'bg-[linear-gradient(180deg,_hsl(var(--success)_/_0.10),transparent)]'
+                      : 'bg-[linear-gradient(180deg,_hsl(var(--primary)_/_0.08),transparent)]'
                   }`}
-                >
-                  <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-[linear-gradient(180deg,_hsl(var(--primary)_/_0.10),transparent)]" />
-                  <div className="relative flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/25 bg-primary/10 text-primary">
+                />
+                <div className="relative">
+                  <div className="flex items-center justify-between">
+                    <div
+                      className={`flex h-12 w-12 items-center justify-center rounded-xl border ${
+                        terminal
+                          ? 'border-success-border bg-success-subtle text-success'
+                          : 'border-primary/25 bg-primary/10 text-primary'
+                      }`}
+                    >
                       <Icon className="h-6 w-6" />
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold tracking-[0.12em] text-primary">{step.step}</p>
-                      <h3 className="mt-1 text-lg font-semibold text-foreground">{step.title}</h3>
-                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
-                    </div>
+                    <span
+                      className={`font-mono text-sm font-semibold ${terminal ? 'text-success' : 'text-primary'}`}
+                    >
+                      {step.step}
+                    </span>
                   </div>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
+                  <h3 className="mt-5 text-lg font-semibold text-foreground">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
       </section>
 
       <section id="benefits" className="scroll-mt-40 border-y border-border bg-card">
@@ -731,15 +737,23 @@ export default function Home() {
             <div className="grid gap-4 sm:grid-cols-2">
               {benefits.map((benefit, index) => {
                 const Icon = BENEFIT_ICONS[index];
+                // The first benefit is the product's promise — money landing in
+                // your account — so it wears the money green, not the crypto indigo.
                 const featured = index === 0;
                 return (
                   <article
                     key={benefit.title}
                     className={`rounded-2xl border p-6 ${
-                      featured ? 'border-primary/40 bg-primary/5 sm:col-span-2' : 'border-border bg-background'
+                      featured ? 'border-success-border bg-success-subtle/60 sm:col-span-2' : 'border-border bg-background'
                     }`}
                   >
-                    <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
+                    <div
+                      className={`mb-4 flex h-11 w-11 items-center justify-center rounded-lg border ${
+                        featured
+                          ? 'border-success-border bg-success-subtle text-success'
+                          : 'border-primary/25 bg-primary/10 text-primary'
+                      }`}
+                    >
                       <Icon className="h-5 w-5" />
                     </div>
                     <h3 className="text-base font-semibold text-foreground">{benefit.title}</h3>
@@ -787,8 +801,19 @@ export default function Home() {
           <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {impactStats.map((item) => (
               <article key={item.label} className="flex flex-col rounded-2xl border border-border bg-background p-6">
-                <div className="text-3xl font-semibold text-primary">{item.value}</div>
+                <div className="font-mono text-3xl font-semibold tracking-tight text-primary [font-variant-numeric:tabular-nums]">
+                  {item.value}
+                </div>
                 <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">{item.label}</p>
+                <a
+                  href={item.source}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex items-center gap-1 border-t border-border pt-3 text-2xs font-medium uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-primary"
+                >
+                  {extras.sourceLabel}
+                  <ArrowUpRight className="h-3 w-3" />
+                </a>
               </article>
             ))}
           </div>
@@ -840,9 +865,11 @@ export default function Home() {
                       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{currency.desc}</p>
                     </div>
                   </div>
-                  <span className="hidden shrink-0 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-2xs font-medium uppercase tracking-[0.12em] text-primary sm:inline-flex">
-                    {currency.featured ? 'USDC' : copy.heroTag2}
-                  </span>
+                  {currency.featured && (
+                    <span className="hidden shrink-0 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-2xs font-medium uppercase tracking-[0.12em] text-primary sm:inline-flex">
+                      {extras.featuredLabel}
+                    </span>
+                  )}
                 </div>
               </article>
             ))}
