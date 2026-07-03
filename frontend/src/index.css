@@ -408,6 +408,33 @@
     background-clip: text;
   }
 
+  /* Settlement-rail ambience: every few seconds a faint green charge travels
+     down the sidebar rail toward the account terminus — money moving to you.
+     1px wide, slow, and gone entirely under reduced motion. */
+  .rail-pulse {
+    position: absolute;
+    left: 2rem; /* rail x — keep in sync with the nav's left-8 line */
+    transform: translateX(-50%);
+    width: 1px;
+    height: 56px;
+    background: linear-gradient(180deg, transparent, hsl(var(--success) / 0.85), transparent);
+    animation: railFlow 8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    opacity: 0;
+  }
+
+  @keyframes railFlow {
+    0% { top: -64px; opacity: 0; }
+    12% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rail-pulse {
+      display: none;
+    }
+  }
+
   .animate-in {
     animation: fadeSlideIn 0.4s ease-out forwards;
   }
