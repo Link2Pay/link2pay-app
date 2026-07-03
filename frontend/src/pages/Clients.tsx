@@ -262,7 +262,7 @@ export default function ClientsPage() {
     <div className="space-y-6 animate-in">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">{copy.title}</h2>
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-foreground">{copy.title}</h2>
           <p className="text-sm text-muted-foreground">{copy.subtitle}</p>
         </div>
         <button

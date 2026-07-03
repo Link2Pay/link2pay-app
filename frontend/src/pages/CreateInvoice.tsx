@@ -97,7 +97,7 @@ export default function CreateInvoice() {
     return (
       <div>
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-ink-0">{copy.pickerTitle}</h2>
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-0">{copy.pickerTitle}</h2>
           <p className="text-sm text-ink-3">{copy.pickerSubtitle}</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">

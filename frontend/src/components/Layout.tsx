@@ -107,16 +107,20 @@ export default function Layout() {
           <div>
             <Link to="/dashboard" className="inline-flex items-center gap-2">
               <BrandMark className="h-9 w-9 rounded-lg" />
-              <BrandWordmark className="text-lg font-semibold leading-snug" />
+              <BrandWordmark
+                className="text-lg font-semibold leading-snug"
+                leftClassName="!text-sidebar-foreground"
+                rightClassName="!text-success"
+              />
             </Link>
-            <span className="mt-1 block text-3xs uppercase tracking-wider text-muted-foreground">
+            <span className="mt-1 block text-3xs uppercase tracking-wider text-sidebar-muted">
               {t('layout.invoicePlatform')}
             </span>
           </div>
         </div>
 
         <nav aria-label="Main navigation" className="flex-1 px-3 py-4">
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {navItems.map((item) => {
               const isActive = isActivePath(item.path);
               const Icon = item.icon;
@@ -125,13 +129,23 @@ export default function Layout() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+                  className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${
                     isActive
-                      ? 'bg-sidebar-accent text-primary'
-                      : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
+                      ? 'bg-sidebar-accent text-sidebar-foreground'
+                      : 'text-sidebar-muted hover:bg-sidebar-accent/60 hover:text-sidebar-foreground'
                   }`}
                 >
-                  <Icon aria-hidden="true" className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                  {/* Money-green rail marks where you are — the one accent on the ink. */}
+                  {isActive && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-success"
+                    />
+                  )}
+                  <Icon
+                    aria-hidden="true"
+                    className={`h-4 w-4 ${isActive ? 'text-success' : 'text-sidebar-muted'}`}
+                  />
                   {item.label}
                 </Link>
               );
@@ -222,21 +236,22 @@ export default function Layout() {
             aria-expanded={accountMenuOpen}
             aria-controls="account-menu"
             aria-label={t('layout.accountMenu')}
-            className="w-full rounded-xl border border-surface-3 bg-surface-1 p-2.5 text-left transition-colors hover:bg-sidebar-accent"
+            className="w-full rounded-xl border border-sidebar-border bg-sidebar-accent/50 p-2.5 text-left transition-colors hover:bg-sidebar-accent"
           >
             <div className="flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
+              <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-success/15 font-mono text-xs font-semibold text-success">
                 {profileInitial}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">
+                <p className="truncate font-mono text-xs font-semibold tracking-tight text-sidebar-foreground">
                   {publicKey ? shortenAddress(publicKey) : t('layout.defaultUser')}
                 </p>
-                <p className="truncate text-xs text-muted-foreground">
+                <p className="flex items-center gap-1.5 truncate text-xs text-sidebar-muted">
+                  {connected && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-success" />}
                   {connected ? t('layout.connected') : t('layout.notConnected')}
                 </p>
               </div>
-              <ChevronDown className={`h-4 w-4 flex-shrink-0 text-muted-foreground transition-transform ${accountMenuOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-4 w-4 flex-shrink-0 text-sidebar-muted transition-transform ${accountMenuOpen ? 'rotate-180' : ''}`} />
             </div>
           </button>
         </div>

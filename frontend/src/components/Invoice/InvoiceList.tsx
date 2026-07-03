@@ -146,7 +146,7 @@ export default function InvoiceList() {
   return (
     <div className="animate-in">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
+        <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-0">{copy.title}</h2>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
             + {copy.newInvoice}

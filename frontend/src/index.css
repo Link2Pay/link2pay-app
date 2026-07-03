@@ -146,15 +146,18 @@
     --info-subtle: var(--ref-blue-50);
     --info-border: var(--ref-blue-200);
 
-    /* Sidebar */
-    --sidebar-background: var(--ref-neutral-0);
-    --sidebar-foreground: var(--ref-neutral-900);
-    --sidebar-primary: var(--ref-indigo-700);
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: var(--ref-neutral-100);
-    --sidebar-accent-foreground: var(--ref-neutral-900);
-    --sidebar-border: var(--ref-neutral-200);
-    --sidebar-ring: var(--ref-indigo-500);
+    /* Sidebar — brand-ink chrome. The app shell wears the logo's deep navy in
+       both themes; content stays light paper so the ledger commands attention.
+       Money green (--success) is the only accent allowed on the ink. */
+    --sidebar-background: 224 44% 15%;
+    --sidebar-foreground: 220 30% 96%;
+    --sidebar-muted: 224 16% 62%;
+    --sidebar-primary: 223 50% 70%;
+    --sidebar-primary-foreground: 224 44% 15%;
+    --sidebar-accent: 223 38% 22%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 223 34% 23%;
+    --sidebar-ring: 223 50% 64%;
 
     /* Legacy alias targets (consumed by ink and surface scales in tailwind.config) */
     --surface-elevated: var(--ref-neutral-0);
@@ -227,13 +230,16 @@
     --info-subtle: 213 50% 14%;
     --info-border: 214 48% 32%;
 
-    --sidebar-background: var(--ref-neutral-900);
-    --sidebar-foreground: var(--ref-neutral-50);
+    /* Ink sidebar, deepened a step below the dark canvas so the chrome still
+       reads as its own plane in dark mode. */
+    --sidebar-background: 223 36% 11%;
+    --sidebar-foreground: 220 30% 96%;
+    --sidebar-muted: 223 14% 60%;
     --sidebar-primary: 223 56% 64%;
     --sidebar-primary-foreground: 222 47% 12%;
-    --sidebar-accent: var(--ref-neutral-800);
-    --sidebar-accent-foreground: var(--ref-neutral-50);
-    --sidebar-border: var(--ref-neutral-800);
+    --sidebar-accent: 223 30% 17%;
+    --sidebar-accent-foreground: 220 30% 96%;
+    --sidebar-border: 223 28% 18%;
     --sidebar-ring: 223 56% 64%;
 
     --surface-elevated: var(--ref-neutral-900);

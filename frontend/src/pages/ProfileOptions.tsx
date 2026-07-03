@@ -266,7 +266,7 @@ export default function ProfileOptions() {
   return (
     <div className="space-y-6 animate-in">
       <div>
-        <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
+        <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-0">{copy.title}</h2>
         <p className="text-sm text-ink-3">{copy.subtitle}</p>
       </div>
 

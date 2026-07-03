@@ -217,7 +217,7 @@ export default function Wallet() {
     <div className="space-y-6 animate-in">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-ink-0">
+          <h2 className="flex items-center gap-2 font-display text-2xl font-semibold tracking-tight text-ink-0">
             <WalletIcon className="h-5 w-5 text-primary" />
             {copy.title}
           </h2>

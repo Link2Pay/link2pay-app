@@ -273,34 +273,10 @@ export default function Dashboard() {
   };
 
   const statCards = [
-    {
-      label: copy.totalInvoices,
-      value: totalLinks,
-      color: 'text-ink-0',
-      icon: FileText,
-      border: '',
-    },
-    {
-      label: copy.paid,
-      value: paidLinks,
-      color: 'text-success',
-      icon: CheckCircle2,
-      border: 'border-l-4 border-l-success',
-    },
-    {
-      label: copy.pending,
-      value: pendingLinks,
-      color: 'text-warning',
-      icon: Clock3,
-      border: 'border-l-4 border-l-warning',
-    },
-    {
-      label: copy.revenue,
-      value: totalRevenueValue,
-      color: 'text-stellar-600',
-      icon: CircleDollarSign,
-      border: 'border-l-4 border-l-primary',
-    },
+    { label: copy.totalInvoices, value: totalLinks, color: 'text-ink-0', icon: FileText },
+    { label: copy.paid, value: paidLinks, color: 'text-success', icon: CheckCircle2 },
+    { label: copy.pending, value: pendingLinks, color: 'text-warning', icon: Clock3 },
+    { label: copy.revenue, value: totalRevenueValue, color: 'text-ink-0', icon: CircleDollarSign },
   ];
 
   if (loading) {
@@ -348,8 +324,8 @@ export default function Dashboard() {
       )}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-ink-0">{copy.title}</h2>
-          <p className="text-sm text-ink-3">{copy.subtitle}</p>
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-0">{copy.title}</h2>
+          <p className="mt-0.5 text-sm text-ink-3">{copy.subtitle}</p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
@@ -359,19 +335,19 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Ledger strip: one panel, hairline-divided cells — a balance row, not
+          four competing cards. Color only where state lives. */}
+      <div className="card grid grid-cols-2 gap-px overflow-hidden !bg-border md:grid-cols-4">
         {statCards.map((stat) => {
           const Icon = stat.icon;
 
           return (
-            <div key={stat.label} className={`card p-5 ${stat.border}`}>
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs text-ink-3">{stat.label}</p>
-                <span className="rounded-md bg-muted p-1.5 text-ink-3">
-                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                </span>
-              </div>
-              <p className={`text-2xl font-semibold font-mono ${stat.color}`}>
+            <div key={stat.label} className="bg-card p-5">
+              <p className="flex items-center gap-1.5 text-2xs font-medium uppercase tracking-[0.14em] text-ink-3">
+                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                {stat.label}
+              </p>
+              <p className={`mt-3 font-mono text-2xl font-semibold tracking-tight [font-variant-numeric:tabular-nums] ${stat.color}`}>
                 {stat.value}
               </p>
             </div>
@@ -432,16 +408,23 @@ export default function Dashboard() {
             })}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {/* Stage counts as one hairline-divided row: dots carry the stage color,
+              numbers stay ledger-neutral — no tiles inside cards. */}
+          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-border sm:grid-cols-4">
             {[
-              { key: copy.stageDraft, value: draftLinks, textColor: 'text-muted-foreground' },
-              { key: copy.stageInFlight, value: pendingLinks, textColor: 'text-warning' },
-              { key: copy.stagePaid, value: paidLinks, textColor: 'text-success' },
-              { key: copy.stageClosed, value: closedLinks, textColor: 'text-destructive' },
+              { key: copy.stageDraft, value: draftLinks, dot: 'bg-muted-foreground' },
+              { key: copy.stageInFlight, value: pendingLinks, dot: 'bg-warning' },
+              { key: copy.stagePaid, value: paidLinks, dot: 'bg-success' },
+              { key: copy.stageClosed, value: closedLinks, dot: 'bg-destructive' },
             ].map((item) => (
-              <div key={item.key} className="rounded-lg border border-surface-3 bg-surface-1 p-3">
-                <p className="text-2xs text-ink-3">{item.key}</p>
-                <p className={`mt-1 text-lg font-semibold font-mono ${item.textColor}`}>{item.value}</p>
+              <div key={item.key} className="bg-surface-1 px-3 py-2.5">
+                <p className="flex items-center gap-1.5 text-2xs text-ink-3">
+                  <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${item.dot}`} />
+                  {item.key}
+                </p>
+                <p className="mt-1 font-mono text-lg font-semibold tracking-tight text-ink-0 [font-variant-numeric:tabular-nums]">
+                  {item.value}
+                </p>
               </div>
             ))}
           </div>
@@ -560,29 +543,38 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="card divide-y divide-surface-3">
-            {recentInvoices.map((invoice) => (
-              <Link
-                key={invoice.id}
-                to={`/dashboard/links/${invoice.id}`}
-                className="flex flex-col gap-3 p-4 transition-colors hover:bg-surface-1 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex min-w-0 items-center gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-ink-0 break-words">{invoice.title}</p>
-                    <p className="text-xs text-ink-3">
-                      {invoice.clientName} | {invoice.invoiceNumber}
-                    </p>
+            {recentInvoices.map((invoice) => {
+              // Ledger voice: money that actually landed reads as a green credit.
+              const moneyIn = invoice.status === 'PAID' || invoice.status === 'SETTLED_FIAT';
+              return (
+                <Link
+                  key={invoice.id}
+                  to={`/dashboard/links/${invoice.id}`}
+                  className="flex flex-col gap-3 p-4 transition-colors hover:bg-surface-1 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex min-w-0 items-center gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-ink-0 break-words">{invoice.title}</p>
+                      <p className="text-xs text-ink-3">
+                        {invoice.clientName} | {invoice.invoiceNumber}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center justify-between gap-4 sm:justify-end">
-                  <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
-                  <span className="text-sm font-mono font-medium text-ink-0 w-24 text-right">
-                    {parseFloat(invoice.total).toFixed(2)}{' '}
-                    <span className="text-ink-3 text-xs">{invoice.currency}</span>
-                  </span>
-                </div>
-              </Link>
-            ))}
+                  <div className="flex items-center justify-between gap-4 sm:justify-end">
+                    <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
+                    <span
+                      className={`w-28 text-right font-mono text-sm font-medium [font-variant-numeric:tabular-nums] ${
+                        moneyIn ? 'text-success' : 'text-ink-0'
+                      }`}
+                    >
+                      {moneyIn ? '+' : ''}
+                      {parseFloat(invoice.total).toFixed(2)}{' '}
+                      <span className={`text-xs ${moneyIn ? 'text-success/70' : 'text-ink-3'}`}>{invoice.currency}</span>
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

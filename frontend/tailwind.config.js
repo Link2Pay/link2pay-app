@@ -101,6 +101,7 @@ export default {
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-background))',
           foreground: 'hsl(var(--sidebar-foreground))',
+          muted: 'hsl(var(--sidebar-muted))',
           primary: 'hsl(var(--sidebar-primary))',
           border: 'hsl(var(--sidebar-border))',
           accent: 'hsl(var(--sidebar-accent))',
