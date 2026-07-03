@@ -57,8 +57,8 @@ simulates settlement, so the test environment walls fiat off entirely.
 ## One-time setup checklist
 
 ### GitHub
-- [ ] `git push origin develop --force-with-lease` (the remote `develop` is a
-      stale unrelated branch from February — it gets replaced by this one).
+- [ ] `git push origin develop` (the stale February `develop` was deleted
+      during branch cleanup; this publishes the real one).
 - [ ] Branch protection on `main`: require a PR, no direct pushes.
 
 ### DNS (registrar for link2pay.xyz)
