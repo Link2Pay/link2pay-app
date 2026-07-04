@@ -114,14 +114,14 @@ const TYPE_VISUALS: Record<InvoiceType, {
   BUSINESS_INVOICE: {
     icon: Building2,
     variant: 'neutral',
-    chipClass: 'bg-cat-sage text-foreground',
-    accentClass: 'bg-cat-sage',
+    chipClass: 'bg-card-invert text-card-invert-foreground',
+    accentClass: 'bg-border',
   },
   SERVICE_INVOICE: {
     icon: Clock3,
     variant: 'neutral',
-    chipClass: 'bg-cat-sand text-foreground',
-    accentClass: 'bg-cat-sand',
+    chipClass: 'bg-muted text-ink-2',
+    accentClass: 'bg-border',
   },
 };
 
@@ -167,7 +167,7 @@ export default function CreateInvoice() {
                   ) : (
                     <span
                       aria-hidden="true"
-                      className={`absolute inset-x-5 top-0 h-1 rounded-b-full ${visual.accentClass}`}
+                      className={`absolute inset-x-5 top-0 h-px rounded-b-full ${visual.accentClass}`}
                     />
                   )}
 

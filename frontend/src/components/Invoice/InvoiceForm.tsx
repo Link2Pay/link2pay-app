@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Calendar, Check, ChevronDown, Plus, X } from 'lucide-react';
 import { createInvoice, getBusinessProfile } from '../../services/api';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
@@ -11,6 +12,9 @@ import { railByCountry, FIAT_RAILS } from '../../config/rails';
 import { config } from '../../config';
 import type { Currency, InvoiceType } from '../../types';
 import type { Language } from '../../i18n/translations';
+import usdcLogo from '../../assets/logos/usdc.png';
+import eurcLogo from '../../assets/logos/eurc.png';
+import xlmLogo from '../../assets/logos/xlm.png';
 
 interface LineItemForm {
   description: string;
@@ -80,11 +84,18 @@ const COPY: Record<Language, {
   prefillHint: string;
   openAmountLabel: string;
   openAmountHint: string;
-  openAmountPlaceholder: string;
-  expiration: string;
-  defaultDirectTitle: string;
-  noExpiryHint: string;
-  kycRequiredError: string;
+    openAmountPlaceholder: string;
+    expiration: string;
+    defaultDirectTitle: string;
+    noExpiryHint: string;
+    showDatePicker: string;
+    kycRequiredError: string;
+  settlement: string;
+  payoutAlias: string;
+  settlementDemo: string;
+  fiatPanelHint: string;
+  fiatAliasHint: string;
+  removeLineItem: string;
 }> = {
   en: {
     failedCreateInvoice: 'Failed to create invoice',
@@ -118,7 +129,7 @@ const COPY: Record<Language, {
     taxAmount: 'Tax Amount',
     total: 'Total',
     cancel: 'Cancel',
-    creating: 'Creating...',
+    creating: 'Creating…',
     createInvoice: 'Create Invoice',
     yourNamePlaceholder: 'Your name',
     yourEmailPlaceholder: 'you@example.com',
@@ -126,29 +137,36 @@ const COPY: Record<Language, {
     clientNamePlaceholder: 'Client name',
     clientEmailPlaceholder: 'client@example.com',
     titlePlaceholder: 'Website Development',
-    descriptionPlaceholder: 'Project description...',
+    descriptionPlaceholder: 'Project description…',
     serviceDescriptionPlaceholder: 'Service description',
     itemDescriptionPlaceholder: 'Item or product',
     titleBusinessPlaceholder: 'Product sale',
-    descriptionBusinessPlaceholder: 'Items, quantities, order details...',
+    descriptionBusinessPlaceholder: 'Items, quantities, order details…',
     taxPlaceholder: '0',
-    notesPlaceholder: 'Payment terms, additional notes...',
+    notesPlaceholder: 'Payment terms, additional notes…',
     networkMismatch: 'Network mismatch: You selected {selected} but Freighter wallet is on {freighter}. Please switch your Freighter wallet to {selected}, disconnect and reconnect your wallet.',
     taxId: 'Tax ID',
     taxIdPlaceholder: 'NIT / RUT / tax number',
     address: 'Address',
     addressPlaceholder: 'Street, city, country',
     phone: 'Phone',
-    phonePlaceholder: '+57 ...',
+    phonePlaceholder: '+57 …',
     clientTaxId: 'Client Tax ID',
     prefillHint: 'Prefilled from your business profile',
     openAmountLabel: 'Let the payer enter the amount',
-    openAmountHint: 'No fixed amount — the payer chooses how much to send on the payment page.',
+    openAmountHint: 'No fixed amount. The payer chooses how much to send on the payment page.',
     openAmountPlaceholder: 'Payer decides',
     expiration: 'Expiration',
     defaultDirectTitle: 'Payment request',
     noExpiryHint: 'Leave blank for no expiration',
+    showDatePicker: 'Show date picker',
     kycRequiredError: 'Verify your identity to create a fiat (Bre-B) payment link.',
+    settlement: 'Settlement',
+    payoutAlias: 'Payout alias',
+    settlementDemo: 'Simulated {rail} settlement (demo)',
+    fiatPanelHint: 'Configure the alias that receives COP and complete identity verification to enable Bre-B settlement.',
+    fiatAliasHint: 'Enter the Bre-B alias, key, or account identifier used to receive the payout.',
+    removeLineItem: 'Remove line item',
   },
   es: {
     failedCreateInvoice: 'No se pudo crear la factura',
@@ -182,7 +200,7 @@ const COPY: Record<Language, {
     taxAmount: 'Monto de impuesto',
     total: 'Total',
     cancel: 'Cancelar',
-    creating: 'Creando...',
+    creating: 'Creando…',
     createInvoice: 'Crear factura',
     yourNamePlaceholder: 'Tu nombre',
     yourEmailPlaceholder: 'tu@email.com',
@@ -190,29 +208,36 @@ const COPY: Record<Language, {
     clientNamePlaceholder: 'Nombre del cliente',
     clientEmailPlaceholder: 'cliente@email.com',
     titlePlaceholder: 'Desarrollo web',
-    descriptionPlaceholder: 'Descripcion del proyecto...',
+    descriptionPlaceholder: 'Descripcion del proyecto…',
     serviceDescriptionPlaceholder: 'Descripcion del servicio',
     itemDescriptionPlaceholder: 'Articulo o producto',
     titleBusinessPlaceholder: 'Venta de productos',
-    descriptionBusinessPlaceholder: 'Articulos, cantidades, detalles del pedido...',
+    descriptionBusinessPlaceholder: 'Articulos, cantidades, detalles del pedido…',
     taxPlaceholder: '0',
-    notesPlaceholder: 'Terminos de pago, notas adicionales...',
+    notesPlaceholder: 'Terminos de pago, notas adicionales…',
     networkMismatch: 'Red incorrecta: Seleccionaste {selected} pero Freighter esta en {freighter}. Por favor cambia tu wallet Freighter a {selected}, desconecta y reconecta tu wallet.',
     taxId: 'ID fiscal (NIT/RUT/CUIT)',
     taxIdPlaceholder: 'NIT / RUT / numero fiscal',
     address: 'Direccion',
     addressPlaceholder: 'Calle, ciudad, pais',
     phone: 'Telefono',
-    phonePlaceholder: '+57 ...',
+    phonePlaceholder: '+57 …',
     clientTaxId: 'ID fiscal del cliente',
     prefillHint: 'Rellenado desde tu perfil de negocio',
     openAmountLabel: 'Que el pagador ingrese el monto',
-    openAmountHint: 'Sin monto fijo — el pagador elige cuánto enviar en la página de pago.',
+    openAmountHint: 'Sin monto fijo. El pagador elige cuánto enviar en la página de pago.',
     openAmountPlaceholder: 'El pagador decide',
     expiration: 'Vencimiento',
     defaultDirectTitle: 'Solicitud de pago',
     noExpiryHint: 'Déjalo en blanco para que no expire',
+    showDatePicker: 'Mostrar selector de fecha',
     kycRequiredError: 'Verifica tu identidad para crear un link de pago en fiat (Bre-B).',
+    settlement: 'Liquidación',
+    payoutAlias: 'Alias de cobro',
+    settlementDemo: 'Liquidación {rail} simulada (demo)',
+    fiatPanelHint: 'Configura el alias que recibe COP y completa la verificación de identidad para habilitar Bre-B.',
+    fiatAliasHint: 'Ingresa el alias, llave o identificador de cuenta que recibirá el retiro.',
+    removeLineItem: 'Eliminar línea',
   },
   pt: {
     failedCreateInvoice: 'Falha ao criar fatura',
@@ -246,7 +271,7 @@ const COPY: Record<Language, {
     taxAmount: 'Valor do imposto',
     total: 'Total',
     cancel: 'Cancelar',
-    creating: 'Criando...',
+    creating: 'Criando…',
     createInvoice: 'Criar fatura',
     yourNamePlaceholder: 'Seu nome',
     yourEmailPlaceholder: 'voce@email.com',
@@ -254,31 +279,299 @@ const COPY: Record<Language, {
     clientNamePlaceholder: 'Nome do cliente',
     clientEmailPlaceholder: 'cliente@email.com',
     titlePlaceholder: 'Desenvolvimento de site',
-    descriptionPlaceholder: 'Descricao do projeto...',
+    descriptionPlaceholder: 'Descricao do projeto…',
     serviceDescriptionPlaceholder: 'Descricao do servico',
     itemDescriptionPlaceholder: 'Item ou produto',
     titleBusinessPlaceholder: 'Venda de produtos',
-    descriptionBusinessPlaceholder: 'Itens, quantidades, detalhes do pedido...',
+    descriptionBusinessPlaceholder: 'Itens, quantidades, detalhes do pedido…',
     taxPlaceholder: '0',
-    notesPlaceholder: 'Termos de pagamento, notas adicionais...',
+    notesPlaceholder: 'Termos de pagamento, notas adicionais…',
     networkMismatch: 'Rede incorreta: Voce selecionou {selected} mas Freighter esta em {freighter}. Por favor, mude sua carteira Freighter para {selected}, desconecte e reconecte sua carteira.',
     taxId: 'ID fiscal (CNPJ/CPF)',
     taxIdPlaceholder: 'CNPJ / CPF / numero fiscal',
     address: 'Endereco',
     addressPlaceholder: 'Rua, cidade, pais',
     phone: 'Telefone',
-    phonePlaceholder: '+55 ...',
+    phonePlaceholder: '+55 …',
     clientTaxId: 'ID fiscal do cliente',
     prefillHint: 'Preenchido do seu perfil de negocio',
     openAmountLabel: 'Deixar o pagador inserir o valor',
-    openAmountHint: 'Sem valor fixo — o pagador escolhe quanto enviar na página de pagamento.',
+    openAmountHint: 'Sem valor fixo. O pagador escolhe quanto enviar na página de pagamento.',
     openAmountPlaceholder: 'O pagador decide',
     expiration: 'Validade',
     defaultDirectTitle: 'Solicitação de pagamento',
     noExpiryHint: 'Deixe em branco para não expirar',
+    showDatePicker: 'Mostrar seletor de data',
     kycRequiredError: 'Verifique sua identidade para criar um link de pagamento em fiat (Bre-B).',
+    settlement: 'Liquidação',
+    payoutAlias: 'Alias de recebimento',
+    settlementDemo: 'Liquidação {rail} simulada (demo)',
+    fiatPanelHint: 'Configure o alias que recebe COP e conclua a verificação de identidade para habilitar o Bre-B.',
+    fiatAliasHint: 'Digite o alias, chave ou identificador da conta que receberá o pagamento.',
+    removeLineItem: 'Remover item',
   },
 };
+
+function SectionCard({
+  title,
+  eyebrow,
+  hint,
+  action,
+  children,
+  className = '',
+}: {
+  title: string;
+  eyebrow?: string;
+  hint?: string;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`card p-5 sm:p-6 ${className}`}>
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          {eyebrow && (
+            <p className="mb-1 text-2xs font-medium uppercase tracking-label text-muted-foreground">
+              {eyebrow}
+            </p>
+          )}
+          <h3 className="font-display text-xl font-bold tracking-tight text-foreground">{title}</h3>
+          {hint && <p className="mt-1 text-xs text-ink-3">{hint}</p>}
+        </div>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Field({
+  id,
+  label,
+  required,
+  hint,
+  hintId,
+  children,
+}: {
+  id: string;
+  label: string;
+  required?: boolean;
+  hint?: string;
+  hintId?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="min-w-0">
+      <label htmlFor={id} className="label">
+        {label}
+        {required && <span className="text-destructive"> *</span>}
+      </label>
+      {children}
+      {hint && <p id={hintId} className="mt-1 text-2xs text-ink-4">{hint}</p>}
+    </div>
+  );
+}
+
+function formatMoney(value: number, currency: Currency) {
+  return `${value.toFixed(2)} ${currency}`;
+}
+
+const CURRENCY_OPTIONS: Array<{ value: Currency; label: string; logo: string }> = [
+  { value: 'USDC', label: 'USDC', logo: usdcLogo },
+  { value: 'EURC', label: 'EURC', logo: eurcLogo },
+  { value: 'XLM', label: 'XLM', logo: xlmLogo },
+];
+
+function CurrencyPicker({
+  id,
+  name,
+  value,
+  onChange,
+  className = '',
+}: {
+  id: string;
+  name: string;
+  value: Currency;
+  onChange: (value: Currency) => void;
+  className?: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selected = CURRENCY_OPTIONS.find((option) => option.value === value) ?? CURRENCY_OPTIONS[0];
+
+  return (
+    <div
+      className="relative"
+      onBlur={(event) => {
+        const nextTarget = event.relatedTarget;
+        if (!(nextTarget instanceof Node) || !event.currentTarget.contains(nextTarget)) {
+          setIsOpen(false);
+        }
+      }}
+    >
+      <input type="hidden" name={name} value={value} />
+      <button
+        id={id}
+        type="button"
+        className={`input flex items-center justify-between gap-3 pr-3 text-left ${className}`}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((current) => !current)}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            setIsOpen(false);
+          }
+        }}
+      >
+        <span className="flex min-w-0 items-center gap-2.5">
+          <img src={selected.logo} alt="" className="h-5 w-5 shrink-0 rounded-full" />
+          <span className="truncate">{selected.label}</span>
+        </span>
+        <ChevronDown
+          aria-hidden="true"
+          className={`h-4 w-4 shrink-0 text-foreground transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {isOpen && (
+        <div
+          role="listbox"
+          aria-labelledby={id}
+          className="absolute z-20 mt-2 w-full rounded-xl border border-border bg-popover p-1 shadow-overlay"
+        >
+          {CURRENCY_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="option"
+              aria-selected={option.value === value}
+              className={`flex h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-bold transition-colors duration-150 ${
+                option.value === value ? 'bg-muted text-foreground' : 'text-ink-2 hover:bg-muted hover:text-foreground'
+              }`}
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+            >
+              <img src={option.logo} alt="" className="h-5 w-5 shrink-0 rounded-full" />
+              <span>{option.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DateInput({
+  id,
+  name,
+  value,
+  onChange,
+  pickerLabel,
+}: {
+  id: string;
+  name: string;
+  value: string;
+  onChange: (value: string) => void;
+  pickerLabel: string;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const openPicker = useCallback(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    if (typeof input.showPicker === 'function') {
+      input.showPicker();
+      return;
+    }
+    input.focus();
+  }, []);
+
+  return (
+    <div className="relative">
+      <input
+        ref={inputRef}
+        id={id}
+        name={name}
+        type="date"
+        className="input date-input pr-11"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        autoComplete="off"
+      />
+      <button
+        type="button"
+        onClick={openPicker}
+        aria-label={pickerLabel}
+        title={pickerLabel}
+        className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <Calendar aria-hidden="true" className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+function SettlementOptionCard({
+  id,
+  name,
+  value,
+  checked,
+  compact,
+  title,
+  description,
+  onChange,
+}: {
+  id: string;
+  name: string;
+  value: 'CRYPTO' | 'BRE_B';
+  checked: boolean;
+  compact: boolean;
+  title: string;
+  description: string;
+  onChange: (value: 'CRYPTO' | 'BRE_B') => void;
+}) {
+  return (
+    <label
+      htmlFor={id}
+      className={`group relative flex cursor-pointer gap-3 overflow-hidden rounded-xl border px-4 py-3 text-left text-sm transition-colors duration-150 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background ${
+        compact ? 'min-h-16 items-center' : 'min-h-20 items-start'
+      } ${
+        checked
+          ? 'border-accent-ink bg-card-invert text-card-invert-foreground'
+          : 'border-border bg-muted text-ink-2 hover:text-foreground'
+      }`}
+    >
+      <input
+        id={id}
+        type="radio"
+        name={name}
+        value={value}
+        className="sr-only"
+        checked={checked}
+        onChange={() => onChange(value)}
+      />
+      <span
+        aria-hidden="true"
+        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border transition-colors duration-150 ${
+          checked
+            ? 'border-card-invert-foreground bg-card-invert-foreground text-card-invert'
+            : 'border-border bg-card text-transparent'
+        }`}
+      >
+        {checked && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+      </span>
+      <span className="min-w-0">
+        <span className={`block font-bold ${checked ? 'text-card-invert-foreground' : 'text-foreground'}`}>
+          {title}
+        </span>
+        <span className={`mt-1 block text-2xs ${checked ? 'text-card-invert-foreground/70' : 'text-ink-3'}`}>
+          {description}
+        </span>
+      </span>
+    </label>
+  );
+}
 
 export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   const navigate = useNavigate();
@@ -286,6 +579,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   const { networkPassphrase } = useNetworkStore();
   const { language, t } = useI18n();
   const copy = COPY[language];
+  const formId = useId();
 
   const isDirect = invoiceType === 'DIRECT_PAYMENT';
   const isService = invoiceType === 'SERVICE_INVOICE';
@@ -389,6 +683,12 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   const fiatLive = fiatRail.status === 'live' && config.fiatRailsEnabled;
   const fiatSelected = payoutMethod === 'BRE_B';
   const fiatWalled = fiatSelected && !fiatLive;
+  const directAmountId = `${formId}-direct-amount`;
+  const directCurrencyId = `${formId}-direct-currency`;
+  const directDueDateId = `${formId}-direct-due-date`;
+  const payoutAliasId = `${formId}-payout-alias`;
+  const fiatAliasHintId = `${formId}-fiat-alias-hint`;
+  const lineDescriptionLabel = isService ? copy.serviceDescriptionPlaceholder : copy.itemDescriptionPlaceholder;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -481,51 +781,72 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
     }
   };
 
-  const settlementSection = (
-    <div>
-      <label className="label">Settlement</label>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <button
-          type="button"
-          onClick={() => setPayoutMethod('CRYPTO')}
-          className={`rounded-lg border px-3 py-2.5 text-left text-sm transition ${
-            payoutMethod === 'CRYPTO'
-              ? 'border-stellar-400 bg-stellar-50 text-stellar-700'
-              : 'border-surface-3 bg-card text-ink-2'
-          }`}
-        >
-          <span className="block font-medium">{t('rail.cryptoLabel')}</span>
-          <span className="block text-2xs text-ink-3">{t('rail.cryptoDesc', { currency })}</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setPayoutMethod('BRE_B')}
-          className={`rounded-lg border px-3 py-2.5 text-left text-sm transition ${
-            fiatSelected
-              ? fiatLive
-                ? 'border-warning-border bg-warning-subtle text-warning'
-                : 'border-primary/40 bg-primary/5 text-primary'
-              : 'border-surface-3 bg-card text-ink-2'
-          }`}
-        >
-          <span className="block font-medium">
-            {t('rail.fiatOfframp')} · {fiatRail.railName} ({fiatRail.currency})
-          </span>
-          <span className="block text-2xs text-ink-3">
-            {t('rail.fiatDesc', { currency, fiat: fiatRail.currency })}
-          </span>
-        </button>
-      </div>
-      {fiatSelected && fiatLive && (
-        <div className="mt-2">
-          <input
-            className="input"
-            placeholder={`${fiatRail.aliasLabel} (payout alias), e.g. ${fiatRail.aliasPlaceholder}`}
-            value={payoutAlias}
-            onChange={(e) => setPayoutAlias(e.target.value)}
+  const renderSettlementSection = (compact = false) => (
+    <div className="space-y-3">
+      <fieldset>
+        <legend className="label mb-2">{copy.settlement}</legend>
+        <div className={`grid grid-cols-1 gap-2 ${compact ? '' : 'sm:grid-cols-2'}`}>
+          <SettlementOptionCard
+            id={`${formId}-settlement-crypto`}
+            name={`${formId}-settlement`}
+            value="CRYPTO"
+            checked={payoutMethod === 'CRYPTO'}
+            compact={compact}
+            title={t('rail.cryptoLabel')}
+            description={t('rail.cryptoDesc', { currency })}
+            onChange={setPayoutMethod}
           />
-          <p className="mt-1 text-2xs text-warning">Simulated {fiatRail.railName} settlement (demo)</p>
-          <KycGate active={fiatSelected && fiatLive} onVerifiedChange={setKycVerified} />
+          <SettlementOptionCard
+            id={`${formId}-settlement-fiat`}
+            name={`${formId}-settlement`}
+            value="BRE_B"
+            checked={fiatSelected}
+            compact={compact}
+            title={`${t('rail.fiatOfframp')} · ${fiatRail.railName} (${fiatRail.currency})`}
+            description={t('rail.fiatDesc', { currency, fiat: fiatRail.currency })}
+            onChange={setPayoutMethod}
+          />
+        </div>
+      </fieldset>
+      {fiatSelected && fiatLive && (
+        <div className="rounded-2xl border border-accent-ink bg-card p-4 sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="label mb-1">{copy.settlement}</p>
+              <h4 className="font-display text-lg font-bold tracking-tight text-foreground">
+                {t('rail.fiatOfframp')} · {fiatRail.railName}
+              </h4>
+              <p className="mt-1 text-xs text-ink-3">{copy.fiatPanelHint}</p>
+            </div>
+            <span className="inline-flex h-7 items-center rounded-full border border-border bg-muted px-2.5 text-2xs font-semibold text-secondary-foreground">
+              {fiatRail.currency}
+            </span>
+          </div>
+          <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.9fr)]">
+            <div className="space-y-3">
+              <Field
+                id={payoutAliasId}
+                label={copy.payoutAlias}
+                hint={copy.fiatAliasHint}
+                hintId={fiatAliasHintId}
+              >
+                <input
+                  id={payoutAliasId}
+                  name="payoutAlias"
+                  className="input"
+                  placeholder={`${fiatRail.aliasLabel}: ${fiatRail.aliasPlaceholder}`}
+                  value={payoutAlias}
+                  onChange={(e) => setPayoutAlias(e.target.value)}
+                  autoComplete="off"
+                  aria-describedby={fiatAliasHintId}
+                />
+              </Field>
+              <p className="text-2xs text-ink-3">
+                {copy.settlementDemo.replace('{rail}', fiatRail.railName)}
+              </p>
+            </div>
+            <KycGate active={fiatSelected && fiatLive} onVerifiedChange={setKycVerified} />
+          </div>
         </div>
       )}
       {fiatWalled && <ComingSoonWall rail={fiatRail} wallet={publicKey} />}
@@ -535,270 +856,457 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 animate-in sm:space-y-8">
       {error && (
-        <div className="p-4 rounded-lg bg-destructive-subtle border border-destructive-border text-destructive text-sm">{error}</div>
+        <div
+          className="rounded-xl border border-destructive-border bg-destructive-subtle p-4 text-sm text-destructive"
+          aria-live="polite"
+        >
+          {error}
+        </div>
       )}
 
-      {/* ── DIRECT PAYMENT layout (minimal: amount + currency + expiration) ── */}
       {isDirect && (
-        <section className="card p-5 sm:p-6">
-          <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.paymentDetails}</h3>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div>
-                <label className="label">
-                  {copy.amount}
-                  {!isOpenAmount && <span className="text-danger"> *</span>}
+        <SectionCard title={copy.paymentDetails} eyebrow={copy.defaultDirectTitle}>
+          <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_160px]">
+                <Field id={directAmountId} label={copy.amount} required={!isOpenAmount}>
+                  <input
+                    id={directAmountId}
+                    name="amount"
+                    type="number"
+                    className={`input h-16 font-display text-3xl font-bold tabular-nums tracking-tight ${isOpenAmount ? 'opacity-50' : ''}`}
+                    min="0.01"
+                    step="0.01"
+                    inputMode="decimal"
+                    placeholder={isOpenAmount ? copy.openAmountPlaceholder : copy.amountPlaceholder}
+                    value={isOpenAmount ? '' : directAmount}
+                    onChange={(e) => setDirectAmount(e.target.value)}
+                    disabled={isOpenAmount}
+                    required={!isOpenAmount}
+                    autoComplete="off"
+                  />
+                </Field>
+                <Field id={directCurrencyId} label={copy.currency}>
+                  <CurrencyPicker
+                    id={directCurrencyId}
+                    name="currency"
+                    value={currency}
+                    onChange={setCurrency}
+                    className="h-16 font-bold"
+                  />
+                </Field>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field id={directDueDateId} label={copy.expiration} hint={copy.noExpiryHint}>
+                  <DateInput
+                    id={directDueDateId}
+                    name="dueDate"
+                    value={dueDate}
+                    onChange={setDueDate}
+                    pickerLabel={copy.showDatePicker}
+                  />
+                </Field>
+                <label
+                  className={`group flex min-h-20 cursor-pointer items-start gap-3 rounded-xl border p-4 text-sm transition-colors duration-150 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background ${
+                    isOpenAmount
+                      ? 'border-card-invert bg-card-invert text-card-invert-foreground'
+                      : 'border-border bg-muted text-ink-2 hover:text-foreground'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    name="isOpenAmount"
+                    className="sr-only"
+                    checked={isOpenAmount}
+                    onChange={(e) => setIsOpenAmount(e.target.checked)}
+                  />
+                  <span
+                    aria-hidden="true"
+                    className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border transition-colors duration-150 ${
+                      isOpenAmount
+                        ? 'border-card-invert-foreground bg-card-invert-foreground'
+                        : 'border-border bg-card group-hover:border-foreground'
+                    }`}
+                  >
+                    {isOpenAmount && <Check className="h-3.5 w-3.5 text-card-invert" strokeWidth={3} />}
+                  </span>
+                  <span>
+                    <span className={`block font-bold ${isOpenAmount ? 'text-card-invert-foreground' : 'text-foreground'}`}>
+                      {copy.openAmountLabel}
+                    </span>
+                    <span className={`mt-1 block text-xs ${isOpenAmount ? 'text-card-invert-foreground/70' : 'text-ink-3'}`}>
+                      {copy.openAmountHint}
+                    </span>
+                  </span>
                 </label>
-                <input
-                  type="number"
-                  className={`input ${isOpenAmount ? 'opacity-50' : ''}`}
-                  min="0.01"
-                  step="0.01"
-                  placeholder={isOpenAmount ? copy.openAmountPlaceholder : copy.amountPlaceholder}
-                  value={isOpenAmount ? '' : directAmount}
-                  onChange={(e) => setDirectAmount(e.target.value)}
-                  disabled={isOpenAmount}
-                  required={!isOpenAmount}
-                />
-              </div>
-              <div>
-                <label className="label">{copy.currency}</label>
-                <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value as Currency)}>
-                  <option value="USDC">USDC</option>
-                  <option value="EURC">EURC</option>
-                  <option value="XLM">XLM</option>
-                </select>
-              </div>
-              <div>
-                <label className="label">{copy.expiration}</label>
-                <input type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-                <p className="mt-1 text-2xs text-ink-4">{copy.noExpiryHint}</p>
               </div>
             </div>
 
-            <label className="flex items-center gap-2 text-sm text-ink-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-surface-3"
-                checked={isOpenAmount}
-                onChange={(e) => setIsOpenAmount(e.target.checked)}
-              />
-              {copy.openAmountLabel}
-            </label>
-            {isOpenAmount && <p className="text-2xs text-ink-3">{copy.openAmountHint}</p>}
-
-            <div className="border-t border-surface-3 pt-4">{settlementSection}</div>
+            <div className="rounded-2xl bg-muted p-5 xl:sticky xl:top-6">
+              <div className="rounded-xl bg-card p-4">
+                <p className="label mb-2">{copy.total}</p>
+                <p className="font-display text-3xl font-bold tabular-nums tracking-tight text-foreground">
+                  {isOpenAmount ? copy.openAmountPlaceholder : formatMoney(subtotal, currency)}
+                </p>
+              </div>
+              <div className="mt-5 border-t border-border pt-4">{renderSettlementSection(true)}</div>
+            </div>
           </div>
-        </section>
+        </SectionCard>
       )}
 
-      {/* ── BUSINESS / SERVICE layout ── */}
       {!isDirect && (
         <>
-          <section className="card p-5 sm:p-6">
-            <h3 className="text-sm font-semibold text-ink-0 mb-1 uppercase tracking-wider">{copy.yourInformation}</h3>
-            {hasProfile && (
-              <p className="mb-4 text-2xs text-ink-3">{copy.prefillHint}</p>
-            )}
-            {!hasProfile && <div className="mb-4" />}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="label">{copy.name}</label>
-                <input type="text" className="input" placeholder={copy.yourNamePlaceholder}
-                  value={freelancerName} onChange={(e) => setFreelancerName(e.target.value)} />
-              </div>
-              <div>
-                <label className="label">{copy.email}</label>
-                <input type="email" className="input" placeholder={copy.yourEmailPlaceholder}
-                  value={freelancerEmail} onChange={(e) => setFreelancerEmail(e.target.value)} />
-              </div>
-              <div>
-                <label className="label">{copy.company}</label>
-                <input type="text" className="input" placeholder={copy.optional}
-                  value={freelancerCompany} onChange={(e) => setFreelancerCompany(e.target.value)} />
-              </div>
+          <SectionCard title={copy.yourInformation} hint={hasProfile ? copy.prefillHint : undefined}>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <Field id={`${formId}-freelancer-name`} label={copy.name}>
+                <input
+                  id={`${formId}-freelancer-name`}
+                  name="freelancerName"
+                  type="text"
+                  className="input"
+                  placeholder={copy.yourNamePlaceholder}
+                  value={freelancerName}
+                  onChange={(e) => setFreelancerName(e.target.value)}
+                  autoComplete="name"
+                />
+              </Field>
+              <Field id={`${formId}-freelancer-email`} label={copy.email}>
+                <input
+                  id={`${formId}-freelancer-email`}
+                  name="freelancerEmail"
+                  type="email"
+                  className="input"
+                  placeholder={copy.yourEmailPlaceholder}
+                  value={freelancerEmail}
+                  onChange={(e) => setFreelancerEmail(e.target.value)}
+                  autoComplete="email"
+                  spellCheck={false}
+                />
+              </Field>
+              <Field id={`${formId}-freelancer-company`} label={copy.company}>
+                <input
+                  id={`${formId}-freelancer-company`}
+                  name="freelancerCompany"
+                  type="text"
+                  className="input"
+                  placeholder={copy.optional}
+                  value={freelancerCompany}
+                  onChange={(e) => setFreelancerCompany(e.target.value)}
+                  autoComplete="organization"
+                />
+              </Field>
             </div>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="label">{copy.taxId}</label>
-                <input type="text" className="input" placeholder={copy.taxIdPlaceholder}
-                  value={freelancerTaxId} onChange={(e) => setFreelancerTaxId(e.target.value)} />
-              </div>
-              <div>
-                <label className="label">{copy.phone}</label>
-                <input type="text" className="input" placeholder={copy.phonePlaceholder}
-                  value={freelancerPhone} onChange={(e) => setFreelancerPhone(e.target.value)} />
-              </div>
-              <div>
-                <label className="label">{copy.address}</label>
-                <input type="text" className="input" placeholder={copy.addressPlaceholder}
-                  value={freelancerAddress} onChange={(e) => setFreelancerAddress(e.target.value)} />
-              </div>
+            <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <Field id={`${formId}-freelancer-tax-id`} label={copy.taxId}>
+                <input
+                  id={`${formId}-freelancer-tax-id`}
+                  name="freelancerTaxId"
+                  type="text"
+                  className="input"
+                  placeholder={copy.taxIdPlaceholder}
+                  value={freelancerTaxId}
+                  onChange={(e) => setFreelancerTaxId(e.target.value)}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </Field>
+              <Field id={`${formId}-freelancer-phone`} label={copy.phone}>
+                <input
+                  id={`${formId}-freelancer-phone`}
+                  name="freelancerPhone"
+                  type="tel"
+                  className="input"
+                  placeholder={copy.phonePlaceholder}
+                  value={freelancerPhone}
+                  onChange={(e) => setFreelancerPhone(e.target.value)}
+                  autoComplete="tel"
+                  inputMode="tel"
+                />
+              </Field>
+              <Field id={`${formId}-freelancer-address`} label={copy.address}>
+                <input
+                  id={`${formId}-freelancer-address`}
+                  name="freelancerAddress"
+                  type="text"
+                  className="input"
+                  placeholder={copy.addressPlaceholder}
+                  value={freelancerAddress}
+                  onChange={(e) => setFreelancerAddress(e.target.value)}
+                  autoComplete="street-address"
+                />
+              </Field>
             </div>
             <div className="mt-4">
-              <label className="label">{copy.walletAddress}</label>
-              <div className="input bg-surface-1 font-mono text-xs text-ink-2 cursor-default break-all">{publicKey}</div>
-            </div>
-          </section>
-
-          <section className="card p-5 sm:p-6">
-            <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.clientInformation}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="label">
-                  {copy.clientName} <span className="text-danger">*</span>
-                </label>
-                <input type="text" className="input" placeholder={copy.clientNamePlaceholder}
-                  value={clientName} onChange={(e) => setClientName(e.target.value)} required />
-              </div>
-              <div>
-                <label className="label">
-                  {copy.clientEmail} <span className="text-danger">*</span>
-                </label>
-                <input type="email" className="input" placeholder={copy.clientEmailPlaceholder}
-                  value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} required />
-              </div>
-              <div>
-                <label className="label">{copy.company}</label>
-                <input type="text" className="input" placeholder={copy.optional}
-                  value={clientCompany} onChange={(e) => setClientCompany(e.target.value)} />
-              </div>
-              <div>
-                <label className="label">{copy.clientTaxId}</label>
-                <input type="text" className="input" placeholder={copy.optional}
-                  value={clientTaxId} onChange={(e) => setClientTaxId(e.target.value)} />
+              <p className="label">{copy.walletAddress}</p>
+              <div className="min-h-11 rounded-xl border border-border bg-muted px-4 py-3 font-mono text-xs text-ink-2 break-all">
+                {publicKey}
               </div>
             </div>
-          </section>
+          </SectionCard>
 
-          <section className="card p-5 sm:p-6">
-            <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.invoiceDetails}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="label">
-                  {copy.title} <span className="text-danger">*</span>
-                </label>
-                <input type="text" className="input" placeholder={isService ? copy.titlePlaceholder : copy.titleBusinessPlaceholder}
-                  value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <SectionCard title={copy.clientInformation}>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Field id={`${formId}-client-name`} label={copy.clientName} required>
+                <input
+                  id={`${formId}-client-name`}
+                  name="clientName"
+                  type="text"
+                  className="input"
+                  placeholder={copy.clientNamePlaceholder}
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  autoComplete="name"
+                  required
+                />
+              </Field>
+              <Field id={`${formId}-client-email`} label={copy.clientEmail} required>
+                <input
+                  id={`${formId}-client-email`}
+                  name="clientEmail"
+                  type="email"
+                  className="input"
+                  placeholder={copy.clientEmailPlaceholder}
+                  value={clientEmail}
+                  onChange={(e) => setClientEmail(e.target.value)}
+                  autoComplete="email"
+                  spellCheck={false}
+                  required
+                />
+              </Field>
+              <Field id={`${formId}-client-company`} label={copy.company}>
+                <input
+                  id={`${formId}-client-company`}
+                  name="clientCompany"
+                  type="text"
+                  className="input"
+                  placeholder={copy.optional}
+                  value={clientCompany}
+                  onChange={(e) => setClientCompany(e.target.value)}
+                  autoComplete="organization"
+                />
+              </Field>
+              <Field id={`${formId}-client-tax-id`} label={copy.clientTaxId}>
+                <input
+                  id={`${formId}-client-tax-id`}
+                  name="clientTaxId"
+                  type="text"
+                  className="input"
+                  placeholder={copy.optional}
+                  value={clientTaxId}
+                  onChange={(e) => setClientTaxId(e.target.value)}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </Field>
+            </div>
+          </SectionCard>
+
+          <SectionCard title={copy.invoiceDetails}>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+              <div className="space-y-4">
+                <Field id={`${formId}-title`} label={copy.title} required>
+                  <input
+                    id={`${formId}-title`}
+                    name="title"
+                    type="text"
+                    className="input"
+                    placeholder={isService ? copy.titlePlaceholder : copy.titleBusinessPlaceholder}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    autoComplete="off"
+                    required
+                  />
+                </Field>
+                <Field id={`${formId}-description`} label={copy.description}>
+                  <textarea
+                    id={`${formId}-description`}
+                    name="description"
+                    className="input min-h-[96px] resize-y py-3"
+                    placeholder={isService ? copy.descriptionPlaceholder : copy.descriptionBusinessPlaceholder}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
+                </Field>
               </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="label">{copy.currency}</label>
-                  <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value as Currency)}>
-                    <option value="USDC">USDC</option>
-                    <option value="EURC">EURC</option>
-                    <option value="XLM">XLM</option>
-                  </select>
+              <div className="space-y-4 rounded-2xl bg-muted p-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field id={`${formId}-currency`} label={copy.currency}>
+                    <CurrencyPicker
+                      id={`${formId}-currency`}
+                      name="currency"
+                      value={currency}
+                      onChange={setCurrency}
+                    />
+                  </Field>
+                  <Field id={`${formId}-due-date`} label={copy.dueDate} hint={copy.noExpiryHint}>
+                  <DateInput
+                    id={`${formId}-due-date`}
+                    name="dueDate"
+                    value={dueDate}
+                    onChange={setDueDate}
+                    pickerLabel={copy.showDatePicker}
+                  />
+                </Field>
                 </div>
-                <div>
-                  <label className="label">{copy.dueDate}</label>
-                  <input type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-                  <p className="mt-1 text-2xs text-ink-4">{copy.noExpiryHint}</p>
-                </div>
+                <div className="border-t border-border pt-4">{renderSettlementSection()}</div>
               </div>
-
-              <div>{settlementSection}</div>
             </div>
-            <div>
-              <label className="label">{copy.description}</label>
-              <textarea className="input min-h-[80px] resize-y" placeholder={isService ? copy.descriptionPlaceholder : copy.descriptionBusinessPlaceholder}
-                value={description} onChange={(e) => setDescription(e.target.value)} />
-            </div>
-          </section>
+          </SectionCard>
 
-          <section className="card p-5 sm:p-6">
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-sm font-semibold text-ink-0 uppercase tracking-wider">{copy.lineItems}</h3>
-              <button type="button" onClick={addLineItem} className="btn-ghost w-full text-sm text-stellar-600 sm:w-auto">
-                + {copy.addItem}
+          <SectionCard
+            title={copy.lineItems}
+            action={
+              <button type="button" onClick={addLineItem} className="btn-secondary w-full sm:w-auto">
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                {copy.addItem}
               </button>
-            </div>
-
+            }
+          >
             <div className="mb-2 hidden grid-cols-12 gap-3 px-1 sm:grid">
-              <div className="col-span-5 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.description}</div>
-              <div className="col-span-2 text-xs font-medium text-ink-3 uppercase tracking-wider">{isService ? copy.hours : copy.qty}</div>
-              <div className="col-span-2 text-xs font-medium text-ink-3 uppercase tracking-wider">{isService ? copy.ratePerHour : copy.rate}</div>
-              <div className="col-span-2 text-xs font-medium text-ink-3 uppercase tracking-wider text-right">{copy.amount}</div>
+              <div className="col-span-5 text-2xs font-medium uppercase tracking-label text-muted-foreground">{copy.description}</div>
+              <div className="col-span-2 text-2xs font-medium uppercase tracking-label text-muted-foreground">{isService ? copy.hours : copy.qty}</div>
+              <div className="col-span-2 text-2xs font-medium uppercase tracking-label text-muted-foreground">{isService ? copy.ratePerHour : copy.rate}</div>
+              <div className="col-span-2 text-right text-2xs font-medium uppercase tracking-label text-muted-foreground">{copy.amount}</div>
               <div className="col-span-1" />
             </div>
 
-            <div className="space-y-2">
-              {lineItems.map((item, index) => (
-                <div key={index} className="rounded-lg border border-surface-3 p-3 sm:grid sm:grid-cols-12 sm:items-center sm:gap-3 sm:rounded-none sm:border-0 sm:p-0">
-                  <div className="sm:col-span-5">
-                    <label className="mb-1 block text-2xs font-medium uppercase tracking-wider text-ink-3 sm:hidden">
-                      {copy.description}
-                    </label>
-                    <input type="text" className="input" placeholder={isService ? copy.serviceDescriptionPlaceholder : copy.itemDescriptionPlaceholder}
-                      value={item.description} onChange={(e) => updateLineItem(index, 'description', e.target.value)} required />
+            <div className="space-y-3 sm:space-y-2">
+              {lineItems.map((item, index) => {
+                const itemBaseId = `${formId}-line-${index}`;
+                return (
+                  <div key={index} className="rounded-xl border border-border p-3 sm:grid sm:grid-cols-12 sm:items-center sm:gap-3 sm:border-0 sm:p-0">
+                    <div className="sm:col-span-5">
+                      <label className="mb-1 block text-2xs font-medium uppercase tracking-label text-muted-foreground sm:hidden" htmlFor={`${itemBaseId}-description`}>
+                        {copy.description}
+                      </label>
+                      <input
+                        id={`${itemBaseId}-description`}
+                        name={`lineItems.${index}.description`}
+                        type="text"
+                        className="input"
+                        placeholder={lineDescriptionLabel}
+                        value={item.description}
+                        onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+                        autoComplete="off"
+                        required
+                      />
+                    </div>
+                    <div className="mt-3 sm:col-span-2 sm:mt-0">
+                      <label className="mb-1 block text-2xs font-medium uppercase tracking-label text-muted-foreground sm:hidden" htmlFor={`${itemBaseId}-quantity`}>
+                        {isService ? copy.hours : copy.qty}
+                      </label>
+                      <input
+                        id={`${itemBaseId}-quantity`}
+                        name={`lineItems.${index}.quantity`}
+                        type="number"
+                        className="input text-center tabular-nums"
+                        min="0.01"
+                        step="0.01"
+                        inputMode="decimal"
+                        value={item.quantity || ''}
+                        onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+                        required
+                      />
+                    </div>
+                    <div className="mt-3 sm:col-span-2 sm:mt-0">
+                      <label className="mb-1 block text-2xs font-medium uppercase tracking-label text-muted-foreground sm:hidden" htmlFor={`${itemBaseId}-rate`}>
+                        {isService ? copy.ratePerHour : copy.rate}
+                      </label>
+                      <input
+                        id={`${itemBaseId}-rate`}
+                        name={`lineItems.${index}.rate`}
+                        type="number"
+                        className="input tabular-nums"
+                        min="0"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="0.00"
+                        value={item.rate || ''}
+                        onChange={(e) => updateLineItem(index, 'rate', parseFloat(e.target.value) || 0)}
+                        required
+                      />
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-sm sm:col-span-2 sm:mt-0 sm:block sm:text-right">
+                      <span className="text-2xs font-medium uppercase tracking-label text-muted-foreground sm:hidden">{copy.amount}</span>
+                      <span className="font-display font-bold tabular-nums text-foreground">{formatMoney(item.quantity * item.rate, currency)}</span>
+                    </div>
+                    <div className="mt-3 text-right sm:col-span-1 sm:mt-0 sm:text-center">
+                      {lineItems.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeLineItem(index)}
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-4 transition-colors duration-150 hover:bg-muted hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          aria-label={copy.removeLineItem}
+                        >
+                          <X className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="mt-3 sm:col-span-2 sm:mt-0">
-                    <label className="mb-1 block text-2xs font-medium uppercase tracking-wider text-ink-3 sm:hidden">
-                      {isService ? copy.hours : copy.qty}
-                    </label>
-                    <input type="number" className="input text-center" min="0.01" step="0.01"
-                      value={item.quantity || ''}
-                      onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)} required />
-                  </div>
-                  <div className="mt-3 sm:col-span-2 sm:mt-0">
-                    <label className="mb-1 block text-2xs font-medium uppercase tracking-wider text-ink-3 sm:hidden">
-                      {isService ? copy.ratePerHour : copy.rate}
-                    </label>
-                    <input type="number" className="input" min="0" step="0.01" placeholder="0.00"
-                      value={item.rate || ''}
-                      onChange={(e) => updateLineItem(index, 'rate', parseFloat(e.target.value) || 0)} required />
-                  </div>
-                  <div className="mt-3 flex items-center justify-between text-sm sm:col-span-2 sm:mt-0 sm:block sm:text-right">
-                    <span className="text-2xs font-medium uppercase tracking-wider text-ink-3 sm:hidden">{copy.amount}</span>
-                    <span className="font-mono text-ink-1">{(item.quantity * item.rate).toFixed(2)}</span>
-                  </div>
-                  <div className="mt-3 text-right sm:col-span-1 sm:mt-0 sm:text-center">
-                    {lineItems.length > 1 && (
-                      <button type="button" onClick={() => removeLineItem(index)}
-                        className="text-ink-4 hover:text-danger transition-colors text-lg">
-                        X
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            <div className="mt-6 pt-4 border-t border-surface-3">
-              <div className="flex flex-col items-end gap-2">
-                <div className="flex w-full items-center justify-between gap-4 text-sm sm:w-auto sm:justify-end">
+            <div className="mt-6 border-t border-border pt-5">
+              <div className="ml-auto max-w-sm space-y-3 rounded-2xl bg-muted p-4">
+                <div className="flex items-center justify-between gap-4 text-sm">
                   <span className="text-ink-3">{copy.subtotal}</span>
-                  <span className="font-mono w-24 text-right sm:w-28">{subtotal.toFixed(2)} {currency}</span>
+                  <span className="font-display font-bold tabular-nums text-foreground">{formatMoney(subtotal, currency)}</span>
                 </div>
-                <div className="flex w-full items-center justify-between gap-4 text-sm sm:w-auto sm:justify-end">
-                  <span className="text-ink-3">{copy.taxRate}</span>
-                  <input type="number" className="input w-24 text-right sm:w-28" min="0" max="100" step="0.1"
-                    placeholder={copy.taxPlaceholder} value={taxRate} onChange={(e) => setTaxRate(e.target.value)} />
+                <div className="flex items-center justify-between gap-4 text-sm">
+                  <label htmlFor={`${formId}-tax-rate`} className="text-ink-3">{copy.taxRate}</label>
+                  <input
+                    id={`${formId}-tax-rate`}
+                    name="taxRate"
+                    type="number"
+                    className="input h-10 w-28 text-right tabular-nums"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    inputMode="decimal"
+                    placeholder={copy.taxPlaceholder}
+                    value={taxRate}
+                    onChange={(e) => setTaxRate(e.target.value)}
+                    autoComplete="off"
+                  />
                 </div>
                 {taxAmount > 0 && (
-                  <div className="flex w-full items-center justify-between gap-4 text-sm sm:w-auto sm:justify-end">
+                  <div className="flex items-center justify-between gap-4 text-sm">
                     <span className="text-ink-3">{copy.taxAmount}</span>
-                    <span className="font-mono w-24 text-right sm:w-28">{taxAmount.toFixed(2)} {currency}</span>
+                    <span className="font-display font-bold tabular-nums text-foreground">{formatMoney(taxAmount, currency)}</span>
                   </div>
                 )}
-                <div className="flex w-full items-center justify-between gap-4 border-t border-surface-3 pt-2 text-base font-semibold sm:w-auto sm:justify-end">
-                  <span>{copy.total}</span>
-                  <span className="font-mono w-24 text-right text-stellar-700 sm:w-28">{total.toFixed(2)} {currency}</span>
+                <div className="flex items-end justify-between gap-4 border-t border-border pt-3">
+                  <span className="font-bold text-foreground">{copy.total}</span>
+                  <span className="font-display text-2xl font-bold tabular-nums tracking-tight text-foreground">{formatMoney(total, currency)}</span>
                 </div>
               </div>
             </div>
-          </section>
+          </SectionCard>
 
-          <section className="card p-5 sm:p-6">
-            <h3 className="text-sm font-semibold text-ink-0 mb-4 uppercase tracking-wider">{copy.notes}</h3>
-            <textarea className="input min-h-[80px] resize-y" placeholder={copy.notesPlaceholder}
-              value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </section>
+          <SectionCard title={copy.notes}>
+            <Field id={`${formId}-notes`} label={copy.notes}>
+              <textarea
+                id={`${formId}-notes`}
+                name="notes"
+                className="input min-h-[96px] resize-y py-3"
+                placeholder={copy.notesPlaceholder}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </Field>
+          </SectionCard>
         </>
       )}
 
       <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:items-center sm:justify-end">
-        <button type="button" onClick={() => navigate(-1)} className="btn-secondary w-full sm:w-auto">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="btn-secondary w-full sm:w-auto"
+        >
           {copy.cancel}
         </button>
         <button

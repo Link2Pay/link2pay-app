@@ -354,6 +354,10 @@
            transition-colors duration-150;
   }
 
+  .date-input::-webkit-calendar-picker-indicator {
+    @apply cursor-pointer opacity-0;
+  }
+
   .label {
     @apply block text-2xs font-medium uppercase tracking-label text-muted-foreground mb-1.5;
   }

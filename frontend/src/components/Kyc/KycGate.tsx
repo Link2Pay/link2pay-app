@@ -40,7 +40,7 @@ const COPY: Record<Language, {
 }> = {
   en: {
     required: 'Identity verification required',
-    explainer: 'Fiat (Bre-B) payouts require a verified identity. Crypto payouts need none.',
+    explainer: 'Fiat (Bre-B) payouts require a verified identity.',
     verify: 'Verify identity',
     verifying: 'Starting…',
     verified: 'Identity verified',
@@ -59,7 +59,7 @@ const COPY: Record<Language, {
   },
   es: {
     required: 'Verificación de identidad requerida',
-    explainer: 'Los pagos en fiat (Bre-B) requieren identidad verificada. Los pagos en cripto no requieren ninguna.',
+    explainer: 'Los pagos en fiat (Bre-B) requieren identidad verificada.',
     verify: 'Verificar identidad',
     verifying: 'Iniciando…',
     verified: 'Identidad verificada',
@@ -78,7 +78,7 @@ const COPY: Record<Language, {
   },
   pt: {
     required: 'Verificação de identidade necessária',
-    explainer: 'Pagamentos em fiat (Bre-B) exigem identidade verificada. Pagamentos em cripto não exigem nenhuma.',
+    explainer: 'Pagamentos em fiat (Bre-B) exigem identidade verificada.',
     verify: 'Verificar identidade',
     verifying: 'Iniciando…',
     verified: 'Identidade verificada',
@@ -200,26 +200,28 @@ export default function KycGate({ active, onVerifiedChange, className }: Props) 
 
   if (status === 'VERIFIED') {
     return (
-      <div className={`mt-2 flex items-center gap-1.5 text-xs font-medium text-success ${className ?? ''}`}>
-        <ShieldCheck className="h-4 w-4" />
+      <div className={`flex items-center gap-1.5 rounded-xl border border-success-border bg-success-subtle px-3 py-2 text-xs font-medium text-success ${className ?? ''}`}>
+        <ShieldCheck className="h-4 w-4 flex-shrink-0" />
         {copy.verified}
       </div>
     );
   }
 
   return (
-    <div className={`mt-2 rounded-lg border border-warning-border bg-warning-subtle p-3 ${className ?? ''}`}>
-      <div className="flex items-start gap-2">
-        <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+    <div className={`rounded-xl border border-border bg-card p-4 ${className ?? ''}`}>
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-warning-border bg-warning-subtle text-warning">
+          <ShieldAlert className="h-4 w-4" />
+        </div>
         <div className="min-w-0">
-          <p className="text-xs font-semibold text-warning">{copy.required}</p>
-          <p className="mt-0.5 text-2xs text-ink-3">{copy.explainer}</p>
+          <p className="text-sm font-semibold text-foreground">{copy.required}</p>
+          <p className="mt-0.5 text-xs leading-5 text-ink-3">{copy.explainer}</p>
         </div>
       </div>
 
       {showMock ? (
-        <div className="mt-3 rounded-md border border-surface-3 bg-card p-3">
-          <p className="text-xs font-medium text-ink-1">{copy.mockTitle}</p>
+        <div className="mt-4 pl-11">
+          <p className="text-xs font-semibold text-foreground">{copy.mockTitle}</p>
           <p className="mt-0.5 text-2xs text-ink-3">{copy.mockHint}</p>
           <div className="mt-2 flex gap-2">
             <button type="button" onClick={() => handleMock(true)} className="btn-primary text-xs px-3 py-1.5">
@@ -231,22 +233,21 @@ export default function KycGate({ active, onVerifiedChange, className }: Props) 
           </div>
         </div>
       ) : status === 'PENDING' ? (
-        <div className="mt-3">
-          <p className="text-2xs text-ink-2">{copy.pending} — {copy.pendingHint}</p>
+        <div className="mt-4 pl-11">
+          <p className="text-xs font-semibold text-foreground">{copy.pending}</p>
+          <p className="mt-0.5 text-2xs text-ink-3">{copy.pendingHint}</p>
           <button type="button" onClick={refresh} className="btn-ghost mt-2 text-xs px-3 py-1.5">
             {copy.refresh}
           </button>
         </div>
       ) : (
-        <div className="mt-3">
-          {status === 'REJECTED' && (
-            <p className="mb-2 text-2xs text-destructive">{copy.rejected}</p>
-          )}
+        <div className="mt-4 pl-11">
+          {status === 'REJECTED' && <p className="text-2xs text-destructive">{copy.rejected}</p>}
           <button
             type="button"
             onClick={handleVerify}
             disabled={starting}
-            className="btn-primary text-xs px-3 py-1.5 inline-flex items-center gap-1.5"
+            className="btn-primary inline-flex items-center gap-1.5 px-3 py-1.5 text-xs"
           >
             {starting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             {starting ? copy.verifying : status === 'REJECTED' ? copy.retry : copy.verify}
