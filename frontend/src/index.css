@@ -114,6 +114,8 @@
 
   /* ── Layer 2 · Semantic tokens · LIGHT (default) ───────────────────────── */
   :root {
+    color-scheme: light; /* controles nativos / scrollbars siguen el tema */
+
     --background: var(--ref-warm-100); /* canvas hueso */
     --foreground: var(--ref-warm-900);
 
@@ -209,6 +211,8 @@
 
   /* ── Layer 2 · Semantic tokens · DARK overrides ────────────────────────── */
   .dark {
+    color-scheme: dark;
+
     --background: 240 6% 8%;
     --foreground: 60 7% 95%;
 
