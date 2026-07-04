@@ -11,7 +11,9 @@
 
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm ci && npm run build"
+# --include=dev: NODE_ENV=production is set at build time too, and tsc/prisma
+# live in devDependencies
+buildCommand = "npm ci --include=dev && npm run build"
 watchPatterns = ["backend/**"]
 
 [deploy]
