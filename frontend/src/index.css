@@ -186,6 +186,10 @@
     --text-secondary: var(--ref-warm-700);
     --text-muted: var(--ref-warm-500);
 
+    /* Objeto oscuro estable en ambos temas (Credit Card, stat card "ink") */
+    --card-invert: var(--ref-warm-900);
+    --card-invert-foreground: var(--ref-warm-50);
+
     /* Accent glow — apunta al indigo de marca */
     --neon-glow: var(--ref-indigo-500);
     --neon-glow-subtle: var(--ref-indigo-400);
@@ -268,6 +272,10 @@
     --surface-strong: 240 5% 24%;
     --text-secondary: 60 5% 85%;
     --text-muted: 220 6% 64%;
+
+    /* Objeto oscuro elevado sobre el canvas oscuro (se mantiene oscuro en dark) */
+    --card-invert: 240 5% 16%;
+    --card-invert-foreground: 60 7% 95%;
 
     --neon-glow: var(--ref-indigo-400);
     --neon-glow-subtle: var(--ref-indigo-300);

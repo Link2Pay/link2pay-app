@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
-  AlertTriangle,
+  ArrowDownLeft,
+  ArrowUpRight,
   CheckCircle2,
   ChevronRight,
   CircleDollarSign,
@@ -57,6 +58,10 @@ const COPY: Record<Language, {
   noInvoices: string;
   createInvoice: string;
   loadError: string;
+  assetByValue: string;
+  assetByLinks: string;
+  topTicket: string;
+  topClientLabel: string;
 }> = {
   en: {
     loading: 'Loading...',
@@ -93,6 +98,10 @@ const COPY: Record<Language, {
     noInvoices: 'No payment links yet. Generate your first one to get started.',
     createInvoice: 'Create Link',
     loadError: "Some dashboard data couldn't be loaded. Figures may be incomplete.",
+    assetByValue: 'By value',
+    assetByLinks: 'By links',
+    topTicket: 'Largest ticket',
+    topClientLabel: 'Top client',
   },
   es: {
     loading: 'Cargando...',
@@ -129,6 +138,10 @@ const COPY: Record<Language, {
     noInvoices: 'Aún no tienes links de pago. Genera el primero para comenzar.',
     createInvoice: 'Crear link',
     loadError: 'No se pudieron cargar algunos datos del panel. Las cifras pueden estar incompletas.',
+    assetByValue: 'Por valor',
+    assetByLinks: 'Por links',
+    topTicket: 'Mayor ticket',
+    topClientLabel: 'Cliente frecuente',
   },
   pt: {
     loading: 'Carregando...',
@@ -165,6 +178,10 @@ const COPY: Record<Language, {
     noInvoices: 'Nenhum link de pagamento ainda. Gere o primeiro para começar.',
     createInvoice: 'Criar link',
     loadError: 'Nao foi possivel carregar alguns dados do painel. Os numeros podem estar incompletos.',
+    assetByValue: 'Por valor',
+    assetByLinks: 'Por links',
+    topTicket: 'Maior ticket',
+    topClientLabel: 'Cliente frequente',
   },
 };
 
@@ -173,6 +190,7 @@ export default function Dashboard() {
   const { networkPassphrase } = useNetworkStore();
   const { language } = useI18n();
   const copy = COPY[language];
+  const [assetBasis, setAssetBasis] = useState<'value' | 'count'>('value');
 
   const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ['dashboardStats', publicKey, networkPassphrase],
@@ -243,6 +261,34 @@ export default function Dashboard() {
 
   const settledTotal = settledAssetRows.reduce((sum, row) => sum + row.value, 0);
 
+  // Nº de links liquidados por asset — base alternativa del toggle "Por links".
+  const settledCountByAsset = useMemo(() => {
+    const counts: Record<'XLM' | 'USDC' | 'EURC', number> = { XLM: 0, USDC: 0, EURC: 0 };
+    filteredInvoices.forEach((invoice) => {
+      if (invoice.status === 'PAID' && invoice.currency in counts) {
+        counts[invoice.currency as 'XLM' | 'USDC' | 'EURC'] += 1;
+      }
+    });
+    return counts;
+  }, [filteredInvoices]);
+  const settledCountTotal = settledAssetRows.reduce(
+    (sum, row) => sum + settledCountByAsset[row.asset],
+    0
+  );
+
+  // Footer stat-pair del componente Chart: mayor ticket pagado y cliente más frecuente.
+  const largestTicket = useMemo<{ total: number; currency: string; clientName: string } | null>(() => {
+    let top: { total: number; currency: string; clientName: string } | null = null;
+    filteredInvoices.forEach((invoice) => {
+      if (invoice.status !== 'PAID') return;
+      const total = toAmount(invoice.total);
+      if (!top || total > top.total) {
+        top = { total, currency: invoice.currency, clientName: invoice.clientName || '—' };
+      }
+    });
+    return top;
+  }, [filteredInvoices]);
+
   const topClients = useMemo(() => {
     const map = new Map<string, { name: string; links: number; paid: number; pending: number }>();
 
@@ -272,12 +318,60 @@ export default function Dashboard() {
     return `$${fixed}`;
   };
 
-  const statCards = [
-    { label: copy.totalInvoices, value: totalLinks, color: 'text-ink-0', icon: FileText },
-    { label: copy.paid, value: paidLinks, color: 'text-success', icon: CheckCircle2 },
-    { label: copy.pending, value: pendingLinks, color: 'text-warning', icon: Clock3 },
-    { label: copy.revenue, value: totalRevenueValue, color: 'text-ink-0', icon: CircleDollarSign },
+  const topClient = topClients[0] ?? null;
+
+  // Stat cards especulares (Design System §7.3, "máximo impacto"):
+  // Volumen total = acento indigo · Total de links = ink · resto neutro categórico.
+  const statCards: Array<{
+    label: string;
+    value: string | number;
+    icon: typeof FileText;
+    variant: 'accent' | 'ink' | 'neutral';
+    circle: string;
+    glyph: string;
+    valueClass?: string;
+  }> = [
+    {
+      label: copy.revenue,
+      value: totalRevenueValue,
+      icon: CircleDollarSign,
+      variant: 'accent',
+      circle: 'bg-card-invert',
+      glyph: 'text-accent',
+    },
+    {
+      label: copy.totalInvoices,
+      value: totalLinks,
+      icon: FileText,
+      variant: 'ink',
+      circle: 'bg-accent',
+      glyph: 'text-accent-foreground',
+    },
+    {
+      label: copy.paid,
+      value: paidLinks,
+      icon: CheckCircle2,
+      variant: 'neutral',
+      circle: 'bg-cat-sage',
+      glyph: 'text-foreground',
+      valueClass: 'text-positive',
+    },
+    {
+      label: copy.pending,
+      value: pendingLinks,
+      icon: Clock3,
+      variant: 'neutral',
+      circle: 'bg-cat-sand',
+      glyph: 'text-foreground',
+      valueClass: 'text-warning',
+    },
   ];
+
+  const STAT_VARIANT_CLASS: Record<'accent' | 'ink' | 'neutral', string> = {
+    accent: 'bg-accent text-accent-foreground',
+    ink: 'bg-card-invert text-card-invert-foreground',
+    neutral: 'bg-card',
+  };
 
   if (loading) {
     return (
@@ -290,24 +384,33 @@ export default function Dashboard() {
           </div>
           <div className="h-9 w-32 bg-surface-2 rounded-lg" />
         </div>
-        {/* Stat cards skeleton */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Stat cards skeleton (min-h para no saltar al cargar) */}
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="card p-5">
-              <div className="h-3 w-20 bg-surface-2 rounded mb-3" />
-              <div className="h-7 w-12 bg-surface-2 rounded" />
+            <div key={i} className="flex min-h-[170px] flex-col justify-between rounded-2xl bg-surface-1 p-6">
+              <div className="h-11 w-11 rounded-full bg-surface-2" />
+              <div className="space-y-2">
+                <div className="h-3 w-20 rounded bg-surface-2" />
+                <div className="h-7 w-16 rounded bg-surface-2" />
+              </div>
             </div>
           ))}
         </div>
+        {/* Credit-card pipeline + asset mix skeleton */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="h-56 rounded-2xl bg-surface-1 lg:col-span-2" />
+          <div className="h-56 rounded-2xl bg-surface-1" />
+        </div>
         {/* Recent invoices skeleton */}
-        <div className="card divide-y divide-surface-3">
+        <div className="card divide-y divide-border p-2">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="flex items-center justify-between p-4">
-              <div className="space-y-2">
-                <div className="h-4 w-40 bg-surface-2 rounded" />
-                <div className="h-3 w-28 bg-surface-2 rounded" />
+            <div key={i} className="flex items-center gap-4 p-3">
+              <div className="h-11 w-11 rounded-full bg-surface-2" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-40 rounded bg-surface-2" />
+                <div className="h-3 w-28 rounded bg-surface-2" />
               </div>
-              <div className="h-4 w-20 bg-surface-2 rounded" />
+              <div className="h-4 w-20 rounded bg-surface-2" />
             </div>
           ))}
         </div>
@@ -335,141 +438,186 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Ledger strip: one panel, hairline-divided cells — a balance row, not
-          four competing cards. Color only where state lives. */}
-      <div className="card grid grid-cols-2 gap-px overflow-hidden !bg-border md:grid-cols-4">
+      {/* Stat cards especulares (Design System) — icono en círculo arriba,
+          label + cifra abajo; pareja acento/ink + dos neutras categóricas. */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {statCards.map((stat) => {
           const Icon = stat.icon;
-
+          const isEmphasis = stat.variant !== 'neutral';
           return (
-            <div key={stat.label} className="bg-card p-5">
-              <p className="flex items-center gap-1.5 text-2xs font-medium uppercase tracking-[0.14em] text-ink-3">
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                {stat.label}
-              </p>
-              <p className={`mt-3 font-mono text-2xl font-semibold tracking-tight [font-variant-numeric:tabular-nums] ${stat.color}`}>
-                {stat.value}
-              </p>
+            <div
+              key={stat.label}
+              className={`flex min-h-[170px] flex-col justify-between rounded-2xl p-6 ${STAT_VARIANT_CLASS[stat.variant]}`}
+            >
+              <span className={`flex h-11 w-11 items-center justify-center rounded-full ${stat.circle}`}>
+                <Icon className={`h-5 w-5 ${stat.glyph}`} aria-hidden="true" />
+              </span>
+              <div>
+                <p className={`text-sm font-medium ${isEmphasis ? 'opacity-80' : 'text-ink-3'}`}>
+                  {stat.label}
+                </p>
+                <p
+                  className={`mt-1 font-display text-2xl font-bold [font-variant-numeric:tabular-nums] ${
+                    isEmphasis ? '' : stat.valueClass ?? 'text-ink-0'
+                  }`}
+                >
+                  {stat.value}
+                </p>
+              </div>
             </div>
           );
         })}
       </div>
 
-      {stats && toAmount(stats.pendingAmount) > 0 && (
-        <div className="card p-5 bg-warning-subtle border-warning-border">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg bg-warning-subtle text-warning">
-                <AlertTriangle className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-xs text-warning font-medium mb-1">{copy.awaitingPayment}</p>
-                <p className="text-xl font-semibold font-mono text-warning">{stats.pendingAmount}</p>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* Credit Card (Design System) aplicada al pipeline: panel ink con
+            textura + cifra en tránsito + barra apilada; franja de acento con los
+            4 stages a modo de "Card Number / Date / CVV". */}
+        <div className="card overflow-hidden lg:col-span-2">
+          <div className="relative overflow-hidden bg-card-invert p-6 text-card-invert-foreground">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  'repeating-linear-gradient(135deg, hsl(var(--card-invert-foreground) / 0.06) 0 2px, transparent 2px 26px)',
+              }}
+            />
+            <div className="relative">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-label opacity-70">
+                    <Layers className="h-3.5 w-3.5" aria-hidden="true" />
+                    {copy.pipelineTitle}
+                  </p>
+                  <p className="mt-1 text-xs opacity-60">{copy.awaitingPayment}</p>
+                </div>
+                <span className="rounded-full border border-white/15 px-2.5 py-1 text-xs font-bold [font-variant-numeric:tabular-nums]">
+                  {conversionRate.toFixed(1)}% {copy.conversionRate}
+                </span>
+              </div>
+
+              <p className="mt-5 font-display text-3xl font-extrabold [font-variant-numeric:tabular-nums]">
+                {stats?.pendingAmount ?? '0.00'}
+              </p>
+
+              <div className="mt-5 flex h-2 overflow-hidden rounded-full bg-white/10">
+                {[
+                  { key: copy.stageDraft, value: draftLinks, color: 'bg-white/25' },
+                  { key: copy.stageInFlight, value: pendingLinks, color: 'bg-accent' },
+                  { key: copy.stagePaid, value: paidLinks, color: 'bg-white/80' },
+                  { key: copy.stageClosed, value: closedLinks, color: 'bg-white/40' },
+                ].map((segment) => {
+                  const width = totalLinks > 0 ? (segment.value / totalLinks) * 100 : 0;
+                  return (
+                    <div
+                      key={segment.key}
+                      className={segment.color}
+                      style={{ width: `${width}%` }}
+                      title={`${segment.key}: ${segment.value}`}
+                    />
+                  );
+                })}
               </div>
             </div>
-            <Link to="/dashboard/links?status=PENDING" className="btn-secondary w-full text-xs sm:w-auto">
+          </div>
+
+          <div className="flex flex-wrap items-end gap-x-8 gap-y-3 bg-accent px-6 py-4 text-accent-foreground">
+            {[
+              { key: copy.stageDraft, value: draftLinks },
+              { key: copy.stageInFlight, value: pendingLinks },
+              { key: copy.stagePaid, value: paidLinks },
+              { key: copy.stageClosed, value: closedLinks },
+            ].map((item) => (
+              <div key={item.key}>
+                <p className="text-[10px] font-medium uppercase tracking-[0.1em] opacity-70">{item.key}</p>
+                <p className="mt-0.5 text-sm font-bold [font-variant-numeric:tabular-nums]">{item.value}</p>
+              </div>
+            ))}
+            <Link
+              to="/dashboard/links?status=PENDING"
+              className="ml-auto inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold text-accent-foreground transition-colors hover:bg-black/10"
+            >
               {copy.viewPending}
+              <ChevronRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         </div>
-      )}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="card p-5 lg:col-span-2">
+        <div className="card flex flex-col p-5">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-0">
-                <Layers className="h-4 w-4 text-ink-3" />
-                {copy.pipelineTitle}
+                <PieChart className="h-4 w-4 text-ink-3" />
+                {copy.assetMixTitle}
               </h3>
-              <p className="mt-1 text-xs text-ink-3">{copy.pipelineSubtitle}</p>
+              <p className="mt-1 text-xs text-ink-3">{copy.assetMixSubtitle}</p>
             </div>
-            <span className="rounded-lg border border-success-border bg-success-subtle px-2.5 py-1 text-xs font-medium text-success">
-              {conversionRate.toFixed(1)}% {copy.conversionRate}
-            </span>
-          </div>
-
-          <div className="mb-4 flex h-2 overflow-hidden rounded-full bg-muted">
-            {[
-              { key: copy.stageDraft, value: draftLinks, color: 'bg-muted-foreground' },
-              { key: copy.stageInFlight, value: pendingLinks, color: 'bg-warning' },
-              { key: copy.stagePaid, value: paidLinks, color: 'bg-success' },
-              { key: copy.stageClosed, value: closedLinks, color: 'bg-destructive' },
-            ].map((segment) => {
-              const width = totalLinks > 0 ? (segment.value / totalLinks) * 100 : 0;
-              return (
-                <div
-                  key={segment.key}
-                  className={`${segment.color}`}
-                  style={{ width: `${width}%` }}
-                  title={`${segment.key}: ${segment.value}`}
-                />
-              );
-            })}
-          </div>
-
-          {/* Stage counts as one hairline-divided row: dots carry the stage color,
-              numbers stay ledger-neutral — no tiles inside cards. */}
-          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg bg-border sm:grid-cols-4">
-            {[
-              { key: copy.stageDraft, value: draftLinks, dot: 'bg-muted-foreground' },
-              { key: copy.stageInFlight, value: pendingLinks, dot: 'bg-warning' },
-              { key: copy.stagePaid, value: paidLinks, dot: 'bg-success' },
-              { key: copy.stageClosed, value: closedLinks, dot: 'bg-destructive' },
-            ].map((item) => (
-              <div key={item.key} className="bg-surface-1 px-3 py-2.5">
-                <p className="flex items-center gap-1.5 text-2xs text-ink-3">
-                  <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${item.dot}`} />
-                  {item.key}
-                </p>
-                <p className="mt-1 font-mono text-lg font-semibold tracking-tight text-ink-0 [font-variant-numeric:tabular-nums]">
-                  {item.value}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="card p-5">
-          <div className="mb-4">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-0">
-              <PieChart className="h-4 w-4 text-ink-3" />
-              {copy.assetMixTitle}
-            </h3>
-            <p className="mt-1 text-xs text-ink-3">{copy.assetMixSubtitle}</p>
+            {/* Toggle Pill (Design System): base valor / links */}
+            <div className="pill-toggle shrink-0">
+              {(['value', 'count'] as const).map((basis) => (
+                <button
+                  key={basis}
+                  type="button"
+                  onClick={() => setAssetBasis(basis)}
+                  aria-pressed={assetBasis === basis}
+                  className={`pill-item ${assetBasis === basis ? 'pill-item-active' : ''}`}
+                >
+                  {basis === 'value' ? copy.assetByValue : copy.assetByLinks}
+                </button>
+              ))}
+            </div>
           </div>
 
           {settledTotal <= 0 ? (
-            <div className="rounded-lg border border-dashed border-surface-3 bg-surface-1 px-3 py-6 text-center text-xs text-ink-3">
+            <div className="rounded-xl border border-dashed border-border bg-muted px-3 py-6 text-center text-xs text-ink-3">
               {copy.noSettledVolume}
             </div>
           ) : (
             <div className="space-y-3">
               {settledAssetRows.map((row, index) => {
-                const pct = settledTotal > 0 ? (row.value / settledTotal) * 100 : 0;
-                // Distribución por asset (DS §4.7): tinta → lavanda → cat, siempre
-                // acompañada del label textual, nunca color como único código.
+                const byValue = assetBasis === 'value';
+                const metric = byValue ? row.value : settledCountByAsset[row.asset];
+                const total = byValue ? settledTotal : settledCountTotal;
+                const pct = total > 0 ? (metric / total) * 100 : 0;
+                // Distribución por asset (DS §4.7): tinta → indigo → cat, con label textual.
                 const assetFill = ['bg-foreground', 'bg-accent', 'bg-cat-sand'][index % 3];
                 return (
                   <div key={row.asset}>
                     <div className="mb-1 flex items-center justify-between text-xs">
                       <span className="font-medium text-ink-1">{row.asset}</span>
-                      <span className="font-mono text-ink-2">{formatSettledAmount(row.asset, row.value)}</span>
+                      <span className="font-mono text-ink-2">
+                        {byValue
+                          ? formatSettledAmount(row.asset, row.value)
+                          : `${settledCountByAsset[row.asset]} ${copy.assetByLinks.toLowerCase()}`}
+                      </span>
                     </div>
                     <div className="h-2 rounded-full bg-muted">
-                      <div
-                        className={`h-2 rounded-full ${assetFill}`}
-                        style={{ width: `${pct}%` }}
-                      />
+                      <div className={`h-2 rounded-full ${assetFill}`} style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 );
               })}
-              <p className="pt-1 text-2xs text-ink-3">
-                {paidLinks} {copy.settledLabel}
-              </p>
             </div>
           )}
+
+          {/* Footer stat-pair (componente Chart): mayor ticket y cliente frecuente */}
+          <div className="mt-5 grid grid-cols-2 gap-4 border-t border-border pt-4">
+            <div>
+              <p className="text-[13px] text-ink-3">{copy.topTicket}</p>
+              <p className="mt-0.5 font-display text-lg font-bold [font-variant-numeric:tabular-nums] text-ink-0">
+                {largestTicket
+                  ? formatSettledAmount(largestTicket.currency as 'XLM' | 'USDC' | 'EURC', largestTicket.total)
+                  : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-[13px] text-ink-3">{copy.topClientLabel}</p>
+              <p className="mt-0.5 truncate font-display text-lg font-bold text-ink-0">
+                {topClient ? topClient.name : '—'}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -492,27 +640,27 @@ export default function Dashboard() {
         </div>
 
         {topClients.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-surface-3 bg-surface-1 px-3 py-6 text-center text-xs text-ink-3">
+          <div className="rounded-xl border border-dashed border-border bg-muted px-3 py-6 text-center text-xs text-ink-3">
             {copy.noClientActivity}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px]">
               <thead>
-                <tr className="border-b border-surface-3 text-xs text-ink-3">
-                  <th className="px-3 py-2 text-left font-medium">{copy.colClient}</th>
-                  <th className="px-3 py-2 text-right font-medium">{copy.colLinks}</th>
-                  <th className="px-3 py-2 text-right font-medium">{copy.colPaid}</th>
-                  <th className="px-3 py-2 text-right font-medium">{copy.colPending}</th>
+                <tr className="border-b border-border">
+                  <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colClient}</th>
+                  <th className="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colLinks}</th>
+                  <th className="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colPaid}</th>
+                  <th className="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colPending}</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border">
                 {topClients.map((client) => (
-                  <tr key={client.name} className="border-b border-surface-3/70 last:border-0">
-                    <td className="px-3 py-2.5 text-sm text-ink-1">{client.name}</td>
-                    <td className="px-3 py-2.5 text-right font-mono text-sm text-ink-1">{client.links}</td>
-                    <td className="px-3 py-2.5 text-right font-mono text-sm text-success">{client.paid}</td>
-                    <td className="px-3 py-2.5 text-right font-mono text-sm text-warning">{client.pending}</td>
+                  <tr key={client.name} className="transition-colors hover:bg-muted">
+                    <td className="px-3 py-2.5 text-sm font-medium text-ink-1">{client.name}</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-sm [font-variant-numeric:tabular-nums] text-ink-1">{client.links}</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-sm [font-variant-numeric:tabular-nums] text-positive">{client.paid}</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-sm [font-variant-numeric:tabular-nums] text-warning">{client.pending}</td>
                   </tr>
                 ))}
               </tbody>
@@ -545,34 +693,41 @@ export default function Dashboard() {
             </Link>
           </div>
         ) : (
-          <div className="card divide-y divide-surface-3">
-            {recentInvoices.map((invoice) => {
+          // Transaction List (Design System): avatar categórico 44px con flecha
+          // direccional, título bold, importe tabular; money-in = crédito.
+          <div className="card divide-y divide-border p-2">
+            {recentInvoices.map((invoice, index) => {
               // Ledger voice: money that actually landed reads as a green credit.
               const moneyIn = invoice.status === 'PAID' || invoice.status === 'SETTLED_FIAT';
+              const avatarBg = ['bg-cat-rose', 'bg-cat-sage', 'bg-cat-sand', 'bg-cat-mist'][index % 4];
+              const Arrow = moneyIn ? ArrowDownLeft : ArrowUpRight;
               return (
                 <Link
                   key={invoice.id}
                   to={`/dashboard/links/${invoice.id}`}
-                  className="flex flex-col gap-3 p-4 transition-colors hover:bg-surface-1 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex items-center gap-4 rounded-xl p-3 transition-colors hover:bg-muted"
                 >
-                  <div className="flex min-w-0 items-center gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-ink-0 break-words">{invoice.title}</p>
-                      <p className="text-xs text-ink-3">
-                        {invoice.clientName} | {invoice.invoiceNumber}
-                      </p>
-                    </div>
+                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${avatarBg}`}>
+                    <Arrow className="h-5 w-5 text-foreground" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-base font-bold text-ink-0">{invoice.title}</p>
+                    <p className="truncate text-[13px] text-ink-3">
+                      {invoice.clientName} · {invoice.invoiceNumber}
+                    </p>
                   </div>
-                  <div className="flex items-center justify-between gap-4 sm:justify-end">
+                  <div className="flex shrink-0 items-center gap-3">
                     <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
                     <span
-                      className={`w-28 text-right font-mono text-sm font-medium [font-variant-numeric:tabular-nums] ${
+                      className={`text-right font-display text-base font-bold [font-variant-numeric:tabular-nums] ${
                         moneyIn ? 'text-positive' : 'text-ink-0'
                       }`}
                     >
                       {moneyIn ? '+' : ''}
                       {parseFloat(invoice.total).toFixed(2)}{' '}
-                      <span className={`text-xs ${moneyIn ? 'text-positive/70' : 'text-ink-3'}`}>{invoice.currency}</span>
+                      <span className={`text-xs font-medium ${moneyIn ? 'text-positive/70' : 'text-ink-3'}`}>
+                        {invoice.currency}
+                      </span>
                     </span>
                   </div>
                 </Link>

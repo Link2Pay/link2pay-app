@@ -34,6 +34,10 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        'card-invert': {
+          DEFAULT: 'hsl(var(--card-invert))',
+          foreground: 'hsl(var(--card-invert-foreground))',
+        },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
