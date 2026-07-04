@@ -15,11 +15,8 @@ import {
 } from 'lucide-react';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
-import WalletConnect from './Wallet/WalletConnect';
-import PrivyLogin from './Auth/PrivyLogin';
 import PrivyDisconnectButton from './Auth/PrivyDisconnectButton';
 import ThemeToggle from './ThemeToggle';
-import LanguageToggle from './LanguageToggle';
 import BrandMark from './BrandMark';
 import BrandWordmark from './BrandWordmark';
 import MobileNavDrawer from './MobileNavDrawer';
@@ -198,6 +195,7 @@ export default function Layout() {
                   <UserCircle2 className="h-4 w-4 text-muted-foreground" />
                   {t('layout.profile')}
                 </Link>
+                <ThemeToggle variant="menuItem" />
               </div>
 
               <div className="border-t border-surface-3 px-1.5 py-2">
@@ -252,9 +250,10 @@ export default function Layout() {
       </aside>
 
       <main className="flex-1 md:ml-64">
-        <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md">
-          {/* Mobile: brand + hamburger */}
-          <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-6 md:hidden">
+        {/* Header solo en móvil: marca + hamburguesa. En desktop no hay navbar —
+            tema, idioma y Desconectar viven en el desplegable de cuenta del sidebar. */}
+        <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md md:hidden">
+          <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-6">
             <Link to="/dashboard" className="inline-flex items-center gap-2">
               <BrandMark className="h-8 w-8 rounded-lg" />
               <BrandWordmark className="text-base font-semibold leading-snug" />
@@ -272,13 +271,6 @@ export default function Layout() {
               <Menu aria-hidden="true" className="h-5 w-5" />
             </button>
           </div>
-
-          {/* Desktop: language / theme / wallet controls */}
-          <div className="hidden flex-wrap items-center justify-end gap-2 px-4 py-3 sm:px-6 md:flex md:px-8">
-            <LanguageToggle />
-            <ThemeToggle />
-            {config.privyAppId ? <PrivyLogin /> : <WalletConnect />}
-          </div>
         </header>
 
         <MobileNavDrawer
@@ -287,13 +279,19 @@ export default function Layout() {
           items={navItems.map((item) => ({ ...item, end: item.path === '/dashboard' }))}
           triggerRef={mobileNavTriggerRef}
           footer={
-            <>
-              <div className="flex items-center gap-2">
-                <LanguageToggle />
-                <ThemeToggle />
-              </div>
-              {config.privyAppId ? <PrivyLogin /> : <WalletConnect />}
-            </>
+            <div className="space-y-3">
+              {/* Móvil no tiene el desplegable de cuenta del sidebar: el enlace a
+                  Perfil da acceso a idioma y Desconectar. */}
+              <Link
+                to="/dashboard/profile-options"
+                onClick={() => setMobileNavOpen(false)}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                <UserCircle2 aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
+                {t('layout.profile')}
+              </Link>
+              <ThemeToggle />
+            </div>
           }
         />
 

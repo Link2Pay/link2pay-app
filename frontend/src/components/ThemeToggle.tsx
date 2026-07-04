@@ -8,19 +8,42 @@ const getCurrentTheme = (): ThemeMode => {
   return document.documentElement.classList.contains('light') ? 'light' : 'dark';
 };
 
-export default function ThemeToggle() {
+interface ThemeToggleProps {
+  /** 'button' = pill con borde (default); 'menuItem' = fila para el menú de cuenta. */
+  variant?: 'button' | 'menuItem';
+}
+
+export default function ThemeToggle({ variant = 'button' }: ThemeToggleProps) {
   const [theme, setThemeState] = useState<ThemeMode>(() => getCurrentTheme());
   const { t } = useI18n();
   const whiteLabel = t('theme.white');
   const darkLabel = t('theme.dark');
   const switchLabel = theme === 'dark' ? whiteLabel : darkLabel;
   const switchTitle = theme === 'dark' ? t('theme.switchToWhite') : t('theme.switchToDark');
+  const Icon = theme === 'dark' ? Sun : Moon;
 
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     setThemeState(next);
   };
+
+  if (variant === 'menuItem') {
+    // Fila de menú, coherente con Perfil / Desconectar del desplegable de cuenta.
+    return (
+      <button
+        type="button"
+        role="menuitem"
+        onClick={toggleTheme}
+        className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
+        aria-label={switchTitle}
+        title={switchTitle}
+      >
+        <Icon aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
+        {switchLabel}
+      </button>
+    );
+  }
 
   return (
     <button
@@ -30,7 +53,7 @@ export default function ThemeToggle() {
       aria-label={switchTitle}
       title={switchTitle}
     >
-      {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      <Icon className="h-4 w-4" />
       <span className="relative hidden min-[420px]:inline-grid">
         <span className="invisible col-start-1 row-start-1">{whiteLabel}</span>
         <span className="invisible col-start-1 row-start-1">{darkLabel}</span>
