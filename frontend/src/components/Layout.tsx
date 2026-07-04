@@ -231,7 +231,7 @@ export default function Layout() {
             className="w-full rounded-xl border border-sidebar-border bg-sidebar-accent/50 p-2.5 text-left transition-colors hover:bg-sidebar-accent"
           >
             <div className="flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-success/15 font-mono text-xs font-semibold text-success">
+              <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/15 font-mono text-xs font-semibold text-primary">
                 {profileInitial}
               </span>
               <div className="min-w-0 flex-1">

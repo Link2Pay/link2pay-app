@@ -52,7 +52,7 @@ const COPY: Record<
     subtitle: 'Settlement and payment activity across your links',
     settled: 'Settled',
     inProgress: 'In Progress',
-    failed: 'Failed/Expired',
+    failed: 'Failed / Expired',
     successRate: 'Success Rate',
     all: 'All',
     filterInProgress: 'In Progress',
@@ -81,7 +81,7 @@ const COPY: Record<
     subtitle: 'Actividad de pagos y liquidaciones de tus links',
     settled: 'Liquidadas',
     inProgress: 'En progreso',
-    failed: 'Fallidas/expiradas',
+    failed: 'Fallidas / Expiradas',
     successRate: 'Tasa de exito',
     all: 'Todas',
     filterInProgress: 'En progreso',
@@ -110,7 +110,7 @@ const COPY: Record<
     subtitle: 'Atividade de pagamentos e liquidacoes dos seus links',
     settled: 'Liquidadas',
     inProgress: 'Em progresso',
-    failed: 'Falhas/expiradas',
+    failed: 'Falhas / Expiradas',
     successRate: 'Taxa de sucesso',
     all: 'Todas',
     filterInProgress: 'Em progresso',
@@ -243,7 +243,7 @@ export default function Transactions() {
   // resto neutras con tinte semántico (warning / destructive).
   const summaryCards: StatCardData[] = [
     { label: copy.successRate, value: `${successRate}%`, icon: Gauge, variant: 'accent' },
-    { label: copy.settled, value: settledCount, icon: CheckCircle2, variant: 'ink' },
+    { label: copy.settled, value: settledCount, icon: CheckCircle2, variant: 'neutral', circle: 'bg-primary/10', glyph: 'text-primary' },
     {
       label: copy.inProgress,
       value: inProgressCount,

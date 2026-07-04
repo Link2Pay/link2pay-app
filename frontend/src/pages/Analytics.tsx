@@ -23,6 +23,7 @@ const COPY: Record<
     avgTicket: string;
     activeLinks: string;
     settledLinks: string;
+    confirmed: string;
     settleSpeed: string;
     statusMixTitle: string;
     statusMixSubtitle: string;
@@ -54,6 +55,7 @@ const COPY: Record<
     avgTicket: 'Avg ticket',
     activeLinks: 'Active links',
     settledLinks: 'Settled links',
+    confirmed: 'Confirmed',
     settleSpeed: 'Avg settlement',
     statusMixTitle: 'Status Distribution',
     statusMixSubtitle: 'Current mix of payment lifecycle stages',
@@ -84,6 +86,7 @@ const COPY: Record<
     avgTicket: 'Ticket promedio',
     activeLinks: 'Links activos',
     settledLinks: 'Links liquidados',
+    confirmed: 'Confirmados',
     settleSpeed: 'Liquidación prom.',
     statusMixTitle: 'Distribución de estados',
     statusMixSubtitle: 'Mix actual de etapas del ciclo de pago',
@@ -114,6 +117,7 @@ const COPY: Record<
     avgTicket: 'Ticket médio',
     activeLinks: 'Links ativos',
     settledLinks: 'Links liquidados',
+    confirmed: 'Confirmados',
     settleSpeed: 'Liquidação méd.',
     statusMixTitle: 'Distribuição de status',
     statusMixSubtitle: 'Mix atual das etapas do ciclo de pagamento',
@@ -307,7 +311,7 @@ export default function Analytics() {
   // KPIs espectrales: Conversión = acento (indigo), Liquidados = ink; resto neutras.
   const kpiCards: StatCardData[] = [
     { label: copy.conversion, value: `${conversionRate.toFixed(1)}%`, icon: Gauge, variant: 'accent' },
-    { label: copy.settledLinks, value: paidLinks, icon: CheckCircle2, variant: 'ink' },
+    { label: copy.settledLinks, value: paidLinks, icon: CheckCircle2, variant: 'neutral', circle: 'bg-primary/10', glyph: 'text-primary' },
     { label: copy.avgTicket, value: avgTicket.toFixed(2), icon: CircleDollarSign, variant: 'neutral' },
     {
       label: copy.activeLinks,
@@ -317,6 +321,15 @@ export default function Analytics() {
       circle: 'bg-warning-subtle',
       glyph: 'text-warning',
       valueClass: 'text-warning',
+    },
+    {
+      label: copy.confirmed,
+      value: paidLinks,
+      icon: CheckCircle2,
+      variant: 'neutral',
+      circle: 'bg-success-subtle',
+      glyph: 'text-success',
+      valueClass: 'text-success',
     },
     {
       label: copy.settleSpeed,
@@ -334,7 +347,7 @@ export default function Analytics() {
     <div className="space-y-6 animate-in sm:space-y-8">
       <PageHeader title={copy.title} subtitle={copy.subtitle} />
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
         {kpiCards.map((stat) => (
           <StatCard key={stat.label} {...stat} />
         ))}

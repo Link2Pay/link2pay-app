@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Building2, Copy, LogOut, Save, Settings2, ShieldCheck, UserCircle2 } from 'lucide-react';
+import { Copy, LogOut, Save, UserCircle2 } from 'lucide-react';
 import LanguageToggle from '../components/LanguageToggle';
 import ThemeToggle from '../components/ThemeToggle';
 import KycGate from '../components/Kyc/KycGate';
+import PageHeader from '../components/ui/PageHeader';
+import SectionCard from '../components/ui/SectionCard';
+import Field from '../components/ui/Field';
+import Select from '../components/ui/Select';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import { useWalletStore } from '../store/walletStore';
+import { useNetworkStore } from '../store/networkStore';
 import { getBusinessProfile, saveBusinessProfile } from '../services/api';
 import { shortenAddress } from '../lib/format';
 import { COUNTRY_OPTIONS, railByCountry } from '../config/rails';
@@ -52,6 +57,9 @@ const COPY: Record<
     optional: string;
     kycTitle: string;
     kycDesc: string;
+    addressSectionTitle: string;
+    payoutSectionTitle: string;
+    heroFallback: string;
   }
 > = {
   en: {
@@ -92,6 +100,9 @@ const COPY: Record<
     optional: 'Optional',
     kycTitle: 'Identity verification',
     kycDesc: 'Required to receive fiat (Bre-B) payouts. Crypto payouts need no verification.',
+    addressSectionTitle: 'Address',
+    payoutSectionTitle: 'Payout preferences',
+    heroFallback: 'Your profile',
   },
   es: {
     title: 'Perfil y opciones',
@@ -131,6 +142,9 @@ const COPY: Record<
     optional: 'Opcional',
     kycTitle: 'Verificación de identidad',
     kycDesc: 'Requerida para recibir pagos en fiat (Bre-B). Los pagos en cripto no requieren verificación.',
+    addressSectionTitle: 'Dirección',
+    payoutSectionTitle: 'Preferencias de cobro',
+    heroFallback: 'Tu perfil',
   },
   pt: {
     title: 'Perfil e opcoes',
@@ -170,6 +184,9 @@ const COPY: Record<
     optional: 'Opcional',
     kycTitle: 'Verificação de identidade',
     kycDesc: 'Necessária para receber pagamentos em fiat (Bre-B). Pagamentos em cripto não exigem verificação.',
+    addressSectionTitle: 'Endereço',
+    payoutSectionTitle: 'Preferências de recebimento',
+    heroFallback: 'Seu perfil',
   },
 };
 
@@ -194,7 +211,9 @@ export default function ProfileOptions() {
   const { language } = useI18n();
   const copy = COPY[language];
   const { publicKey, disconnect } = useWalletStore();
+  const { network } = useNetworkStore();
   const [copied, setCopied] = useState(false);
+  const [logoError, setLogoError] = useState(false);
 
   const [form, setForm] = useState<SaveProfileData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -239,6 +258,12 @@ export default function ProfileOptions() {
   // The fiat off-ramp option and its alias adapt to the merchant's country.
   const settlementRail = railByCountry(form.country);
 
+  // Reintenta cargar el logo cuando cambia la URL (tras un error previo).
+  useEffect(() => setLogoError(false), [form.logoUrl]);
+
+  const profileInitial = (form.displayName?.[0] || publicKey?.[0] || 'L').toUpperCase();
+  const showLogo = Boolean(form.logoUrl) && !logoError;
+
   const handleSave = async () => {
     if (!publicKey) return;
     setSaving(true);
@@ -264,182 +289,202 @@ export default function ProfileOptions() {
   };
 
   return (
-    <div className="space-y-6 animate-in">
-      <div>
-        <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-0">{copy.title}</h2>
-        <p className="text-sm text-ink-3">{copy.subtitle}</p>
-      </div>
-
-      {/* Business profile — primary editable identity reused across invoices */}
-      <div className="card p-5">
-        <div className="mb-1 flex items-center gap-2">
-          <Building2 className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold text-ink-0">{copy.businessTitle}</h3>
-        </div>
-        <p className="mb-4 text-xs text-ink-3">{copy.businessDesc}</p>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label className="label">{copy.displayName}</label>
-            <input className="input" value={form.displayName ?? ''}
-              onChange={(e) => set('displayName', e.target.value)} placeholder={copy.optional} />
-          </div>
-          <div>
-            <label className="label">{copy.legalName}</label>
-            <input className="input" value={form.legalName ?? ''}
-              onChange={(e) => set('legalName', e.target.value)} placeholder={copy.optional} />
-          </div>
-          <div>
-            <label className="label">{copy.taxIdLabel}</label>
-            <input className="input" value={form.taxId ?? ''}
-              onChange={(e) => set('taxId', e.target.value)} placeholder={copy.optional} />
-          </div>
-          <div>
-            <label className="label">{copy.emailLabel}</label>
-            <input type="email" className="input" value={form.email ?? ''}
-              onChange={(e) => set('email', e.target.value)} placeholder={copy.optional} />
-          </div>
-          <div>
-            <label className="label">{copy.phoneLabel}</label>
-            <input className="input" value={form.phone ?? ''}
-              onChange={(e) => set('phone', e.target.value)} placeholder={copy.optional} />
-          </div>
-          <div>
-            <label className="label">{copy.logoUrlLabel}</label>
-            <input className="input" value={form.logoUrl ?? ''}
-              onChange={(e) => set('logoUrl', e.target.value)} placeholder="https://..." />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="label">{copy.addressLabel}</label>
-            <input className="input" value={form.addressLine ?? ''}
-              onChange={(e) => set('addressLine', e.target.value)} placeholder={copy.optional} />
-          </div>
-          <div>
-            <label className="label">{copy.cityLabel}</label>
-            <input className="input" value={form.city ?? ''}
-              onChange={(e) => set('city', e.target.value)} placeholder={copy.optional} />
-          </div>
-          <div>
-            <label className="label">{copy.countryLabel}</label>
-            <select
-              className="input"
-              value={manualCountry ? 'OTHER' : (railByCountry(form.country)?.country ?? '')}
-              onChange={(e) => {
-                const v = e.target.value;
-                if (v === 'OTHER') { setManualCountry(true); set('country', ''); }
-                else { setManualCountry(false); set('country', v); }
-              }}
-            >
-              <option value="">{copy.countrySelect}</option>
-              {COUNTRY_OPTIONS.map((o) => (
-                <option key={o.code} value={o.code}>{o.name}</option>
-              ))}
-              <option value="OTHER">{copy.countryOther}</option>
-            </select>
-            {manualCountry && (
-              <input className="input mt-2" value={form.country ?? ''}
-                onChange={(e) => set('country', e.target.value)} placeholder={copy.optional} />
-            )}
-          </div>
-          <div>
-            <label className="label">{copy.defaultCurrencyLabel}</label>
-            <select className="input" value={form.defaultCurrency ?? 'USDC'}
-              onChange={(e) => set('defaultCurrency', e.target.value as Currency)}>
-              <option value="USDC">USDC</option>
-              <option value="EURC">EURC</option>
-              <option value="XLM">XLM</option>
-            </select>
-          </div>
-          <div>
-            <label className="label">{copy.defaultSettlementLabel}</label>
-            <select className="input" value={form.defaultPayoutMethod ?? 'CRYPTO'}
-              onChange={(e) => set('defaultPayoutMethod', e.target.value)}>
-              <option value="CRYPTO">{copy.crypto}</option>
-              <option value="BRE_B">
-                {settlementRail ? `${settlementRail.railName} (${settlementRail.currency})` : copy.breb}
-              </option>
-            </select>
-          </div>
-          {form.defaultPayoutMethod === 'BRE_B' && (
-            <div className="sm:col-span-2">
-              <label className="label">
-                {settlementRail ? settlementRail.aliasLabel : copy.defaultAliasLabel}
-              </label>
-              <input className="input" value={form.defaultPayoutAlias ?? ''}
-                onChange={(e) => set('defaultPayoutAlias', e.target.value)}
-                placeholder={settlementRail?.aliasPlaceholder ?? '@nequi-3001234567'} />
-            </div>
-          )}
-        </div>
-
-        <div className="mt-5 flex justify-end">
-          <button type="button" onClick={handleSave} disabled={saving || !publicKey} className="btn-primary text-sm">
+    <div className="space-y-6 animate-in sm:space-y-8">
+      <PageHeader
+        title={copy.title}
+        subtitle={copy.subtitle}
+        icon={UserCircle2}
+        actions={
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving || !publicKey}
+            className="btn-primary w-full text-sm sm:w-auto"
+          >
             <Save className="h-4 w-4" />
             {saving ? copy.saving : copy.save}
           </button>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Merchant KYC — proactively verify so fiat (Bre-B) links can be created */}
-      <div className="card p-5">
-        <div className="mb-1 flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold text-ink-0">{copy.kycTitle}</h3>
-        </div>
-        <p className="mb-1 text-xs text-ink-3">{copy.kycDesc}</p>
-        <KycGate active />
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="card p-5">
-          <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink-0">
-            <UserCircle2 className="h-4 w-4 text-primary" />
-            {copy.profileTitle}
-          </h3>
-          <p className="text-xs text-ink-3">{copy.wallet}</p>
-          <div className="mt-2 flex items-center gap-2">
-            <p className="rounded-lg border border-surface-3 bg-surface-1 px-3 py-2 font-mono text-xs text-ink-1">
+      {/* Hero de identidad: avatar (logo o inicial) + nombre + wallet + red */}
+      <div className="flex flex-col gap-4 rounded-2xl bg-card p-6 sm:flex-row sm:items-center">
+        <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-lg font-semibold text-primary">
+          {showLogo ? (
+            <img
+              src={form.logoUrl}
+              alt=""
+              className="h-full w-full object-cover"
+              onError={() => setLogoError(true)}
+            />
+          ) : (
+            profileInitial
+          )}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-display text-xl font-bold tracking-tight text-ink-0">
+            {form.displayName?.trim() || copy.heroFallback}
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="font-mono text-sm text-ink-3">
               {publicKey ? shorten(publicKey) : copy.notConnected}
-            </p>
+            </span>
             {publicKey && (
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="btn-ghost px-2 py-2 text-xs"
-                title={copy.copy}
-              >
+              <button type="button" onClick={handleCopy} className="btn-ghost h-8 px-2 text-xs" title={copy.copy}>
                 <Copy className="h-3.5 w-3.5" />
                 {copied ? copy.copied : copy.copy}
               </button>
             )}
-          </div>
-          {publicKey && (
-            <span className="mt-3 inline-flex items-center rounded-full bg-success/10 px-2.5 py-1 text-xs font-medium text-success">
-              {copy.connected}
-            </span>
-          )}
-        </div>
-
-        <div className="card p-5">
-          <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold text-ink-0">
-            <Settings2 className="h-4 w-4 text-primary" />
-            {copy.preferencesTitle}
-          </h3>
-          <p className="mb-4 text-xs text-ink-3">{copy.preferencesDesc}</p>
-          <div className="flex flex-wrap items-center gap-2">
-            <LanguageToggle />
-            <ThemeToggle />
+            {publicKey && (
+              <span
+                className={`inline-flex items-center gap-1.5 text-xs font-medium ${
+                  network === 'testnet' ? 'text-warning' : 'text-success'
+                }`}
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${network === 'testnet' ? 'bg-warning' : 'bg-success'}`} />
+                {network === 'testnet' ? 'Testnet' : 'Mainnet'}
+              </span>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="card p-5">
-        <h3 className="mb-3 text-sm font-semibold text-ink-0">{copy.actionsTitle}</h3>
+      {/* Identidad del negocio */}
+      <SectionCard title={copy.businessTitle} hint={copy.businessDesc}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field id="pf-displayName" label={copy.displayName}>
+            <input id="pf-displayName" className="input" value={form.displayName ?? ''}
+              onChange={(e) => set('displayName', e.target.value)} placeholder={copy.optional} />
+          </Field>
+          <Field id="pf-legalName" label={copy.legalName}>
+            <input id="pf-legalName" className="input" value={form.legalName ?? ''}
+              onChange={(e) => set('legalName', e.target.value)} placeholder={copy.optional} />
+          </Field>
+          <Field id="pf-taxId" label={copy.taxIdLabel}>
+            <input id="pf-taxId" className="input" value={form.taxId ?? ''}
+              onChange={(e) => set('taxId', e.target.value)} placeholder={copy.optional} />
+          </Field>
+          <Field id="pf-email" label={copy.emailLabel}>
+            <input id="pf-email" type="email" className="input" value={form.email ?? ''}
+              onChange={(e) => set('email', e.target.value)} placeholder={copy.optional} />
+          </Field>
+          <Field id="pf-phone" label={copy.phoneLabel}>
+            <input id="pf-phone" className="input" value={form.phone ?? ''}
+              onChange={(e) => set('phone', e.target.value)} placeholder={copy.optional} />
+          </Field>
+          <Field id="pf-logoUrl" label={copy.logoUrlLabel}>
+            <div className="flex items-center gap-3">
+              {showLogo && (
+                <img
+                  src={form.logoUrl}
+                  alt=""
+                  className="h-11 w-11 shrink-0 rounded-xl border border-border object-cover"
+                  onError={() => setLogoError(true)}
+                />
+              )}
+              <input id="pf-logoUrl" className="input" value={form.logoUrl ?? ''}
+                onChange={(e) => set('logoUrl', e.target.value)} placeholder="https://..." />
+            </div>
+          </Field>
+        </div>
+      </SectionCard>
+
+      {/* Dirección */}
+      <SectionCard title={copy.addressSectionTitle}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Field id="pf-address" label={copy.addressLabel}>
+              <input id="pf-address" className="input" value={form.addressLine ?? ''}
+                onChange={(e) => set('addressLine', e.target.value)} placeholder={copy.optional} />
+            </Field>
+          </div>
+          <Field id="pf-city" label={copy.cityLabel}>
+            <input id="pf-city" className="input" value={form.city ?? ''}
+              onChange={(e) => set('city', e.target.value)} placeholder={copy.optional} />
+          </Field>
+          <Field id="pf-country" label={copy.countryLabel}>
+            <Select
+              id="pf-country"
+              placeholder={copy.countrySelect}
+              value={manualCountry ? 'OTHER' : (railByCountry(form.country)?.country ?? '')}
+              options={[
+                ...COUNTRY_OPTIONS.map((o) => ({ value: o.code, label: o.name })),
+                { value: 'OTHER', label: copy.countryOther },
+              ]}
+              onChange={(v) => {
+                if (v === 'OTHER') { setManualCountry(true); set('country', ''); }
+                else { setManualCountry(false); set('country', v); }
+              }}
+            />
+            {manualCountry && (
+              <input className="input mt-2" value={form.country ?? ''}
+                onChange={(e) => set('country', e.target.value)} placeholder={copy.optional} />
+            )}
+          </Field>
+        </div>
+      </SectionCard>
+
+      {/* Preferencias de cobro */}
+      <SectionCard title={copy.payoutSectionTitle}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field id="pf-currency" label={copy.defaultCurrencyLabel}>
+            <Select
+              id="pf-currency"
+              value={form.defaultCurrency ?? 'USDC'}
+              options={[
+                { value: 'USDC', label: 'USDC' },
+                { value: 'EURC', label: 'EURC' },
+                { value: 'XLM', label: 'XLM' },
+              ]}
+              onChange={(v) => set('defaultCurrency', v as Currency)}
+            />
+          </Field>
+          <Field id="pf-settlement" label={copy.defaultSettlementLabel}>
+            <Select
+              id="pf-settlement"
+              value={form.defaultPayoutMethod ?? 'CRYPTO'}
+              options={[
+                { value: 'CRYPTO', label: copy.crypto },
+                {
+                  value: 'BRE_B',
+                  label: settlementRail ? `${settlementRail.railName} (${settlementRail.currency})` : copy.breb,
+                },
+              ]}
+              onChange={(v) => set('defaultPayoutMethod', v)}
+            />
+          </Field>
+          {form.defaultPayoutMethod === 'BRE_B' && (
+            <div className="sm:col-span-2">
+              <Field id="pf-alias" label={settlementRail ? settlementRail.aliasLabel : copy.defaultAliasLabel}>
+                <input id="pf-alias" className="input" value={form.defaultPayoutAlias ?? ''}
+                  onChange={(e) => set('defaultPayoutAlias', e.target.value)}
+                  placeholder={settlementRail?.aliasPlaceholder ?? '@nequi-3001234567'} />
+              </Field>
+            </div>
+          )}
+        </div>
+      </SectionCard>
+
+      {/* Verificación de identidad (KYC) */}
+      <SectionCard title={copy.kycTitle} hint={copy.kycDesc}>
+        <KycGate active />
+      </SectionCard>
+
+      {/* Preferencias del espacio */}
+      <SectionCard title={copy.preferencesTitle} hint={copy.preferencesDesc}>
+        <div className="flex flex-wrap items-center gap-2">
+          <LanguageToggle />
+          <ThemeToggle />
+        </div>
+      </SectionCard>
+
+      {/* Sesión */}
+      <SectionCard title={copy.actionsTitle}>
         <button type="button" onClick={disconnect} className="btn-danger text-sm">
           <LogOut className="h-4 w-4" />
           {copy.disconnect}
         </button>
-      </div>
+      </SectionCard>
     </div>
   );
 }

@@ -21,14 +21,16 @@ const VARIANT_CLASS: Record<StatVariant, string> = {
   neutral: 'bg-card',
 };
 
-// Círculo/glifo por defecto según variante (inversión especular del Design System).
+// Círculo/glifo por defecto según variante. En la card de acento el chip del
+// icono es blanco translúcido (patrón "icono sobre superficie de marca", igual
+// que el item activo del sidebar) — claro en ambos temas, sin negro.
 const DEFAULT_CIRCLE: Record<StatVariant, string> = {
-  accent: 'bg-card-invert',
+  accent: 'bg-white/15',
   ink: 'bg-accent',
   neutral: 'bg-muted',
 };
 const DEFAULT_GLYPH: Record<StatVariant, string> = {
-  accent: 'text-accent',
+  accent: 'text-accent-foreground',
   ink: 'text-accent-foreground',
   neutral: 'text-ink-3',
 };

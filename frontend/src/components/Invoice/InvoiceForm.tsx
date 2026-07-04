@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SectionCard from '../ui/SectionCard';
+import Field from '../ui/Field';
 import toast from 'react-hot-toast';
 import { Calendar, Check, ChevronDown, Plus, X } from 'lucide-react';
 import { createInvoice, getBusinessProfile } from '../../services/api';
@@ -316,66 +318,6 @@ const COPY: Record<Language, {
   },
 };
 
-function SectionCard({
-  title,
-  eyebrow,
-  hint,
-  action,
-  children,
-  className = '',
-}: {
-  title: string;
-  eyebrow?: string;
-  hint?: string;
-  action?: ReactNode;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <section className={`card p-5 sm:p-6 ${className}`}>
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          {eyebrow && (
-            <p className="mb-1 text-2xs font-medium uppercase tracking-label text-muted-foreground">
-              {eyebrow}
-            </p>
-          )}
-          <h3 className="font-display text-xl font-bold tracking-tight text-foreground">{title}</h3>
-          {hint && <p className="mt-1 text-xs text-ink-3">{hint}</p>}
-        </div>
-        {action}
-      </div>
-      {children}
-    </section>
-  );
-}
-
-function Field({
-  id,
-  label,
-  required,
-  hint,
-  hintId,
-  children,
-}: {
-  id: string;
-  label: string;
-  required?: boolean;
-  hint?: string;
-  hintId?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="min-w-0">
-      <label htmlFor={id} className="label">
-        {label}
-        {required && <span className="text-destructive"> *</span>}
-      </label>
-      {children}
-      {hint && <p id={hintId} className="mt-1 text-2xs text-ink-4">{hint}</p>}
-    </div>
-  );
-}
 
 function formatMoney(value: number, currency: Currency) {
   return `${value.toFixed(2)} ${currency}`;
