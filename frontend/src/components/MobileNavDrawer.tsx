@@ -155,7 +155,7 @@ export default function MobileNavDrawer({
                   className={({ isActive }) =>
                     `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors duration-150 ${
                       isActive
-                        ? 'bg-primary text-primary-foreground font-bold'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-bold'
                         : 'text-foreground font-medium hover:bg-muted'
                     }`
                   }

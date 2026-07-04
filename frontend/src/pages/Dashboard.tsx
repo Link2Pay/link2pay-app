@@ -330,16 +330,14 @@ export default function Dashboard() {
       value: totalRevenueValue,
       icon: CircleDollarSign,
       variant: 'accent',
-      circle: 'bg-card-invert',
-      glyph: 'text-accent',
     },
     {
       label: copy.totalInvoices,
       value: totalLinks,
       icon: FileText,
-      variant: 'ink',
-      circle: 'bg-accent',
-      glyph: 'text-accent-foreground',
+      variant: 'neutral',
+      circle: 'bg-primary/10',
+      glyph: 'text-primary',
     },
     {
       label: copy.paid,
@@ -433,40 +431,34 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Credit Card (Design System) aplicada al pipeline: panel ink con
-            textura + cifra en tránsito + barra apilada; franja de acento con los
-            4 stages a modo de "Card Number / Date / CVV". */}
-        <div className="card flex flex-col overflow-hidden lg:col-span-2">
-          <div className="relative flex flex-1 flex-col overflow-hidden bg-card-invert p-6 text-card-invert-foreground">
-            <div
-              aria-hidden="true"
-              className="pipeline-microtexture pointer-events-none absolute inset-0"
-            />
-            <div className="relative flex flex-1 flex-col justify-between gap-6">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-label opacity-70">
-                    <Layers className="h-3.5 w-3.5" aria-hidden="true" />
-                    {copy.pipelineTitle}
-                  </p>
-                  <p className="mt-1 text-xs opacity-60">{copy.awaitingPayment}</p>
-                </div>
-                <span className="rounded-full border border-white/15 px-2.5 py-1 text-xs font-bold [font-variant-numeric:tabular-nums]">
-                  {conversionRate.toFixed(1)}% {copy.conversionRate}
-                </span>
-              </div>
-
+        {/* Pipeline de pagos — card clara neutra: cifra en tránsito + barra
+            apilada por estado + los 4 stages y CTA. */}
+        <div className="card flex flex-col p-5 lg:col-span-2 sm:p-6">
+          <div className="flex flex-1 flex-col gap-6">
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="font-display text-3xl font-extrabold [font-variant-numeric:tabular-nums]">
-                  {stats?.pendingAmount ?? '0.00'}
-                </p>
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-0">
+                  <Layers className="h-4 w-4 text-ink-3" aria-hidden="true" />
+                  {copy.pipelineTitle}
+                </h3>
+                <p className="mt-1 text-xs text-ink-3">{copy.awaitingPayment}</p>
+              </div>
+              <span className="shrink-0 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-bold text-ink-2 [font-variant-numeric:tabular-nums]">
+                {conversionRate.toFixed(1)}% {copy.conversionRate}
+              </span>
+            </div>
 
-                <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-white/10">
+            <div>
+              <p className="font-display text-3xl font-extrabold text-ink-0 [font-variant-numeric:tabular-nums]">
+                {stats?.pendingAmount ?? '0.00'}
+              </p>
+
+              <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-muted">
                 {[
-                  { key: copy.stageDraft, value: draftLinks, color: 'bg-white/25' },
-                  { key: copy.stageInFlight, value: pendingLinks, color: 'bg-accent' },
-                  { key: copy.stagePaid, value: paidLinks, color: 'bg-white/80' },
-                  { key: copy.stageClosed, value: closedLinks, color: 'bg-white/40' },
+                  { key: copy.stageDraft, value: draftLinks, color: 'bg-muted-foreground' },
+                  { key: copy.stageInFlight, value: pendingLinks, color: 'bg-warning' },
+                  { key: copy.stagePaid, value: paidLinks, color: 'bg-success' },
+                  { key: copy.stageClosed, value: closedLinks, color: 'bg-destructive' },
                 ].map((segment) => {
                   const width = totalLinks > 0 ? (segment.value / totalLinks) * 100 : 0;
                   return (
@@ -478,26 +470,28 @@ export default function Dashboard() {
                     />
                   );
                 })}
-                </div>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-end gap-x-8 gap-y-3 bg-accent px-6 py-4 text-accent-foreground">
+          <div className="mt-5 flex flex-wrap items-end gap-x-8 gap-y-3 border-t border-border pt-4">
             {[
-              { key: copy.stageDraft, value: draftLinks },
-              { key: copy.stageInFlight, value: pendingLinks },
-              { key: copy.stagePaid, value: paidLinks },
-              { key: copy.stageClosed, value: closedLinks },
+              { key: copy.stageDraft, value: draftLinks, dot: 'bg-muted-foreground' },
+              { key: copy.stageInFlight, value: pendingLinks, dot: 'bg-warning' },
+              { key: copy.stagePaid, value: paidLinks, dot: 'bg-success' },
+              { key: copy.stageClosed, value: closedLinks, dot: 'bg-destructive' },
             ].map((item) => (
               <div key={item.key}>
-                <p className="text-[10px] font-medium uppercase tracking-[0.1em] opacity-70">{item.key}</p>
-                <p className="mt-0.5 text-sm font-bold [font-variant-numeric:tabular-nums]">{item.value}</p>
+                <p className="flex items-center gap-1.5 text-2xs font-medium uppercase tracking-label text-ink-3">
+                  <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${item.dot}`} />
+                  {item.key}
+                </p>
+                <p className="mt-0.5 font-mono text-sm font-bold text-ink-0 [font-variant-numeric:tabular-nums]">{item.value}</p>
               </div>
             ))}
             <Link
               to="/dashboard/links?status=PENDING"
-              className="ml-auto inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold text-accent-foreground transition-colors hover:bg-black/10"
+              className="ml-auto inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               {copy.viewPending}
               <ChevronRight className="h-3.5 w-3.5" />

@@ -243,7 +243,7 @@ export default function Transactions() {
   // resto neutras con tinte semántico (warning / destructive).
   const summaryCards: StatCardData[] = [
     { label: copy.successRate, value: `${successRate}%`, icon: Gauge, variant: 'accent' },
-    { label: copy.settled, value: settledCount, icon: CheckCircle2, variant: 'ink' },
+    { label: copy.settled, value: settledCount, icon: CheckCircle2, variant: 'neutral', circle: 'bg-primary/10', glyph: 'text-primary' },
     {
       label: copy.inProgress,
       value: inProgressCount,

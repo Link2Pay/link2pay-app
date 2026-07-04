@@ -311,7 +311,7 @@ export default function Analytics() {
   // KPIs espectrales: Conversión = acento (indigo), Liquidados = ink; resto neutras.
   const kpiCards: StatCardData[] = [
     { label: copy.conversion, value: `${conversionRate.toFixed(1)}%`, icon: Gauge, variant: 'accent' },
-    { label: copy.settledLinks, value: paidLinks, icon: CheckCircle2, variant: 'ink' },
+    { label: copy.settledLinks, value: paidLinks, icon: CheckCircle2, variant: 'neutral', circle: 'bg-primary/10', glyph: 'text-primary' },
     { label: copy.avgTicket, value: avgTicket.toFixed(2), icon: CircleDollarSign, variant: 'neutral' },
     {
       label: copy.activeLinks,
