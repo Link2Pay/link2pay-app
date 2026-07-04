@@ -18,6 +18,15 @@ import {
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import HeroPaymentMockup from '../components/marketing/HeroPaymentMockup';
+import usdcLogo from '../assets/logos/usdc.png';
+import xlmLogo from '../assets/logos/xlm.png';
+import eurcLogo from '../assets/logos/eurc.png';
+
+const CURRENCY_LOGOS: Record<string, string> = {
+  USDC: usdcLogo,
+  XLM: xlmLogo,
+  EURC: eurcLogo,
+};
 
 const FLOW_STEP_ICONS = [Wallet, QrCode, Landmark] as const;
 const BENEFIT_ICONS = [Landmark, Zap, Coins, ShieldCheck] as const;
@@ -857,8 +866,15 @@ export default function Home() {
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_hsl(var(--primary)_/_0.12),transparent_62%)]" />
                 <div className="relative flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/10 text-lg font-bold text-primary">
-                      {currency.code}
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/30 bg-primary/10 p-2">
+                      <img
+                        src={CURRENCY_LOGOS[currency.code]}
+                        alt={currency.code}
+                        className="h-full w-full object-contain"
+                        loading="lazy"
+                        width={48}
+                        height={48}
+                      />
                     </div>
                     <div className="min-w-0">
                       <h3 className="text-base font-semibold text-foreground">{currency.name}</h3>
