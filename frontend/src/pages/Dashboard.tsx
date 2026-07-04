@@ -322,10 +322,10 @@ export default function Dashboard() {
           {copy.loadError}
         </div>
       )}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-0">{copy.title}</h2>
-          <p className="mt-0.5 text-sm text-ink-3">{copy.subtitle}</p>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink-0 sm:text-4xl">{copy.title}</h1>
+          <p className="mt-1 text-sm text-ink-3">{copy.subtitle}</p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
@@ -445,8 +445,11 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="space-y-3">
-              {settledAssetRows.map((row) => {
+              {settledAssetRows.map((row, index) => {
                 const pct = settledTotal > 0 ? (row.value / settledTotal) * 100 : 0;
+                // Distribución por asset (DS §4.7): tinta → lavanda → cat, siempre
+                // acompañada del label textual, nunca color como único código.
+                const assetFill = ['bg-foreground', 'bg-accent', 'bg-cat-sand'][index % 3];
                 return (
                   <div key={row.asset}>
                     <div className="mb-1 flex items-center justify-between text-xs">
@@ -455,7 +458,7 @@ export default function Dashboard() {
                     </div>
                     <div className="h-2 rounded-full bg-muted">
                       <div
-                        className="h-2 rounded-full bg-primary"
+                        className={`h-2 rounded-full ${assetFill}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -481,7 +484,7 @@ export default function Dashboard() {
           </div>
           <Link
             to="/dashboard/clients"
-            className="inline-flex items-center gap-1 text-xs text-stellar-600 hover:text-stellar-700"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             {copy.viewClients}
             <ChevronRight className="h-3.5 w-3.5" />
@@ -526,7 +529,7 @@ export default function Dashboard() {
           </h3>
           <Link
             to="/dashboard/links"
-            className="inline-flex items-center gap-1 text-xs text-stellar-600 hover:text-stellar-700"
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             {copy.viewAll}
             <ChevronRight className="h-3.5 w-3.5" />
@@ -564,12 +567,12 @@ export default function Dashboard() {
                     <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
                     <span
                       className={`w-28 text-right font-mono text-sm font-medium [font-variant-numeric:tabular-nums] ${
-                        moneyIn ? 'text-success' : 'text-ink-0'
+                        moneyIn ? 'text-positive' : 'text-ink-0'
                       }`}
                     >
                       {moneyIn ? '+' : ''}
                       {parseFloat(invoice.total).toFixed(2)}{' '}
-                      <span className={`text-xs ${moneyIn ? 'text-success/70' : 'text-ink-3'}`}>{invoice.currency}</span>
+                      <span className={`text-xs ${moneyIn ? 'text-positive/70' : 'text-ink-3'}`}>{invoice.currency}</span>
                     </span>
                   </div>
                 </Link>

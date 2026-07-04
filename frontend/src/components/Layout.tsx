@@ -107,11 +107,7 @@ export default function Layout() {
           <div>
             <Link to="/dashboard" className="inline-flex items-center gap-2">
               <BrandMark className="h-9 w-9 rounded-lg" />
-              <BrandWordmark
-                className="text-lg font-semibold leading-snug"
-                leftClassName="!text-sidebar-foreground"
-                rightClassName="!text-success"
-              />
+              <BrandWordmark className="text-lg font-semibold leading-snug" />
             </Link>
             <span className="mt-1 block text-3xs uppercase tracking-wider text-sidebar-muted">
               {t('layout.invoicePlatform')}
@@ -119,7 +115,7 @@ export default function Layout() {
           </div>
         </div>
 
-        <nav aria-label="Main navigation" className="flex-1 px-3 py-4">
+        <nav aria-label="Main navigation" className="flex-1 py-4">
           <div className="space-y-0.5">
             {navItems.map((item) => {
               const isActive = isActivePath(item.path);
@@ -129,23 +125,21 @@ export default function Layout() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`relative flex items-center gap-3 rounded-r-xl py-2 pl-6 pr-3 mr-3 text-sm transition-colors duration-150 ${
                     isActive
-                      ? 'bg-sidebar-accent text-sidebar-foreground'
-                      : 'text-sidebar-muted hover:bg-sidebar-accent/60 hover:text-sidebar-foreground'
+                      ? 'bg-sidebar-primary text-sidebar-primary-foreground font-bold'
+                      : 'text-sidebar-foreground font-medium hover:bg-sidebar-accent'
                   }`}
                 >
-                  {/* Money-green rail marks where you are — the one accent on the ink. */}
-                  {isActive && (
-                    <span
-                      aria-hidden="true"
-                      className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-success"
-                    />
-                  )}
-                  <Icon
-                    aria-hidden="true"
-                    className={`h-4 w-4 ${isActive ? 'text-success' : 'text-sidebar-muted'}`}
-                  />
+                  {/* Icono en círculo: invertido (bg-white/15) cuando activo, neutro si no. */}
+                  <span
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                      isActive ? 'bg-white/15' : 'bg-muted'
+                    }`}
+                  >
+                    <Icon aria-hidden="true" className="h-4 w-4" />
+                  </span>
                   {item.label}
                 </Link>
               );
@@ -158,7 +152,7 @@ export default function Layout() {
             <div
               id="account-menu"
               role="menu"
-              className="absolute bottom-full left-4 right-4 z-40 mb-2 overflow-hidden rounded-2xl border border-surface-3 bg-surface-1 shadow-[0_18px_40px_hsl(var(--background)_/_0.55)]"
+              className="absolute bottom-full left-4 right-4 z-40 mb-2 overflow-hidden rounded-2xl border border-border bg-popover shadow-overlay"
             >
               <div className="flex items-center gap-2.5 px-3 pt-3 pb-3 border-b border-surface-3">
                 <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">

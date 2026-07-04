@@ -47,7 +47,7 @@ export default function Login() {
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl border border-border bg-card p-8 shadow-card">
+        <div className="rounded-2xl border border-border bg-card p-8">
           <h1 className="mb-1 text-center text-lg font-semibold text-foreground">
             {t('login.title')}
           </h1>

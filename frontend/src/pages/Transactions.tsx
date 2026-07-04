@@ -265,9 +265,9 @@ export default function Transactions() {
 
   return (
     <div className="space-y-6 animate-in">
-      <div>
-        <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-0">{copy.title}</h2>
-        <p className="text-sm text-ink-3">{copy.subtitle}</p>
+      <div className="border-b border-border pb-6">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink-0 sm:text-4xl">{copy.title}</h1>
+        <p className="mt-1 text-sm text-ink-3">{copy.subtitle}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -299,17 +299,14 @@ export default function Transactions() {
             className="input pl-9 text-sm"
           />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="tabs overflow-x-auto">
           {filterButtons.map((button) => (
             <button
               key={button.value}
               type="button"
               onClick={() => setFilter(button.value)}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-                filter === button.value
-                  ? 'border-primary/30 bg-primary/10 text-primary'
-                  : 'border-surface-3 text-ink-3 hover:bg-surface-1 hover:text-ink-1'
-              }`}
+              aria-current={filter === button.value ? 'true' : undefined}
+              className={`tab whitespace-nowrap ${filter === button.value ? 'tab-active' : ''}`}
             >
               {button.label}
             </button>
@@ -373,7 +370,7 @@ export default function Transactions() {
                           href={`https://stellar.expert/explorer/${config.stellarNetwork === 'testnet' ? 'testnet' : 'public'}/tx/${invoice.transactionHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-stellar-600 hover:underline"
+                          className="inline-flex items-center gap-1 font-mono text-[13px] text-muted-foreground hover:text-foreground hover:underline"
                         >
                           {invoice.transactionHash.slice(0, 10)}...
                           <ExternalLink className="h-3 w-3" />
@@ -388,7 +385,7 @@ export default function Transactions() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="inline-flex items-center gap-2">
-                        <Link to={`/dashboard/links/${invoice.id}`} className="text-xs text-stellar-600 hover:underline">
+                        <Link to={`/dashboard/links/${invoice.id}`} className="text-xs font-medium text-secondary-foreground hover:text-foreground hover:underline">
                           {copy.details}
                         </Link>
                         <button

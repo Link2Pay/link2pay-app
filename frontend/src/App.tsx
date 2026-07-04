@@ -52,10 +52,25 @@ export default function App() {
       <Toaster
         position="bottom-right"
         toastOptions={{
+          // Theming con tokens del sistema (CSS vars resuelven contra el root
+          // temado, así el toast sigue light/dark automáticamente).
           duration: 4000,
-          style: { fontSize: '13px' },
-          success: { duration: 3000 },
-          error: { duration: 5000 },
+          style: {
+            background: 'hsl(var(--popover))',
+            color: 'hsl(var(--popover-foreground))',
+            border: '1px solid hsl(var(--border))',
+            borderRadius: '12px',
+            fontSize: '13px',
+            boxShadow: '0 8px 24px hsl(240 6% 10% / .10), 0 2px 6px hsl(240 6% 10% / .06)',
+          },
+          success: {
+            duration: 3000,
+            iconTheme: { primary: 'hsl(var(--success))', secondary: 'hsl(var(--success-subtle))' },
+          },
+          error: {
+            duration: 5000,
+            iconTheme: { primary: 'hsl(var(--destructive))', secondary: 'hsl(var(--destructive-subtle))' },
+          },
         }}
       />
       <BrowserRouter>

@@ -432,7 +432,7 @@ export default function PaymentFlow() {
 
         {/* Network Mismatch Warning Banner */}
         {hasNetworkMismatch && freighterNetwork && invoice && (
-          <div className="mb-4 rounded-lg border-2 border-destructive-border bg-destructive-subtle p-4 shadow-lg">
+          <div className="mb-4 rounded-lg border border-destructive-border bg-destructive-subtle p-4">
             <div className="flex items-start gap-3">
               <AlertCircle className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div className="flex-1 min-w-0">

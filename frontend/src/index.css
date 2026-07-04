@@ -18,7 +18,12 @@
 @layer base {
   /* ── Layer 1 · Primitives (reference tokens, not themed) ───────────────── */
   :root {
-    /* Brand indigo */
+    /* ── Brand indigo ────────────────────────────────────────────────────────
+       Color de marca del proyecto. ACTIVO: los tokens de marca de Layer 2
+       (--primary/--accent/--ring/--accent-ink, sidebar activo y logo) apuntan a
+       esta escala en ambos temas. La estructura "Moneytory" (canvas hueso,
+       tipografías, sin sombras/gradientes) se conserva; solo el matiz de marca
+       es indigo. */
     --ref-indigo-50: 226 60% 96%;
     --ref-indigo-100: 226 58% 91%;
     --ref-indigo-200: 225 56% 82%;
@@ -78,49 +83,66 @@
     --ref-blue-800: 215 68% 25%;
     --ref-blue-900: 215 66% 17%;
 
-    /* Neutral (slate) — surfaces & text */
-    --ref-neutral-0: 0 0% 100%;
-    --ref-neutral-50: 210 20% 98%;
-    --ref-neutral-100: 214 16% 95%;
-    --ref-neutral-200: 215 16% 90%;
-    --ref-neutral-300: 214 14% 83%;
-    --ref-neutral-400: 215 12% 65%;
-    --ref-neutral-500: 215 12% 50%;
-    --ref-neutral-600: 217 14% 40%;
-    --ref-neutral-700: 218 18% 28%;
-    --ref-neutral-800: 219 22% 18%;
-    --ref-neutral-900: 219 24% 12%;
-    --ref-neutral-950: 220 26% 9%;
+    /* ── Moneytory palette (Design System v1) ────────────────────────────────
+       Warm neutrals replace the blue-slate base; ink = warm-900; lavender is
+       the single brand accent; cat-* are icon/avatar backgrounds only. */
+    --ref-warm-0: 0 0% 100%; /* #FFFFFF */
+    --ref-warm-50: 60 8% 95%; /* #F4F4F2 */
+    --ref-warm-100: 60 5% 92%; /* #ECECEA canvas */
+    --ref-warm-200: 60 6% 90%; /* #E7E7E4 line */
+    --ref-warm-300: 60 4% 83%; /* #D6D6D2 */
+    --ref-warm-400: 217 8% 80%; /* #C9CCD1 */
+    --ref-warm-500: 220 6% 64%; /* #9CA0A8 ink-muted */
+    --ref-warm-700: 240 5% 31%; /* #4B4B52 */
+    --ref-warm-900: 240 6% 10%; /* #17171A ink */
+
+    /* Lavender accent (brand) */
+    --ref-lavender-200: 240 73% 93%; /* #DFDFFA accent-soft */
+    --ref-lavender-300: 239 67% 87%; /* #C7C8F4 accent */
+    --ref-lavender-700: 239 43% 52%; /* #4F51B8 accent-ink (legible como texto) */
+
+    /* Categóricos — SOLO fondos de icono/avatar */
+    --ref-cat-rose: 345 62% 86%; /* #F2C7D2 */
+    --ref-cat-sage: 156 21% 86%; /* #D3E2DC */
+    --ref-cat-sand: 35 49% 84%; /* #EAD9C2 */
+    --ref-cat-mist: 207 16% 87%; /* #D8DEE3 */
+
+    /* Semánticos neutros (delta de importes: + tinta/positive, − tinta) */
+    --ref-positive: 146 67% 37%; /* #1F9D55 */
+    --ref-negative: 350 64% 56%; /* #D6455D */
   }
 
   /* ── Layer 2 · Semantic tokens · LIGHT (default) ───────────────────────── */
   :root {
-    --background: var(--ref-neutral-50);
-    --foreground: var(--ref-neutral-900);
+    --background: var(--ref-warm-100); /* canvas hueso */
+    --foreground: var(--ref-warm-900);
 
-    --card: var(--ref-neutral-0);
-    --card-foreground: var(--ref-neutral-900);
+    --card: var(--ref-warm-0);
+    --card-foreground: var(--ref-warm-900);
 
-    --popover: var(--ref-neutral-0);
-    --popover-foreground: var(--ref-neutral-900);
+    --popover: var(--ref-warm-0);
+    --popover-foreground: var(--ref-warm-900);
 
+    /* Marca indigo — color principal del proyecto (botones, CTAs, estados) */
     --primary: var(--ref-indigo-700);
     --primary-foreground: 0 0% 100%;
 
-    --secondary: var(--ref-neutral-100);
-    --secondary-foreground: var(--ref-neutral-800);
+    --secondary: var(--ref-warm-50);
+    --secondary-foreground: var(--ref-warm-700);
 
-    --muted: var(--ref-neutral-100);
-    --muted-foreground: var(--ref-neutral-600);
+    --muted: var(--ref-warm-50);
+    --muted-foreground: var(--ref-warm-500);
 
+    /* accent = indigo; sobre bg-accent el texto va en blanco */
     --accent: var(--ref-indigo-500);
     --accent-foreground: 0 0% 100%;
+    --accent-ink: var(--ref-indigo-700); /* indigo legible como texto/focus */
 
-    --border: var(--ref-neutral-200);
-    --input: var(--ref-neutral-200);
+    --border: var(--ref-warm-200);
+    --input: var(--ref-warm-300);
     --ring: var(--ref-indigo-500);
 
-    --radius: 0.625rem;
+    --radius: 0.75rem; /* 12px */
 
     /* State roles — DEFAULT / -foreground / -subtle (bg) / -border
        DEFAULT shades are biased dark (700/600) so `text-{state}` on a
@@ -146,68 +168,68 @@
     --info-subtle: var(--ref-blue-50);
     --info-border: var(--ref-blue-200);
 
-    /* Sidebar — brand-ink chrome. The app shell wears the logo's deep navy in
-       both themes; content stays light paper so the ledger commands attention.
-       Money green (--success) is the only accent allowed on the ink. */
-    --sidebar-background: 224 44% 15%;
-    --sidebar-foreground: 220 30% 96%;
-    --sidebar-muted: 224 16% 62%;
-    --sidebar-primary: 223 50% 70%;
-    --sidebar-primary-foreground: 224 44% 15%;
-    --sidebar-accent: 223 38% 22%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 223 34% 23%;
-    --sidebar-ring: 223 50% 64%;
+    /* Sidebar — ya NO es navy. Superficie blanca; el item activo se invierte a
+       tinta (mismo idioma de énfasis que el resto del sistema). */
+    --sidebar-background: var(--ref-warm-0);
+    --sidebar-foreground: var(--ref-warm-700);
+    --sidebar-muted: var(--ref-warm-500);
+    --sidebar-primary: var(--ref-indigo-700); /* item activo = indigo de marca */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: var(--ref-warm-50); /* hover */
+    --sidebar-accent-foreground: var(--ref-warm-900);
+    --sidebar-border: var(--ref-warm-200);
+    --sidebar-ring: var(--ref-indigo-500);
 
     /* Legacy alias targets (consumed by ink and surface scales in tailwind.config) */
-    --surface-elevated: var(--ref-neutral-0);
-    --surface-strong: var(--ref-neutral-200);
-    --text-secondary: var(--ref-neutral-700);
-    --text-muted: var(--ref-neutral-500);
+    --surface-elevated: var(--ref-warm-0);
+    --surface-strong: var(--ref-warm-300);
+    --text-secondary: var(--ref-warm-700);
+    --text-muted: var(--ref-warm-500);
 
-    /* Accent glow (de-emphasized in Direction A — points to brand indigo) */
+    /* Accent glow — apunta al indigo de marca */
     --neon-glow: var(--ref-indigo-500);
     --neon-glow-subtle: var(--ref-indigo-400);
 
-    /* Brand logo palette (light) */
+    /* Brand logo palette (light) — tinta + indigo, sin gradiente */
     --logo-badge-start: 0 0% 100%;
-    --logo-badge-end: var(--ref-neutral-100);
+    --logo-badge-end: var(--ref-warm-100);
     --logo-badge-accent: var(--ref-indigo-600);
-    --logo-ring: var(--ref-neutral-200);
-    --logo-mark-shield: var(--ref-neutral-900);
+    --logo-ring: var(--ref-warm-200);
+    --logo-mark-shield: var(--ref-warm-900);
     --logo-mark-link: var(--ref-indigo-600);
-    --logo-text-left: var(--ref-neutral-900);
+    --logo-text-left: var(--ref-warm-900);
     --logo-text-right: var(--ref-indigo-600);
-    --logo-text-solid: var(--ref-neutral-900);
+    --logo-text-solid: var(--ref-warm-900);
     --logo-text-stroke: var(--ref-indigo-400);
   }
 
   /* ── Layer 2 · Semantic tokens · DARK overrides ────────────────────────── */
   .dark {
-    --background: var(--ref-neutral-950);
-    --foreground: var(--ref-neutral-50);
+    --background: 240 6% 8%;
+    --foreground: 60 7% 95%;
 
-    --card: var(--ref-neutral-900);
-    --card-foreground: var(--ref-neutral-50);
+    --card: 240 5% 12%;
+    --card-foreground: 60 7% 95%;
 
-    --popover: var(--ref-neutral-900);
-    --popover-foreground: var(--ref-neutral-50);
+    --popover: 240 5% 12%;
+    --popover-foreground: 60 7% 95%;
 
-    /* Dark-mode brand: a lifted indigo so dark text on solid primary clears AA */
+    /* Marca indigo (dark): indigo elevado para que el texto oscuro sobre él pase AA */
     --primary: 223 56% 64%;
     --primary-foreground: 222 47% 12%;
 
-    --secondary: var(--ref-neutral-800);
-    --secondary-foreground: var(--ref-neutral-50);
+    --secondary: 240 5% 16%;
+    --secondary-foreground: 60 7% 95%;
 
-    --muted: var(--ref-neutral-800);
-    --muted-foreground: var(--ref-neutral-400);
+    --muted: 240 5% 16%;
+    --muted-foreground: 220 6% 64%;
 
     --accent: 223 52% 72%;
     --accent-foreground: 222 47% 12%;
+    --accent-ink: 223 60% 78%; /* indigo claro legible sobre oscuro */
 
-    --border: var(--ref-neutral-800);
-    --input: var(--ref-neutral-800);
+    --border: 240 5% 19%;
+    --input: 240 5% 22%;
     --ring: 223 56% 64%;
 
     --success: var(--ref-green-400);
@@ -230,35 +252,35 @@
     --info-subtle: 213 50% 14%;
     --info-border: 214 48% 32%;
 
-    /* Ink sidebar, deepened a step below the dark canvas so the chrome still
-       reads as its own plane in dark mode. */
-    --sidebar-background: 223 36% 11%;
-    --sidebar-foreground: 220 30% 96%;
-    --sidebar-muted: 223 14% 60%;
-    --sidebar-primary: 223 56% 64%;
+    /* Sidebar oscuro: chrome como su propio plano; item activo invertido a
+       tinta clara, igual que --primary en dark. */
+    --sidebar-background: 240 6% 10%;
+    --sidebar-foreground: 60 7% 95%;
+    --sidebar-muted: 220 6% 60%;
+    --sidebar-primary: 223 56% 64%; /* item activo = indigo de marca */
     --sidebar-primary-foreground: 222 47% 12%;
-    --sidebar-accent: 223 30% 17%;
-    --sidebar-accent-foreground: 220 30% 96%;
-    --sidebar-border: 223 28% 18%;
+    --sidebar-accent: 240 5% 15%;
+    --sidebar-accent-foreground: 60 7% 95%;
+    --sidebar-border: 240 5% 16%;
     --sidebar-ring: 223 56% 64%;
 
-    --surface-elevated: var(--ref-neutral-900);
-    --surface-strong: var(--ref-neutral-700);
-    --text-secondary: var(--ref-neutral-200);
-    --text-muted: var(--ref-neutral-400);
+    --surface-elevated: 240 5% 12%;
+    --surface-strong: 240 5% 24%;
+    --text-secondary: 60 5% 85%;
+    --text-muted: 220 6% 64%;
 
     --neon-glow: var(--ref-indigo-400);
     --neon-glow-subtle: var(--ref-indigo-300);
 
-    --logo-badge-start: var(--ref-neutral-800);
-    --logo-badge-end: var(--ref-neutral-900);
+    --logo-badge-start: 240 5% 15%;
+    --logo-badge-end: 240 5% 12%;
     --logo-badge-accent: var(--ref-indigo-400);
-    --logo-ring: var(--ref-indigo-400);
-    --logo-mark-shield: 0 0% 100%;
+    --logo-ring: 240 5% 19%;
+    --logo-mark-shield: 60 7% 95%;
     --logo-mark-link: var(--ref-indigo-400);
-    --logo-text-left: 0 0% 100%;
+    --logo-text-left: 60 7% 95%;
     --logo-text-right: var(--ref-indigo-400);
-    --logo-text-solid: 0 0% 100%;
+    --logo-text-solid: 60 7% 95%;
     --logo-text-stroke: var(--ref-indigo-300);
   }
 
@@ -268,7 +290,7 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings: 'ss01', 'ss02';
+    font-family: 'Satoshi', system-ui, sans-serif;
   }
 
   html {
@@ -276,54 +298,87 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Cabinet Grotesk', sans-serif;
   }
 }
 
 /* ── Layer 3 · Component tokens ──────────────────────────────────────────── */
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
-           font-medium text-sm transition-all duration-150 cursor-pointer
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl
+           font-bold text-sm transition-colors duration-150 cursor-pointer
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
+           active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
+  /* Énfasis por inversión — la acción principal viste tinta. */
   .btn-primary {
-    @apply btn bg-primary text-primary-foreground hover:brightness-110
-           active:brightness-90 shadow-sm hover:shadow;
+    @apply btn bg-primary text-primary-foreground hover:bg-primary/90;
   }
 
   .btn-secondary {
-    @apply btn bg-secondary text-secondary-foreground border border-border
-           hover:bg-muted active:brightness-90;
+    @apply btn bg-card text-foreground border border-input hover:bg-muted;
   }
 
+  /* Acento lavanda — máx. 1 por vista, solo si el primary ya está en la zona. */
+  .btn-accent {
+    @apply btn bg-accent text-accent-foreground hover:brightness-95;
+  }
+
+  /* Destructive discreto: variante secondary con texto de peligro.
+     El sólido rojo se reserva para confirmaciones (usar bg-destructive a mano). */
   .btn-danger {
-    @apply btn bg-destructive text-destructive-foreground hover:brightness-110 active:brightness-90;
+    @apply btn bg-card border border-input text-destructive hover:bg-destructive-subtle;
   }
 
   .btn-ghost {
-    @apply btn text-muted-foreground hover:bg-muted hover:text-foreground active:brightness-90;
+    @apply btn font-medium text-secondary-foreground hover:bg-muted hover:text-foreground;
   }
 
   .card {
-    @apply bg-card rounded-xl border border-border shadow-card;
+    @apply bg-card rounded-2xl;
   }
 
   .input {
-    @apply w-full px-3 py-2.5 rounded-lg border border-border
-           bg-muted text-foreground text-sm placeholder:text-muted-foreground
-           focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50
-           transition-all duration-150;
+    @apply w-full h-11 px-4 rounded-xl border border-input
+           bg-card text-foreground text-[15px] placeholder:text-muted-foreground
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
+           transition-colors duration-150;
   }
 
   .label {
-    @apply block text-sm font-medium text-secondary-foreground mb-1.5;
+    @apply block text-2xs font-medium uppercase tracking-label text-muted-foreground mb-1.5;
   }
 
+  /* Pill toggle — alternar formato/rango (7D/30D, USD/IDR, EN/ES/PT). */
+  .pill-toggle {
+    @apply inline-flex items-center gap-0.5 rounded-full bg-muted p-1;
+  }
+  .pill-item {
+    @apply rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors
+           text-muted-foreground hover:text-foreground cursor-pointer
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+  .pill-item-active {
+    @apply bg-primary text-primary-foreground hover:text-primary-foreground;
+  }
+
+  /* Tabs — cambiar el contenido mostrado (texto sobre hairline inferior). */
+  .tabs {
+    @apply flex items-center gap-8 border-b border-border;
+  }
+  .tab {
+    @apply -mb-px border-b-2 border-transparent pb-2.5 text-sm font-medium
+           text-muted-foreground transition-colors hover:text-foreground cursor-pointer
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+  .tab-active {
+    @apply border-foreground font-bold text-foreground;
+  }
+
+  /* Badges de estado — chips discretos, dot + texto (color nunca es el único código). */
   .badge {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border;
   }
 
   .badge::before {
@@ -338,74 +393,63 @@
   }
 
   .badge-draft {
-    @apply badge bg-secondary text-muted-foreground;
+    @apply badge bg-muted text-secondary-foreground border-border;
   }
 
   .badge-pending {
-    @apply badge bg-warning-subtle text-warning border border-warning-border;
+    @apply badge bg-muted text-secondary-foreground border-border;
   }
 
   .badge-processing {
-    @apply badge bg-info-subtle text-info border border-info-border;
+    @apply badge bg-info-subtle text-info border-info-border;
   }
 
   .badge-paid {
-    @apply badge bg-success-subtle text-success border border-success-border;
+    @apply badge bg-success-subtle text-success border-success-border;
   }
 
   .badge-failed {
-    @apply badge bg-destructive-subtle text-destructive border border-destructive-border;
+    @apply badge bg-destructive-subtle text-destructive border-destructive-border;
   }
 
   .badge-cancelled {
-    @apply badge bg-secondary text-muted-foreground;
+    @apply badge bg-muted text-muted-foreground border-border;
   }
 }
 
 @layer utilities {
-  /* Accent border — softened from the legacy neon treatment (Direction A) */
+  /* Legacy decorative utilities — neutralizadas al Design System "Moneytory":
+     sin gradientes, glow ni sombras (salvo overlays). Se conservan los nombres
+     para no tocar sus consumidores; su definición ahora es plana y token-based.
+     El acento único legible es accent-ink (lavanda). */
   .neon-border {
-    border: 1px solid hsl(var(--primary) / 0.25);
+    border: 1px solid hsl(var(--border));
   }
 
+  /* Marca "featured" (p. ej. plan destacado) con un hairline de acento legible. */
   .neon-border-strong {
-    border: 1px solid hsl(var(--primary) / 0.4);
-    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.08);
+    border: 1px solid hsl(var(--accent-ink) / 0.45);
   }
 
   .neon-text {
-    color: hsl(var(--primary));
+    color: hsl(var(--accent-ink));
   }
 
+  /* Sin glassmorphism: superficie sólida con hairline. */
   .glass-card {
-    background: hsl(var(--card) / 0.82);
-    backdrop-filter: blur(12px);
-    border: 1px solid hsl(var(--border) / 0.7);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
   }
 
+  /* Canvas plano — sin gradiente ambiental. */
   .gradient-bg {
-    background: radial-gradient(
-      ellipse at 50% 0%,
-      hsl(var(--primary) / 0.08) 0%,
-      transparent 60%
-    );
+    background: transparent;
   }
 
-  .text-gradient {
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Crypto-in → money-out. Indigo is the payer/crypto side of the story,
-     money green is the "lands in your account" side. Used on the hero
-     highlight so the palette itself narrates the conversion. */
+  /* Highlight de heading: acento único (lavanda legible), no gradiente. */
+  .text-gradient,
   .text-gradient-flow {
-    background: linear-gradient(120deg, hsl(var(--primary)) 15%, hsl(var(--success)) 85%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: hsl(var(--accent-ink));
   }
 
   .animate-in {
@@ -423,43 +467,19 @@
     }
   }
 
+  /* Shine — retirado (sin animación de brillo). No-op. */
   .shine {
     position: relative;
-    overflow: hidden;
   }
 
-  .shine::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.05),
-      transparent
-    );
-    animation: shine 3s ease-in-out infinite;
-  }
-
-  @keyframes shine {
-    0% { left: -100%; }
-    50% { left: 100%; }
-    100% { left: 100%; }
-  }
-
+  /* Hover de tarjeta: hairline sutil en vez de glow/elevación. */
   .hover-glow {
-    transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease;
+    border: 1px solid transparent;
+    transition: border-color 150ms ease;
   }
 
   .hover-glow:hover {
-    border-color: hsl(var(--primary) / 0.35);
-    box-shadow:
-      0 8px 18px hsl(var(--foreground) / 0.06),
-      0 2px 6px hsl(var(--foreground) / 0.05);
-    transform: translateY(-1px);
+    border-color: hsl(var(--border));
   }
 
   /* Light (default) */
@@ -674,7 +694,7 @@
 
   .ohero-step-num {
     fill: hsl(var(--muted-foreground));
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Cabinet Grotesk', sans-serif;
     font-size: 11px;
     font-weight: 700;
     transition: fill 0.4s ease;
@@ -687,7 +707,7 @@
   /* text labels */
   .ohero-label {
     fill: hsl(var(--muted-foreground));
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Cabinet Grotesk', sans-serif;
     font-size: 14px;
     font-weight: 600;
     letter-spacing: 0.01em;

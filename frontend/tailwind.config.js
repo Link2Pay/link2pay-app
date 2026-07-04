@@ -25,6 +25,7 @@ export default {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
         },
+        'accent-ink': 'hsl(var(--accent-ink))',
         popover: {
           DEFAULT: 'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))',
@@ -97,6 +98,17 @@ export default {
         },
         danger: 'hsl(var(--destructive))',
 
+        // Categóricos — fondos de icono/avatar (Design System)
+        cat: {
+          rose: 'hsl(var(--ref-cat-rose))',
+          sage: 'hsl(var(--ref-cat-sage))',
+          sand: 'hsl(var(--ref-cat-sand))',
+          mist: 'hsl(var(--ref-cat-mist))',
+        },
+        // Delta de importes: crédito verde discreto / débito rojo (solo fallos reales)
+        positive: 'hsl(var(--ref-positive))',
+        negative: 'hsl(var(--ref-negative))',
+
         // Sidebar tokens
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-background))',
@@ -109,30 +121,39 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['"Space Grotesk"', 'sans-serif'],
+        sans: ['Satoshi', 'system-ui', 'sans-serif'],
+        display: ['"Cabinet Grotesk"', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
+      },
+      letterSpacing: {
+        label: '0.12em',
       },
       fontSize: {
         // Sub-xs steps to retire hardcoded text-[10px]/text-[11px]
         '3xs': ['0.625rem', { lineHeight: '0.875rem' }], // 10px
         '2xs': ['0.6875rem', { lineHeight: '1rem' }], // 11px
       },
+      // Radios en escala del Design System: 8 / 12 / 16 / full.
+      // rounded-sm|md → 8px, rounded-lg|xl → 12px (--radius), rounded-2xl → 16px.
       borderRadius: {
+        sm: '8px',
+        md: '8px',
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        xl: '12px',
+        '2xl': '16px',
+        full: '9999px',
       },
+      // Sombra única del sistema: overlays (toasts, modales, popovers, tooltips).
+      // Las tarjetas NO llevan sombra en reposo — separan por contraste de superficie.
       boxShadow: {
-        card: '0 1px 3px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.3)',
-        elevated: '0 4px 6px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2)',
-        modal: '0 20px 25px -5px rgba(0,0,0,0.4), 0 8px 10px -6px rgba(0,0,0,0.3)',
+        overlay: '0 8px 24px hsl(240 6% 10% / .10), 0 2px 6px hsl(240 6% 10% / .06)',
+        modal: '0 8px 24px hsl(240 6% 10% / .10), 0 2px 6px hsl(240 6% 10% / .06)',
+        elevated: '0 8px 24px hsl(240 6% 10% / .10), 0 2px 6px hsl(240 6% 10% / .06)',
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',
         'slide-up': 'slideUp 0.4s ease-out',
         'pulse-slow': 'pulse 3s ease-in-out infinite',
-        'glow-pulse': 'glowPulse 3s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -142,10 +163,6 @@ export default {
         slideUp: {
           '0%': { opacity: '0', transform: 'translateY(10px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        glowPulse: {
-          '0%, 100%': { opacity: '0.4' },
-          '50%': { opacity: '0.8' },
         },
       },
     },

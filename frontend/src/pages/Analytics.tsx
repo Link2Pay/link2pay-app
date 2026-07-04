@@ -308,9 +308,9 @@ export default function Analytics() {
 
   return (
     <div className="space-y-6 animate-in">
-      <div>
-        <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-0">{copy.title}</h2>
-        <p className="text-sm text-ink-3">{copy.subtitle}</p>
+      <div className="border-b border-border pb-6">
+        <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink-0 sm:text-4xl">{copy.title}</h1>
+        <p className="mt-1 text-sm text-ink-3">{copy.subtitle}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
@@ -382,9 +382,11 @@ export default function Analytics() {
             <p className="mt-5 text-xs text-ink-3">{copy.noData}</p>
           ) : (
             <div className="mt-5 space-y-3">
-              {(['XLM', 'USDC', 'EURC'] as const).map((asset) => {
+              {(['XLM', 'USDC', 'EURC'] as const).map((asset, index) => {
                 const value = paidByAsset[asset];
                 const width = paidAssetTotal > 0 ? (value / paidAssetTotal) * 100 : 0;
+                // DS §4.7: tinta → lavanda → cat, con label textual siempre.
+                const assetFill = ['bg-foreground', 'bg-accent', 'bg-cat-sand'][index % 3];
                 return (
                   <div key={asset}>
                     <div className="mb-1 flex items-center justify-between text-xs">
@@ -392,7 +394,7 @@ export default function Analytics() {
                       <span className="font-mono text-ink-2">{value.toFixed(2)}</span>
                     </div>
                     <div className="h-2 rounded-full bg-muted">
-                      <div className="h-2 rounded-full bg-primary" style={{ width: `${width}%` }} />
+                      <div className={`h-2 rounded-full ${assetFill}`} style={{ width: `${width}%` }} />
                     </div>
                   </div>
                 );
@@ -411,7 +413,7 @@ export default function Analytics() {
             </h3>
             <p className="mt-1 text-xs text-ink-3">{copy.trendSubtitle}</p>
           </div>
-          <div className="inline-flex items-center rounded-lg border border-surface-3 bg-surface-1 p-1">
+          <div className="pill-toggle">
             {([
               { value: 7 as const, label: copy.period7 },
               { value: 30 as const, label: copy.period30 },
@@ -421,11 +423,8 @@ export default function Analytics() {
                 key={option.value}
                 type="button"
                 onClick={() => setPeriodDays(option.value)}
-                className={`rounded-md px-2.5 py-1 text-xs ${
-                  periodDays === option.value
-                    ? 'bg-primary/15 text-primary'
-                    : 'text-ink-3 hover:text-ink-1'
-                }`}
+                aria-pressed={periodDays === option.value}
+                className={`pill-item ${periodDays === option.value ? 'pill-item-active' : ''}`}
               >
                 {option.label}
               </button>

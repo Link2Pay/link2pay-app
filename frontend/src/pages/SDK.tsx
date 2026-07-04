@@ -199,7 +199,7 @@ export default function SDK() {
   return (
     <div>
       <section className="relative overflow-hidden border-b border-border bg-card">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(ellipse_at_top,_hsl(175_75%_45%_/_0.10),transparent_68%)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(ellipse_at_top,_hsl(var(--accent-ink)_/_0.06),transparent_68%)]" />
         <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-20 sm:px-6">
           <div className="mx-auto max-w-3xl text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
@@ -275,7 +275,7 @@ export default function SDK() {
 
       <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
         <div className="card overflow-hidden">
-          <div className="bg-[linear-gradient(135deg,_hsl(175_75%_45%),_hsl(175_75%_35%))] p-10 sm:p-14">
+          <div className="bg-primary p-10 sm:p-14">
             <div className="mx-auto max-w-2xl text-center">
               <h3 className="text-3xl font-semibold text-primary-foreground">{copy.finalTitle}</h3>
               <p className="mt-4 text-base text-primary-foreground/85">{copy.finalDescription}</p>

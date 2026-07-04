@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     paddingBottom: 20,
     borderBottomWidth: 2,
-    borderBottomColor: '#6366f1',
+    borderBottomColor: '#4F51B8',
   },
   brandRow: {
     flexDirection: 'column',
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 20,
     fontFamily: 'Helvetica-Bold',
-    color: '#6366f1',
+    color: '#4F51B8',
     letterSpacing: 1,
   },
   brandTagline: {
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
   invoiceNumber: {
     fontSize: 11,
-    color: '#6366f1',
+    color: '#4F51B8',
     marginTop: 3,
     fontFamily: 'Helvetica-Bold',
   },
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#6366f1',
+    backgroundColor: '#4F51B8',
     paddingVertical: 8,
     paddingHorizontal: 10,
     borderRadius: 5,
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
     paddingHorizontal: 12,
-    backgroundColor: '#6366f1',
+    backgroundColor: '#4F51B8',
   },
   totalsFinalLabel: {
     fontSize: 11,
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
   },
   footerBrand: {
     fontSize: 7.5,
-    color: '#6366f1',
+    color: '#4F51B8',
     fontFamily: 'Helvetica-Bold',
   },
 });

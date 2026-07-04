@@ -153,20 +153,23 @@ export default function MobileNavDrawer({
                   end={item.end}
                   onClick={onClose}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 ${
+                    `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors duration-150 ${
                       isActive
-                        ? 'bg-sidebar-accent text-primary'
-                        : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
+                        ? 'bg-primary text-primary-foreground font-bold'
+                        : 'text-foreground font-medium hover:bg-muted'
                     }`
                   }
                 >
                   {({ isActive }) => (
                     <>
                       {Icon && (
-                        <Icon
-                          aria-hidden="true"
-                          className={`h-4 w-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
-                        />
+                        <span
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                            isActive ? 'bg-white/15' : 'bg-muted'
+                          }`}
+                        >
+                          <Icon aria-hidden="true" className="h-4 w-4" />
+                        </span>
                       )}
                       {item.label}
                     </>

@@ -99,7 +99,7 @@ export default function RoleSelect() {
 
         <div className="animate-in">
           <div className="mb-8 text-center sm:mb-12">
-            <BrandMark className="mx-auto mb-4 h-14 w-14 rounded-2xl p-2.5 shadow-lg shadow-primary/25" />
+            <BrandMark className="mx-auto mb-4 h-14 w-14 rounded-2xl p-2.5" />
             <h1 className="mb-2 text-2xl font-bold font-display sm:text-3xl">
               <BrandWordmark />
             </h1>
@@ -109,7 +109,7 @@ export default function RoleSelect() {
             <button
               onClick={handleFreelancer}
               disabled={isConnecting}
-              className="glass-card group p-5 text-left transition-all duration-300 hover:scale-[1.02] neon-border hover:shadow-lg hover:shadow-primary/10 sm:p-8"
+              className="glass-card group rounded-2xl p-5 text-left transition-colors duration-150 hover:border-accent-ink/40 sm:p-8"
             >
               <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center mb-5 group-hover:bg-primary/25 transition-colors">
                 <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -138,7 +138,7 @@ export default function RoleSelect() {
 
             <button
               onClick={() => navigate('/checkout')}
-              className="glass-card group p-5 text-left transition-all duration-300 hover:scale-[1.02] neon-border hover:shadow-lg hover:shadow-primary/10 sm:p-8"
+              className="glass-card group rounded-2xl p-5 text-left transition-colors duration-150 hover:border-accent-ink/40 sm:p-8"
             >
               <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center mb-5 group-hover:bg-primary/25 transition-colors">
                 <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

@@ -619,7 +619,7 @@ export default function Home() {
             </div>
 
             <div className="w-full animate-fade-in" style={{ animationDelay: '0.18s' }}>
-              <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-5 shadow-[0_32px_90px_hsl(var(--primary)_/_0.16)] backdrop-blur sm:p-7">
+              <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 sm:p-7">
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(160deg,_hsl(var(--card)),_hsl(var(--background)))]" />
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_hsl(var(--primary)_/_0.16),transparent_60%)]" />
                 <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,_hsl(var(--primary)_/_0.07)_1px,transparent_1px),linear-gradient(180deg,_hsl(var(--primary)_/_0.05)_1px,transparent_1px)] bg-[size:48px_48px] opacity-60" />
@@ -895,7 +895,7 @@ export default function Home() {
 
       <section id="start" className="scroll-mt-40 mx-auto max-w-6xl px-4 pb-20 sm:px-6">
         <div className="card overflow-hidden">
-          <div className="bg-[linear-gradient(135deg,_hsl(var(--primary)),_hsl(var(--accent)))] p-10 sm:p-14">
+          <div className="bg-primary p-10 sm:p-14">
             <div className="mx-auto max-w-2xl text-center">
               <h3 className="text-3xl font-semibold text-primary-foreground">{copy.finalTitle}</h3>
               <p className="mt-4 text-base text-primary-foreground/80">{copy.finalDescription}</p>

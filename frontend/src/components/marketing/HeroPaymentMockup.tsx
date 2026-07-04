@@ -320,7 +320,7 @@ export default function HeroPaymentMockup() {
           <div className="flex justify-center">
             {/* Fixed white background: QR codes need light-on-dark contrast regardless of app theme.
                 aria-hidden: decorative — the same URL is already exposed as accessible text below. */}
-            <div aria-hidden="true" className="rounded-2xl bg-white p-4 shadow-sm">
+            <div aria-hidden="true" className="rounded-2xl bg-white p-4">
               <QRCodeSVG value={checkoutUrl} size={176} level="M" />
             </div>
           </div>

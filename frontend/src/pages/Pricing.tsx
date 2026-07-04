@@ -313,7 +313,7 @@ export default function Pricing() {
   return (
     <div>
       <section className="relative overflow-hidden border-b border-border bg-card">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(ellipse_at_top,_hsl(175_75%_45%_/_0.10),transparent_68%)]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(ellipse_at_top,_hsl(var(--accent-ink)_/_0.06),transparent_68%)]" />
         <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-12 sm:px-6 sm:pb-16 sm:pt-20">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">{copy.heroTitle}</h1>
@@ -330,7 +330,7 @@ export default function Pricing() {
           {plans.map((plan, index) => (
             <article
               key={plan.name}
-              className={`card relative flex h-full flex-col p-6 animate-fade-in sm:p-8 ${plan.featured ? 'neon-border-strong shadow-elevated' : ''}`}
+              className={`card relative flex h-full flex-col p-6 animate-fade-in sm:p-8 ${plan.featured ? 'neon-border-strong shadow-overlay' : ''}`}
               style={{ animationDelay: `${0.06 + index * 0.1}s` }}
             >
               {plan.badge && (
