@@ -4,11 +4,16 @@ Same code everywhere — **the environment decides the network**, never the bran
 Testnet vs mainnet is configuration (env vars + hostname), so code promoted from
 `develop` to `main` runs identically; only its config changes.
 
-| Environment | Branch | Frontend domain | Backend service | Stellar network | Database |
+| Environment | Branch | Frontend domain | Backend API | Stellar network | Database |
 |---|---|---|---|---|---|
-| **Production** | `main` | `link2pay.xyz` | `link2pay-app.onrender.com` | **Mainnet** | `link2pay-db` |
-| **Test** | `develop` | `test.link2pay.xyz` | `link2pay-app-test.onrender.com` | **Testnet** | `link2pay-db-test` |
+| **Production** | `main` | `link2pay.xyz` | `api.link2pay.xyz` | **Mainnet** | Railway Postgres (production env) |
+| **Test** | `develop` | `test.link2pay.xyz` | `api-test.link2pay.xyz` | **Testnet** | Railway Postgres (test env) |
 | **Local** | feature branches | `localhost:5173` | `localhost:3007` | Testnet | local Postgres |
+
+The backend API lives behind **custom domains** (`api.link2pay.xyz`,
+`api-test.link2pay.xyz`) so the hosting platform can change without touching
+frontend config or CSP. Current host: **Railway** (`backend/railway.toml`);
+`render.yaml` remains as a working fallback blueprint for Render.
 
 ## Promotion flow
 
@@ -63,6 +68,9 @@ simulates settlement, so the test environment walls fiat off entirely.
 
 ### DNS (registrar for link2pay.xyz)
 - [ ] `test` → CNAME → `cname.vercel-dns.com`
+- [ ] `api` → CNAME → Railway domain target (shown when adding the custom
+      domain to the backend service, production environment)
+- [ ] `api-test` → CNAME → Railway domain target (test environment)
 - [ ] (`m` → reserved for the future mobile app's deep-link domain)
 
 ### Vercel (one project)
@@ -70,21 +78,48 @@ simulates settlement, so the test environment walls fiat off entirely.
 - [ ] Settings → Domains: add `test.link2pay.xyz` and assign it to branch
       `develop` (Preview deployments of `develop` then serve that domain).
 - [ ] Env vars, scoped **Production** (main → link2pay.xyz):
-      `VITE_API_URL=https://link2pay-app.onrender.com`,
+      `VITE_API_URL=https://api.link2pay.xyz`,
       `VITE_STELLAR_NETWORK=mainnet`, `VITE_PRIVY_APP_ID=…`
 - [ ] Env vars, scoped **Preview → branch `develop`**:
-      `VITE_API_URL=https://link2pay-app-test.onrender.com`,
+      `VITE_API_URL=https://api-test.link2pay.xyz`,
       `VITE_STELLAR_NETWORK=testnet`, `VITE_PRIVY_APP_ID=…`
 
-### Render
-- [ ] Apply `render.yaml` as a Blueprint (New → Blueprint → this repo). It
-      defines both services and both databases. If the existing manually
-      created service/db should become the prod pair, keep their names in sync
-      with the blueprint (`link2pay-app`, `link2pay-db`) or adopt them into it.
-- [ ] Set dashboard secrets on both services: `PRIVY_APP_ID`, and on prod
-      `ABROAD_API_BASE`/`ABROAD_API_KEY` when the key arrives.
+### Railway (backend + databases)
+- [ ] New project → Deploy from GitHub repo → pick this repo. Set the
+      service's **root directory** to `backend` (build/deploy config comes
+      from `backend/railway.toml`).
+- [ ] The default environment is `production` — make it track branch `main`.
+      Add a Postgres database to it.
+- [ ] Create a second environment `test` tracking branch `develop`, with its
+      own Postgres.
+- [ ] Variables per environment (Railway → service → Variables). In both:
+      `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `NODE_ENV=production`,
+      `PRIVY_APP_ID`, `RECEIPT_CONTRACT_ID`, `ANCHOR_PROVIDER=mock-breb`,
+      `ANCHOR_HOME_DOMAIN=testanchor.stellar.org`.
+      - **production**: `STELLAR_NETWORK=public`,
+        `HORIZON_URL=https://horizon.stellar.org`,
+        `SOROBAN_RPC_URL=https://mainnet.sorobanrpc.com`,
+        `NETWORK_PASSPHRASE="Public Global Stellar Network ; September 2015"`,
+        `USDC_ISSUER=GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN`,
+        `EURC_ISSUER=GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2`,
+        `FIAT_ENABLED=true`, `FRONTEND_URL=https://link2pay.xyz`, and
+        `ABROAD_API_BASE`/`ABROAD_API_KEY` when the key arrives.
+      - **test**: `STELLAR_NETWORK=testnet`,
+        `HORIZON_URL=https://horizon-testnet.stellar.org`,
+        `SOROBAN_RPC_URL=https://soroban-testnet.stellar.org`,
+        `NETWORK_PASSPHRASE="Test SDF Network ; September 2015"`,
+        `USDC_ISSUER=GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5`,
+        `EURC_ISSUER=GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2`,
+        `FIAT_ENABLED=false`, `FRONTEND_URL=https://test.link2pay.xyz`.
+- [ ] Custom domains: `api.link2pay.xyz` on the production service,
+      `api-test.link2pay.xyz` on the test service (Settings → Networking);
+      add the CNAMEs Railway shows at the registrar.
 - [ ] If a database predates the migration baseline:
       `npx prisma migrate resolve --applied 0_init` once against it.
+
+### Render (fallback)
+`render.yaml` still defines the equivalent two services + two databases as a
+Blueprint if Railway is ever abandoned. Same env vars, same start command.
 
 ### Privy
 - [ ] Add `https://test.link2pay.xyz` to the app's allowed origins/domains
