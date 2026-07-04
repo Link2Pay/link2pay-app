@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Link2Pay Invoice System - Backend API",
   "main": "dist/index.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "npm run prisma:generate && tsc",
