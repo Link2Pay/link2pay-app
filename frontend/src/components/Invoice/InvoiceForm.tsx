@@ -96,6 +96,7 @@ const COPY: Record<Language, {
   fiatPanelHint: string;
   fiatAliasHint: string;
   removeLineItem: string;
+  remove: string;
 }> = {
   en: {
     failedCreateInvoice: 'Failed to create invoice',
@@ -167,6 +168,7 @@ const COPY: Record<Language, {
     fiatPanelHint: 'Configure the alias that receives COP and complete identity verification to enable Bre-B settlement.',
     fiatAliasHint: 'Enter the Bre-B alias, key, or account identifier used to receive the payout.',
     removeLineItem: 'Remove line item',
+    remove: 'Remove',
   },
   es: {
     failedCreateInvoice: 'No se pudo crear la factura',
@@ -238,6 +240,7 @@ const COPY: Record<Language, {
     fiatPanelHint: 'Configura el alias que recibe COP y completa la verificación de identidad para habilitar Bre-B.',
     fiatAliasHint: 'Ingresa el alias, llave o identificador de cuenta que recibirá el retiro.',
     removeLineItem: 'Eliminar línea',
+    remove: 'Eliminar',
   },
   pt: {
     failedCreateInvoice: 'Falha ao criar fatura',
@@ -309,6 +312,7 @@ const COPY: Record<Language, {
     fiatPanelHint: 'Configure o alias que recebe COP e conclua a verificação de identidade para habilitar o Bre-B.',
     fiatAliasHint: 'Digite o alias, chave ou identificador da conta que receberá o pagamento.',
     removeLineItem: 'Remover item',
+    remove: 'Remover',
   },
 };
 
@@ -1239,54 +1243,63 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
                         required
                       />
                     </div>
-                    <div className="mt-3 sm:col-span-2 sm:mt-0">
-                      <label className="mb-1 block text-2xs font-medium uppercase tracking-label text-muted-foreground sm:hidden" htmlFor={`${itemBaseId}-quantity`}>
-                        {isService ? copy.hours : copy.qty}
-                      </label>
-                      <input
-                        id={`${itemBaseId}-quantity`}
-                        name={`lineItems.${index}.quantity`}
-                        type="number"
-                        className="input text-center tabular-nums"
-                        min="0.01"
-                        step="0.01"
-                        inputMode="decimal"
-                        value={item.quantity || ''}
-                        onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)}
-                        required
-                      />
+                    {/* Mobile: cantidad/horas y tarifa lado a lado (grid-cols-2).
+                        Desktop: sm:contents disuelve el wrapper y ambos vuelven a
+                        ocupar sus columnas dentro del grid de 12. */}
+                    <div className="mt-3 grid grid-cols-2 gap-3 sm:contents sm:mt-0">
+                      <div className="sm:col-span-2">
+                        <label className="mb-1 block text-2xs font-medium uppercase tracking-label text-muted-foreground sm:hidden" htmlFor={`${itemBaseId}-quantity`}>
+                          {isService ? copy.hours : copy.qty}
+                        </label>
+                        <input
+                          id={`${itemBaseId}-quantity`}
+                          name={`lineItems.${index}.quantity`}
+                          type="number"
+                          className="input text-center tabular-nums"
+                          min="0.01"
+                          step="0.01"
+                          inputMode="decimal"
+                          value={item.quantity || ''}
+                          onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+                          required
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="mb-1 block text-2xs font-medium uppercase tracking-label text-muted-foreground sm:hidden" htmlFor={`${itemBaseId}-rate`}>
+                          {isService ? copy.ratePerHour : copy.rate}
+                        </label>
+                        <input
+                          id={`${itemBaseId}-rate`}
+                          name={`lineItems.${index}.rate`}
+                          type="number"
+                          className="input tabular-nums"
+                          min="0"
+                          step="0.01"
+                          inputMode="decimal"
+                          placeholder="0.00"
+                          value={item.rate || ''}
+                          onChange={(e) => updateLineItem(index, 'rate', parseFloat(e.target.value) || 0)}
+                          required
+                        />
+                      </div>
                     </div>
-                    <div className="mt-3 sm:col-span-2 sm:mt-0">
-                      <label className="mb-1 block text-2xs font-medium uppercase tracking-label text-muted-foreground sm:hidden" htmlFor={`${itemBaseId}-rate`}>
-                        {isService ? copy.ratePerHour : copy.rate}
-                      </label>
-                      <input
-                        id={`${itemBaseId}-rate`}
-                        name={`lineItems.${index}.rate`}
-                        type="number"
-                        className="input tabular-nums"
-                        min="0"
-                        step="0.01"
-                        inputMode="decimal"
-                        placeholder="0.00"
-                        value={item.rate || ''}
-                        onChange={(e) => updateLineItem(index, 'rate', parseFloat(e.target.value) || 0)}
-                        required
-                      />
+                    {/* Mobile: divisor bajo Horas/Tarifa + MONTO con el mismo
+                        énfasis que la fila "Total" (font-bold text-foreground).
+                        Desktop: sin divisor/padding, valor a la derecha. */}
+                    <div className="mt-3 flex items-center justify-between border-t border-border px-2 pt-3 sm:col-span-2 sm:mt-0 sm:block sm:border-0 sm:px-0 sm:pt-0 sm:text-right">
+                      <span className="text-base font-bold text-foreground sm:hidden">{copy.amount}</span>
+                      <span className="font-display text-base font-bold tabular-nums text-foreground sm:text-sm">{formatMoney(item.quantity * item.rate, currency)}</span>
                     </div>
-                    <div className="mt-3 flex items-center justify-between text-sm sm:col-span-2 sm:mt-0 sm:block sm:text-right">
-                      <span className="text-2xs font-medium uppercase tracking-label text-muted-foreground sm:hidden">{copy.amount}</span>
-                      <span className="font-display font-bold tabular-nums text-foreground">{formatMoney(item.quantity * item.rate, currency)}</span>
-                    </div>
-                    <div className="mt-3 text-right sm:col-span-1 sm:mt-0 sm:text-center">
+                    <div className="mt-3 flex justify-center sm:col-span-1 sm:mt-0 sm:block sm:text-center">
                       {lineItems.length > 1 && (
                         <button
                           type="button"
                           onClick={() => removeLineItem(index)}
-                          className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-ink-4 transition-colors duration-150 hover:bg-muted hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl px-3 text-ink-4 transition-colors duration-150 hover:bg-muted hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-11 sm:gap-0 sm:px-0"
                           aria-label={copy.removeLineItem}
                         >
                           <X className="h-4 w-4" aria-hidden="true" />
+                          <span className="text-sm font-medium sm:hidden">{copy.remove}</span>
                         </button>
                       )}
                     </div>
