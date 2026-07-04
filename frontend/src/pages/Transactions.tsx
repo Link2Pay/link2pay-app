@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Copy, ExternalLink, History, Search } from 'lucide-react';
+import { CheckCircle2, Clock3, Copy, ExternalLink, Gauge, History, Search, XCircle } from 'lucide-react';
 import { listInvoices } from '../services/api';
 import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
+import PageHeader from '../components/ui/PageHeader';
+import StatCard, { type StatCardData } from '../components/ui/StatCard';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
 import { useDashboardViewStore } from '../store/dashboardViewStore';
@@ -237,6 +239,31 @@ export default function Transactions() {
   const successRate =
     transactionRows.length > 0 ? ((settledCount / transactionRows.length) * 100).toFixed(1) : '0.0';
 
+  // Stat cards espectrales: Success rate = acento (indigo), Settled = ink; el
+  // resto neutras con tinte semántico (warning / destructive).
+  const summaryCards: StatCardData[] = [
+    { label: copy.successRate, value: `${successRate}%`, icon: Gauge, variant: 'accent' },
+    { label: copy.settled, value: settledCount, icon: CheckCircle2, variant: 'ink' },
+    {
+      label: copy.inProgress,
+      value: inProgressCount,
+      icon: Clock3,
+      variant: 'neutral',
+      circle: 'bg-warning-subtle',
+      glyph: 'text-warning',
+      valueClass: 'text-warning',
+    },
+    {
+      label: copy.failed,
+      value: failedCount,
+      icon: XCircle,
+      variant: 'neutral',
+      circle: 'bg-destructive-subtle',
+      glyph: 'text-destructive',
+      valueClass: 'text-destructive',
+    },
+  ];
+
   const filterButtons: Array<{ label: string; value: TransactionFilter }> = [
     { label: copy.all, value: 'ALL' },
     { label: copy.filterSettled, value: 'PAID' },
@@ -264,29 +291,13 @@ export default function Transactions() {
   }
 
   return (
-    <div className="space-y-6 animate-in">
-      <div className="border-b border-border pb-6">
-        <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink-0 sm:text-4xl">{copy.title}</h1>
-        <p className="mt-1 text-sm text-ink-3">{copy.subtitle}</p>
-      </div>
+    <div className="space-y-6 animate-in sm:space-y-8">
+      <PageHeader title={copy.title} subtitle={copy.subtitle} />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="card p-5">
-          <p className="text-xs text-ink-3">{copy.settled}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-success">{settledCount}</p>
-        </div>
-        <div className="card p-5">
-          <p className="text-xs text-ink-3">{copy.inProgress}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-warning">{inProgressCount}</p>
-        </div>
-        <div className="card p-5">
-          <p className="text-xs text-ink-3">{copy.failed}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-destructive">{failedCount}</p>
-        </div>
-        <div className="card p-5">
-          <p className="text-xs text-ink-3">{copy.successRate}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-primary">{successRate}%</p>
-        </div>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {summaryCards.map((stat) => (
+          <StatCard key={stat.label} {...stat} />
+        ))}
       </div>
 
       <div className="card space-y-4 p-4">
@@ -316,8 +327,8 @@ export default function Transactions() {
 
       {hasError ? (
         <div className="card p-12 text-center">
-          <History className="mx-auto mb-3 h-6 w-6 text-danger" />
-          <p className="mb-3 text-sm text-danger">{copy.loadError}</p>
+          <History className="mx-auto mb-3 h-6 w-6 text-destructive" />
+          <p className="mb-3 text-sm text-destructive">{copy.loadError}</p>
           <button onClick={loadTransactions} className="btn-secondary text-sm">
             {copy.retry}
           </button>
@@ -337,19 +348,19 @@ export default function Transactions() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[980px]">
               <thead>
-                <tr className="border-b border-surface-3 bg-surface-1">
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-3">{copy.colInvoice}</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-3">{copy.colClient}</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-3">{copy.colStatus}</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-ink-3">{copy.colAmount}</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-3">{copy.colHash}</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-ink-3">{copy.colDate}</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-ink-3">{copy.colActions}</th>
+                <tr className="border-b border-border">
+                  <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colInvoice}</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colClient}</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colStatus}</th>
+                  <th className="px-4 py-3 text-right text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colAmount}</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colHash}</th>
+                  <th className="px-4 py-3 text-right text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colDate}</th>
+                  <th className="px-4 py-3 text-right text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colActions}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-3">
+              <tbody className="divide-y divide-border">
                 {filteredRows.map((invoice) => (
-                  <tr key={invoice.id} className="hover:bg-surface-1/60">
+                  <tr key={invoice.id} className="transition-colors hover:bg-muted">
                     <td className="px-4 py-3">
                       <p className="text-sm font-medium text-ink-1">{invoice.invoiceNumber}</p>
                       <p className="text-xs text-ink-3">{invoice.title}</p>
@@ -361,7 +372,7 @@ export default function Transactions() {
                     <td className="px-4 py-3">
                       <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
                     </td>
-                    <td className="px-4 py-3 text-right text-sm font-mono text-ink-1">
+                    <td className="px-4 py-3 text-right font-mono text-sm text-ink-1 [font-variant-numeric:tabular-nums]">
                       {formatAmount(invoice.total, invoice.currency)}
                     </td>
                     <td className="px-4 py-3">

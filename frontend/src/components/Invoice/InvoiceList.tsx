@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, FilePlus2 } from 'lucide-react';
 import { listInvoices } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
+import PageHeader from '../ui/PageHeader';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
 import { useNetworkStore } from '../../store/networkStore';
@@ -27,6 +29,8 @@ const COPY: Record<Language, {
   colStatus: string;
   colAmount: string;
   colDate: string;
+  prev: string;
+  next: string;
 }> = {
   en: {
     title: 'Payment Links',
@@ -44,6 +48,8 @@ const COPY: Record<Language, {
     colStatus: 'Status',
     colAmount: 'Amount',
     colDate: 'Date',
+    prev: 'Prev',
+    next: 'Next',
   },
   es: {
     title: 'Links de pago',
@@ -61,6 +67,8 @@ const COPY: Record<Language, {
     colStatus: 'Estado',
     colAmount: 'Monto',
     colDate: 'Fecha',
+    prev: 'Anterior',
+    next: 'Siguiente',
   },
   pt: {
     title: 'Links de pagamento',
@@ -78,6 +86,8 @@ const COPY: Record<Language, {
     colStatus: 'Status',
     colAmount: 'Valor',
     colDate: 'Data',
+    prev: 'Anterior',
+    next: 'Próximo',
   },
 };
 
@@ -144,26 +154,25 @@ export default function InvoiceList() {
   };
 
   return (
-    <div className="animate-in">
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-0">{copy.title}</h2>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+    <div className="space-y-6 animate-in">
+      <PageHeader
+        title={copy.title}
+        actions={
           <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
-            + {copy.newInvoice}
+            <FilePlus2 className="h-4 w-4" />
+            {copy.newInvoice}
           </Link>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="pill-toggle w-fit max-w-full flex-wrap">
         {statusFilters.map((statusFilter) => (
           <button
             key={statusFilter.value}
+            type="button"
             onClick={() => { setFilter(statusFilter.value); setPage(0); }}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              filter === statusFilter.value
-                ? 'bg-stellar-50 text-stellar-700 border border-stellar-200'
-                : 'text-ink-3 hover:bg-surface-1 border border-transparent'
-            }`}
+            aria-pressed={filter === statusFilter.value}
+            className={`pill-item ${filter === statusFilter.value ? 'pill-item-active' : ''}`}
           >
             {statusFilter.label}
           </button>
@@ -184,19 +193,19 @@ export default function InvoiceList() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[680px]">
               <thead>
-                <tr className="border-b border-surface-3 bg-surface-1">
-                  <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colInvoice}</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colClient}</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colStatus}</th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colAmount}</th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-ink-3 uppercase tracking-wider">{copy.colDate}</th>
+                <tr className="border-b border-border">
+                  <th className="text-left px-4 py-3 text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colInvoice}</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colClient}</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colStatus}</th>
+                  <th className="text-right px-4 py-3 text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colAmount}</th>
+                  <th className="text-right px-4 py-3 text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.colDate}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-3">
+              <tbody className="divide-y divide-border">
                 {filteredInvoices.map((invoice) => (
-                  <tr key={invoice.id} className="hover:bg-surface-1 transition-colors">
+                  <tr key={invoice.id} className="transition-colors hover:bg-muted">
                     <td className="px-4 py-3">
-                      <Link to={`/dashboard/links/${invoice.id}`} className="text-sm font-medium text-stellar-600 hover:text-stellar-700">
+                      <Link to={`/dashboard/links/${invoice.id}`} className="text-sm font-medium text-ink-0 hover:text-primary">
                         {invoice.invoiceNumber}
                       </Link>
                       <p className="text-xs text-ink-3 mt-0.5">{invoice.title}</p>
@@ -209,7 +218,7 @@ export default function InvoiceList() {
                       <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className="text-sm font-mono font-medium text-ink-0">{formatAmount(invoice.total, invoice.currency)}</span>
+                      <span className="font-mono text-sm font-medium text-ink-0 [font-variant-numeric:tabular-nums]">{formatAmount(invoice.total, invoice.currency)}</span>
                     </td>
                     <td className="px-4 py-3 text-right text-sm text-ink-3">{formatDate(invoice.createdAt)}</td>
                   </tr>
@@ -222,24 +231,28 @@ export default function InvoiceList() {
 
       {/* Pagination */}
       {total > PAGE_SIZE && (
-        <div className="mt-4 flex items-center justify-between text-xs text-ink-3">
-          <span>
+        <div className="flex items-center justify-between text-xs text-ink-3">
+          <span className="[font-variant-numeric:tabular-nums]">
             {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} / {total}
           </span>
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="px-3 py-1.5 rounded-lg border border-surface-3 disabled:opacity-40 hover:bg-surface-1 transition-colors"
+              className="btn-secondary h-9 px-3 text-xs"
             >
-              ← Prev
+              <ChevronLeft className="h-4 w-4" />
+              {copy.prev}
             </button>
             <button
+              type="button"
               onClick={() => setPage((p) => p + 1)}
               disabled={(page + 1) * PAGE_SIZE >= total}
-              className="px-3 py-1.5 rounded-lg border border-surface-3 disabled:opacity-40 hover:bg-surface-1 transition-colors"
+              className="btn-secondary h-9 px-3 text-xs"
             >
-              Next →
+              {copy.next}
+              <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         </div>

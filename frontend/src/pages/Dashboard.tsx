@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { getDashboardStats, listInvoices } from '../services/api';
 import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
+import PageHeader from '../components/ui/PageHeader';
+import StatCard, { type StatCardData } from '../components/ui/StatCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
@@ -322,15 +324,7 @@ export default function Dashboard() {
 
   // Stat cards especulares (Design System §7.3, "máximo impacto"):
   // Volumen total = acento indigo · Total de links = ink · resto neutro categórico.
-  const statCards: Array<{
-    label: string;
-    value: string | number;
-    icon: typeof FileText;
-    variant: 'accent' | 'ink' | 'neutral';
-    circle: string;
-    glyph: string;
-    valueClass?: string;
-  }> = [
+  const statCards: StatCardData[] = [
     {
       label: copy.revenue,
       value: totalRevenueValue,
@@ -366,12 +360,6 @@ export default function Dashboard() {
       valueClass: 'text-warning',
     },
   ];
-
-  const STAT_VARIANT_CLASS: Record<'accent' | 'ink' | 'neutral', string> = {
-    accent: 'bg-accent text-accent-foreground',
-    ink: 'bg-card-invert text-card-invert-foreground',
-    neutral: 'bg-card',
-  };
 
   if (loading) {
     return (
@@ -425,48 +413,23 @@ export default function Dashboard() {
           {copy.loadError}
         </div>
       )}
-      <div className="flex flex-col gap-3 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink-0 sm:text-4xl">{copy.title}</h1>
-          <p className="mt-1 text-sm text-ink-3">{copy.subtitle}</p>
-        </div>
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+      <PageHeader
+        title={copy.title}
+        subtitle={copy.subtitle}
+        actions={
           <Link to="/dashboard/create-link" className="btn-primary w-full text-sm sm:w-auto">
             <FilePlus2 className="h-4 w-4" />
             {copy.newInvoice}
           </Link>
-        </div>
-      </div>
+        }
+      />
 
       {/* Stat cards especulares (Design System) — icono en círculo arriba,
           label + cifra abajo; pareja acento/ink + dos neutras categóricas. */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {statCards.map((stat) => {
-          const Icon = stat.icon;
-          const isEmphasis = stat.variant !== 'neutral';
-          return (
-            <div
-              key={stat.label}
-              className={`flex items-center justify-between gap-3 rounded-2xl p-6 ${STAT_VARIANT_CLASS[stat.variant]}`}
-            >
-              <div>
-                <p className={`text-sm font-medium ${isEmphasis ? 'opacity-80' : 'text-ink-3'}`}>
-                  {stat.label}
-                </p>
-                <p
-                  className={`mt-1 font-display text-2xl font-bold [font-variant-numeric:tabular-nums] ${
-                    isEmphasis ? '' : stat.valueClass ?? 'text-ink-0'
-                  }`}
-                >
-                  {stat.value}
-                </p>
-              </div>
-              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${stat.circle}`}>
-                <Icon className={`h-4 w-4 ${stat.glyph}`} aria-hidden="true" />
-              </span>
-            </div>
-          );
-        })}
+        {statCards.map((stat) => (
+          <StatCard key={stat.label} {...stat} />
+        ))}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">

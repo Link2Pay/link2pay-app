@@ -25,6 +25,7 @@ import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
 import { useWalletBalances } from '../hooks/useWalletBalances';
 import { getKnownAssetIssuer } from '../config/network';
+import PageHeader from '../components/ui/PageHeader';
 import { CURRENCY_SYMBOLS } from '../config';
 import { shortenAddress } from '../lib/format';
 
@@ -214,26 +215,24 @@ export default function Wallet() {
   };
 
   return (
-    <div className="space-y-6 animate-in">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2 className="flex items-center gap-2 font-display text-2xl font-semibold tracking-tight text-ink-0">
-            <WalletIcon className="h-5 w-5 text-primary" />
-            {copy.title}
-          </h2>
-          <p className="text-sm text-ink-3">{copy.subtitle}</p>
-        </div>
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-2xs font-semibold ${
-            network === 'testnet'
-              ? 'border-warning-border bg-warning-subtle text-warning'
-              : 'border-success-border bg-success-subtle text-success'
-          }`}
-        >
-          <span className={`h-1.5 w-1.5 rounded-full ${network === 'testnet' ? 'bg-warning' : 'bg-success'}`} />
-          {network === 'testnet' ? 'Testnet' : 'Mainnet'}
-        </span>
-      </div>
+    <div className="space-y-6 animate-in sm:space-y-8">
+      <PageHeader
+        title={copy.title}
+        subtitle={copy.subtitle}
+        icon={WalletIcon}
+        actions={
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-2xs font-semibold ${
+              network === 'testnet'
+                ? 'border-warning-border bg-warning-subtle text-warning'
+                : 'border-success-border bg-success-subtle text-success'
+            }`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${network === 'testnet' ? 'bg-warning' : 'bg-success'}`} />
+            {network === 'testnet' ? 'Testnet' : 'Mainnet'}
+          </span>
+        }
+      />
 
       {!publicKey ? (
         <div className="card p-8 text-center text-sm text-ink-3">{copy.notConnected}</div>
@@ -269,10 +268,10 @@ export default function Wallet() {
                 {sortBalances(balances).map((b) => (
                   <li
                     key={b.asset}
-                    className="flex items-center justify-between rounded-lg border border-surface-3 bg-surface-1 px-3 py-2.5"
+                    className="flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2.5"
                   >
                     <span className="text-sm font-medium text-ink-1">{b.code}</span>
-                    <span className="font-mono text-sm text-ink-0">{formatBalance(b.balance, b.code)}</span>
+                    <span className="font-mono text-sm text-ink-0 [font-variant-numeric:tabular-nums]">{formatBalance(b.balance, b.code)}</span>
                   </li>
                 ))}
               </ul>
@@ -283,9 +282,9 @@ export default function Wallet() {
           <div className="card p-5">
             <div className="mb-1 flex items-center gap-2">
               {activated ? (
-                <ArrowDownToLine className="h-4 w-4 text-primary" />
+                <ArrowDownToLine className="h-4 w-4 text-ink-3" />
               ) : (
-                <QrCode className="h-4 w-4 text-warning" />
+                <QrCode className="h-4 w-4 text-ink-3" />
               )}
               <h3 className="text-sm font-semibold text-ink-0">
                 {activated ? copy.depositTitle : copy.notActivatedTitle}
@@ -305,8 +304,8 @@ export default function Wallet() {
               </div>
             </div>
 
-            <p className="mt-4 text-3xs uppercase tracking-wider text-ink-3">{copy.address}</p>
-            <p className="mt-1 break-all rounded-lg border border-surface-3 bg-surface-1 px-3 py-2 font-mono text-xs text-ink-1">
+            <p className="mt-4 text-3xs uppercase tracking-label text-ink-3">{copy.address}</p>
+            <p className="mt-1 break-all rounded-lg border border-border bg-muted px-3 py-2 font-mono text-xs text-ink-1">
               {shorten(publicKey)}
             </p>
             <button type="button" onClick={() => copyText(publicKey)} className="btn-secondary mt-3 text-xs">
@@ -319,7 +318,7 @@ export default function Wallet() {
           {activated && !hasUsdc && (
             <div className="card p-5 lg:col-span-2">
               <div className="mb-1 flex items-center gap-2">
-                <Plus className="h-4 w-4 text-primary" />
+                <Plus className="h-4 w-4 text-ink-3" />
                 <h3 className="text-sm font-semibold text-ink-0">{copy.enableUsdcTitle}</h3>
               </div>
               <p className="mb-4 text-xs text-ink-3">{copy.enableUsdcDesc}</p>

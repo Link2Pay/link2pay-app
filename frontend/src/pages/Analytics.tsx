@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BarChart3, CalendarDays, Clock3, Gauge, PieChart, Users2 } from 'lucide-react';
+import { BarChart3, CalendarDays, CheckCircle2, CircleDollarSign, Clock3, Gauge, PieChart, Timer, Users2 } from 'lucide-react';
 import { getDashboardStats, listInvoices } from '../services/api';
+import PageHeader from '../components/ui/PageHeader';
+import StatCard, { type StatCardData } from '../components/ui/StatCard';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
 import { useDashboardViewStore } from '../store/dashboardViewStore';
@@ -302,40 +304,40 @@ export default function Analytics() {
   const paidAssetTotal = Object.values(paidByAsset).reduce((sum, value) => sum + value, 0);
   const otherStatusLinks = Math.max(0, totalLinks - paidLinks - pendingLinks - failedLinks);
 
+  // KPIs espectrales: Conversión = acento (indigo), Liquidados = ink; resto neutras.
+  const kpiCards: StatCardData[] = [
+    { label: copy.conversion, value: `${conversionRate.toFixed(1)}%`, icon: Gauge, variant: 'accent' },
+    { label: copy.settledLinks, value: paidLinks, icon: CheckCircle2, variant: 'ink' },
+    { label: copy.avgTicket, value: avgTicket.toFixed(2), icon: CircleDollarSign, variant: 'neutral' },
+    {
+      label: copy.activeLinks,
+      value: pendingLinks,
+      icon: Clock3,
+      variant: 'neutral',
+      circle: 'bg-warning-subtle',
+      glyph: 'text-warning',
+      valueClass: 'text-warning',
+    },
+    {
+      label: copy.settleSpeed,
+      value: settlementAvgMinutes !== null ? `${settlementAvgMinutes.toFixed(1)} ${copy.avgMin}` : '--',
+      icon: Timer,
+      variant: 'neutral',
+    },
+  ];
+
   if (loading) {
     return <div className="card p-12 text-center text-sm text-ink-3">{copy.loading}</div>;
   }
 
   return (
-    <div className="space-y-6 animate-in">
-      <div className="border-b border-border pb-6">
-        <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink-0 sm:text-4xl">{copy.title}</h1>
-        <p className="mt-1 text-sm text-ink-3">{copy.subtitle}</p>
-      </div>
+    <div className="space-y-6 animate-in sm:space-y-8">
+      <PageHeader title={copy.title} subtitle={copy.subtitle} />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
-        <div className="card p-5">
-          <p className="text-xs text-ink-3">{copy.conversion}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-primary">{conversionRate.toFixed(1)}%</p>
-        </div>
-        <div className="card p-5">
-          <p className="text-xs text-ink-3">{copy.avgTicket}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-ink-1">{avgTicket.toFixed(2)}</p>
-        </div>
-        <div className="card p-5">
-          <p className="text-xs text-ink-3">{copy.activeLinks}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-warning">{pendingLinks}</p>
-        </div>
-        <div className="card p-5">
-          <p className="text-xs text-ink-3">{copy.settledLinks}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-success">{paidLinks}</p>
-        </div>
-        <div className="card p-5">
-          <p className="text-xs text-ink-3">{copy.settleSpeed}</p>
-          <p className="mt-2 text-2xl font-semibold font-mono text-ink-1">
-            {settlementAvgMinutes !== null ? `${settlementAvgMinutes.toFixed(1)} ${copy.avgMin}` : '--'}
-          </p>
-        </div>
+        {kpiCards.map((stat) => (
+          <StatCard key={stat.label} {...stat} />
+        ))}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -437,15 +439,15 @@ export default function Analytics() {
         ) : (
           <div className="mt-5 grid gap-2" style={{ gridTemplateColumns: `repeat(${activityTrend.length}, minmax(0, 1fr))` }}>
             {activityTrend.map((bucket) => (
-              <div key={bucket.startMs} className="rounded-lg border border-surface-3 bg-surface-1 p-2">
+              <div key={bucket.startMs} className="rounded-xl border border-border bg-card p-2">
                 <p className="mb-2 truncate text-center text-3xs text-ink-3">{bucket.label}</p>
                 <div className="mx-auto flex h-20 w-6 items-end rounded bg-muted">
                   <div
-                    className="w-full rounded bg-primary"
+                    className="w-full rounded bg-accent"
                     style={{ height: `${Math.max(8, (bucket.created / trendPeak) * 100)}%` }}
                   />
                 </div>
-                <p className="mt-2 text-center text-xs font-mono text-ink-1">{bucket.created}</p>
+                <p className="mt-2 text-center font-mono text-xs text-ink-1 [font-variant-numeric:tabular-nums]">{bucket.created}</p>
               </div>
             ))}
           </div>
@@ -465,18 +467,18 @@ export default function Analytics() {
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[560px]">
               <thead>
-                <tr className="border-b border-surface-3 text-xs text-ink-3">
-                  <th className="px-3 py-2 text-left font-medium">{copy.client}</th>
-                  <th className="px-3 py-2 text-right font-medium">{copy.links}</th>
-                  <th className="px-3 py-2 text-right font-medium">{copy.paidVolume}</th>
+                <tr className="border-b border-border">
+                  <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.client}</th>
+                  <th className="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.links}</th>
+                  <th className="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-label text-ink-3">{copy.paidVolume}</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border">
                 {topClients.map((client) => (
-                  <tr key={client.name} className="border-b border-surface-3/70 last:border-0">
-                    <td className="px-3 py-2.5 text-sm text-ink-1">{client.name}</td>
-                    <td className="px-3 py-2.5 text-right font-mono text-sm text-ink-1">{client.links}</td>
-                    <td className="px-3 py-2.5 text-right font-mono text-sm text-primary">
+                  <tr key={client.name} className="transition-colors hover:bg-muted">
+                    <td className="px-3 py-2.5 text-sm font-medium text-ink-1">{client.name}</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-sm text-ink-1 [font-variant-numeric:tabular-nums]">{client.links}</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-sm text-positive [font-variant-numeric:tabular-nums]">
                       {client.paidVolume.toLocaleString(LOCALE_BY_LANGUAGE[language], {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
