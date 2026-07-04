@@ -352,17 +352,17 @@ export default function Dashboard() {
       value: paidLinks,
       icon: CheckCircle2,
       variant: 'neutral',
-      circle: 'bg-cat-sage',
-      glyph: 'text-foreground',
-      valueClass: 'text-positive',
+      circle: 'bg-success-subtle',
+      glyph: 'text-success',
+      valueClass: 'text-success',
     },
     {
       label: copy.pending,
       value: pendingLinks,
       icon: Clock3,
       variant: 'neutral',
-      circle: 'bg-cat-sand',
-      glyph: 'text-foreground',
+      circle: 'bg-warning-subtle',
+      glyph: 'text-warning',
       valueClass: 'text-warning',
     },
   ];
@@ -387,12 +387,12 @@ export default function Dashboard() {
         {/* Stat cards skeleton (min-h para no saltar al cargar) */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex min-h-[170px] flex-col justify-between rounded-2xl bg-surface-1 p-6">
-              <div className="h-11 w-11 rounded-full bg-surface-2" />
+            <div key={i} className="flex items-center justify-between gap-3 rounded-2xl bg-surface-1 p-6">
               <div className="space-y-2">
                 <div className="h-3 w-20 rounded bg-surface-2" />
                 <div className="h-7 w-16 rounded bg-surface-2" />
               </div>
+              <div className="h-9 w-9 shrink-0 rounded-full bg-surface-2" />
             </div>
           ))}
         </div>
@@ -447,11 +447,8 @@ export default function Dashboard() {
           return (
             <div
               key={stat.label}
-              className={`flex min-h-[170px] flex-col justify-between rounded-2xl p-6 ${STAT_VARIANT_CLASS[stat.variant]}`}
+              className={`flex items-center justify-between gap-3 rounded-2xl p-6 ${STAT_VARIANT_CLASS[stat.variant]}`}
             >
-              <span className={`flex h-11 w-11 items-center justify-center rounded-full ${stat.circle}`}>
-                <Icon className={`h-5 w-5 ${stat.glyph}`} aria-hidden="true" />
-              </span>
               <div>
                 <p className={`text-sm font-medium ${isEmphasis ? 'opacity-80' : 'text-ink-3'}`}>
                   {stat.label}
@@ -464,6 +461,9 @@ export default function Dashboard() {
                   {stat.value}
                 </p>
               </div>
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${stat.circle}`}>
+                <Icon className={`h-4 w-4 ${stat.glyph}`} aria-hidden="true" />
+              </span>
             </div>
           );
         })}
@@ -473,8 +473,8 @@ export default function Dashboard() {
         {/* Credit Card (Design System) aplicada al pipeline: panel ink con
             textura + cifra en tránsito + barra apilada; franja de acento con los
             4 stages a modo de "Card Number / Date / CVV". */}
-        <div className="card overflow-hidden lg:col-span-2">
-          <div className="relative overflow-hidden bg-card-invert p-6 text-card-invert-foreground">
+        <div className="card flex flex-col overflow-hidden lg:col-span-2">
+          <div className="relative flex flex-1 flex-col overflow-hidden bg-card-invert p-6 text-card-invert-foreground">
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0"
@@ -483,7 +483,7 @@ export default function Dashboard() {
                   'repeating-linear-gradient(135deg, hsl(var(--card-invert-foreground) / 0.06) 0 2px, transparent 2px 26px)',
               }}
             />
-            <div className="relative">
+            <div className="relative flex flex-1 flex-col justify-between gap-6">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-label opacity-70">
@@ -497,11 +497,12 @@ export default function Dashboard() {
                 </span>
               </div>
 
-              <p className="mt-5 font-display text-3xl font-extrabold [font-variant-numeric:tabular-nums]">
-                {stats?.pendingAmount ?? '0.00'}
-              </p>
+              <div>
+                <p className="font-display text-3xl font-extrabold [font-variant-numeric:tabular-nums]">
+                  {stats?.pendingAmount ?? '0.00'}
+                </p>
 
-              <div className="mt-5 flex h-2 overflow-hidden rounded-full bg-white/10">
+                <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-white/10">
                 {[
                   { key: copy.stageDraft, value: draftLinks, color: 'bg-white/25' },
                   { key: copy.stageInFlight, value: pendingLinks, color: 'bg-accent' },
@@ -518,6 +519,7 @@ export default function Dashboard() {
                     />
                   );
                 })}
+                </div>
               </div>
             </div>
           </div>
@@ -545,7 +547,7 @@ export default function Dashboard() {
         </div>
 
         <div className="card flex flex-col p-5">
-          <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="mb-4">
             <div>
               <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-0">
                 <PieChart className="h-4 w-4 text-ink-3" />
@@ -553,8 +555,8 @@ export default function Dashboard() {
               </h3>
               <p className="mt-1 text-xs text-ink-3">{copy.assetMixSubtitle}</p>
             </div>
-            {/* Toggle Pill (Design System): base valor / links */}
-            <div className="pill-toggle shrink-0">
+            {/* Toggle Pill (Design System): base valor / links — debajo del título */}
+            <div className="pill-toggle mt-3 w-fit">
               {(['value', 'count'] as const).map((basis) => (
                 <button
                   key={basis}
