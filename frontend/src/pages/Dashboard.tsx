@@ -440,11 +440,7 @@ export default function Dashboard() {
           <div className="relative flex flex-1 flex-col overflow-hidden bg-card-invert p-6 text-card-invert-foreground">
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0"
-              style={{
-                background:
-                  'repeating-linear-gradient(135deg, hsl(var(--card-invert-foreground) / 0.06) 0 2px, transparent 2px 26px)',
-              }}
+              className="pipeline-microtexture pointer-events-none absolute inset-0"
             />
             <div className="relative flex flex-1 flex-col justify-between gap-6">
               <div className="flex items-start justify-between gap-3">
