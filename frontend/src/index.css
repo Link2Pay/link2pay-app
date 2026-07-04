@@ -114,6 +114,8 @@
 
   /* ── Layer 2 · Semantic tokens · LIGHT (default) ───────────────────────── */
   :root {
+    color-scheme: light; /* controles nativos / scrollbars siguen el tema */
+
     --background: var(--ref-warm-100); /* canvas hueso */
     --foreground: var(--ref-warm-900);
 
@@ -173,7 +175,7 @@
     --sidebar-background: var(--ref-warm-0);
     --sidebar-foreground: var(--ref-warm-700);
     --sidebar-muted: var(--ref-warm-500);
-    --sidebar-primary: var(--ref-indigo-700); /* item activo = indigo de marca */
+    --sidebar-primary: var(--ref-indigo-500); /* item activo = mismo azul que --accent / la card */
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: var(--ref-warm-50); /* hover */
     --sidebar-accent-foreground: var(--ref-warm-900);
@@ -209,6 +211,8 @@
 
   /* ── Layer 2 · Semantic tokens · DARK overrides ────────────────────────── */
   .dark {
+    color-scheme: dark;
+
     --background: 240 6% 8%;
     --foreground: 60 7% 95%;
 

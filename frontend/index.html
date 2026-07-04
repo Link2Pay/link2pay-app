@@ -2,6 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Theme init: fija el tema antes del primer paint (evita flash). Oscuro por
+         defecto; respeta la preferencia guardada. Debe reflejar src/lib/theme.ts. -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('link2pay-theme');
+          if (t !== 'light' && t !== 'dark') t = 'dark';
+          document.documentElement.classList.add(t);
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
     <link rel="icon" type="image/png" sizes="32x32" href="/link2pay-favicon.png" />
     <link rel="shortcut icon" href="/link2pay-favicon.png" />
     <meta

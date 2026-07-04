@@ -19,10 +19,10 @@ export function getSystemTheme(): ThemeMode {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-// Direction A (fintech) is light-first: default to light unless the user has
-// explicitly stored a preference. Respect that stored choice thereafter.
+// Dark por defecto: arranca en modo oscuro salvo que el usuario haya elegido
+// explícitamente un tema. Se respeta esa elección guardada de ahí en adelante.
 export function getPreferredTheme(): ThemeMode {
-  return getStoredTheme() ?? 'light';
+  return getStoredTheme() ?? 'dark';
 }
 
 export function applyTheme(theme: ThemeMode) {
