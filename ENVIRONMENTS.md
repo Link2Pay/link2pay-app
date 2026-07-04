@@ -119,15 +119,33 @@ simulates settlement, so the test environment walls fiat off entirely.
         `USDC_ISSUER=GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5`,
         `EURC_ISSUER=GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2`,
         `FIAT_ENABLED=false`, `FRONTEND_URL=https://test.link2pay.xyz`.
-- [ ] Custom domains: `api.link2pay.xyz` on the production service,
-      `api-test.link2pay.xyz` on the test service (Settings → Networking);
-      add the CNAMEs Railway shows at the registrar.
+- [x] Custom domains: `api.link2pay.xyz` on the production service,
+      `api-test.link2pay.xyz` on the development service (Settings →
+      Networking, target port 8080 — Railway injects `PORT=8080`).
+      **Railway requires TWO DNS records per domain**: the CNAME *and* a
+      `_railway-verify.<label>` TXT record. The TXT is shown only in the
+      dashboard's "Configure DNS Records" modal (the API omits it) — without
+      it the domain sticks in `VALIDATING_OWNERSHIP` and the edge returns
+      404 "Application not found" forever. Each registration also mints a
+      fresh CNAME target, so re-adding a domain means updating DNS.
 - [ ] If a database predates the migration baseline:
       `npx prisma migrate resolve --applied 0_init` once against it.
 
 ### Render (fallback)
 `render.yaml` still defines the equivalent two services + two databases as a
 Blueprint if Railway is ever abandoned. Same env vars, same start command.
+
+### Vercel DNS
+The whole `link2pay.xyz` zone is served by Vercel nameservers (set at
+Namecheap) — DNS records live in Vercel → Domains → link2pay.xyz, never in
+Namecheap's Advanced DNS. Current records: `api` / `api-test` CNAMEs to the
+Railway targets plus their `_railway-verify.*` TXT records.
+
+Deployment Protection (`ssoProtection`) is **disabled** on the project:
+Hobby-plan protection walls preview deployments even on their custom domain,
+which would put test.link2pay.xyz behind a Vercel login (bypass tokens and
+password protection are paid features). Re-enable it if the test env ever
+needs to be private again — production is unaffected either way.
 
 ### Privy
 - [ ] Add `https://test.link2pay.xyz` to the app's allowed origins/domains
