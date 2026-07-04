@@ -12,8 +12,11 @@ Testnet vs mainnet is configuration (env vars + hostname), so code promoted from
 
 The backend API lives behind **custom domains** (`api.link2pay.xyz`,
 `api-test.link2pay.xyz`) so the hosting platform can change without touching
-frontend config or CSP. Current host: **Railway** (`backend/railway.toml`);
-`render.yaml` remains as a working fallback blueprint for Render.
+frontend config or CSP. Current host: **Railway** — service settings (root
+directory, build/start commands, healthcheck) live in the Railway dashboard,
+deliberately NOT in a `railway.toml` (config-as-code silently overrides
+dashboard edits, which caused deploy confusion). `render.yaml` remains as a
+working fallback blueprint for Render.
 
 ## Promotion flow
 
@@ -85,9 +88,14 @@ simulates settlement, so the test environment walls fiat off entirely.
       `VITE_STELLAR_NETWORK=testnet`, `VITE_PRIVY_APP_ID=…`
 
 ### Railway (backend + databases)
-- [ ] New project → Deploy from GitHub repo → pick this repo. Set the
-      service's **root directory** to `backend` (build/deploy config comes
-      from `backend/railway.toml`).
+- [ ] New project → Deploy from GitHub repo → pick this repo. On the service,
+      set: root directory `backend`, build command
+      `npm ci --include=dev && npm run build` (dev deps hold tsc/prisma and
+      `NODE_ENV=production` would skip them), start command
+      `npm run start:prod`, healthcheck path `/api/health`, watch paths
+      `backend/**`. Also set build-time vars `NIXPACKS_NODE_VERSION=22`
+      (Stellar SDK needs ≥20) and `NIXPACKS_NO_CACHE=1` (cache mount breaks
+      `npm ci`).
 - [ ] The default environment is `production` — make it track branch `main`.
       Add a Postgres database to it.
 - [ ] Create a second environment `test` tracking branch `develop`, with its
