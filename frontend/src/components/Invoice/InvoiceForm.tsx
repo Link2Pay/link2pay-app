@@ -853,6 +853,50 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
     </div>
   );
 
+  // Panel de resumen económico + liquidación para facturas (negocio/servicios).
+  // Mismo lenguaje que Pago directo: superficie bg-muted con tarjeta interna
+  // bg-card para el total, y la liquidación debajo separada por un hairline.
+  const renderInvoiceTotalsPanel = () => (
+    <div className="mt-6 rounded-2xl bg-muted p-5">
+      <div className="space-y-3 rounded-xl bg-card p-4">
+        <div className="flex items-center justify-between gap-4 text-sm">
+          <span className="text-ink-3">{copy.subtotal}</span>
+          <span className="font-display font-bold tabular-nums text-foreground">{formatMoney(subtotal, currency)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-4 text-sm">
+          <label htmlFor={`${formId}-tax-rate`} className="text-ink-3">{copy.taxRate}</label>
+          <input
+            id={`${formId}-tax-rate`}
+            name="taxRate"
+            type="number"
+            className="input h-10 w-28 text-right tabular-nums"
+            min="0"
+            max="100"
+            step="0.1"
+            inputMode="decimal"
+            placeholder={copy.taxPlaceholder}
+            value={taxRate}
+            onChange={(e) => setTaxRate(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+        {taxAmount > 0 && (
+          <div className="flex items-center justify-between gap-4 text-sm">
+            <span className="text-ink-3">{copy.taxAmount}</span>
+            <span className="font-display font-bold tabular-nums text-foreground">{formatMoney(taxAmount, currency)}</span>
+          </div>
+        )}
+        <div className="flex items-end justify-between gap-4 border-t border-border pt-3">
+          <span className="font-bold text-foreground">{copy.total}</span>
+          <span className="font-display text-3xl font-bold tabular-nums tracking-tight text-foreground">
+            {formatMoney(total, currency)}
+          </span>
+        </div>
+      </div>
+      <div className="mt-5 border-t border-border pt-4">{renderSettlementSection()}</div>
+    </div>
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6 animate-in sm:space-y-8">
       {error && (
@@ -1105,7 +1149,9 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
           </SectionCard>
 
           <SectionCard title={copy.invoiceDetails}>
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+            {/* Una sola columna: título → descripción → panel moneda/fecha debajo
+                (también en desktop, no en 2 columnas). */}
+            <div className="space-y-4">
               <div className="space-y-4">
                 <Field id={`${formId}-title`} label={copy.title} required>
                   <input
@@ -1151,7 +1197,6 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
                   />
                 </Field>
                 </div>
-                <div className="border-t border-border pt-4">{renderSettlementSection()}</div>
               </div>
             </div>
           </SectionCard>
@@ -1250,41 +1295,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
               })}
             </div>
 
-            <div className="mt-6 border-t border-border pt-5">
-              <div className="ml-auto max-w-sm space-y-3 rounded-2xl bg-muted p-4">
-                <div className="flex items-center justify-between gap-4 text-sm">
-                  <span className="text-ink-3">{copy.subtotal}</span>
-                  <span className="font-display font-bold tabular-nums text-foreground">{formatMoney(subtotal, currency)}</span>
-                </div>
-                <div className="flex items-center justify-between gap-4 text-sm">
-                  <label htmlFor={`${formId}-tax-rate`} className="text-ink-3">{copy.taxRate}</label>
-                  <input
-                    id={`${formId}-tax-rate`}
-                    name="taxRate"
-                    type="number"
-                    className="input h-10 w-28 text-right tabular-nums"
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    inputMode="decimal"
-                    placeholder={copy.taxPlaceholder}
-                    value={taxRate}
-                    onChange={(e) => setTaxRate(e.target.value)}
-                    autoComplete="off"
-                  />
-                </div>
-                {taxAmount > 0 && (
-                  <div className="flex items-center justify-between gap-4 text-sm">
-                    <span className="text-ink-3">{copy.taxAmount}</span>
-                    <span className="font-display font-bold tabular-nums text-foreground">{formatMoney(taxAmount, currency)}</span>
-                  </div>
-                )}
-                <div className="flex items-end justify-between gap-4 border-t border-border pt-3">
-                  <span className="font-bold text-foreground">{copy.total}</span>
-                  <span className="font-display text-2xl font-bold tabular-nums tracking-tight text-foreground">{formatMoney(total, currency)}</span>
-                </div>
-              </div>
-            </div>
+            {renderInvoiceTotalsPanel()}
           </SectionCard>
 
           <SectionCard title={copy.notes}>
