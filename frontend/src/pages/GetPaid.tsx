@@ -10,6 +10,7 @@ import { getBusinessProfile } from '../services/api';
 import { shortenAddress } from '../lib/format';
 import { railByCountry, FIAT_RAILS } from '../config/rails';
 import { config } from '../config';
+import PageHeader from '../components/ui/PageHeader';
 import ComingSoonWall from '../components/Offramp/ComingSoonWall';
 
 const COPY: Record<
@@ -138,11 +139,8 @@ export default function GetPaid() {
   };
 
   return (
-    <div className="space-y-6 animate-in">
-      <div>
-        <h2 className="font-display text-2xl font-semibold tracking-tight text-ink-0">{copy.title}</h2>
-        <p className="text-sm text-ink-3">{copy.subtitle}</p>
-      </div>
+    <div className="space-y-6 animate-in sm:space-y-8">
+      <PageHeader title={copy.title} subtitle={copy.subtitle} />
 
       {!publicKey ? (
         <div className="card p-8 text-center text-sm text-ink-3">{copy.notConnected}</div>
@@ -152,7 +150,7 @@ export default function GetPaid() {
             {/* Receive USDC */}
             <div className="card p-5">
               <div className="mb-1 flex items-center gap-2">
-                <QrCode className="h-4 w-4 text-primary" />
+                <QrCode className="h-4 w-4 text-ink-3" />
                 <h3 className="text-sm font-semibold text-ink-0">{copy.receiveUsdc}</h3>
               </div>
               <p className="mb-4 text-xs text-ink-3">{copy.receiveUsdcDesc}</p>
@@ -163,8 +161,8 @@ export default function GetPaid() {
                 </div>
               </div>
 
-              <p className="mt-4 text-3xs uppercase tracking-wider text-ink-3">{copy.walletAddress}</p>
-              <p className="mt-1 break-all rounded-lg border border-surface-3 bg-surface-1 px-3 py-2 font-mono text-xs text-ink-1">
+              <p className="mt-4 text-3xs uppercase tracking-label text-ink-3">{copy.walletAddress}</p>
+              <p className="mt-1 break-all rounded-lg border border-border bg-muted px-3 py-2 font-mono text-xs text-ink-1">
                 {shorten(publicKey)}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -182,7 +180,7 @@ export default function GetPaid() {
             {/* Receive in local fiat — Bre-B live, Pix / Transferência 3.0 walled */}
             <div className="card p-5">
               <div className="mb-1 flex items-center gap-2">
-                <Landmark className="h-4 w-4 text-warning" />
+                <Landmark className="h-4 w-4 text-ink-3" />
                 <h3 className="text-sm font-semibold text-ink-0">
                   {copy.receiveFiat} · {fiatRail.railName} ({fiatRail.currency})
                 </h3>
@@ -200,7 +198,7 @@ export default function GetPaid() {
                           <QRCodeSVG value={alias} size={176} level="M" />
                         </div>
                       </div>
-                      <p className="mt-4 break-all rounded-lg border border-surface-3 bg-surface-1 px-3 py-2 text-center font-mono text-sm text-ink-1">
+                      <p className="mt-4 break-all rounded-lg border border-border bg-muted px-3 py-2 text-center font-mono text-sm text-ink-1">
                         {alias}
                       </p>
                       <div className="mt-3 flex items-center justify-between">
@@ -212,7 +210,7 @@ export default function GetPaid() {
                       </div>
                     </>
                   ) : (
-                    <div className="rounded-lg border border-dashed border-surface-3 bg-surface-1 p-6 text-center">
+                    <div className="rounded-xl border border-dashed border-border bg-muted p-6 text-center">
                       <p className="text-sm text-ink-2">{copy.noAlias}</p>
                       <Link to="/dashboard/profile-options" className="mt-2 inline-block text-sm font-medium text-primary hover:underline">
                         {copy.setupAlias}

@@ -4,6 +4,7 @@ import { Building2, Mail, MapPin, Plus, Search, Star, Users, X } from 'lucide-re
 import { listSavedClients, saveClient, updateClientFavorite } from '../services/api';
 import { useI18n } from '../i18n/I18nProvider';
 import { useWalletStore } from '../store/walletStore';
+import PageHeader from '../components/ui/PageHeader';
 import type { SavedClient } from '../types';
 import type { Language } from '../i18n/translations';
 
@@ -259,37 +260,37 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="font-display text-2xl font-semibold tracking-tight text-foreground">{copy.title}</h2>
-          <p className="text-sm text-muted-foreground">{copy.subtitle}</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            setShowClientForm((prev) => !prev);
-            setError(null);
-          }}
-          className="btn-primary w-full text-sm sm:w-auto"
-        >
-          {showClientForm ? (
-            <>
-              <X className="h-4 w-4" />
-              {copy.close}
-            </>
-          ) : (
-            <>
-              <Plus className="h-4 w-4" />
-              {copy.addClient}
-            </>
-          )}
-        </button>
-      </div>
+    <div className="space-y-6 animate-in sm:space-y-8">
+      <PageHeader
+        title={copy.title}
+        subtitle={copy.subtitle}
+        actions={
+          <button
+            type="button"
+            onClick={() => {
+              setShowClientForm((prev) => !prev);
+              setError(null);
+            }}
+            className="btn-primary w-full text-sm sm:w-auto"
+          >
+            {showClientForm ? (
+              <>
+                <X className="h-4 w-4" />
+                {copy.close}
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4" />
+                {copy.addClient}
+              </>
+            )}
+          </button>
+        }
+      />
 
       {showClientForm && (
         <form onSubmit={handleAddClient} className="card space-y-4 p-5">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">{copy.newClient}</h3>
+          <h3 className="text-sm font-semibold text-foreground">{copy.newClient}</h3>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
             <div>
               <label className="label">{copy.clientName}</label>
@@ -384,7 +385,7 @@ export default function ClientsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredClients.map((client) => (
-            <div key={client.id} className="card p-5 hover-glow">
+            <div key={client.id} className="card border border-transparent p-5 transition-colors hover:border-border hover:bg-muted">
               <div className="mb-3 flex items-start justify-between gap-2">
                 <div>
                   <p className="text-sm font-semibold text-foreground">{client.name}</p>

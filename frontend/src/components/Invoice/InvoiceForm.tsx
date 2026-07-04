@@ -810,15 +810,15 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
       </fieldset>
       {fiatSelected && fiatLive && (
         <div className="rounded-2xl border border-accent-ink bg-card p-4 sm:p-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
+          <div className="flex items-start gap-3">
+            <div className="min-w-0 flex-1">
               <p className="label mb-1">{copy.settlement}</p>
               <h4 className="font-display text-lg font-bold tracking-tight text-foreground">
                 {t('rail.fiatOfframp')} · {fiatRail.railName}
               </h4>
               <p className="mt-1 text-xs text-ink-3">{copy.fiatPanelHint}</p>
             </div>
-            <span className="inline-flex h-7 items-center rounded-full border border-border bg-muted px-2.5 text-2xs font-semibold text-secondary-foreground">
+            <span className="ml-auto inline-flex h-7 shrink-0 items-center rounded-full border border-border bg-muted px-2.5 text-2xs font-semibold text-secondary-foreground">
               {fiatRail.currency}
             </span>
           </div>
@@ -866,7 +866,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
 
       {isDirect && (
         <SectionCard title={copy.paymentDetails} eyebrow={copy.defaultDirectTitle}>
-          <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="grid items-start gap-5">
             <div className="space-y-5">
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_160px]">
                 <Field id={directAmountId} label={copy.amount} required={!isOpenAmount}>
@@ -941,17 +941,18 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
                   </span>
                 </label>
               </div>
+
+              <div className="rounded-2xl bg-muted p-5">
+                <div className="rounded-xl bg-card p-4">
+                  <p className="label mb-2">{copy.total}</p>
+                  <p className="font-display text-3xl font-bold tabular-nums tracking-tight text-foreground">
+                    {isOpenAmount ? copy.openAmountPlaceholder : formatMoney(subtotal, currency)}
+                  </p>
+                </div>
+                <div className="mt-5 border-t border-border pt-4">{renderSettlementSection(true)}</div>
+              </div>
             </div>
 
-            <div className="rounded-2xl bg-muted p-5 xl:sticky xl:top-6">
-              <div className="rounded-xl bg-card p-4">
-                <p className="label mb-2">{copy.total}</p>
-                <p className="font-display text-3xl font-bold tabular-nums tracking-tight text-foreground">
-                  {isOpenAmount ? copy.openAmountPlaceholder : formatMoney(subtotal, currency)}
-                </p>
-              </div>
-              <div className="mt-5 border-t border-border pt-4">{renderSettlementSection(true)}</div>
-            </div>
           </div>
         </SectionCard>
       )}
