@@ -1,4 +1,7 @@
 import { Transaction, xdr, Keypair } from '@stellar/stellar-sdk';
+// Browsers have no Buffer global — import it explicitly for DecoratedSignature
+// (js-xdr expects Buffer instances). Vite resolves this to the `buffer` package.
+import { Buffer } from 'buffer';
 import type { ExternalSigner } from '../store/walletStore';
 
 type SignRawHashFn = (input: {
