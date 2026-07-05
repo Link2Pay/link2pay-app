@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 interface SectionCardProps {
+  id?: string;
   title: string;
   eyebrow?: string;
   hint?: string;
@@ -15,6 +16,7 @@ interface SectionCardProps {
  * de acción a la derecha. Reutilizado por los formularios y la página de perfil.
  */
 export default function SectionCard({
+  id,
   title,
   eyebrow,
   hint,
@@ -23,7 +25,7 @@ export default function SectionCard({
   className = '',
 }: SectionCardProps) {
   return (
-    <section className={`card p-5 sm:p-6 ${className}`}>
+    <section id={id} className={`card p-5 sm:p-6 ${className}`}>
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           {eyebrow && (

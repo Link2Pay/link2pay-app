@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import SectionCard from '../ui/SectionCard';
 import Field from '../ui/Field';
 import toast from 'react-hot-toast';
-import { Calendar, Check, ChevronDown, Plus, X } from 'lucide-react';
+import { Calendar, Check, ChevronDown, Lock, Plus, X } from 'lucide-react';
 import { createInvoice, getBusinessProfile } from '../../services/api';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
@@ -92,6 +92,8 @@ const COPY: Record<Language, {
     noExpiryHint: string;
     showDatePicker: string;
     kycRequiredError: string;
+  breBKeyLockedLabel: string;
+  breBKeyLockedCta: string;
   settlement: string;
   payoutAlias: string;
   settlementDemo: string;
@@ -164,6 +166,8 @@ const COPY: Record<Language, {
     noExpiryHint: 'Leave blank for no expiration',
     showDatePicker: 'Show date picker',
     kycRequiredError: 'Verify your identity to create a fiat (Bre-B) payment link.',
+    breBKeyLockedLabel: 'Add your Bre-B key in your profile to enable this option.',
+    breBKeyLockedCta: 'Go to profile',
     settlement: 'Settlement',
     payoutAlias: 'Payout alias',
     settlementDemo: 'Simulated {rail} settlement (demo)',
@@ -236,6 +240,8 @@ const COPY: Record<Language, {
     noExpiryHint: 'Déjalo en blanco para que no expire',
     showDatePicker: 'Mostrar selector de fecha',
     kycRequiredError: 'Verifica tu identidad para crear un link de pago en fiat (Bre-B).',
+    breBKeyLockedLabel: 'Agrega tu llave Bre-B en tu perfil para activar esta opción.',
+    breBKeyLockedCta: 'Ir a mi perfil',
     settlement: 'Liquidación',
     payoutAlias: 'Alias de cobro',
     settlementDemo: 'Liquidación {rail} simulada (demo)',
@@ -308,6 +314,8 @@ const COPY: Record<Language, {
     noExpiryHint: 'Deixe em branco para não expirar',
     showDatePicker: 'Mostrar seletor de data',
     kycRequiredError: 'Verifique sua identidade para criar um link de pagamento em fiat (Bre-B).',
+    breBKeyLockedLabel: 'Adicione sua chave Bre-B no seu perfil para ativar esta opção.',
+    breBKeyLockedCta: 'Ir para meu perfil',
     settlement: 'Liquidação',
     payoutAlias: 'Alias de recebimento',
     settlementDemo: 'Liquidação {rail} simulada (demo)',
@@ -467,6 +475,7 @@ function SettlementOptionCard({
   title,
   description,
   onChange,
+  locked,
 }: {
   id: string;
   name: string;
@@ -476,16 +485,22 @@ function SettlementOptionCard({
   title: string;
   description: string;
   onChange: (value: 'CRYPTO' | 'BRE_B') => void;
+  locked?: boolean;
 }) {
   return (
     <label
       htmlFor={id}
-      className={`group relative flex cursor-pointer gap-3 overflow-hidden rounded-xl border px-4 py-3 text-left text-sm transition-colors duration-150 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background ${
+      aria-disabled={locked}
+      className={`group relative flex gap-3 overflow-hidden rounded-xl border px-4 py-3 text-left text-sm transition-colors duration-150 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background ${
         compact ? 'min-h-16 items-center' : 'min-h-20 items-start'
       } ${
-        checked
-          ? 'border-accent-ink bg-card-invert text-card-invert-foreground'
-          : 'border-border bg-muted text-ink-2 hover:text-foreground'
+        locked
+          ? 'cursor-not-allowed border-border bg-muted text-ink-3 opacity-50'
+          : `cursor-pointer ${
+              checked
+                ? 'border-accent-ink bg-card-invert text-card-invert-foreground'
+                : 'border-border bg-muted text-ink-2 hover:text-foreground'
+            }`
       }`}
     >
       <input
@@ -495,23 +510,32 @@ function SettlementOptionCard({
         value={value}
         className="sr-only"
         checked={checked}
-        onChange={() => onChange(value)}
+        disabled={locked}
+        onChange={() => {
+          if (!locked) onChange(value);
+        }}
       />
       <span
         aria-hidden="true"
         className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border transition-colors duration-150 ${
-          checked
-            ? 'border-card-invert-foreground bg-card-invert-foreground text-card-invert'
-            : 'border-border bg-card text-transparent'
+          locked
+            ? 'border-border bg-card text-ink-3'
+            : checked
+              ? 'border-card-invert-foreground bg-card-invert-foreground text-card-invert'
+              : 'border-border bg-card text-transparent'
         }`}
       >
-        {checked && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+        {locked ? (
+          <Lock className="h-3 w-3" strokeWidth={3} />
+        ) : (
+          checked && <Check className="h-3.5 w-3.5" strokeWidth={3} />
+        )}
       </span>
       <span className="min-w-0">
-        <span className={`block font-bold ${checked ? 'text-card-invert-foreground' : 'text-foreground'}`}>
+        <span className={`block font-bold ${!locked && checked ? 'text-card-invert-foreground' : 'text-foreground'}`}>
           {title}
         </span>
-        <span className={`mt-1 block text-2xs ${checked ? 'text-card-invert-foreground/70' : 'text-ink-3'}`}>
+        <span className={`mt-1 block text-2xs ${!locked && checked ? 'text-card-invert-foreground/70' : 'text-ink-3'}`}>
           {description}
         </span>
       </span>
@@ -551,6 +575,9 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   const [currency, setCurrency] = useState<Currency>('USDC');
   const [payoutMethod, setPayoutMethod] = useState<'CRYPTO' | 'BRE_B'>('CRYPTO');
   const [payoutAlias, setPayoutAlias] = useState('');
+  // Wall 2: a saved Bre-B key (BusinessProfile.defaultPayoutAlias) is required
+  // before the Bre-B settlement option can be selected at all.
+  const [hasBreBKey, setHasBreBKey] = useState(false);
   // The merchant's country decides which fiat rail the off-ramp offers.
   const [merchantCountry, setMerchantCountry] = useState('');
   // Cleared to create a fiat (Bre-B) invoice: verified merchant, or gate disabled.
@@ -601,7 +628,13 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
         if (addr) setFreelancerAddress((v) => v || addr);
         setMerchantCountry(profile.country ?? '');
         if (profile.defaultCurrency) setCurrency(profile.defaultCurrency);
-        if (profile.defaultPayoutMethod) setPayoutMethod(profile.defaultPayoutMethod);
+        const breBKeySaved = Boolean(profile.defaultPayoutAlias);
+        setHasBreBKey(breBKeySaved);
+        // Never auto-select Bre-B without a saved key — it would land on a
+        // locked option (Wall 2).
+        if (profile.defaultPayoutMethod === 'BRE_B' ? breBKeySaved : profile.defaultPayoutMethod) {
+          setPayoutMethod(profile.defaultPayoutMethod);
+        }
         if (profile.defaultPayoutAlias) setPayoutAlias((a) => a || profile.defaultPayoutAlias || '');
       } catch {
         // Profile is optional — ignore failures and let the user fill manually.
@@ -644,6 +677,10 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
 
     // Walled rails (Pix / Transferência 3.0) can't create an invoice yet.
     if (fiatWalled) return;
+
+    // Defensive: the settlement option is locked in the UI without a saved
+    // Bre-B key, so this shouldn't be reachable — the backend enforces it too.
+    if (fiatSelected && fiatLive && !hasBreBKey) return;
 
     // Fiat payouts require a verified merchant. Crypto has no gate.
     if (fiatSelected && fiatLive && !kycVerified) {
@@ -756,10 +793,20 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
               title={`${t('rail.fiatOfframp')} · ${fiatRail.railName} (${fiatRail.currency})`}
               description={t('rail.fiatDesc', { currency, fiat: fiatRail.currency })}
               onChange={setPayoutMethod}
+              locked={!hasBreBKey}
             />
           )}
         </div>
       </fieldset>
+      {config.fiatRailsEnabled && !hasBreBKey && (
+        <p className="flex flex-wrap items-center gap-1.5 px-1 text-2xs text-ink-3">
+          <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
+          {copy.breBKeyLockedLabel}
+          <Link to="/dashboard/profile-options#payout-section" className="font-semibold text-accent-ink hover:underline">
+            {copy.breBKeyLockedCta}
+          </Link>
+        </p>
+      )}
       {fiatSelected && fiatLive && (
         <div className="rounded-2xl border border-accent-ink bg-card p-4 sm:p-5">
           <div className="flex items-start gap-3">

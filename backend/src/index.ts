@@ -90,7 +90,7 @@ const corsOrigin: CorsOptions['origin'] =
 app.use(
   cors({
     origin: corsOrigin,
-    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type',
       'x-wallet-address',

@@ -16,7 +16,6 @@ import { useNetworkStore } from '../store/networkStore';
 import { getBusinessProfile, saveBusinessProfile } from '../services/api';
 import { shortenAddress } from '../lib/format';
 import { COUNTRY_OPTIONS, railByCountry } from '../config/rails';
-import { config } from '../config';
 import type { Currency, SaveProfileData } from '../types';
 
 const COPY: Record<
@@ -50,6 +49,7 @@ const COPY: Record<
     defaultCurrencyLabel: string;
     defaultSettlementLabel: string;
     defaultAliasLabel: string;
+    aliasHint: string;
     crypto: string;
     breb: string;
     save: string;
@@ -93,6 +93,7 @@ const COPY: Record<
     defaultCurrencyLabel: 'Default currency',
     defaultSettlementLabel: 'Default settlement',
     defaultAliasLabel: 'Default Bre-B alias (llave)',
+    aliasHint: 'Saved even if your default settlement is Crypto — lets you offer Bre-B on individual invoices.',
     crypto: 'Crypto',
     breb: 'Bre-B (COP)',
     save: 'Save profile',
@@ -135,6 +136,7 @@ const COPY: Record<
     defaultCurrencyLabel: 'Moneda predeterminada',
     defaultSettlementLabel: 'Liquidacion predeterminada',
     defaultAliasLabel: 'Llave Bre-B predeterminada',
+    aliasHint: 'Se guarda aunque tu liquidación por defecto sea Cripto — te permite ofrecer Bre-B en facturas puntuales.',
     crypto: 'Cripto',
     breb: 'Bre-B (COP)',
     save: 'Guardar perfil',
@@ -177,6 +179,7 @@ const COPY: Record<
     defaultCurrencyLabel: 'Moeda padrao',
     defaultSettlementLabel: 'Liquidacao padrao',
     defaultAliasLabel: 'Chave Bre-B padrao',
+    aliasHint: 'Salva mesmo que sua liquidacao padrao seja Cripto — permite oferecer Bre-B em faturas pontuais.',
     crypto: 'Cripto',
     breb: 'Bre-B (COP)',
     save: 'Salvar perfil',
@@ -427,7 +430,7 @@ export default function ProfileOptions() {
       </SectionCard>
 
       {/* Preferencias de cobro */}
-      <SectionCard title={copy.payoutSectionTitle}>
+      <SectionCard id="payout-section" title={copy.payoutSectionTitle}>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field id="pf-currency" label={copy.defaultCurrencyLabel}>
             <Select
@@ -455,25 +458,30 @@ export default function ProfileOptions() {
               onChange={(v) => set('defaultPayoutMethod', v)}
             />
           </Field>
-          {form.defaultPayoutMethod === 'BRE_B' && (
-            <div className="sm:col-span-2">
-              <Field id="pf-alias" label={settlementRail ? settlementRail.aliasLabel : copy.defaultAliasLabel}>
-                <input id="pf-alias" className="input" value={form.defaultPayoutAlias ?? ''}
-                  onChange={(e) => set('defaultPayoutAlias', e.target.value)}
-                  placeholder={settlementRail?.aliasPlaceholder ?? '@nequi-3001234567'} />
-              </Field>
-            </div>
-          )}
+          {/* Always visible, independent of defaultPayoutMethod: a merchant may
+              want a saved Bre-B key for occasional fiat invoices without
+              switching their default settlement method (see Wall 2 —
+              requireBreBKeyForFiat only checks this field's presence). */}
+          <div className="sm:col-span-2">
+            <Field
+              id="pf-alias"
+              label={settlementRail ? settlementRail.aliasLabel : copy.defaultAliasLabel}
+              hint={copy.aliasHint}
+            >
+              <input id="pf-alias" className="input" value={form.defaultPayoutAlias ?? ''}
+                onChange={(e) => set('defaultPayoutAlias', e.target.value)}
+                placeholder={settlementRail?.aliasPlaceholder ?? '@nequi-3001234567'} />
+            </Field>
+          </div>
         </div>
       </SectionCard>
 
-      {/* Verificación de identidad (KYC) — fiat-only capability, hidden on
-          fiat-disabled environments (testnet is crypto-only) */}
-      {config.fiatRailsEnabled && (
-        <SectionCard title={copy.kycTitle} hint={copy.kycDesc}>
-          <KycGate active />
-        </SectionCard>
-      )}
+      {/* Verificación de identidad (KYC) — required for fiat (Bre-B) payouts
+          AND for BUSINESS_INVOICE/SERVICE_INVOICE links regardless of payout
+          method, so it stays visible even on fiat-disabled environments. */}
+      <SectionCard id="kyc-section" title={copy.kycTitle} hint={copy.kycDesc}>
+        <KycGate active />
+      </SectionCard>
 
       {/* Cuentas vinculadas — Google/LinkedIn/X/Email para iniciar sesión */}
       <LinkedAccounts />
