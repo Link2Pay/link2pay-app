@@ -5,6 +5,8 @@ import LanguageToggle from '../components/LanguageToggle';
 import { useWalletStore } from '../store/walletStore';
 import { useI18n } from '../i18n/I18nProvider';
 import { getBusinessProfile, saveBusinessProfile } from '../services/api';
+import Select from '../components/ui/Select';
+import { COUNTRY_OPTIONS, railByCountry } from '../config/rails';
 import type { Language } from '../i18n/translations';
 
 const COPY: Record<Language, {
@@ -18,7 +20,9 @@ const COPY: Record<Language, {
   namePlaceholder: string;
   emailPlaceholder: string;
   phonePlaceholder: string;
-  countryPlaceholder: string;
+  countrySelect: string;
+  countryOther: string;
+  countryRequired: string;
   required: string;
   getStarted: string;
   saving: string;
@@ -35,7 +39,9 @@ const COPY: Record<Language, {
     namePlaceholder: 'Jane Doe Studio',
     emailPlaceholder: 'you@company.com',
     phonePlaceholder: '+57 300 123 4567',
-    countryPlaceholder: 'Colombia',
+    countrySelect: 'Select a country',
+    countryOther: 'Other / not listed',
+    countryRequired: 'Select your country to continue.',
     required: '*',
     getStarted: 'Enter Dashboard',
     saving: 'Saving…',
@@ -52,7 +58,9 @@ const COPY: Record<Language, {
     namePlaceholder: 'Estudio Jane Doe',
     emailPlaceholder: 'tu@empresa.com',
     phonePlaceholder: '+57 300 123 4567',
-    countryPlaceholder: 'Colombia',
+    countrySelect: 'Selecciona un país',
+    countryOther: 'Otro / no listado',
+    countryRequired: 'Selecciona tu país para continuar.',
     required: '*',
     getStarted: 'Entrar al panel',
     saving: 'Guardando…',
@@ -69,7 +77,9 @@ const COPY: Record<Language, {
     namePlaceholder: 'Estúdio João Silva',
     emailPlaceholder: 'voce@empresa.com',
     phonePlaceholder: '+55 11 91234 5678',
-    countryPlaceholder: 'Brasil',
+    countrySelect: 'Selecione um país',
+    countryOther: 'Outro / não listado',
+    countryRequired: 'Selecione seu país para continuar.',
     required: '*',
     getStarted: 'Entrar no painel',
     saving: 'Salvando…',
@@ -87,6 +97,8 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');
+  const [manualCountry, setManualCountry] = useState(false);
+  const [countryMissing, setCountryMissing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
 
@@ -101,6 +113,8 @@ export default function Register() {
         setEmail((v) => v || profile.email || '');
         setPhone((v) => v || profile.phone || '');
         setCountry((v) => v || profile.country || '');
+        // Legacy free-text countries (pre-selector) fall back to manual entry.
+        setManualCountry(Boolean(profile.country && !railByCountry(profile.country)));
       } catch {
         // Prefill is best-effort — an empty form is fine.
       }
@@ -116,6 +130,12 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // The country Select isn't a native form control, so `required` can't
+    // cover it — validate by hand.
+    if (!country.trim()) {
+      setCountryMissing(true);
+      return;
+    }
     setError(false);
     setSaving(true);
     try {
@@ -182,8 +202,26 @@ export default function Register() {
               </div>
               <div>
                 <label className="label">{copy.country} <span className="text-destructive">{copy.required}</span></label>
-                <input type="text" className="input" placeholder={copy.countryPlaceholder}
-                  value={country} onChange={(e) => setCountry(e.target.value)} required />
+                <Select
+                  id="reg-country"
+                  placeholder={copy.countrySelect}
+                  value={manualCountry ? 'OTHER' : (railByCountry(country)?.country ?? '')}
+                  options={[
+                    ...COUNTRY_OPTIONS.map((o) => ({ value: o.code, label: o.name })),
+                    { value: 'OTHER', label: copy.countryOther },
+                  ]}
+                  onChange={(v) => {
+                    setCountryMissing(false);
+                    if (v === 'OTHER') { setManualCountry(true); setCountry(''); }
+                    else { setManualCountry(false); setCountry(v); }
+                  }}
+                />
+                {manualCountry && (
+                  <input type="text" className="input mt-2" placeholder={copy.countryOther}
+                    value={country}
+                    onChange={(e) => { setCountryMissing(false); setCountry(e.target.value); }} required />
+                )}
+                {countryMissing && <p className="mt-1 text-xs text-danger">{copy.countryRequired}</p>}
               </div>
 
               {error && <p className="text-xs text-danger">{copy.saveError}</p>}
