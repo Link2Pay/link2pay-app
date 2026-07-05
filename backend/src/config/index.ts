@@ -110,6 +110,11 @@ const envSchema = z.object({
   DIDIT_API_BASE: z.string().url().default('https://verification.didit.me'),
   DIDIT_API_KEY: z.string().optional(),
   DIDIT_WEBHOOK_SECRET: z.string().optional(),
+
+  // ─── Email (merchant invoice copies) ──────────────────────────────────
+  EMAIL_PROVIDER: z.enum(['mock', 'resend']).default('mock'),
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM: z.string().default('Link2Pay <invoices@link2pay.xyz>'),
 });
 
 const parseResult = envSchema.safeParse(process.env);
@@ -124,6 +129,11 @@ if (!parseResult.success) {
 }
 
 const env = parseResult.data;
+
+if (env.EMAIL_PROVIDER === 'resend' && !env.RESEND_API_KEY) {
+  console.error('\n❌ EMAIL_PROVIDER=resend requires RESEND_API_KEY\n');
+  process.exit(1);
+}
 
 export const config = {
   port: env.PORT,
@@ -182,6 +192,12 @@ export const config = {
       apiKey: env.DIDIT_API_KEY,
       webhookSecret: env.DIDIT_WEBHOOK_SECRET,
     },
+  },
+
+  email: {
+    provider: env.EMAIL_PROVIDER,
+    resendApiKey: env.RESEND_API_KEY ?? null,
+    from: env.EMAIL_FROM,
   },
 } as const;
 
