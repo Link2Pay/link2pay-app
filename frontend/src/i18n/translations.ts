@@ -6,9 +6,9 @@ const en = {
   'language.spanish': 'Spanish',
   'language.portuguese': 'Portuguese',
 
-  'theme.white': 'White',
-  'theme.dark': 'Dark',
-  'theme.switchToWhite': 'Switch to white mode',
+  'theme.white': 'Light mode',
+  'theme.dark': 'Dark mode',
+  'theme.switchToWhite': 'Switch to light mode',
   'theme.switchToDark': 'Switch to dark mode',
 
   'layout.nav.dashboard': 'Dashboard',
@@ -110,6 +110,7 @@ const en = {
   'wallet.loading': 'Loading wallets…',
   'wallet.connectError': 'Connection cancelled or failed.',
   'wallet.addressError': 'Could not get the wallet address.',
+  'wallet.showMore': 'Show more',
 
   'payment.loadingInvoice': 'Loading payment link...',
   'payment.invoiceNotFound': 'Payment link not found',
@@ -193,6 +194,8 @@ const en = {
   'payment.offramp.connectToPay': 'Connect a Stellar wallet to pay USDC to the anchor.',
   'payment.offramp.payingFrom': 'Paying from',
   'payment.offramp.payWith': 'Pay with',
+  'payment.offramp.direct': '(direct)',
+  'payment.offramp.pathPreview': 'You send {preview}; anchor receives exactly {amount}.',
   'payment.offramp.payWithAsset': 'Pay with {asset} to anchor',
   'payment.offramp.payToAnchor': 'Pay {amount} to anchor',
   'payment.offramp.anchorHold': 'Your wallet pays the anchor directly with the exact memo. Link2Pay never holds your funds.',
@@ -236,9 +239,9 @@ const es: Record<TranslationKey, string> = {
   'language.spanish': 'Español',
   'language.portuguese': 'Portugués',
 
-  'theme.white': 'Blanco',
-  'theme.dark': 'Oscuro',
-  'theme.switchToWhite': 'Cambiar a modo blanco',
+  'theme.white': 'Modo claro',
+  'theme.dark': 'Modo oscuro',
+  'theme.switchToWhite': 'Cambiar a modo claro',
   'theme.switchToDark': 'Cambiar a modo oscuro',
 
   'layout.nav.dashboard': 'Panel',
@@ -340,6 +343,7 @@ const es: Record<TranslationKey, string> = {
   'wallet.loading': 'Cargando wallets…',
   'wallet.connectError': 'Conexión cancelada o fallida.',
   'wallet.addressError': 'No se pudo obtener la dirección de la wallet.',
+  'wallet.showMore': 'Ver más',
 
   'payment.loadingInvoice': 'Cargando link de pago...',
   'payment.invoiceNotFound': 'Link de pago no encontrado',
@@ -423,6 +427,8 @@ const es: Record<TranslationKey, string> = {
   'payment.offramp.connectToPay': 'Conectá una wallet Stellar para pagar USDC al anchor.',
   'payment.offramp.payingFrom': 'Pagando desde',
   'payment.offramp.payWith': 'Pagar con',
+  'payment.offramp.direct': '(directo)',
+  'payment.offramp.pathPreview': 'Vos enviás {preview}; el anchor recibe exactamente {amount}.',
   'payment.offramp.payWithAsset': 'Pagar con {asset} al anchor',
   'payment.offramp.payToAnchor': 'Pagar {amount} al anchor',
   'payment.offramp.anchorHold': 'Tu wallet le paga al anchor directamente con el memo exacto. Link2Pay nunca retiene tus fondos.',
@@ -464,9 +470,9 @@ const pt: Record<TranslationKey, string> = {
   'language.spanish': 'Espanhol',
   'language.portuguese': 'Português',
 
-  'theme.white': 'Branco',
-  'theme.dark': 'Escuro',
-  'theme.switchToWhite': 'Mudar para modo branco',
+  'theme.white': 'Modo claro',
+  'theme.dark': 'Modo escuro',
+  'theme.switchToWhite': 'Mudar para modo claro',
   'theme.switchToDark': 'Mudar para modo escuro',
 
   'layout.nav.dashboard': 'Painel',
@@ -568,6 +574,7 @@ const pt: Record<TranslationKey, string> = {
   'wallet.loading': 'Carregando wallets…',
   'wallet.connectError': 'Conexão cancelada ou falhou.',
   'wallet.addressError': 'Não foi possível obter o endereço da wallet.',
+  'wallet.showMore': 'Ver mais',
   'payment.loadingInvoice': 'Carregando link de pagamento...',
   'payment.invoiceNotFound': 'Link de pagamento não encontrado',
   'payment.invoicePayment': 'Checkout de link de pagamento',
@@ -650,6 +657,8 @@ const pt: Record<TranslationKey, string> = {
   'payment.offramp.connectToPay': 'Conecte uma carteira Stellar para pagar USDC ao anchor.',
   'payment.offramp.payingFrom': 'Pagando de',
   'payment.offramp.payWith': 'Pagar com',
+  'payment.offramp.direct': '(direto)',
+  'payment.offramp.pathPreview': 'Você envia {preview}; o anchor recebe exatamente {amount}.',
   'payment.offramp.payWithAsset': 'Pagar com {asset} ao anchor',
   'payment.offramp.payToAnchor': 'Pagar {amount} ao anchor',
   'payment.offramp.anchorHold': 'Sua carteira paga o anchor diretamente com o memo exato. A Link2Pay nunca retém seus fundos.',
@@ -692,4 +701,3 @@ export const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
   es,
   pt,
 };
-

@@ -5,47 +5,21 @@ import {
   BarChart3,
   ChevronDown,
   LayoutDashboard,
-  LogOut,
   Menu,
   QrCode,
   Receipt,
-  UserCircle2,
   Users,
   Wallet,
 } from 'lucide-react';
 import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
-import PrivyDisconnectButton from './Auth/PrivyDisconnectButton';
-import ThemeToggle from './ThemeToggle';
 import BrandMark from './BrandMark';
 import BrandWordmark from './BrandWordmark';
 import MobileNavDrawer from './MobileNavDrawer';
+import AccountPanel from './AccountPanel';
 import { useI18n } from '../i18n/I18nProvider';
-import { config, CURRENCY_SYMBOLS } from '../config';
 import { shortenAddress } from '../lib/format';
 import { useWalletBalances } from '../hooks/useWalletBalances';
-
-const KNOWN_ASSET_ORDER = ['XLM', 'USDC', 'EURC'];
-
-function sortBalances<T extends { code: string }>(balances: T[]): T[] {
-  return [...balances].sort((a, b) => {
-    const aIndex = KNOWN_ASSET_ORDER.indexOf(a.code);
-    const bIndex = KNOWN_ASSET_ORDER.indexOf(b.code);
-    if (aIndex !== -1 || bIndex !== -1) {
-      return (aIndex === -1 ? KNOWN_ASSET_ORDER.length : aIndex) -
-        (bIndex === -1 ? KNOWN_ASSET_ORDER.length : bIndex);
-    }
-    return a.code.localeCompare(b.code);
-  });
-}
-
-function formatBalance(raw: string, code: string): string {
-  const value = parseFloat(raw);
-  if (!Number.isFinite(value)) return raw;
-  const formatted = value.toLocaleString('en-US', { maximumFractionDigits: 2, minimumFractionDigits: 2 });
-  const symbol = CURRENCY_SYMBOLS[code] || code;
-  return code === 'XLM' ? `${formatted} ${symbol}` : `${symbol}${formatted}`;
-}
 
 export default function Layout() {
   const location = useLocation();
@@ -150,75 +124,25 @@ export default function Layout() {
             <div
               id="account-menu"
               role="menu"
-              className="absolute bottom-full left-4 right-4 z-40 mb-2 overflow-hidden rounded-2xl border border-border bg-popover shadow-overlay"
+              className="absolute bottom-full left-4 right-4 z-40 mb-2"
             >
-              <div className="flex items-center gap-2.5 px-3 pt-3 pb-3 border-b border-surface-3">
-                <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
-                  {profileInitial}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-foreground">
-                    {publicKey ? shortenAddress(publicKey) : t('layout.defaultUser')}
-                  </p>
-                  <p className={`text-xs flex items-center gap-1 ${network === 'testnet' ? 'text-warning' : 'text-success'}`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${network === 'testnet' ? 'bg-warning' : 'bg-success'}`} />
-                    {network === 'testnet' ? 'Testnet' : 'Mainnet'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="px-3 py-3 border-b border-surface-3">
-                <p className="mb-1.5 text-3xs uppercase tracking-wider text-muted-foreground">{t('layout.balance')}</p>
-                {balancesLoading ? (
-                  <div className="h-4 w-24 animate-pulse rounded bg-surface-2" />
-                ) : balancesError ? (
-                  <p className="text-xs text-muted-foreground">{t('layout.balanceUnavailable')}</p>
-                ) : balances.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">{t('layout.noBalance')}</p>
-                ) : (
-                  <div className="space-y-1">
-                    {sortBalances(balances).map((b) => (
-                      <div key={b.asset} className="flex items-center justify-between text-sm">
-                        <span className="font-mono text-foreground">{formatBalance(b.balance, b.code)}</span>
-                        <span className="text-3xs text-muted-foreground">{b.code}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-0.5 px-1.5 py-2">
-                <Link
-                  to="/dashboard/profile-options"
-                  role="menuitem"
-                  className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
-                >
-                  <UserCircle2 className="h-4 w-4 text-muted-foreground" />
-                  {t('layout.profile')}
-                </Link>
-                <ThemeToggle variant="menuItem" />
-              </div>
-
-              <div className="border-t border-surface-3 px-1.5 py-2">
-                {config.privyAppId ? (
-                  <PrivyDisconnectButton
-                    onBefore={() => setAccountMenuOpen(false)}
-                    className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
-                  >
-                    <LogOut className="h-4 w-4 text-muted-foreground" />
-                    {t('layout.disconnect')}
-                  </PrivyDisconnectButton>
-                ) : (
-                  <button
-                    role="menuitem"
-                    onClick={() => { setAccountMenuOpen(false); disconnect(); }}
-                    className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
-                  >
-                    <LogOut className="h-4 w-4 text-muted-foreground" />
-                    {t('layout.disconnect')}
-                  </button>
-                )}
-              </div>
+              <AccountPanel
+                variant="desktopMenu"
+                profileInitial={profileInitial}
+                publicKey={publicKey}
+                connected={connected}
+                network={network}
+                balances={balances}
+                balancesLoading={balancesLoading}
+                balancesError={Boolean(balancesError)}
+                onNavigate={() => setAccountMenuOpen(false)}
+                onDismiss={() => setAccountMenuOpen(false)}
+                onDisconnect={() => {
+                  setAccountMenuOpen(false);
+                  if (!connected) return;
+                  disconnect();
+                }}
+              />
             </div>
           )}
 
@@ -280,19 +204,20 @@ export default function Layout() {
           items={navItems.map((item) => ({ ...item, end: item.path === '/dashboard' }))}
           triggerRef={mobileNavTriggerRef}
           footer={
-            <div className="space-y-3">
-              {/* Móvil no tiene el desplegable de cuenta del sidebar: el enlace a
-                  Perfil da acceso a idioma y Desconectar. */}
-              <Link
-                to="/dashboard/profile-options"
-                onClick={() => setMobileNavOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-              >
-                <UserCircle2 aria-hidden="true" className="h-4 w-4 text-muted-foreground" />
-                {t('layout.profile')}
-              </Link>
-              <ThemeToggle />
-            </div>
+            <AccountPanel
+              variant="mobileCard"
+              profileInitial={profileInitial}
+              publicKey={publicKey}
+              connected={connected}
+              network={network}
+              onNavigate={() => setMobileNavOpen(false)}
+              onDismiss={() => setMobileNavOpen(false)}
+              onDisconnect={() => {
+                setMobileNavOpen(false);
+                if (!connected) return;
+                disconnect();
+              }}
+            />
           }
         />
 

@@ -11,6 +11,7 @@ import {
 import WalletRoller from './WalletRoller';
 import type { PublicInvoice } from '../../types';
 import { useI18n } from '../../i18n/I18nProvider';
+import { shortenAddress } from '../../lib/format';
 import { config } from '../../config';
 import { kitSignWith } from '../../services/walletsKit';
 
@@ -214,16 +215,16 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
           <Landmark className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
           <span className="text-2xs font-medium uppercase tracking-label">{t('payment.offramp.title')}</span>
         </div>
-        <div className="mt-3 flex items-center justify-center gap-3 text-sm">
-          <div className="text-center">
-            <p className="font-mono text-base font-bold text-ink-0 [font-variant-numeric:tabular-nums]">
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 text-sm">
+          <div className="min-w-0 text-center">
+            <p className="truncate font-mono text-base font-bold text-ink-0 [font-variant-numeric:tabular-nums]">
               {displayPay.toFixed(2)} {invoice.currency}
             </p>
             <p className="text-3xs uppercase tracking-wider text-ink-3">{t('payment.offramp.youPay')}</p>
           </div>
-          <ArrowRight className="h-4 w-4 text-ink-3" aria-hidden="true" />
-          <div className="text-center">
-            <p className="font-mono text-base font-bold text-warning [font-variant-numeric:tabular-nums]">
+          <ArrowRight className="h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" />
+          <div className="min-w-0 text-center">
+            <p className="truncate font-mono text-base font-bold text-warning [font-variant-numeric:tabular-nums]">
               {displayCop ? `≈ $${displayCop} COP` : '—'}
             </p>
             <p className="text-3xs uppercase tracking-wider text-ink-3">{t('payment.offramp.receiverGets')}</p>
@@ -308,7 +309,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
         <div className="space-y-3">
           <div className="text-center text-xs text-ink-3">
             {t('payment.offramp.payingFrom')}{' '}
-            <span className="font-mono">{kitAddress.slice(0, 8)}...{kitAddress.slice(-4)}</span>
+            <span className="font-mono tabular-nums">{shortenAddress(kitAddress, 8, 4)}</span>
           </div>
           {pathEnabled && (
             <div>
@@ -318,7 +319,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
                 onChange={(e) => setSourceAsset(e.target.value)}
                 className="input"
               >
-                <option value={invoice.currency}>{invoice.currency} (direct)</option>
+                <option value={invoice.currency}>{invoice.currency} {t('payment.offramp.direct')}</option>
                 {['XLM', 'USDC', 'EURC']
                   .filter((a) => a !== invoice.currency)
                   .map((a) => (
@@ -326,7 +327,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
                   ))}
               </select>
               {isPathPay && pathPreview && (
-                <p className="mt-1 text-2xs text-ink-3">You send {pathPreview}; anchor receives exactly {parseFloat(invoice.total).toFixed(2)} {invoice.currency}.</p>
+                <p className="mt-1 text-2xs text-ink-3">{t('payment.offramp.pathPreview', { preview: pathPreview, amount: `${parseFloat(invoice.total).toFixed(2)} ${invoice.currency}` })}</p>
               )}
             </div>
           )}

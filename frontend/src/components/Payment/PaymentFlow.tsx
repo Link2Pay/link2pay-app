@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Check, X, Info } from 'lucide-react';
+import { Check, X, Info, ArrowRight, ArrowDown } from 'lucide-react';
 import { getInvoice, createPayIntent, submitPayment, getPaymentStatus, getXlmPrice } from '../../services/api';
 import { kitSignWith, kitGetNetwork } from '../../services/walletsKit';
 import InvoiceStatusBadge from '../Invoice/InvoiceStatusBadge';
 import WalletRoller from './WalletRoller';
 import OffRampPayment from './OffRampPayment';
-import LanguageToggle from '../LanguageToggle';
-import ThemeToggle from '../ThemeToggle';
 import BrandMark from '../BrandMark';
 import BrandWordmark from '../BrandWordmark';
 import type { PublicInvoice, InvoiceStatus } from '../../types';
@@ -349,7 +347,7 @@ export default function PaymentFlow() {
 
   if (step === 'loading') {
     return (
-      <div className="min-h-screen bg-surface-1 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-ink-3 text-sm">{t('payment.loadingInvoice')}</div>
       </div>
     );
@@ -357,7 +355,7 @@ export default function PaymentFlow() {
 
   if (!invoice) {
     return (
-      <div className="min-h-screen bg-surface-1 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="card p-6 text-center max-w-md">
           <p className="text-danger text-sm">{error || t('payment.invoiceNotFound')}</p>
         </div>
@@ -366,12 +364,8 @@ export default function PaymentFlow() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-1 p-4 sm:p-6">
-      <div className="mx-auto w-full max-w-lg animate-in">
-        <div className="mb-4 flex justify-end gap-2">
-          <LanguageToggle />
-          <ThemeToggle />
-        </div>
+    <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-4xl animate-in">
         <div className="mb-6 text-center">
           <BrandMark className="mx-auto mb-3 h-9 w-9" />
           <h1 className="font-display text-2xl font-extrabold text-ink-0">
@@ -414,88 +408,73 @@ export default function PaymentFlow() {
           </div>
         )}
 
-        <div className="card overflow-hidden">
-          <div className="border-b border-surface-3 p-4 sm:p-6">
-            <div className="flex items-center justify-between mb-4">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.9fr)] lg:items-start lg:gap-6">
+        {/* ===== IZQUIERDA — Resumen del cobro ===== */}
+        <div className="card overflow-hidden border border-border">
+          <div className="border-b border-surface-3 p-5 sm:p-6">
+            <div className="mb-3 flex items-center justify-between gap-3">
               <span className="text-xs font-mono text-ink-3">{invoice.invoiceNumber}</span>
               <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
             </div>
-            <h2 className="text-base font-semibold text-ink-0 mb-1">{invoice.title}</h2>
-            {invoice.description && <p className="text-sm text-ink-3">{invoice.description}</p>}
-
-            <div className="mt-4 rounded-xl border border-surface-3 bg-surface-1 p-3">
-              <p className="label mb-0">{stepLabels.progress}</p>
-              {/* Conector de progreso: hairline que se colorea hasta el paso alcanzado. */}
-              <div className="mt-2 h-1 overflow-hidden rounded-full bg-surface-2">
-                <div
-                  className="h-full rounded-full bg-success transition-all duration-500"
-                  style={{ width: `${(checkoutStage / 3) * 100}%` }}
-                />
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {[stepLabels.loaded, stepLabels.wallet, stepLabels.signed, stepLabels.settled].map((label, index) => {
-                  const done = allStepsDone || index < checkoutStage;
-                  const active = !allStepsDone && index === checkoutStage;
-                  return (
-                    <div
-                      key={label}
-                      className={`rounded-lg border px-2.5 py-2 transition-colors ${
-                        done
-                          ? 'border-success-border bg-success-subtle'
-                          : active
-                          ? 'border-primary/60 bg-primary/5 ring-1 ring-primary/20'
-                          : 'border-surface-3 bg-card'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`flex h-5 w-5 items-center justify-center rounded-full text-3xs font-semibold ${
-                            done
-                              ? 'bg-success text-success-foreground'
-                              : active
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-surface-2 text-ink-3'
-                          }`}
-                        >
-                          {done ? <Check className="h-3 w-3" /> : index + 1}
-                        </span>
-                        <span
-                          className={`text-2xs leading-tight ${
-                            done ? 'text-success' : active ? 'font-semibold text-ink-0' : 'text-ink-3'
-                          }`}
-                        >
-                          {label}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <h2 className="font-display text-xl font-bold text-ink-0 sm:text-2xl">{invoice.title}</h2>
+            {invoice.description && <p className="mt-1 text-sm text-ink-3">{invoice.description}</p>}
           </div>
 
           {invoice.invoiceType === 'BUSINESS_INVOICE' || invoice.invoiceType === 'SERVICE_INVOICE' ? (
             <>
-              <div className="border-b border-surface-3 p-4 sm:p-6">
+              <div className="p-5 sm:p-6">
                 <InvoiceDocument invoice={invoice} />
               </div>
             </>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-4 border-b border-surface-3 bg-surface-1 p-4 sm:grid-cols-2 sm:p-6">
-                <div>
-                  <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1">{t('payment.from')}</p>
-                  <p className="text-sm font-medium text-ink-0">
-                    {invoice.freelancerName || t('payment.freelancer')}
-                  </p>
-                  {invoice.freelancerCompany && <p className="text-xs text-ink-3">{invoice.freelancerCompany}</p>}
-                </div>
-                <div>
-                  <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1">{t('payment.to')}</p>
-                  <p className="text-sm font-medium text-ink-0">{invoice.clientName}</p>
-                  {invoice.clientCompany && <p className="text-xs text-ink-3">{invoice.clientCompany}</p>}
-                </div>
-              </div>
+              {(() => {
+                const merchantName = invoice.freelancerName || invoice.freelancerCompany || t('payment.freelancer');
+                const merchantInitial = merchantName.charAt(0).toUpperCase();
+                const payerName = invoice.clientName || invoice.clientCompany || '';
+                const payerInitial = (payerName || '?').charAt(0).toUpperCase();
+                return (
+                  <div className="grid grid-cols-1 items-center gap-4 border-b border-surface-3 bg-surface-1 p-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-3 sm:p-6">
+                    {/* De (comercio) — emisor, énfasis de marca */}
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-base font-semibold text-primary">
+                        {invoice.freelancerLogoUrl ? (
+                          <img src={invoice.freelancerLogoUrl} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          merchantInitial
+                        )}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="label mb-0.5">{t('payment.from')}</p>
+                        <p className="truncate font-display text-base font-bold text-ink-0">{merchantName}</p>
+                        {invoice.freelancerCompany && invoice.freelancerName && (
+                          <p className="truncate text-xs text-ink-3">{invoice.freelancerCompany}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Dirección De → Para (flecha horizontal en desktop, vertical en mobile) */}
+                    <div className="flex items-center justify-center text-ink-3" aria-hidden="true">
+                      <ArrowRight className="hidden h-4 w-4 sm:block" />
+                      <ArrowDown className="h-4 w-4 sm:hidden" />
+                    </div>
+
+                    {/* Para (pagador) — secundario, neutro */}
+                    <div className="flex items-center gap-3 sm:justify-end sm:text-right">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-base font-semibold text-ink-2 sm:order-2">
+                        {payerInitial}
+                      </span>
+                      <div className="min-w-0 sm:order-1">
+                        <p className="label mb-0.5">{t('payment.to')}</p>
+                        <p className="truncate text-sm font-semibold text-ink-0">{payerName || '—'}</p>
+                        {invoice.clientCompany && invoice.clientName && (
+                          <p className="truncate text-xs text-ink-3">{invoice.clientCompany}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {invoice.isOpenAmount ? (
                 <div className="border-b border-surface-3 bg-info-subtle p-4 sm:p-6">
@@ -533,11 +512,11 @@ export default function PaymentFlow() {
                 </div>
               </div>
 
-              <div className="border-b border-surface-3 bg-muted p-4 sm:p-6">
+              <div className="bg-muted p-5 sm:p-6">
                 <div className="flex items-center justify-between gap-3">
                   <span className="label mb-0">{t('payment.totalDue')}</span>
                   <div className="text-right">
-                    <span className="font-display text-2xl font-extrabold text-ink-0 [font-variant-numeric:tabular-nums] sm:text-3xl">
+                    <span className="font-display text-3xl font-extrabold text-ink-0 [font-variant-numeric:tabular-nums] sm:text-4xl">
                       {formatAmount(invoice.total, invoice.currency)}
                     </span>
                     {invoice.currency === 'XLM' && formatUsdEquivalent(invoice.total) && (
@@ -552,8 +531,63 @@ export default function PaymentFlow() {
               )}
             </>
           )}
+        </div>
 
-          <div className="p-4 sm:p-6">
+        {/* ===== DERECHA — Panel de pago (sticky en desktop) ===== */}
+        <div className="card border border-border p-5 sm:p-6 lg:sticky lg:top-6">
+          <div className="space-y-5">
+            {/* Tracker de progreso del checkout (oculto en estados terminales negativos) */}
+            {step !== 'error' && step !== 'closed' && (
+              <div className="rounded-xl border border-surface-3 bg-surface-1 p-3">
+                <p className="label mb-0">{stepLabels.progress}</p>
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-surface-2">
+                  <div
+                    className="h-full rounded-full bg-success transition-all duration-500"
+                    style={{ width: `${(checkoutStage / 3) * 100}%` }}
+                  />
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {[stepLabels.loaded, stepLabels.wallet, stepLabels.signed, stepLabels.settled].map((label, index) => {
+                    const done = allStepsDone || index < checkoutStage;
+                    const active = !allStepsDone && index === checkoutStage;
+                    return (
+                      <div
+                        key={label}
+                        className={`rounded-lg border px-2.5 py-2 transition-colors ${
+                          done
+                            ? 'border-success-border bg-success-subtle'
+                            : active
+                            ? 'border-primary/60 bg-primary/5 ring-1 ring-primary/20'
+                            : 'border-surface-3 bg-card'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-3xs font-semibold ${
+                              done
+                                ? 'bg-success text-success-foreground'
+                                : active
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-surface-2 text-ink-3'
+                            }`}
+                          >
+                            {done ? <Check className="h-3 w-3" /> : index + 1}
+                          </span>
+                          <span
+                            className={`text-2xs leading-tight ${
+                              done ? 'text-success' : active ? 'font-semibold text-ink-0' : 'text-ink-3'
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {invoice.payoutMethod === 'BRE_B' && (
               <OffRampPayment
                 invoice={invoice}
@@ -736,6 +770,7 @@ export default function PaymentFlow() {
               </div>
             )}
           </div>
+        </div>
         </div>
 
         <div className="text-center mt-6">
