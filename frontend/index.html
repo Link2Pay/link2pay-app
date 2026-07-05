@@ -3,18 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <!-- Theme init: fija el tema antes del primer paint (evita flash). Oscuro por
-         defecto; respeta la preferencia guardada. Debe reflejar src/lib/theme.ts. -->
-    <script>
-      (function () {
-        try {
-          var t = localStorage.getItem('link2pay-theme');
-          if (t !== 'light' && t !== 'dark') t = 'dark';
-          document.documentElement.classList.add(t);
-        } catch (e) {
-          document.documentElement.classList.add('dark');
-        }
-      })();
-    </script>
+         defecto; respeta la preferencia guardada. Debe reflejar src/lib/theme.ts.
+         Archivo externo (no inline) porque el CSP de producción no permite
+         'unsafe-inline' en script-src. -->
+    <script src="/theme-init.js"></script>
     <!-- Favicon: SVG (símbolo Link2Pay) como principal; PNG como fallback legado. -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/link2pay-favicon.png" />
