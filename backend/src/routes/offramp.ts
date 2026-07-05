@@ -111,6 +111,16 @@ router.post(
       );
       res.json(intent);
     } catch (error: any) {
+      if (
+        error.message === 'ABROAD_LIQUIDITY_UNAVAILABLE' ||
+        /could not verify available liquidity/i.test(error.message)
+      ) {
+        return res.status(503).json({
+          error: 'ANCHOR_TEMPORARILY_UNAVAILABLE',
+          message:
+            "The anchor couldn't verify its liquidity just now. Wait a minute and press Initiate again.",
+        });
+      }
       const status = error.message === 'Unauthorized' ? 403
         : error.message === 'Invoice not found' ? 404
         : error.message.includes('AWAITING_ANCHOR') ? 400

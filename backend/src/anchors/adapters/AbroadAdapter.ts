@@ -87,10 +87,18 @@ export class AbroadAdapter implements AnchorAdapter {
     if (!res.ok) {
       const body = await res.text().catch(() => '');
       log.error('[AbroadAdapter] API error', { path, status: res.status, body: body.slice(0, 300) });
-      throw new Error(`ABROAD_API_ERROR ${res.status}`);
+      // Body included so callers can recognize known transients (e.g. the
+      // liquidity-verification hiccup) and retry.
+      throw new Error(`ABROAD_API_ERROR ${res.status} ${body.slice(0, 200)}`);
     }
     return (await res.json()) as T;
   }
+
+  // Abroad's upstream liquidity feed regularly times out cold and succeeds
+  // once warmed (observed repeatedly on /payments/liquidity). Their
+  // /transaction pre-check fails the same way — retry it a few times before
+  // giving up.
+  private static readonly TRANSIENT_LIQUIDITY = /could not verify available liquidity/i;
 
   /**
    * Available settlement liquidity (USDC) for a rail, or null when the
@@ -181,14 +189,32 @@ export class AbroadAdapter implements AnchorAdapter {
     // user_id (the partner's stable end-user identifier). payment_method is bound
     // at quote time, so it is NOT a field here. We use the receiver's Stellar
     // account as the stable per-merchant user_id.
-    const data = await this.call<AbroadTransactionResponse>('/transaction', {
-      method: 'POST',
-      body: JSON.stringify({
-        quote_id: params.quoteId,
-        account_number: params.payoutAlias,
-        user_id: params.receiverAccount,
-      }),
-    });
+    //
+    // Retried on the known liquidity-verification transient: the 400 is a
+    // pre-check refusal (no transaction is created), so retrying is safe.
+    let data: AbroadTransactionResponse | null = null;
+    let lastError: Error | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) await new Promise((r) => setTimeout(r, 3000 * attempt));
+      try {
+        data = await this.call<AbroadTransactionResponse>('/transaction', {
+          method: 'POST',
+          body: JSON.stringify({
+            quote_id: params.quoteId,
+            account_number: params.payoutAlias,
+            user_id: params.receiverAccount,
+          }),
+        });
+        break;
+      } catch (error) {
+        lastError = error as Error;
+        if (!AbroadAdapter.TRANSIENT_LIQUIDITY.test(lastError.message)) throw lastError;
+        log.warn('[AbroadAdapter] Transient liquidity refusal on /transaction, retrying', {
+          attempt: attempt + 1,
+        });
+      }
+    }
+    if (!data) throw new Error('ABROAD_LIQUIDITY_UNAVAILABLE');
 
     const anchorTxId = data.id ?? undefined;
     if (!anchorTxId) throw new Error('ABROAD_TX_MISSING_ID');
