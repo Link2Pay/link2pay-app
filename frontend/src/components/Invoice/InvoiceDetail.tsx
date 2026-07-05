@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ArrowRight, Mail, Wallet } from 'lucide-react';
+import { ArrowDown, ArrowRight, Mail, Wallet } from 'lucide-react';
 import { cancelInvoice, deleteInvoice, getOwnerInvoice, sendInvoice } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -284,29 +284,6 @@ export default function InvoiceDetail() {
         <p className="text-sm text-ink-3">{invoice.title}</p>
       </div>
 
-      {isOwner && (
-        <div className="flex flex-wrap items-center gap-3">
-          {invoice.status === 'DRAFT' && (
-            <>
-              <button onClick={handleSend} disabled={actionLoading} className="btn-primary text-sm">
-                {copy.sendInvoice}
-              </button>
-              <button onClick={handleDelete} disabled={actionLoading} className="btn-danger text-sm">
-                {copy.delete}
-              </button>
-            </>
-          )}
-          <button onClick={handleDownloadPdf} disabled={pdfLoading} className="btn-secondary text-sm">
-            {pdfLoading ? copy.generatingPdf : copy.downloadPdf}
-          </button>
-          {!['DRAFT', 'PAID', 'SETTLING', 'SETTLED_FIAT', 'CANCELLED', 'EXPIRED', 'FAILED'].includes(invoice.status) && (
-            <button onClick={handleCancel} disabled={actionLoading} className="btn-danger text-sm">
-              {copy.cancelLink}
-            </button>
-          )}
-        </div>
-      )}
-
       {isOwner && ['PENDING', 'DRAFT'].includes(invoice.status) && (
         <div className="card p-4">
           <label className="label">{copy.paymentLink}</label>
@@ -314,7 +291,7 @@ export default function InvoiceDetail() {
             <code className="flex-1 px-3 py-2 rounded-lg bg-surface-1 text-xs font-mono text-ink-2 overflow-x-auto">
               {paymentLink}
             </code>
-            <button onClick={handleCopyLink} className="btn-ghost text-xs">
+            <button onClick={handleCopyLink} className="btn-secondary text-xs">
               {copied ? copy.copied : copy.copy}
             </button>
           </div>
@@ -323,42 +300,48 @@ export default function InvoiceDetail() {
       )}
 
       <div className="card p-5">
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
-          <div>
-            <p className="mb-3 text-2xs font-medium uppercase tracking-label text-muted-foreground">{copy.from}</p>
-            <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-ink-1">
-                {initial(invoice.freelancerName || invoice.freelancerWallet)}
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-ink-0">{invoice.freelancerName ?? '—'}</p>
-                {invoice.freelancerCompany && <p className="truncate text-xs text-ink-2">{invoice.freelancerCompany}</p>}
-                <p className="mt-1 flex items-center gap-1.5 font-mono text-xs text-ink-3">
-                  <Wallet className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span className="truncate">{shortWallet(invoice.freelancerWallet)}</span>
-                </p>
-              </div>
+        <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-3">
+          {/* DE (emisor) — énfasis */}
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-base font-semibold text-ink-1">
+              {invoice.freelancerLogoUrl ? (
+                <img src={invoice.freelancerLogoUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                initial(invoice.freelancerName || invoice.freelancerCompany || invoice.freelancerWallet)
+              )}
+            </span>
+            <div className="min-w-0">
+              <p className="label mb-0.5">{copy.from}</p>
+              <p className="truncate font-display text-base font-bold text-ink-0">{invoice.freelancerName ?? '—'}</p>
+              {invoice.freelancerCompany && invoice.freelancerName && (
+                <p className="truncate text-xs text-ink-3">{invoice.freelancerCompany}</p>
+              )}
+              <p className="mt-1 flex items-center gap-1.5 font-mono text-xs text-ink-3">
+                <Wallet className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span className="truncate">{shortWallet(invoice.freelancerWallet)}</span>
+              </p>
             </div>
           </div>
 
-          <div className="flex justify-center text-ink-3">
-            <ArrowRight className="h-5 w-5 rotate-90 sm:rotate-0" aria-hidden="true" />
+          {/* DE → PARA */}
+          <div className="flex items-center justify-center text-ink-3" aria-hidden="true">
+            <ArrowRight className="hidden h-4 w-4 sm:block" />
+            <ArrowDown className="h-4 w-4 sm:hidden" />
           </div>
 
-          <div>
-            <p className="mb-3 text-2xs font-medium uppercase tracking-label text-muted-foreground">{copy.to}</p>
-            <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-ink-1">
-                {initial(invoice.clientName)}
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-ink-0">{invoice.clientName}</p>
-                {invoice.clientCompany && <p className="truncate text-xs text-ink-2">{invoice.clientCompany}</p>}
-                <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-3">
-                  <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span className="truncate">{invoice.clientEmail}</span>
-                </p>
-              </div>
+          {/* PARA (cliente) — secundario, alineado a la derecha en desktop */}
+          <div className="flex items-center gap-3 sm:justify-end sm:text-right">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted text-base font-semibold text-ink-1 sm:order-2">
+              {initial(invoice.clientName)}
+            </span>
+            <div className="min-w-0 sm:order-1">
+              <p className="label mb-0.5">{copy.to}</p>
+              <p className="truncate text-sm font-semibold text-ink-0">{invoice.clientName}</p>
+              {invoice.clientCompany && <p className="truncate text-xs text-ink-3">{invoice.clientCompany}</p>}
+              <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-3 sm:justify-end">
+                <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span className="truncate">{invoice.clientEmail}</span>
+              </p>
             </div>
           </div>
         </div>
@@ -467,6 +450,29 @@ export default function InvoiceDetail() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {isOwner && (
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center">
+          {invoice.status === 'DRAFT' && (
+            <>
+              <button onClick={handleSend} disabled={actionLoading} className="btn-primary w-full text-sm sm:w-auto">
+                {copy.sendInvoice}
+              </button>
+              <button onClick={handleDelete} disabled={actionLoading} className="btn-danger w-full text-sm sm:w-auto">
+                {copy.delete}
+              </button>
+            </>
+          )}
+          <button onClick={handleDownloadPdf} disabled={pdfLoading} className="btn-secondary w-full text-sm sm:w-auto">
+            {pdfLoading ? copy.generatingPdf : copy.downloadPdf}
+          </button>
+          {!['DRAFT', 'PAID', 'SETTLING', 'SETTLED_FIAT', 'CANCELLED', 'EXPIRED', 'FAILED'].includes(invoice.status) && (
+            <button onClick={handleCancel} disabled={actionLoading} className="btn-danger w-full text-sm sm:w-auto">
+              {copy.cancelLink}
+            </button>
+          )}
         </div>
       )}
     </div>
