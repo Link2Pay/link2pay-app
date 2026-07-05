@@ -44,7 +44,7 @@ export default function MarketingLayout() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="flex min-h-14 items-center justify-between gap-3 py-2 md:min-h-16">
             <Link to="/" className="flex items-center gap-2">
-              <BrandMark className="h-9 w-9 rounded-lg" />
+              <BrandMark className="h-7 w-7" />
               <BrandWordmark className="text-lg font-semibold leading-snug" />
             </Link>
 
@@ -113,7 +113,7 @@ export default function MarketingLayout() {
             {/* Brand */}
             <div className="sm:col-span-2 lg:col-span-2">
               <div className="mb-3 flex items-center gap-2">
-                <BrandMark className="h-8 w-8 rounded-lg" />
+                <BrandMark className="h-6 w-6" />
                 <BrandWordmark className="text-base font-semibold" />
               </div>
               <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">

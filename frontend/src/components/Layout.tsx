@@ -103,7 +103,7 @@ export default function Layout() {
         <div className="border-b border-sidebar-border px-6 py-5">
           <div>
             <Link to="/dashboard" className="inline-flex items-center gap-2">
-              <BrandMark className="h-9 w-9 rounded-lg" />
+              <BrandMark className="h-7 w-7" />
               <BrandWordmark className="text-lg font-semibold leading-snug" />
             </Link>
             <span className="mt-1 block text-3xs uppercase tracking-wider text-sidebar-muted">
@@ -256,7 +256,7 @@ export default function Layout() {
         <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md md:hidden">
           <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-6">
             <Link to="/dashboard" className="inline-flex items-center gap-2">
-              <BrandMark className="h-8 w-8 rounded-lg" />
+              <BrandMark className="h-6 w-6" />
               <BrandWordmark className="text-base font-semibold leading-snug" />
             </Link>
             <button
