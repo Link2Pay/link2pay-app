@@ -29,6 +29,7 @@ const Login = lazy(() => import('./pages/Login'));
 const ProfileOptions = lazy(() => import('./pages/ProfileOptions'));
 const GetPaid = lazy(() => import('./pages/GetPaid'));
 const Wallet = lazy(() => import('./pages/Wallet'));
+const ScanHandoff = lazy(() => import('./pages/ScanHandoff'));
 
 // Preview solo-dev del checkout. La condición `import.meta.env.DEV` deja este
 // lazy import en una rama muerta en el build de producción, así que ni el chunk
@@ -104,6 +105,9 @@ export default function App() {
           {/* Public payment page (no sidebar layout) */}
           <Route path="/pay/:id" element={<PaymentFlow />} />
           <Route path="/links/:id" element={<PaymentFlow />} />
+
+          {/* Public Bre-B scan handoff (phone side, no login) */}
+          <Route path="/scan/:token" element={<ScanHandoff />} />
 
           {/* Índice de preview del checkout — solo desarrollo. */}
           {import.meta.env.DEV && CheckoutPreviewIndex && (
