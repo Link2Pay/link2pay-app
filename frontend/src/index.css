@@ -468,6 +468,87 @@
     color: hsl(var(--accent-ink));
   }
 
+  /* ============ MARKETING ONLY — aurora tokenizada (no usar en la app) ============ */
+  .aurora-field {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .aurora-field::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      radial-gradient(42% 38% at 18% 22%, hsl(var(--primary) / 0.14), transparent 70%),
+      radial-gradient(36% 34% at 78% 30%, hsl(var(--ref-lavender-300) / 0.18), transparent 70%),
+      radial-gradient(30% 28% at 62% 88%, hsl(var(--success) / 0.1), transparent 72%);
+  }
+
+  .dark .aurora-field::before {
+    background:
+      radial-gradient(42% 38% at 18% 22%, hsl(var(--primary) / 0.18), transparent 70%),
+      radial-gradient(36% 34% at 78% 30%, hsl(var(--ref-lavender-300) / 0.14), transparent 70%),
+      radial-gradient(30% 28% at 62% 88%, hsl(var(--success) / 0.12), transparent 72%);
+  }
+
+  .aurora-field--cta::before {
+    background:
+      radial-gradient(42% 38% at 18% 26%, hsl(var(--success) / 0.14), transparent 70%),
+      radial-gradient(34% 32% at 78% 28%, hsl(var(--primary) / 0.1), transparent 70%),
+      radial-gradient(28% 26% at 58% 84%, hsl(var(--ref-lavender-300) / 0.14), transparent 72%);
+  }
+
+  .dark .aurora-field--cta::before {
+    background:
+      radial-gradient(42% 38% at 18% 26%, hsl(var(--success) / 0.16), transparent 70%),
+      radial-gradient(34% 32% at 78% 28%, hsl(var(--primary) / 0.12), transparent 70%),
+      radial-gradient(28% 26% at 58% 84%, hsl(var(--ref-lavender-300) / 0.12), transparent 72%);
+  }
+
+  .aurora-veil {
+    position: relative;
+  }
+
+  .aurora-veil::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        to bottom,
+        hsl(var(--background) / 0.55),
+        hsl(var(--background) / 0.75) 45%,
+        hsl(var(--background)) 100%
+      );
+  }
+
+  .glass-panel {
+    background: hsl(var(--card) / 0.9);
+    border: 1px solid hsl(var(--border) / 0.8);
+    border-radius: 16px;
+  }
+
+  @supports (backdrop-filter: blur(12px)) {
+    @media (min-width: 1024px) {
+      .glass-panel {
+        background: hsl(var(--card) / 0.72);
+        backdrop-filter: blur(14px);
+      }
+    }
+  }
+
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    .aurora-field::before {
+      animation: auroraDrift 48s ease-in-out infinite alternate;
+      will-change: transform;
+    }
+  }
+
   .animate-in {
     animation: fadeSlideIn 0.4s ease-out forwards;
   }
@@ -520,6 +601,15 @@
     -webkit-mask-composite: source-in;
     mask-composite: intersect;
     opacity: 0.9;
+  }
+
+  @keyframes auroraDrift {
+    from {
+      transform: translate3d(-2%, -1%, 0) scale(1);
+    }
+    to {
+      transform: translate3d(2%, 2%, 0) scale(1.06);
+    }
   }
 
   @keyframes fadeSlideIn {
@@ -851,6 +941,7 @@
     .ohero-node.is-reached .ohero-ambient,
     .ohero-node.is-active .ohero-orbit-ring,
     .ohero-traveler,
+    .aurora-field::before,
     .animate-in,
     .animate-fade-in,
     .animate-slide-up,

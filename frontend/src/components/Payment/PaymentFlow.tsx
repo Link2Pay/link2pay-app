@@ -342,6 +342,10 @@ export default function PaymentFlow() {
     if (kitAddress) return 1;
     return 0;
   })();
+  const TESTNET_PASSPHRASE = 'Test SDF Network ; September 2015';
+  const isTestnetInvoice = invoice?.networkPassphrase === TESTNET_PASSPHRASE;
+  // Whole tracker is done once the payment lands.
+  const allStepsDone = step === 'success' || invoice?.status === 'PAID';
 
   if (step === 'loading') {
     return (
@@ -370,16 +374,20 @@ export default function PaymentFlow() {
         </div>
         <div className="mb-6 text-center">
           <BrandMark className="mx-auto mb-3 h-9 w-9" />
-          <h1 className="text-lg font-semibold">
+          <h1 className="font-display text-2xl font-extrabold text-ink-0">
             <BrandWordmark />
           </h1>
-          <p className="text-xs text-ink-3">{t('payment.invoicePayment')}</p>
+          <p className="mt-1 text-xs text-ink-3">{t('payment.invoicePayment')}</p>
           {invoice && (
-            <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stellar-100 text-stellar-700">
-              <span className="text-3xs font-semibold uppercase tracking-wide">
-                {invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet'} Payment
-              </span>
-            </div>
+            <span
+              className={`mt-3 ${
+                isTestnetInvoice
+                  ? 'badge bg-warning-subtle text-warning border-warning-border'
+                  : 'badge bg-success-subtle text-success border-success-border'
+              }`}
+            >
+              {isTestnetInvoice ? t('payment.testnetPayment') : t('payment.mainnetPayment')}
+            </span>
           )}
         </div>
 
@@ -415,31 +423,47 @@ export default function PaymentFlow() {
             <h2 className="text-base font-semibold text-ink-0 mb-1">{invoice.title}</h2>
             {invoice.description && <p className="text-sm text-ink-3">{invoice.description}</p>}
 
-            <div className="mt-4 rounded-lg border border-surface-3 bg-surface-1 p-3">
-              <p className="text-3xs uppercase tracking-wider text-ink-3">{stepLabels.progress}</p>
-              <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="mt-4 rounded-xl border border-surface-3 bg-surface-1 p-3">
+              <p className="label mb-0">{stepLabels.progress}</p>
+              {/* Conector de progreso: hairline que se colorea hasta el paso alcanzado. */}
+              <div className="mt-2 h-1 overflow-hidden rounded-full bg-surface-2">
+                <div
+                  className="h-full rounded-full bg-success transition-all duration-500"
+                  style={{ width: `${(checkoutStage / 3) * 100}%` }}
+                />
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {[stepLabels.loaded, stepLabels.wallet, stepLabels.signed, stepLabels.settled].map((label, index) => {
-                  const complete = checkoutStage >= index;
+                  const done = allStepsDone || index < checkoutStage;
+                  const active = !allStepsDone && index === checkoutStage;
                   return (
                     <div
                       key={label}
-                      className={`rounded-md border px-2.5 py-2 ${
-                        complete
+                      className={`rounded-lg border px-2.5 py-2 transition-colors ${
+                        done
                           ? 'border-success-border bg-success-subtle'
+                          : active
+                          ? 'border-primary/60 bg-primary/5 ring-1 ring-primary/20'
                           : 'border-surface-3 bg-card'
                       }`}
                     >
                       <div className="flex items-center gap-2">
                         <span
                           className={`flex h-5 w-5 items-center justify-center rounded-full text-3xs font-semibold ${
-                            complete
+                            done
                               ? 'bg-success text-success-foreground'
+                              : active
+                              ? 'bg-primary text-primary-foreground'
                               : 'bg-surface-2 text-ink-3'
                           }`}
                         >
-                          {complete ? <Check className="h-3 w-3" /> : index + 1}
+                          {done ? <Check className="h-3 w-3" /> : index + 1}
                         </span>
-                        <span className={`text-2xs leading-tight ${complete ? 'text-success' : 'text-ink-3'}`}>
+                        <span
+                          className={`text-2xs leading-tight ${
+                            done ? 'text-success' : active ? 'font-semibold text-ink-0' : 'text-ink-3'
+                          }`}
+                        >
                           {label}
                         </span>
                       </div>
@@ -474,9 +498,9 @@ export default function PaymentFlow() {
               </div>
 
               {invoice.isOpenAmount ? (
-                <div className="border-b border-surface-3 bg-stellar-50 p-4 sm:p-6">
-                  <p className="text-sm font-semibold text-stellar-700">{t('payment.openAmountTitle')}</p>
-                  <p className="mt-1 text-xs text-stellar-600">{t('payment.openAmountSubtitle')}</p>
+                <div className="border-b border-surface-3 bg-info-subtle p-4 sm:p-6">
+                  <p className="text-sm font-semibold text-info">{t('payment.openAmountTitle')}</p>
+                  <p className="mt-1 text-xs text-ink-3">{t('payment.openAmountSubtitle')}</p>
                 </div>
               ) : (
               <>
@@ -509,15 +533,15 @@ export default function PaymentFlow() {
                 </div>
               </div>
 
-              <div className="bg-stellar-50 border-b border-stellar-100 p-4 sm:p-6">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-stellar-700">{t('payment.totalDue')}</span>
+              <div className="border-b border-surface-3 bg-muted p-4 sm:p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="label mb-0">{t('payment.totalDue')}</span>
                   <div className="text-right">
-                    <span className="text-xl font-bold font-mono text-stellar-700 sm:text-2xl">
+                    <span className="font-display text-2xl font-extrabold text-ink-0 [font-variant-numeric:tabular-nums] sm:text-3xl">
                       {formatAmount(invoice.total, invoice.currency)}
                     </span>
                     {invoice.currency === 'XLM' && formatUsdEquivalent(invoice.total) && (
-                      <p className="text-xs text-stellar-500 mt-0.5">
+                      <p className="mt-0.5 text-xs text-ink-3 [font-variant-numeric:tabular-nums]">
                         {t('payment.usdEquivalent', { amount: formatUsdEquivalent(invoice.total)! })}
                       </p>
                     )}
@@ -552,9 +576,7 @@ export default function PaymentFlow() {
 
                 {invoice.isOpenAmount && (
                   <div>
-                    <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-ink-3">
-                      {t('payment.enterAmount')}
-                    </label>
+                    <label className="label">{t('payment.enterAmount')}</label>
                     <div className="relative">
                       <input
                         type="number"
@@ -576,10 +598,10 @@ export default function PaymentFlow() {
                 <button
                   onClick={handlePay}
                   disabled={hasNetworkMismatch || (invoice.isOpenAmount && !(parseFloat(payAmount) > 0))}
-                  className={`w-full py-3 text-base ${hasNetworkMismatch || (invoice.isOpenAmount && !(parseFloat(payAmount) > 0)) ? 'btn-disabled cursor-not-allowed' : 'btn-primary'}`}
+                  className="btn-primary w-full py-3 text-base"
                 >
                   {hasNetworkMismatch
-                    ? 'Payment Blocked - Wrong Network'
+                    ? t('payment.paymentBlocked')
                     : invoice.isOpenAmount
                     ? parseFloat(payAmount) > 0
                       ? t('payment.payAmount', { amount: formatAmount(payAmount, invoice.currency) })
@@ -592,7 +614,7 @@ export default function PaymentFlow() {
 
             {step === 'paying' && (
               <div role="status" aria-live="polite" className="text-center space-y-3 py-4">
-                <svg aria-hidden="true" className="animate-spin h-8 w-8 text-stellar-500 mx-auto" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="animate-spin h-8 w-8 text-primary mx-auto" viewBox="0 0 24 24">
                   <circle
                     className="opacity-25"
                     cx="12"
@@ -615,7 +637,7 @@ export default function PaymentFlow() {
 
             {step === 'confirming' && (
               <div role="status" aria-live="polite" className="text-center space-y-3 py-4">
-                <svg aria-hidden="true" className="animate-spin h-8 w-8 text-stellar-500 mx-auto" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="animate-spin h-8 w-8 text-primary mx-auto" viewBox="0 0 24 24">
                   <circle
                     className="opacity-25"
                     cx="12"
@@ -640,7 +662,7 @@ export default function PaymentFlow() {
                 {elapsedSeconds >= 30 && (
                   <button
                     onClick={handleManualRefresh}
-                    className="text-xs text-stellar-600 hover:underline"
+                    className="text-xs font-medium text-accent-ink hover:underline"
                   >
                     {t('payment.refreshStatus')}
                   </button>
@@ -671,7 +693,7 @@ export default function PaymentFlow() {
                     href={`https://stellar.expert/explorer/${invoice.networkPassphrase?.includes('Test') ? 'testnet' : 'public'}/tx/${txHash}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block text-xs text-stellar-600 hover:underline"
+                    className="inline-block text-xs font-medium text-accent-ink hover:underline"
                   >
                     {t('payment.viewExplorer')}
                   </a>

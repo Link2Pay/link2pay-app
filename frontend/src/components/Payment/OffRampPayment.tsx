@@ -99,7 +99,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
         return;
       }
       if (res.status === 'ANCHOR_ERROR' || res.status === 'EXPIRED') {
-        setError('The anchor reported an error completing the payout.');
+        setError(t('payment.offramp.anchorError'));
         setStep('error');
         return;
       }
@@ -109,7 +109,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
     }
     if (!pollActiveRef.current) return;
     pollRef.current = setTimeout(poll, 5000);
-  }, [invoice.id, onRefresh]);
+  }, [invoice.id, onRefresh, t]);
 
   useEffect(() => {
     if (inFlight) {
@@ -160,7 +160,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   const handleSetAmount = async () => {
     const amt = parseFloat(amountInput);
     if (!(amt > 0)) {
-      setError('Enter an amount greater than 0.');
+      setError(t('payment.offramp.enterPositiveAmount'));
       return;
     }
     setSettingAmount(true);
@@ -171,7 +171,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
       await offrampSetAmount(invoice.id, amt);
       onRefresh();
     } catch (err: any) {
-      setError(err?.message || 'Could not set the amount.');
+      setError(err?.message || t('payment.offramp.couldNotSetAmount'));
     } finally {
       setSettingAmount(false);
     }
@@ -190,18 +190,18 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
       );
       const signedXdr = await kitSignWith(kitAddress, intent.transactionXdr, intent.networkPassphrase);
       const result = await offrampSubmit(invoice.id, signedXdr, intent.depositAddress);
-      if (!result.success) throw new Error('Transaction submission failed.');
+      if (!result.success) throw new Error(t('payment.offramp.txSubmissionFailed'));
       setTxHash(result.transactionHash);
       setStep('settling');
       onRefresh();
     } catch (err: any) {
       if (err?.message === 'NO_PATH_FOUND' || err?.status === 409) {
         setSourceAsset(invoice.currency);
-        setError(`No swap route for ${sourceAsset} right now — pay ${invoice.currency} directly instead.`);
+        setError(t('payment.offramp.noSwapRoute', { source: sourceAsset, target: invoice.currency }));
         setStep('idle');
         return;
       }
-      setError(err?.message || 'Payment failed.');
+      setError(err?.message || t('payment.offramp.paymentFailed'));
       setStep('error');
     }
   };
@@ -209,38 +209,40 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   return (
     <div className="space-y-4">
       {/* COP payout summary */}
-      <div className="rounded-lg border border-warning-border bg-warning-subtle p-4">
+      <div className="rounded-2xl border border-warning-border bg-warning-subtle p-4">
         <div className="flex items-center gap-2 text-warning">
           <Landmark className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
-          <span className="text-xs font-semibold uppercase tracking-wide">Fiat off-ramp · Bre-B (COP)</span>
+          <span className="text-2xs font-medium uppercase tracking-label">{t('payment.offramp.title')}</span>
         </div>
         <div className="mt-3 flex items-center justify-center gap-3 text-sm">
           <div className="text-center">
-            <p className="font-mono text-base font-bold text-ink-0">
+            <p className="font-mono text-base font-bold text-ink-0 [font-variant-numeric:tabular-nums]">
               {displayPay.toFixed(2)} {invoice.currency}
             </p>
-            <p className="text-3xs uppercase tracking-wider text-ink-3">You pay</p>
+            <p className="text-3xs uppercase tracking-wider text-ink-3">{t('payment.offramp.youPay')}</p>
           </div>
           <ArrowRight className="h-4 w-4 text-ink-3" aria-hidden="true" />
           <div className="text-center">
-            <p className="font-mono text-base font-bold text-warning">
+            <p className="font-mono text-base font-bold text-warning [font-variant-numeric:tabular-nums]">
               {displayCop ? `≈ $${displayCop} COP` : '—'}
             </p>
-            <p className="text-3xs uppercase tracking-wider text-ink-3">Receiver gets</p>
+            <p className="text-3xs uppercase tracking-wider text-ink-3">{t('payment.offramp.receiverGets')}</p>
           </div>
         </div>
         {invoice.payoutAlias && (
           <p className="mt-2 text-center text-2xs text-ink-3">
-            To Bre-B llave <span className="font-mono">{invoice.payoutAlias}</span>
+            {t('payment.offramp.toLlave')} <span className="font-mono">{invoice.payoutAlias}</span>
           </p>
         )}
         {fxEstimate && (
           <p className="mt-2 text-center text-2xs text-ink-3">
-            Live oracle estimate: ≈ ${fxEstimate} COP <span className="text-ink-4">(Reflector — not the firm quote)</span>
+            {t('payment.offramp.oracleEstimate', { amount: fxEstimate })}
           </p>
         )}
-        <p className="mt-3 rounded-md bg-warning-subtle px-2.5 py-1.5 text-center text-2xs font-medium text-warning">
-          {t('payment.simulatedSettlement')}
+        <p className="mt-3 text-center">
+          <span className="badge bg-warning-subtle text-warning border-warning-border">
+            {t('payment.simulatedSettlement')}
+          </span>
         </p>
       </div>
 
@@ -248,8 +250,8 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
       {needsAmount && (
         <div className="space-y-3">
           <div>
-            <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-ink-3">
-              Amount to pay ({invoice.currency})
+            <label className="label">
+              {t('payment.offramp.amountToPay', { currency: invoice.currency })}
             </label>
             <div className="relative">
               <input
@@ -272,30 +274,26 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
           <button
             onClick={handleSetAmount}
             disabled={settingAmount || !(parseFloat(amountInput) > 0)}
-            className={`w-full py-3 text-base ${
-              settingAmount || !(parseFloat(amountInput) > 0)
-                ? 'btn-disabled cursor-not-allowed'
-                : 'btn-primary'
-            }`}
+            className="btn-primary w-full py-3 text-base"
           >
-            {settingAmount ? 'Preparing…' : 'Continue'}
+            {settingAmount ? t('payment.offramp.preparing') : t('payment.offramp.continue')}
           </button>
           <p className="text-center text-2xs text-ink-4">
-            You choose the amount; the receiver gets the equivalent in COP via Bre-B.
+            {t('payment.offramp.amountHelp')}
           </p>
         </div>
       )}
 
       {preparing && (
-        <div className="rounded-lg border border-surface-3 bg-surface-1 p-4 text-center">
-          <p className="text-sm text-ink-2">The receiver is still setting up this payout with the anchor.</p>
-          <p className="mt-1 text-xs text-ink-3">Check back shortly — this page updates automatically.</p>
+        <div className="rounded-xl border border-surface-3 bg-surface-1 p-4 text-center">
+          <p className="text-sm text-ink-2">{t('payment.offramp.receiverPreparing')}</p>
+          <p className="mt-1 text-xs text-ink-3">{t('payment.offramp.checkBack')}</p>
         </div>
       )}
 
       {readyToPay && !kitAddress && (
         <div className="space-y-3">
-          <p className="text-sm text-ink-2 text-center">Connect a Stellar wallet to pay USDC to the anchor.</p>
+          <p className="text-sm text-ink-2 text-center">{t('payment.offramp.connectToPay')}</p>
           {config.enableWalletsKit ? (
             <WalletRoller
               networkPassphrase={invoice.networkPassphrase}
@@ -309,15 +307,16 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
       {readyToPay && kitAddress && (
         <div className="space-y-3">
           <div className="text-center text-xs text-ink-3">
-            Paying from <span className="font-mono">{kitAddress.slice(0, 8)}...{kitAddress.slice(-4)}</span>
+            {t('payment.offramp.payingFrom')}{' '}
+            <span className="font-mono">{kitAddress.slice(0, 8)}...{kitAddress.slice(-4)}</span>
           </div>
           {pathEnabled && (
             <div>
-              <label className="text-2xs font-medium uppercase tracking-wide text-ink-3">Pay with</label>
+              <label className="label">{t('payment.offramp.payWith')}</label>
               <select
                 value={sourceAsset}
                 onChange={(e) => setSourceAsset(e.target.value)}
-                className="mt-1 w-full rounded-md border border-surface-3 bg-card px-3 py-2 text-sm"
+                className="input"
               >
                 <option value={invoice.currency}>{invoice.currency} (direct)</option>
                 {['XLM', 'USDC', 'EURC']
@@ -334,27 +333,29 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
           <button
             onClick={handlePay}
             disabled={isPathPay && pathPreview === 'No route found'}
-            className="btn-primary w-full py-3 text-base disabled:opacity-50"
+            className="btn-primary w-full py-3 text-base"
           >
-            Pay {isPathPay ? `with ${sourceAsset}` : `${parseFloat(invoice.total).toFixed(2)} ${invoice.currency}`} to anchor
+            {isPathPay
+              ? t('payment.offramp.payWithAsset', { asset: sourceAsset })
+              : t('payment.offramp.payToAnchor', { amount: `${parseFloat(invoice.total).toFixed(2)} ${invoice.currency}` })}
           </button>
           <p className="text-center text-2xs text-ink-4">
-            Your wallet pays the anchor directly with the exact memo. Link2Pay never holds your funds.
+            {t('payment.offramp.anchorHold')}
           </p>
         </div>
       )}
 
       {step === 'paying' && (
         <div role="status" className="py-4 text-center text-sm text-ink-1">
-          Building and signing your USDC payment…
+          {t('payment.offramp.signingPayment')}
         </div>
       )}
 
       {inFlight && !settled && !failed && (
         <div role="status" className="space-y-2 py-4 text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-stellar-200 border-t-stellar-500" />
-          <p className="text-sm text-ink-1">USDC received — anchor is settling COP to the Bre-B llave…</p>
-          <p className="text-xs text-ink-3">This page updates automatically.</p>
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-surface-2 border-t-primary" />
+          <p className="text-sm text-ink-1">{t('payment.offramp.settlingCop')}</p>
+          <p className="text-xs text-ink-3">{t('payment.offramp.pageAutoUpdates')}</p>
         </div>
       )}
 
@@ -364,9 +365,11 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
             <Check className="h-7 w-7 text-success" aria-hidden="true" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-ink-0">Settled to fiat</h3>
+            <h3 className="text-base font-semibold text-ink-0">{t('payment.offramp.settledTitle')}</h3>
             <p className="mt-1 text-sm text-ink-3">
-              {copAmount ? `≈ $${copAmount} COP delivered to ${invoice.payoutAlias || 'the Bre-B llave'}` : 'COP delivered to the Bre-B llave'}
+              {copAmount
+                ? t('payment.offramp.settledBody', { amount: copAmount, alias: invoice.payoutAlias || t('payment.offramp.theBreBLlave') })
+                : t('payment.offramp.settledBodyNoAmount')}
             </p>
             <p className="mt-1 text-2xs text-warning">{t('payment.simulatedSettlement')}</p>
           </div>
@@ -376,9 +379,9 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
                 href={`https://stellar.expert/explorer/${isTestnet ? 'testnet' : 'public'}/tx/${txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-stellar-600 hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-medium text-accent-ink hover:underline"
               >
-                View on-chain USDC payment <ExternalLink className="h-3 w-3" />
+                {t('payment.offramp.viewOnchainPayment')} <ExternalLink className="h-3 w-3" />
               </a>
             )}
             {invoice.receiptTxHash && (
@@ -386,9 +389,9 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
                 href={`https://stellar.expert/explorer/${isTestnet ? 'testnet' : 'public'}/tx/${invoice.receiptTxHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-stellar-600 hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-medium text-accent-ink hover:underline"
               >
-                View on-chain receipt <ExternalLink className="h-3 w-3" />
+                {t('payment.offramp.viewOnchainReceipt')} <ExternalLink className="h-3 w-3" />
               </a>
             )}
           </div>
@@ -400,10 +403,10 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-destructive-subtle">
             <X className="h-7 w-7 text-danger" aria-hidden="true" />
           </div>
-          <p className="text-sm text-danger">{error || 'The off-ramp could not be completed.'}</p>
+          <p className="text-sm text-danger">{error || t('payment.offramp.offrampFailed')}</p>
           {invoice.status === 'AWAITING_PAYMENT' && (
             <button onClick={() => setStep('idle')} className="btn-secondary text-sm">
-              Try again
+              {t('payment.tryAgain')}
             </button>
           )}
         </div>
