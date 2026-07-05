@@ -100,10 +100,18 @@ export class AbroadAdapter implements AnchorAdapter {
     paymentMethod: 'BREB' | 'PIX' = 'BREB'
   ): Promise<{ available: number; fresh: boolean } | null> {
     try {
-      const data = await this.call<AbroadLiquidityResponse>(
-        `/payments/liquidity?paymentMethod=${paymentMethod}`,
-        { signal: AbortSignal.timeout(8000) }
+      // Deliberately NOT this.call(): when Abroad's upstream feed times out
+      // they respond 400 with { liquidity: <cached figure>, success: false }.
+      // The stale figure is still the best available signal, so parse the
+      // body regardless of HTTP status.
+      const res = await fetch(
+        `${this.baseUrl}/payments/liquidity?paymentMethod=${paymentMethod}`,
+        {
+          headers: { 'X-API-Key': config.abroad.apiKey as string },
+          signal: AbortSignal.timeout(8000),
+        }
       );
+      const data = (await res.json()) as AbroadLiquidityResponse;
       if (typeof data.liquidity !== 'number') return null;
       return { available: data.liquidity, fresh: data.success === true };
     } catch (err) {
