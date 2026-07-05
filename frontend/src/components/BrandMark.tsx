@@ -1,39 +1,24 @@
-import type { CSSProperties } from 'react';
-import logoMarkLinkMask from '../assets/icons/link2pay-mark-link-mask.png';
-import logoMarkShieldMask from '../assets/icons/link2pay-mark-shield-mask.png';
-
 type BrandMarkProps = {
   className?: string;
-  imgClassName?: string;
 };
 
-export default function BrandMark({ className = '', imgClassName = '' }: BrandMarkProps) {
-  const shieldMaskStyle = {
-    WebkitMaskImage: `url(${logoMarkShieldMask})`,
-    maskImage: `url(${logoMarkShieldMask})`,
-  } as CSSProperties;
-
-  const linkMaskStyle = {
-    WebkitMaskImage: `url(${logoMarkLinkMask})`,
-    maskImage: `url(${logoMarkLinkMask})`,
-  } as CSSProperties;
-
+/**
+ * Marca Link2Pay (símbolo, sin wordmark). SVG inline con `fill="currentColor"`
+ * para que herede el color vía utilidades `text-*` y se adapte a light/dark.
+ * Por defecto usa el azul de marca (`text-primary`). El `className` controla el
+ * tamaño (`h-9 w-9`, etc.); el viewBox preserva la relación de aspecto.
+ */
+export default function BrandMark({ className = '' }: BrandMarkProps) {
   return (
-    <span
+    <svg
+      viewBox="0 0 449 424"
       role="img"
-      aria-label="Link2Pay logo"
-      className={`brand-mark-badge relative inline-flex items-center justify-center overflow-hidden p-1 ${className}`}
+      aria-label="Link2Pay"
+      className={`text-primary ${className}`}
+      fill="currentColor"
     >
-      <span
-        aria-hidden="true"
-        className={`brand-mark-part brand-mark-part-shield ${imgClassName}`}
-        style={shieldMaskStyle}
-      />
-      <span
-        aria-hidden="true"
-        className={`brand-mark-part brand-mark-part-link ${imgClassName}`}
-        style={linkMaskStyle}
-      />
-    </span>
+      <path d="M359.819 122.163C359.819 118.381 354.118 110.816 354.118 110.816L281.906 8.68876C281.906 8.68876 275.571 0.493842 282.539 0.500008C317.666 0.531092 337.361 0.556972 372.487 0.500008C376.288 0.493844 378.188 4.27611 378.188 4.27611L442.166 97.5782C442.166 97.5782 448.5 105.956 448.5 122.163C448.5 138.37 442.166 146.748 442.166 146.748L326.88 310.646L321.812 316.95C321.812 316.95 319.912 319.465 316.745 319.471C283.102 319.536 264.24 319.471 230.597 319.471C222.093 319.471 226.799 313.792 226.799 313.792L228.064 311.907L353.484 134.14C353.484 134.14 359.819 125.945 359.819 122.163Z" />
+      <path d="M206.72 122.338C206.72 118.551 201.037 110.975 201.037 110.975L129.056 8.70056C129.056 8.70056 122.742 0.493833 129.688 0.500008C164.702 0.531137 184.333 0.557054 219.348 0.500008C223.136 0.493835 225.03 4.28155 225.03 4.28155L288.803 97.7181C288.803 97.7181 295.117 106.108 295.117 122.338C295.117 138.569 288.803 146.958 288.803 146.958L173.886 311.093L168.835 317.406L139.793 358.472H312.8C319.114 358.472 318.482 365.416 318.482 365.416V415.293C318.482 415.293 319.114 423.5 312.8 423.5H142.319H7.19488C-5.09845 423.5 3.30009 411.504 3.30009 411.504L7.19488 405.822L74.1256 314.243L75.3865 312.355L200.405 134.333C200.405 134.333 206.72 126.126 206.72 122.338Z" />
+    </svg>
   );
 }

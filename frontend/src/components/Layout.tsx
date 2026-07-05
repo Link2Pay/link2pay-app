@@ -103,7 +103,7 @@ export default function Layout() {
         <div className="border-b border-sidebar-border px-6 py-5">
           <div>
             <Link to="/dashboard" className="inline-flex items-center gap-2">
-              <BrandMark className="h-9 w-9 rounded-lg" />
+              <BrandMark className="h-7 w-7" />
               <BrandWordmark className="text-lg font-semibold leading-snug" />
             </Link>
             <span className="mt-1 block text-3xs uppercase tracking-wider text-sidebar-muted">
@@ -125,14 +125,15 @@ export default function Layout() {
                   aria-current={isActive ? 'page' : undefined}
                   className={`relative flex items-center gap-3 rounded-r-xl py-2 pl-6 pr-3 mr-3 text-sm transition-colors duration-150 ${
                     isActive
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground font-bold'
+                      ? 'bg-sidebar-primary text-white font-bold'
                       : 'text-sidebar-foreground font-medium hover:bg-sidebar-accent'
                   }`}
                 >
-                  {/* Icono en círculo: invertido (bg-white/15) cuando activo, neutro si no. */}
+                  {/* Icono/letra activos en blanco (ambos temas); en dark se
+                      oscurece el círculo del icono para que el blanco resalte. */}
                   <span
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                      isActive ? 'bg-white/15' : 'bg-muted'
+                      isActive ? 'bg-white/15 dark:bg-black/25' : 'bg-muted'
                     }`}
                   >
                     <Icon aria-hidden="true" className="h-4 w-4" />
@@ -255,7 +256,7 @@ export default function Layout() {
         <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md md:hidden">
           <div className="flex items-center justify-between gap-2 px-4 py-3 sm:px-6">
             <Link to="/dashboard" className="inline-flex items-center gap-2">
-              <BrandMark className="h-8 w-8 rounded-lg" />
+              <BrandMark className="h-6 w-6" />
               <BrandWordmark className="text-base font-semibold leading-snug" />
             </Link>
             <button

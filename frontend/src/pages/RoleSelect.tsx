@@ -99,7 +99,7 @@ export default function RoleSelect() {
 
         <div className="animate-in">
           <div className="mb-8 text-center sm:mb-12">
-            <BrandMark className="mx-auto mb-4 h-14 w-14 rounded-2xl p-2.5" />
+            <BrandMark className="mx-auto mb-4 h-11 w-11" />
             <h1 className="mb-2 text-2xl font-bold font-display sm:text-3xl">
               <BrandWordmark />
             </h1>

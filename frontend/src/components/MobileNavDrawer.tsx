@@ -126,7 +126,7 @@ export default function MobileNavDrawer({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-surface-3 px-4 py-4">
           <div className="flex items-center gap-2">
-            <BrandMark className="h-8 w-8 rounded-lg" />
+            <BrandMark className="h-6 w-6" />
             <BrandWordmark className="text-base font-semibold leading-snug" />
           </div>
           <button
@@ -155,7 +155,7 @@ export default function MobileNavDrawer({
                   className={({ isActive }) =>
                     `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors duration-150 ${
                       isActive
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-bold'
+                        ? 'bg-sidebar-primary text-white font-bold'
                         : 'text-foreground font-medium hover:bg-muted'
                     }`
                   }
@@ -165,7 +165,7 @@ export default function MobileNavDrawer({
                       {Icon && (
                         <span
                           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                            isActive ? 'bg-white/15' : 'bg-muted'
+                            isActive ? 'bg-white/15 dark:bg-black/25' : 'bg-muted'
                           }`}
                         >
                           <Icon aria-hidden="true" className="h-4 w-4" />

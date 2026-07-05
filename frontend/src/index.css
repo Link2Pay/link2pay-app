@@ -501,6 +501,27 @@
       );
   }
 
+  /* Variante para panel CLARO: líneas basadas en --foreground (oscuras sobre
+     claro en light, claras sobre oscuro en dark) → sutiles en ambos temas. */
+  .pipeline-microtexture-light {
+    background:
+      linear-gradient(135deg, hsl(var(--accent) / 0.06), transparent 46%),
+      repeating-linear-gradient(
+        135deg,
+        hsl(var(--foreground) / 0.035) 0 1px,
+        transparent 1px 30px
+      );
+    -webkit-mask-image:
+      radial-gradient(circle at 84% 18%, black 0 44%, transparent 76%),
+      linear-gradient(to bottom, black 0 84%, transparent 100%);
+    mask-image:
+      radial-gradient(circle at 84% 18%, black 0 44%, transparent 76%),
+      linear-gradient(to bottom, black 0 84%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+    opacity: 0.9;
+  }
+
   @keyframes fadeSlideIn {
     from {
       opacity: 0;
