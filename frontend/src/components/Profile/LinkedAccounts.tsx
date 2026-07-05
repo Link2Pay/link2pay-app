@@ -2,10 +2,10 @@ import { usePrivy, useLinkAccount } from '@privy-io/react-auth';
 import toast from 'react-hot-toast';
 import { useI18n } from '../../i18n/I18nProvider';
 
+// LinkedIn/X rows return once their OAuth apps are configured in the Privy
+// dashboard — linking uses the same oauth/init that 403s without credentials.
 const PROVIDERS = [
   { type: 'google_oauth', label: 'Google' },
-  { type: 'linkedin_oauth', label: 'LinkedIn' },
-  { type: 'twitter_oauth', label: 'X' },
   { type: 'email', label: 'Email' },
 ] as const;
 

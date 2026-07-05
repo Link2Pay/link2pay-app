@@ -61,7 +61,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   config.privyAppId ? (
     <PrivyProvider
       appId={config.privyAppId}
-      config={{ loginMethods: ['google', 'email', 'linkedin', 'twitter'] }}
+      // linkedin/twitter return once their OAuth apps are configured in the
+      // Privy dashboard — without credentials those buttons 403 in production.
+      config={{ loginMethods: ['google', 'email'] }}
     >
       {inner}
     </PrivyProvider>
