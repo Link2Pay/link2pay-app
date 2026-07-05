@@ -37,6 +37,34 @@ const setAmountLimiter = rateLimit({
   message: { error: 'Too many amount submissions, please try again later' },
 });
 
+// Public estimate reads are cheap (60s service-side cache) but still anchor-
+// backed — key by IP like the other payer-facing endpoint.
+const estimateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 60,
+  keyGenerator: (req) => req.ip || 'unknown',
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many estimate requests, please try again later' },
+});
+
+/**
+ * GET /api/invoices/:id/offramp/estimate
+ * Display-only "receiver gets ≈ X COP" for the public payment page.
+ * Public — reveals nothing the page doesn't already show.
+ */
+router.get('/:id/offramp/estimate', estimateLimiter, async (req: Request, res: Response) => {
+  try {
+    const estimate = await offRampService.getPublicEstimate(req.params.id);
+    res.json(estimate);
+  } catch (error: any) {
+    const status = error.message === 'Invoice not found' ? 404
+      : error.message === 'Invoice is not a Bre-B off-ramp' ? 400
+      : 500;
+    res.status(status).json({ error: error.message });
+  }
+});
+
 /**
  * POST /api/invoices/:id/offramp/quote
  * Request a firm quote from the anchor. Sets AWAITING_ANCHOR.

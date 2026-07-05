@@ -7,6 +7,7 @@ import {
   offrampPathQuote,
   offrampSetAmount,
   getFxRate,
+  getOfframpEstimate,
 } from '../../services/api';
 import WalletRoller from './WalletRoller';
 import type { PublicInvoice } from '../../types';
@@ -67,8 +68,31 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   const isTestnet = invoice.networkPassphrase?.includes('Test');
   const copAmount = formatCop(invoice.quoteBuyAmount);
 
-  // Before the amount is set (open-amount), reflect what the payer is typing in
-  // the summary using the demo rate; afterwards use the firm quote from the server.
+  // Real anchor estimate for the summary, fetched before any firm quote
+  // exists. Best-effort: unavailable → the summary shows "—" (never a made-up
+  // rate on deployed envs; the demo constant remains as a dev-only fallback).
+  const [estimate, setEstimate] = useState<{ buyAmount?: string; rate?: string } | null>(null);
+
+  useEffect(() => {
+    if (invoice.quoteBuyAmount) return; // firm quote already on the invoice
+    let cancelled = false;
+    getOfframpEstimate(invoice.id)
+      .then((e) => {
+        if (!cancelled && e.available) setEstimate({ buyAmount: e.buyAmount, rate: e.rate });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [invoice.id, invoice.quoteBuyAmount]);
+
+  const estimateRate = estimate?.rate
+    ? parseFloat(estimate.rate)
+    : import.meta.env.DEV
+      ? SIMULATED_USDC_COP_RATE
+      : null;
+
+  // Before the amount is set (open-amount), reflect what the payer is typing
+  // in the summary using the live anchor rate; afterwards prefer the firm
+  // quote from the server, then the fetched estimate.
   const parsedAmountInput = parseFloat(amountInput);
   const displayPay = needsAmount
     ? Number.isFinite(parsedAmountInput)
@@ -76,10 +100,10 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
       : 0
     : parseFloat(invoice.total);
   const displayCop = needsAmount
-    ? parsedAmountInput > 0
-      ? formatCop((parsedAmountInput * SIMULATED_USDC_COP_RATE).toString())
+    ? parsedAmountInput > 0 && estimateRate
+      ? formatCop((parsedAmountInput * estimateRate).toString())
       : null
-    : copAmount;
+    : copAmount ?? formatCop(estimate?.buyAmount);
 
   const settled = invoice.status === 'SETTLED_FIAT' || step === 'settled';
   const inFlight = IN_FLIGHT.has(invoice.status) || step === 'settling';

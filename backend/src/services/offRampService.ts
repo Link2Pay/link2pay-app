@@ -80,6 +80,72 @@ export class OffRampService {
    * Request a firm off-ramp quote and advance invoice to AWAITING_ANCHOR.
    * Only the receiver (freelancer) of a BRE_B PENDING invoice can call this.
    */
+  // Display-only COP estimates for the public payment page, cached 60s per
+  // invoice: each anchor reverse-quote mints a quote_id server-side, so page
+  // views shouldn't hammer it. Never persisted — the firm quote at pay time
+  // is still the source of truth.
+  private estimateCache = new Map<string, { buyAmount: string | null; rate: string; at: number }>();
+
+  /**
+   * Public estimate of what the receiver gets, for the /pay page summary.
+   * No auth: reveals nothing beyond what the payment page already shows.
+   */
+  async getPublicEstimate(
+    invoiceId: string
+  ): Promise<{ available: boolean; buyAmount?: string; rate?: string }> {
+    const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
+    if (!invoice) throw new Error('Invoice not found');
+    if (invoice.payoutMethod !== 'BRE_B') throw new Error('Invoice is not a Bre-B off-ramp');
+
+    // Pay flow already produced a firm quote — reuse it, no anchor call.
+    if (invoice.quoteBuyAmount) {
+      const sell = Number(invoice.total);
+      const buy = Number(invoice.quoteBuyAmount);
+      return {
+        available: true,
+        buyAmount: invoice.quoteBuyAmount.toString(),
+        rate: sell > 0 && Number.isFinite(buy / sell) ? String(buy / sell) : undefined,
+      };
+    }
+
+    const cached = this.estimateCache.get(invoiceId);
+    if (cached && Date.now() - cached.at < 60_000) {
+      return { available: true, buyAmount: cached.buyAmount ?? undefined, rate: cached.rate };
+    }
+
+    const rail = railById(invoice.payoutMethod);
+    const buyCurrency = rail?.buyCurrency ?? 'COP';
+    const total = invoice.total.toString();
+
+    try {
+      if (Number(total) > 0) {
+        const quote = await this.adapter.getQuote({
+          sellAmount: total,
+          buyCurrency,
+          payoutAlias: invoice.payoutAlias ?? '',
+        });
+        this.estimateCache.set(invoiceId, { buyAmount: quote.buyAmount, rate: quote.rate, at: Date.now() });
+        return { available: true, buyAmount: quote.buyAmount, rate: quote.rate };
+      }
+      // Open-amount before the payer sets it: probe with 1 USDC so the page
+      // can preview `typed amount × rate` live.
+      const quote = await this.adapter.getQuote({
+        sellAmount: '1',
+        buyCurrency,
+        payoutAlias: invoice.payoutAlias ?? '',
+      });
+      this.estimateCache.set(invoiceId, { buyAmount: null, rate: quote.rate, at: Date.now() });
+      return { available: true, rate: quote.rate };
+    } catch (error) {
+      // Estimate is best-effort UI sugar — anchor hiccups must not error the page.
+      log.warn('[OffRampService] Public estimate unavailable', {
+        invoiceId,
+        error: (error as Error)?.message,
+      });
+      return { available: false };
+    }
+  }
+
   async getQuote(
     invoiceId: string,
     freelancerWallet: string,

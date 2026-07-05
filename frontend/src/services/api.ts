@@ -601,6 +601,17 @@ export async function getPaymentStatus(
   return request(`/payments/${invoiceId}/status`);
 }
 
+// ─── Off-ramp estimate (public payment page) ──────────────────────
+export interface OfframpEstimate {
+  available: boolean;
+  buyAmount?: string;
+  rate?: string;
+}
+
+export async function getOfframpEstimate(invoiceId: string): Promise<OfframpEstimate> {
+  return request<OfframpEstimate>(`/invoices/${invoiceId}/offramp/estimate`);
+}
+
 // ─── Scan-session handoff API ─────────────────────────────────────
 export interface ScanSessionCreated {
   token: string;
