@@ -106,7 +106,7 @@ export default function QrScanner({ onResult, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-0/60 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm p-4"
       role="dialog"
       aria-modal="true"
       aria-label={copy.title}
@@ -134,7 +134,7 @@ export default function QrScanner({ onResult, onClose }: Props) {
           <>
             <video
               ref={videoRef}
-              className="aspect-square w-full rounded-xl bg-ink-0 object-cover"
+              className="aspect-square w-full rounded-xl bg-muted object-cover"
               muted
               playsInline
             />
