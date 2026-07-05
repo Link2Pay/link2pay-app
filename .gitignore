@@ -69,3 +69,13 @@ skills-lock.json
 IMPLEMENTATION_PLAN.md
 tmp-Link2Pay.pdf
 render.yaml
+
+# Internal working docs — local only (README.md and SECURITY.md stay public)
+ARCHITECTURE.md
+DEMO.md
+DEPLOYMENT.md
+ENVIRONMENTS.md
+ONRAMP.md
+PROJECT_STATUS.md
+SECURITY_REFERENCE.md
+docs/UX_LAWS_GUIDELINES.md

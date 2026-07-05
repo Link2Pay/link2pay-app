@@ -320,7 +320,7 @@ All anchor interaction goes through one swappable `AnchorAdapter` interface, sel
    and the invoice advances to SETTLED_FIAT.
 ```
 
-Link2Pay only orchestrates the quote, link, memo, status, and (optionally) an on-chain receipt — **the payer always pays the anchor directly.** See **[ARCHITECTURE.md](./ARCHITECTURE.md)** for the diagram and state machine, and **[DEMO.md](./DEMO.md)** for the step-by-step demo script.
+Link2Pay only orchestrates the quote, link, memo, status, and (optionally) an on-chain receipt — **the payer always pays the anchor directly.**
 
 ### Try it (mock-breb demo)
 
@@ -461,7 +461,6 @@ link2pay-app/
 │           └── CreateInvoice.tsx
 │
 ├── SECURITY.md                        # STRIDE threat model + per-threat remediation status
-├── SECURITY_REFERENCE.md              # General Stellar / Web3 security reference
 ├── docker-compose.yml                 # Local PostgreSQL on port 5433
 ├── setup.sh                           # One-command bootstrap script
 ├── link2pay                           # Launcher (Docker + backend + frontend)
