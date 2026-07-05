@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { profileService } from '../services/profileService';
 import { requireWallet, saveProfileSchema, validateBody } from '../middleware/validation';
+import { requireKycForBrebKeyChange } from '../middleware/requireKyc';
 import { log } from '../utils/logger';
 
 const router = Router();
@@ -28,6 +29,7 @@ router.put(
   '/',
   requireWallet,
   validateBody(saveProfileSchema),
+  requireKycForBrebKeyChange,
   async (req: Request, res: Response) => {
     try {
       const walletAddress = req.walletAddress as string;

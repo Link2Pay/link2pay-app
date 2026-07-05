@@ -160,3 +160,49 @@ export async function requireBreBKeyForFiat(
     return res.status(500).json({ error: 'Bre-B key check failed' });
   }
 }
+
+//
+// requireKycForBrebKeyChange — saving a NEW Bre-B llave (defaultPayoutAlias)
+// requires a verified merchant. Everything else about the profile can be
+// saved freely: omitting the field, clearing it, or re-sending the value
+// already stored all pass through. Mount on PUT /profile after requireWallet
+// and validateBody.
+//
+export async function requireKycForBrebKeyChange(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  if (!config.kyc.enforced) return next();
+
+  const raw = req.body?.defaultPayoutAlias;
+  const incoming = typeof raw === 'string' ? raw.trim() : '';
+  if (!incoming) return next();
+
+  const walletAddress = req.walletAddress;
+  if (!walletAddress) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  try {
+    const profile = await prisma.businessProfile.findUnique({
+      where: { walletAddress },
+      select: { defaultPayoutAlias: true },
+    });
+    if (profile?.defaultPayoutAlias === incoming) return next();
+
+    if (await kycService.isVerified(walletAddress)) return next();
+
+    return res.status(403).json({
+      error: 'KYC_REQUIRED',
+      message:
+        'Identity verification is required before adding a Bre-B key to your profile.',
+    });
+  } catch (error) {
+    log.error('requireKycForBrebKeyChange error', {
+      walletAddress,
+      error: (error as Error)?.message,
+    });
+    return res.status(500).json({ error: 'KYC check failed' });
+  }
+}
