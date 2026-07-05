@@ -240,11 +240,14 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
             {t('payment.offramp.oracleEstimate', { amount: fxEstimate })}
           </p>
         )}
-        <p className="mt-3 text-center">
-          <span className="badge bg-warning-subtle text-warning border-warning-border">
-            {t('payment.simulatedSettlement')}
-          </span>
-        </p>
+        {/* Only local dev runs the mock anchor — deployed envs settle for real. */}
+        {import.meta.env.DEV && (
+          <p className="mt-3 text-center">
+            <span className="badge bg-warning-subtle text-warning border-warning-border">
+              {t('payment.simulatedSettlement')}
+            </span>
+          </p>
+        )}
       </div>
 
       {/* States */}
@@ -372,7 +375,9 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
                 ? t('payment.offramp.settledBody', { amount: copAmount, alias: invoice.payoutAlias || t('payment.offramp.theBreBLlave') })
                 : t('payment.offramp.settledBodyNoAmount')}
             </p>
-            <p className="mt-1 text-2xs text-warning">{t('payment.simulatedSettlement')}</p>
+            {import.meta.env.DEV && (
+              <p className="mt-1 text-2xs text-warning">{t('payment.simulatedSettlement')}</p>
+            )}
           </div>
           <div className="flex flex-col items-center gap-1">
             {txHash && (
