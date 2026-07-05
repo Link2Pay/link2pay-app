@@ -145,6 +145,83 @@ const LOCALE_BY_LANGUAGE: Record<Language, string> = {
 const IN_PROGRESS_STATUSES: InvoiceStatus[] = ['PENDING', 'AWAITING_ANCHOR', 'AWAITING_PAYMENT', 'PROCESSING', 'SETTLING'];
 const FAILED_STATUSES: InvoiceStatus[] = ['FAILED', 'EXPIRED', 'CANCELLED', 'ANCHOR_ERROR'];
 
+/**
+ * Skeleton de carga de la página de transacciones: replica la geometría real
+ * (grid de 4 stat cards + card de búsqueda/tabs + tabla de 7 columnas) con las
+ * mismas primitivas (.card, .input, bg-surface-2) para una transición sin reflow.
+ */
+function TransactionsSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse sm:space-y-8">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="card flex items-center justify-between gap-3 p-6">
+            <div className="space-y-2">
+              <div className="h-3.5 w-20 rounded bg-surface-2" />
+              <div className="h-7 w-16 rounded bg-surface-2" />
+            </div>
+            <div className="h-9 w-9 shrink-0 rounded-full bg-surface-2" />
+          </div>
+        ))}
+      </div>
+
+      <div className="card space-y-4 p-4">
+        <div className="h-11 w-full rounded-xl bg-surface-2" />
+        <div className="flex items-center gap-8 border-b border-border">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="mb-2.5 h-4 w-16 rounded bg-surface-2" />
+          ))}
+        </div>
+      </div>
+
+      <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[980px]">
+            <thead>
+              <tr className="border-b border-border">
+                {[...Array(7)].map((_, i) => (
+                  <th key={i} className="px-4 py-3">
+                    <div className={`h-3 w-16 rounded bg-surface-2 ${i >= 3 ? 'ml-auto' : ''}`} />
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {[...Array(6)].map((_, r) => (
+                <tr key={r}>
+                  <td className="px-4 py-3">
+                    <div className="h-3.5 w-24 rounded bg-surface-2" />
+                    <div className="mt-1 h-3 w-16 rounded bg-surface-2" />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="h-3.5 w-28 rounded bg-surface-2" />
+                    <div className="mt-1 h-3 w-20 rounded bg-surface-2" />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="h-6 w-20 rounded-full bg-surface-2" />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="ml-auto h-3.5 w-16 rounded bg-surface-2" />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="h-3.5 w-24 rounded bg-surface-2" />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="ml-auto h-3 w-20 rounded bg-surface-2" />
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="ml-auto h-3 w-24 rounded bg-surface-2" />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Transactions() {
   const { publicKey } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
@@ -286,14 +363,14 @@ export default function Transactions() {
     }
   };
 
-  if (loading) {
-    return <div className="card p-12 text-center text-sm text-ink-3">{copy.loading}</div>;
-  }
-
   return (
     <div className="space-y-6 animate-in sm:space-y-8">
       <PageHeader title={copy.title} subtitle={copy.subtitle} />
 
+      {loading ? (
+        <TransactionsSkeleton />
+      ) : (
+        <>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {summaryCards.map((stat) => (
           <StatCard key={stat.label} {...stat} />
@@ -310,7 +387,7 @@ export default function Transactions() {
             className="input pl-9 text-sm"
           />
         </div>
-        <div className="tabs overflow-x-auto">
+        <div className="tabs overflow-x-auto overflow-y-hidden">
           {filterButtons.map((button) => (
             <button
               key={button.value}
@@ -415,6 +492,8 @@ export default function Transactions() {
             </table>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
