@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
 import LanguageToggle from '../components/LanguageToggle';
 import { useWalletStore } from '../store/walletStore';
 import { useI18n } from '../i18n/I18nProvider';
+import { getBusinessProfile, saveBusinessProfile } from '../services/api';
 import type { Language } from '../i18n/translations';
 
 const COPY: Record<Language, {
@@ -12,80 +13,130 @@ const COPY: Record<Language, {
   connectedAs: string;
   name: string;
   email: string;
-  company: string;
-  required: string;
+  phone: string;
+  country: string;
   namePlaceholder: string;
   emailPlaceholder: string;
-  optional: string;
+  phonePlaceholder: string;
+  countryPlaceholder: string;
+  required: string;
   getStarted: string;
-  skipNow: string;
+  saving: string;
+  saveError: string;
 }> = {
   en: {
     title: 'Welcome to Link2Pay',
-    subtitle: 'Complete your builder profile to start generating payment links',
+    subtitle: 'Complete your business profile to start generating payment links',
     connectedAs: 'Authenticated as',
-    name: 'Full Name',
-    email: 'Email Address',
-    company: 'Organization',
-    required: '*',
-    namePlaceholder: 'Jane Doe',
+    name: 'Business or display name',
+    email: 'Email address',
+    phone: 'Phone',
+    country: 'Country',
+    namePlaceholder: 'Jane Doe Studio',
     emailPlaceholder: 'you@company.com',
-    optional: 'Optional',
+    phonePlaceholder: '+57 300 123 4567',
+    countryPlaceholder: 'Colombia',
+    required: '*',
     getStarted: 'Enter Dashboard',
-    skipNow: 'Skip for now',
+    saving: 'Saving…',
+    saveError: 'Could not save your profile. Please try again.',
   },
   es: {
     title: 'Bienvenido a Link2Pay',
-    subtitle: 'Completa tu perfil de builder para comenzar a generar links de pago',
+    subtitle: 'Completa tu perfil de negocio para comenzar a generar links de pago',
     connectedAs: 'Autenticado como',
-    name: 'Nombre completo',
-    email: 'Correo electronico',
-    company: 'Organizacion',
-    required: '*',
-    namePlaceholder: 'Juan Perez',
+    name: 'Nombre del negocio o público',
+    email: 'Correo electrónico',
+    phone: 'Teléfono',
+    country: 'País',
+    namePlaceholder: 'Estudio Jane Doe',
     emailPlaceholder: 'tu@empresa.com',
-    optional: 'Opcional',
+    phonePlaceholder: '+57 300 123 4567',
+    countryPlaceholder: 'Colombia',
+    required: '*',
     getStarted: 'Entrar al panel',
-    skipNow: 'Saltar por ahora',
+    saving: 'Guardando…',
+    saveError: 'No se pudo guardar tu perfil. Inténtalo de nuevo.',
   },
   pt: {
     title: 'Bem-vindo ao Link2Pay',
-    subtitle: 'Complete seu perfil builder para comecar a gerar links de pagamento',
+    subtitle: 'Complete seu perfil de negócio para começar a gerar links de pagamento',
     connectedAs: 'Autenticado como',
-    name: 'Nome completo',
-    email: 'Endereco de email',
-    company: 'Organizacao',
-    required: '*',
-    namePlaceholder: 'Joao Silva',
+    name: 'Nome do negócio ou público',
+    email: 'Endereço de email',
+    phone: 'Telefone',
+    country: 'País',
+    namePlaceholder: 'Estúdio João Silva',
     emailPlaceholder: 'voce@empresa.com',
-    optional: 'Opcional',
+    phonePlaceholder: '+55 11 91234 5678',
+    countryPlaceholder: 'Brasil',
+    required: '*',
     getStarted: 'Entrar no painel',
-    skipNow: 'Pular por enquanto',
+    saving: 'Salvando…',
+    saveError: 'Não foi possível salvar seu perfil. Tente novamente.',
   },
 };
 
 export default function Register() {
   const navigate = useNavigate();
-  const { publicKey, connected } = useWalletStore();
+  const { publicKey, connected, privyLoading } = useWalletStore();
   const { language } = useI18n();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [company, setCompany] = useState('');
-
   const copy = COPY[language];
 
-  if (!connected || !publicKey) {
-    navigate('/');
-    return null;
-  }
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!publicKey) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const profile = await getBusinessProfile(publicKey);
+        if (cancelled || !profile) return;
+        setName((v) => v || profile.displayName || '');
+        setEmail((v) => v || profile.email || '');
+        setPhone((v) => v || profile.phone || '');
+        setCountry((v) => v || profile.country || '');
+      } catch {
+        // Prefill is best-effort — an empty form is fine.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [publicKey]);
+
+  useEffect(() => {
+    if (!privyLoading && (!connected || !publicKey)) navigate('/login', { replace: true });
+  }, [connected, publicKey, privyLoading, navigate]);
+
+  if (!connected || !publicKey) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/dashboard');
+    setError(false);
+    setSaving(true);
+    try {
+      await saveBusinessProfile(
+        {
+          displayName: name.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          country: country.trim(),
+        },
+        publicKey
+      );
+      navigate('/dashboard');
+    } catch {
+      setError(true);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const truncateAddress = (addr: string) =>
-    `${addr.slice(0, 8)}...${addr.slice(-4)}`;
+  const truncateAddress = (addr: string) => `${addr.slice(0, 8)}...${addr.slice(-4)}`;
 
   return (
     <div className="min-h-screen gradient-bg p-4 sm:p-6">
@@ -116,47 +167,31 @@ export default function Register() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="label">{copy.name} <span className="text-destructive">{copy.required}</span></label>
-                <input
-                  type="text"
-                  className="input"
-                  placeholder={copy.namePlaceholder}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
+                <input type="text" className="input" placeholder={copy.namePlaceholder}
+                  value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
               <div>
                 <label className="label">{copy.email} <span className="text-destructive">{copy.required}</span></label>
-                <input
-                  type="email"
-                  className="input"
-                  placeholder={copy.emailPlaceholder}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <input type="email" className="input" placeholder={copy.emailPlaceholder}
+                  value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
               <div>
-                <label className="label">{copy.company}</label>
-                <input
-                  type="text"
-                  className="input"
-                  placeholder={copy.optional}
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
-                />
+                <label className="label">{copy.phone} <span className="text-destructive">{copy.required}</span></label>
+                <input type="tel" className="input" placeholder={copy.phonePlaceholder}
+                  value={phone} onChange={(e) => setPhone(e.target.value)} required />
+              </div>
+              <div>
+                <label className="label">{copy.country} <span className="text-destructive">{copy.required}</span></label>
+                <input type="text" className="input" placeholder={copy.countryPlaceholder}
+                  value={country} onChange={(e) => setCountry(e.target.value)} required />
               </div>
 
-              <button type="submit" className="btn-primary w-full py-3 text-base mt-2">
-                {copy.getStarted}
+              {error && <p className="text-xs text-danger">{copy.saveError}</p>}
+
+              <button type="submit" className="btn-primary w-full py-3 text-base mt-2" disabled={saving}>
+                {saving ? copy.saving : copy.getStarted}
               </button>
             </form>
-
-            <div className="mt-4 text-center">
-              <Link to="/dashboard" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                {copy.skipNow}
-              </Link>
-            </div>
           </div>
         </div>
       </div>
