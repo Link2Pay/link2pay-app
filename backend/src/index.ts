@@ -103,12 +103,18 @@ app.use(
 );
 
 // ─── Rate Limiting ──────────────────────────────────────────────────
+// Generous per-IP ceiling: the SPA is chatty (dashboard ~10 calls/load, a
+// payment page polls status every few seconds), and NAT'd offices share one
+// IP. 100/15min locked real users out of login; this is an abuse backstop,
+// not a throttle. Sensitive endpoints keep their own tight limiters below.
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  max: 2000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests, please try again later' },
+  // Health probes (Railway + uptime monitors) shouldn't consume the budget.
+  skip: (req) => req.path === '/health',
 });
 
 const payIntentLimiter = rateLimit({
