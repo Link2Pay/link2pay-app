@@ -12,7 +12,7 @@ import type { Language } from '../i18n/translations';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-type PeriodDays = 7 | 30 | 90;
+type PeriodDays = 7 | 15 | 30 | 60 | 90 | 120 | 150;
 
 const COPY: Record<
   Language,
@@ -44,8 +44,12 @@ const COPY: Record<
     avgMin: string;
     loading: string;
     period7: string;
+    period15: string;
     period30: string;
+    period60: string;
     period90: string;
+    period120: string;
+    period150: string;
   }
 > = {
   en: {
@@ -76,8 +80,12 @@ const COPY: Record<
     avgMin: 'min',
     loading: 'Loading analytics...',
     period7: '7D',
+    period15: '15D',
     period30: '30D',
+    period60: '60D',
     period90: '90D',
+    period120: '120D',
+    period150: '150D',
   },
   es: {
     title: 'Analítica',
@@ -107,8 +115,12 @@ const COPY: Record<
     avgMin: 'min',
     loading: 'Cargando analítica...',
     period7: '7D',
+    period15: '15D',
     period30: '30D',
+    period60: '60D',
     period90: '90D',
+    period120: '120D',
+    period150: '150D',
   },
   pt: {
     title: 'Analítica',
@@ -138,8 +150,12 @@ const COPY: Record<
     avgMin: 'min',
     loading: 'Carregando analítica...',
     period7: '7D',
+    period15: '15D',
     period30: '30D',
+    period60: '60D',
     period90: '90D',
+    period120: '120D',
+    period150: '150D',
   },
 };
 
@@ -531,18 +547,22 @@ export default function Analytics() {
             </h3>
             <p className="mt-1 text-xs text-ink-3">{copy.trendSubtitle}</p>
           </div>
-          <div className="pill-toggle">
+          <div className="pill-toggle flex max-w-full overflow-x-auto overflow-y-hidden">
             {([
               { value: 7 as const, label: copy.period7 },
+              { value: 15 as const, label: copy.period15 },
               { value: 30 as const, label: copy.period30 },
+              { value: 60 as const, label: copy.period60 },
               { value: 90 as const, label: copy.period90 },
+              { value: 120 as const, label: copy.period120 },
+              { value: 150 as const, label: copy.period150 },
             ]).map((option) => (
               <button
                 key={option.value}
                 type="button"
                 onClick={() => setPeriodDays(option.value)}
                 aria-pressed={periodDays === option.value}
-                className={`pill-item ${periodDays === option.value ? 'pill-item-active' : ''}`}
+                className={`pill-item shrink-0 ${periodDays === option.value ? 'pill-item-active' : ''}`}
               >
                 {option.label}
               </button>
@@ -553,8 +573,9 @@ export default function Analytics() {
         {trendPeak <= 0 ? (
           <p className="mt-5 text-xs text-ink-3">{copy.noData}</p>
         ) : (
-          <div className="mt-5 grid gap-2" style={{ gridTemplateColumns: `repeat(${activityTrend.length}, minmax(0, 1fr))` }}>
-            {activityTrend.map((bucket) => (
+          <div className="mt-5 overflow-x-auto pb-1">
+            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${activityTrend.length}, minmax(2.5rem, 1fr))` }}>
+              {activityTrend.map((bucket) => (
               <div key={bucket.startMs} className="rounded-xl border border-border bg-card p-2">
                 <p className="mb-2 truncate text-center text-3xs text-ink-3">{bucket.label}</p>
                 <div className="mx-auto flex h-20 w-6 items-end rounded bg-muted">
@@ -565,7 +586,8 @@ export default function Analytics() {
                 </div>
                 <p className="mt-2 text-center font-mono text-xs text-ink-1 [font-variant-numeric:tabular-nums]">{bucket.created}</p>
               </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </div>

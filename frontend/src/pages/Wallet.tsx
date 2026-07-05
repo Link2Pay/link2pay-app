@@ -54,13 +54,11 @@ const COPY: Record<
     noAssetsDesc: string;
     assetPrimary: string;
     assetAvailable: string;
-    setupEyebrow: string;
     setupTitle: string;
     setupPendingTitle: string;
     setupPendingDesc: string;
     setupReadyTitle: string;
     setupReadyDesc: string;
-    getPaidEyebrow: string;
     getPaidTitle: string;
     noAssets: string;
     active: string;
@@ -102,13 +100,11 @@ const COPY: Record<
     noAssetsDesc: 'Once the wallet is funded, balances will appear here.',
     assetPrimary: 'Primary asset',
     assetAvailable: 'Available on Stellar',
-    setupEyebrow: 'Setup',
-    setupTitle: 'Wallet setup',
+    setupTitle: 'Setup',
     setupPendingTitle: 'Activation required first',
     setupPendingDesc: 'Activate the wallet before enabling additional assets like USDC.',
     setupReadyTitle: 'USDC is ready',
     setupReadyDesc: 'This wallet already has the trustline needed to receive USDC.',
-    getPaidEyebrow: 'Next step',
     getPaidTitle: 'Collect with a QR or payment link',
     noAssets: 'No assets yet',
     active: 'Active',
@@ -151,14 +147,12 @@ const COPY: Record<
     noAssetsDesc: 'Cuando la wallet tenga fondos, los saldos apareceran aqui.',
     assetPrimary: 'Activo principal',
     assetAvailable: 'Disponible en Stellar',
-    setupEyebrow: 'Configuracion',
-    setupTitle: 'Configuracion de wallet',
+    setupTitle: 'Configuracion',
     setupPendingTitle: 'Primero activa la wallet',
     setupPendingDesc: 'Activa la wallet antes de habilitar activos adicionales como USDC.',
     setupReadyTitle: 'USDC listo',
     setupReadyDesc: 'Esta wallet ya tiene la trustline necesaria para recibir USDC.',
-    getPaidEyebrow: 'Siguiente paso',
-    getPaidTitle: 'Cobra con QR o link de pago',
+    getPaidTitle: 'Cobrá con QR o link de pago',
     noAssets: 'Aun sin activos',
     active: 'Activa',
     copyAddress: 'Copiar direccion',
@@ -200,14 +194,12 @@ const COPY: Record<
     noAssetsDesc: 'Quando a wallet tiver fundos, os saldos aparecerao aqui.',
     assetPrimary: 'Ativo principal',
     assetAvailable: 'Disponivel na Stellar',
-    setupEyebrow: 'Configuracao',
-    setupTitle: 'Configuracao da wallet',
+    setupTitle: 'Configuracao',
     setupPendingTitle: 'Ative a wallet primeiro',
     setupPendingDesc: 'Ative a wallet antes de habilitar ativos adicionais como USDC.',
     setupReadyTitle: 'USDC pronto',
     setupReadyDesc: 'Esta wallet ja possui a trustline necessaria para receber USDC.',
-    getPaidEyebrow: 'Proximo passo',
-    getPaidTitle: 'Receba com QR ou link de pagamento',
+    getPaidTitle: 'Proximo passo: Receba com QR ou link de pagamento',
     noAssets: 'Ainda sem ativos',
     active: 'Ativa',
     copyAddress: 'Copiar endereco',
@@ -331,18 +323,6 @@ export default function Wallet() {
         title={copy.title}
         subtitle={copy.subtitle}
         icon={WalletIcon}
-        actions={
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-2xs font-semibold ${
-              network === 'testnet'
-                ? 'border-warning-border bg-warning-subtle text-warning'
-                : 'border-success-border bg-success-subtle text-success'
-            }`}
-          >
-            <span className={`h-1.5 w-1.5 rounded-full ${network === 'testnet' ? 'bg-warning' : 'bg-success'}`} />
-            {networkLabel}
-          </span>
-        }
       />
 
       {!publicKey ? (
@@ -405,27 +385,18 @@ export default function Wallet() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.95fr)]">
             <SectionCard
               title={copy.balanceLabel}
-              eyebrow={copy.title}
               hint={copy.balanceHint}
               action={
-                <div className="flex flex-wrap items-center justify-end gap-2">
-                  {activated && (
-                    <StatusPill
-                      label={`${sortedBalances.length} ${copy.assetsTrackedCount}`}
-                      tone="neutral"
-                    />
-                  )}
-                  <button
-                    type="button"
-                    onClick={refresh}
-                    disabled={loading}
-                    className="btn-ghost text-xs"
-                    aria-label={copy.refresh}
-                  >
-                    <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-                    {copy.refresh}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={refresh}
+                  disabled={loading}
+                  className="btn-ghost shrink-0 text-xs"
+                  aria-label={copy.refresh}
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+                  {copy.refresh}
+                </button>
               }
             >
               {loading ? (
@@ -514,8 +485,7 @@ export default function Wallet() {
             </SectionCard>
 
             <SectionCard
-              title={activated ? copy.receiveTitle : copy.receivePendingTitle}
-              eyebrow={copy.receiveEyebrow}
+              title={copy.receiveEyebrow}
               hint={activated ? copy.receiveHint : copy.receivePendingHint}
               action={
                 <StatusPill
@@ -547,7 +517,6 @@ export default function Wallet() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.95fr)]">
             <SectionCard
               title={copy.setupTitle}
-              eyebrow={copy.setupEyebrow}
               action={activated && hasUsdc ? <StatusPill label={copy.active} tone="success" /> : undefined}
             >
               {!activated ? (
@@ -594,7 +563,7 @@ export default function Wallet() {
 
             <SectionCard
               title={copy.getPaidTitle}
-              eyebrow={copy.getPaidEyebrow}
+              inlineHeader
               action={
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-ink-2">
                   <QrCode className="h-5 w-5" aria-hidden="true" />
