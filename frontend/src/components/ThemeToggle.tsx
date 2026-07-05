@@ -10,7 +10,7 @@ const getCurrentTheme = (): ThemeMode => {
 
 interface ThemeToggleProps {
   /** 'button' = pill con borde (default); 'menuItem' = fila para el menú de cuenta. */
-  variant?: 'button' | 'menuItem';
+  variant?: 'button' | 'menuItem' | 'actionRow';
 }
 
 export default function ThemeToggle({ variant = 'button' }: ThemeToggleProps) {
@@ -28,14 +28,14 @@ export default function ThemeToggle({ variant = 'button' }: ThemeToggleProps) {
     setThemeState(next);
   };
 
-  if (variant === 'menuItem') {
-    // Fila de menú, coherente con Perfil / Desconectar del desplegable de cuenta.
+  if (variant === 'menuItem' || variant === 'actionRow') {
+    // Fila de acción contextual para menús y paneles de cuenta.
     return (
       <button
         type="button"
-        role="menuitem"
+        role={variant === 'menuItem' ? 'menuitem' : undefined}
         onClick={toggleTheme}
-        className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
+        className="flex min-h-11 w-full items-center gap-2 rounded-xl px-2.5 py-2 text-sm text-foreground transition-colors hover:bg-sidebar-accent"
         aria-label={switchTitle}
         title={switchTitle}
       >
