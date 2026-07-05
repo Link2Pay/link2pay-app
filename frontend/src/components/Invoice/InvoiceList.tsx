@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, FilePlus2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FilePlus2, Filter } from 'lucide-react';
 import { listInvoices } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import PageHeader from '../ui/PageHeader';
+import Select from '../ui/Select';
+import DateRangePicker from '../ui/DateRangePicker';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
 import { useNetworkStore } from '../../store/networkStore';
@@ -16,6 +18,11 @@ import type { Language } from '../../i18n/translations';
 const COPY: Record<Language, {
   title: string;
   newInvoice: string;
+  show: string;
+  dateAny: string;
+  dateFrom: string;
+  dateTo: string;
+  dateClear: string;
   all: string;
   draft: string;
   pending: string;
@@ -35,6 +42,11 @@ const COPY: Record<Language, {
   en: {
     title: 'Payment Links',
     newInvoice: 'New Link',
+    show: 'Apply filters',
+    dateAny: 'Any date',
+    dateFrom: 'From',
+    dateTo: 'To',
+    dateClear: 'Clear',
     all: 'All',
     draft: 'Draft',
     pending: 'Pending',
@@ -54,6 +66,11 @@ const COPY: Record<Language, {
   es: {
     title: 'Links de pago',
     newInvoice: 'Nuevo link',
+    show: 'Aplicar filtros',
+    dateAny: 'Cualquier fecha',
+    dateFrom: 'Desde',
+    dateTo: 'Hasta',
+    dateClear: 'Limpiar',
     all: 'Todas',
     draft: 'Borrador',
     pending: 'Pendiente',
@@ -73,6 +90,11 @@ const COPY: Record<Language, {
   pt: {
     title: 'Links de pagamento',
     newInvoice: 'Novo link',
+    show: 'Aplicar filtros',
+    dateAny: 'Qualquer data',
+    dateFrom: 'De',
+    dateTo: 'Até',
+    dateClear: 'Limpar',
     all: 'Todas',
     draft: 'Rascunho',
     pending: 'Pendente',
@@ -107,17 +129,20 @@ export default function InvoiceList() {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
   const [filter, setFilter] = useState('');
+  const [dateRange, setDateRange] = useState({ from: '', to: '' });
 
   useEffect(() => {
     setPage(0);
   }, [showPreviewLinks, networkPassphrase]);
 
   const { data, isLoading: loading } = useQuery({
-    queryKey: ['invoices', publicKey, filter, page, networkPassphrase, showPreviewLinks],
+    queryKey: ['invoices', publicKey, filter, dateRange.from, dateRange.to, page, networkPassphrase, showPreviewLinks],
     queryFn: () =>
       listInvoices(publicKey!, filter || undefined, PAGE_SIZE, page * PAGE_SIZE, {
         excludePreview: !showPreviewLinks,
         networkPassphrase,
+        createdAfter: dateRange.from || undefined,
+        createdBefore: dateRange.to || undefined,
       }),
     enabled: !!publicKey,
     placeholderData: (prev) => prev,
@@ -165,18 +190,31 @@ export default function InvoiceList() {
         }
       />
 
-      <div className="pill-toggle w-fit max-w-full flex-wrap">
-        {statusFilters.map((statusFilter) => (
-          <button
-            key={statusFilter.value}
-            type="button"
-            onClick={() => { setFilter(statusFilter.value); setPage(0); }}
-            aria-pressed={filter === statusFilter.value}
-            className={`pill-item ${filter === statusFilter.value ? 'pill-item-active' : ''}`}
-          >
-            {statusFilter.label}
-          </button>
-        ))}
+      {/* Filtros: etiqueta + dropdowns (status + rango de fechas) — móvil y desktop */}
+      <div>
+        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-2">
+          <Filter className="h-4 w-4 text-ink-3" aria-hidden="true" />
+          {copy.show}
+        </span>
+        <div className="mt-2 flex gap-2">
+          <div className="flex-1 sm:max-w-[220px]">
+            <Select
+              id="links-status-filter"
+              value={filter}
+              options={statusFilters}
+              onChange={(value) => { setFilter(value); setPage(0); }}
+            />
+          </div>
+          <div className="flex-1 sm:max-w-[220px]">
+            <DateRangePicker
+              id="links-date-filter"
+              from={dateRange.from}
+              to={dateRange.to}
+              onChange={(range) => { setDateRange(range); setPage(0); }}
+              labels={{ trigger: copy.dateAny, from: copy.dateFrom, to: copy.dateTo, clear: copy.dateClear }}
+            />
+          </div>
+        </div>
       </div>
 
       {loading ? (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { ArrowRight, Mail, Wallet } from 'lucide-react';
 import { cancelInvoice, deleteInvoice, getOwnerInvoice, sendInvoice } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -12,18 +13,20 @@ import type { Language } from '../../i18n/translations';
 import { downloadInvoicePDF } from './InvoicePDF';
 import ReceiverOffRamp from './ReceiverOffRamp';
 
+const initial = (value?: string) => (value?.trim()?.[0] ?? '?').toUpperCase();
+const shortWallet = (wallet?: string) =>
+  wallet && wallet.length > 14 ? `${wallet.slice(0, 6)}…${wallet.slice(-6)}` : wallet ?? '';
+
 const COPY: Record<Language, {
   loadingInvoice: string;
   invoiceNotFound: string;
   backToInvoices: string;
-  stellarLumens: string;
   sendInvoice: string;
   delete: string;
   cancelLink: string;
   confirmCancel: string;
   linkCancelled: string;
   copied: string;
-  copyPaymentLink: string;
   paymentLink: string;
   copy: string;
   sharePaymentLinkHelp: string;
@@ -43,24 +46,19 @@ const COPY: Record<Language, {
   payer: string;
   confirmDelete: string;
   downloadPdf: string;
-  sendByEmail: string;
   generatingPdf: string;
   pdfDownloaded: string;
-  emailSubject: string;
-  emailBody: string;
 }> = {
   en: {
     loadingInvoice: 'Loading invoice...',
     invoiceNotFound: 'Invoice not found',
     backToInvoices: 'Back to Invoices',
-    stellarLumens: 'Stellar Lumens',
     sendInvoice: 'Send Invoice',
     delete: 'Delete',
     cancelLink: 'Cancel link',
     confirmCancel: 'Cancel this payment link? The payer will no longer be able to pay it.',
     linkCancelled: 'Link cancelled',
     copied: 'Copied!',
-    copyPaymentLink: 'Copy Payment Link',
     paymentLink: 'Payment Link',
     copy: 'Copy',
     sharePaymentLinkHelp: 'Share this link with your client so they can view and pay the invoice.',
@@ -80,24 +78,19 @@ const COPY: Record<Language, {
     payer: 'Payer',
     confirmDelete: 'Are you sure you want to delete this invoice?',
     downloadPdf: 'Download PDF',
-    sendByEmail: 'Send by Email',
     generatingPdf: 'Generating PDF...',
     pdfDownloaded: 'PDF downloaded',
-    emailSubject: 'Invoice',
-    emailBody: 'Please find the attached invoice. You can also view and pay it online at',
   },
   es: {
     loadingInvoice: 'Cargando factura...',
     invoiceNotFound: 'Factura no encontrada',
     backToInvoices: 'Volver a facturas',
-    stellarLumens: 'Stellar Lumens',
     sendInvoice: 'Enviar factura',
     delete: 'Eliminar',
     cancelLink: 'Cancelar link',
     confirmCancel: '¿Cancelar este link de pago? El pagador ya no podrá pagarlo.',
     linkCancelled: 'Link cancelado',
     copied: 'Copiado!',
-    copyPaymentLink: 'Copiar link de pago',
     paymentLink: 'Link de pago',
     copy: 'Copiar',
     sharePaymentLinkHelp: 'Comparte este link con tu cliente para que vea y pague la factura.',
@@ -117,24 +110,19 @@ const COPY: Record<Language, {
     payer: 'Pagador',
     confirmDelete: '¿Seguro que quieres eliminar esta factura?',
     downloadPdf: 'Descargar PDF',
-    sendByEmail: 'Enviar por correo',
     generatingPdf: 'Generando PDF...',
     pdfDownloaded: 'PDF descargado',
-    emailSubject: 'Factura',
-    emailBody: 'Adjunto encontrarás la factura. También puedes verla y pagarla en línea en',
   },
   pt: {
     loadingInvoice: 'Carregando fatura...',
     invoiceNotFound: 'Fatura não encontrada',
     backToInvoices: 'Voltar para faturas',
-    stellarLumens: 'Stellar Lumens',
     sendInvoice: 'Enviar fatura',
     delete: 'Excluir',
     cancelLink: 'Cancelar link',
     confirmCancel: 'Cancelar este link de pagamento? O pagador não poderá mais pagá-lo.',
     linkCancelled: 'Link cancelado',
     copied: 'Copiado!',
-    copyPaymentLink: 'Copiar link de pagamento',
     paymentLink: 'Link de pagamento',
     copy: 'Copiar',
     sharePaymentLinkHelp: 'Compartilhe este link com seu cliente para visualizar e pagar a fatura.',
@@ -154,11 +142,8 @@ const COPY: Record<Language, {
     payer: 'Pagador',
     confirmDelete: 'Tem certeza que deseja excluir esta fatura?',
     downloadPdf: 'Baixar PDF',
-    sendByEmail: 'Enviar por email',
     generatingPdf: 'Gerando PDF...',
     pdfDownloaded: 'PDF baixado',
-    emailSubject: 'Fatura',
-    emailBody: 'Em anexo você encontra a fatura. Você também pode visualizá-la e pagá-la online em',
   },
 };
 
@@ -269,28 +254,6 @@ export default function InvoiceDetail() {
     }
   };
 
-  const handleSendByEmail = async () => {
-    if (!invoice) return;
-    setPdfLoading(true);
-    try {
-      // First download the PDF so the user has it ready to attach
-      await downloadInvoicePDF(invoice, paymentLink);
-      toast.success(copy.pdfDownloaded);
-
-      // Then open mailto with pre-filled subject and body
-      const subject = encodeURIComponent(`${copy.emailSubject} ${invoice.invoiceNumber}`);
-      const body = encodeURIComponent(
-        `${copy.emailBody}\n${paymentLink}\n\n—\nLink2Pay`
-      );
-      window.open(`mailto:${invoice.clientEmail}?subject=${subject}&body=${body}`, '_blank');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to generate PDF');
-    } finally {
-      setPdfLoading(false);
-    }
-  };
-
-
   if (loading) {
     return <div className="text-center py-20 text-ink-3 text-sm">{copy.loadingInvoice}</div>;
   }
@@ -308,18 +271,12 @@ export default function InvoiceDetail() {
 
   return (
     <div className="animate-in space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h2 className="text-lg font-semibold text-ink-0">{invoice.invoiceNumber}</h2>
-            <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
-          </div>
-          <p className="text-sm text-ink-3">{invoice.title}</p>
+      <div>
+        <div className="flex items-center gap-3 mb-1">
+          <h2 className="text-lg font-semibold text-ink-0">{invoice.invoiceNumber}</h2>
+          <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
         </div>
-        <div className="sm:text-right">
-          <p className="text-2xl font-semibold font-mono text-ink-0">{formatAmount(invoice.total, invoice.currency)}</p>
-          <p className="text-xs text-ink-3 mt-1">{invoice.currency === 'XLM' ? copy.stellarLumens : invoice.currency}</p>
-        </div>
+        <p className="text-sm text-ink-3">{invoice.title}</p>
       </div>
 
       {isOwner && (
@@ -334,16 +291,8 @@ export default function InvoiceDetail() {
               </button>
             </>
           )}
-          {['PENDING', 'DRAFT'].includes(invoice.status) && (
-            <button onClick={handleCopyLink} className="btn-secondary text-sm">
-              {copied ? copy.copied : copy.copyPaymentLink}
-            </button>
-          )}
           <button onClick={handleDownloadPdf} disabled={pdfLoading} className="btn-secondary text-sm">
             {pdfLoading ? copy.generatingPdf : copy.downloadPdf}
-          </button>
-          <button onClick={handleSendByEmail} disabled={pdfLoading} className="btn-secondary text-sm">
-            {pdfLoading ? copy.generatingPdf : copy.sendByEmail}
           </button>
           {!['DRAFT', 'PAID', 'SETTLING', 'SETTLED_FIAT', 'CANCELLED', 'EXPIRED', 'FAILED'].includes(invoice.status) && (
             <button onClick={handleCancel} disabled={actionLoading} className="btn-danger text-sm">
@@ -368,19 +317,45 @@ export default function InvoiceDetail() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="card p-5">
-          <h4 className="text-xs font-semibold text-ink-3 uppercase tracking-wider mb-3">{copy.from}</h4>
-          {invoice.freelancerName && <p className="text-sm font-medium text-ink-0">{invoice.freelancerName}</p>}
-          {invoice.freelancerCompany && <p className="text-sm text-ink-2">{invoice.freelancerCompany}</p>}
-          <p className="text-xs font-mono text-ink-3 mt-1 break-all">{invoice.freelancerWallet}</p>
-        </div>
+      <div className="card p-5">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+          <div>
+            <p className="mb-3 text-2xs font-medium uppercase tracking-label text-muted-foreground">{copy.from}</p>
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-ink-1">
+                {initial(invoice.freelancerName || invoice.freelancerWallet)}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-ink-0">{invoice.freelancerName ?? '—'}</p>
+                {invoice.freelancerCompany && <p className="truncate text-xs text-ink-2">{invoice.freelancerCompany}</p>}
+                <p className="mt-1 flex items-center gap-1.5 font-mono text-xs text-ink-3">
+                  <Wallet className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{shortWallet(invoice.freelancerWallet)}</span>
+                </p>
+              </div>
+            </div>
+          </div>
 
-        <div className="card p-5">
-          <h4 className="text-xs font-semibold text-ink-3 uppercase tracking-wider mb-3">{copy.to}</h4>
-          <p className="text-sm font-medium text-ink-0">{invoice.clientName}</p>
-          {invoice.clientCompany && <p className="text-sm text-ink-2">{invoice.clientCompany}</p>}
-          <p className="text-sm text-ink-3">{invoice.clientEmail}</p>
+          <div className="flex justify-center text-ink-3">
+            <ArrowRight className="h-5 w-5 rotate-90 sm:rotate-0" aria-hidden="true" />
+          </div>
+
+          <div>
+            <p className="mb-3 text-2xs font-medium uppercase tracking-label text-muted-foreground">{copy.to}</p>
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold text-ink-1">
+                {initial(invoice.clientName)}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-ink-0">{invoice.clientName}</p>
+                {invoice.clientCompany && <p className="truncate text-xs text-ink-2">{invoice.clientCompany}</p>}
+                <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-3">
+                  <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{invoice.clientEmail}</span>
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

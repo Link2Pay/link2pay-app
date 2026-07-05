@@ -210,13 +210,21 @@ export class InvoiceService {
     limit = 50,
     offset = 0,
     excludePreview = false,
-    networkPassphrase?: string
+    networkPassphrase?: string,
+    createdAfter?: string,
+    createdBefore?: string
   ) {
     const where = {
       freelancerWallet,
       deletedAt: null, // exclude soft-deleted
       ...(status && { status }),
       ...(networkPassphrase && { networkPassphrase }),
+      ...((createdAfter || createdBefore) && {
+        createdAt: {
+          ...(createdAfter && { gte: new Date(`${createdAfter}T00:00:00.000Z`) }),
+          ...(createdBefore && { lte: new Date(`${createdBefore}T23:59:59.999Z`) }),
+        },
+      }),
       ...(excludePreview && {
         OR: [
           { notes: null },

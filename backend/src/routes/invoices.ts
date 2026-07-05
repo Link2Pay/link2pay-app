@@ -102,6 +102,8 @@ router.get('/', requireWallet, async (req: Request, res: Response) => {
     const offset = Math.max(parseInt((req.query.offset as string) || '0', 10), 0);
     const excludePreview = req.query.excludePreview === 'true';
     const networkPassphraseRaw = req.query.networkPassphrase as string | undefined;
+    const createdAfter = (req.query.createdAfter as string) || undefined;
+    const createdBefore = (req.query.createdBefore as string) || undefined;
     const allowedPassphrases = new Set<string>([
       NETWORK_CONFIG.testnet.networkPassphrase,
       NETWORK_CONFIG.mainnet.networkPassphrase,
@@ -111,13 +113,21 @@ router.get('/', requireWallet, async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid network passphrase' });
     }
 
+    for (const value of [createdAfter, createdBefore]) {
+      if (value && Number.isNaN(new Date(value).getTime())) {
+        return res.status(400).json({ error: 'Invalid date' });
+      }
+    }
+
     const result = await invoiceService.listInvoices(
       walletAddress,
       status,
       limit,
       offset,
       excludePreview,
-      networkPassphraseRaw
+      networkPassphraseRaw,
+      createdAfter,
+      createdBefore
     );
     res.json(result);
   } catch (error: any) {

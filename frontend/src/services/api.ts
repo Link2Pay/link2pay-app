@@ -149,7 +149,7 @@ export async function listInvoices(
   status?: string,
   limit = 50,
   offset = 0,
-  options?: { excludePreview?: boolean; networkPassphrase?: string }
+  options?: { excludePreview?: boolean; networkPassphrase?: string; createdAfter?: string; createdBefore?: string }
 ): Promise<{ invoices: Invoice[]; total: number }> {
   const params = new URLSearchParams();
   const networkPassphrase = options?.networkPassphrase || useNetworkStore.getState().networkPassphrase;
@@ -158,6 +158,8 @@ export async function listInvoices(
   params.set('offset', String(offset));
   if (options?.excludePreview) params.set('excludePreview', 'true');
   if (networkPassphrase) params.set('networkPassphrase', networkPassphrase);
+  if (options?.createdAfter) params.set('createdAfter', options.createdAfter);
+  if (options?.createdBefore) params.set('createdBefore', options.createdBefore);
   return request<{ invoices: Invoice[]; total: number }>(
     `/invoices?${params.toString()}`,
     {},
