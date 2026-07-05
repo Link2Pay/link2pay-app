@@ -58,3 +58,6 @@ references/
 # not part of the shared codebase
 CLAUDE.md
 docs/superpowers/
+
+# CommandCode tool artifacts
+.commandcode/
