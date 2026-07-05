@@ -167,20 +167,25 @@ export default function InvoiceDetail() {
   const [copied, setCopied] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
 
+  // Preview solo-dev (`/dev/links/mock-*`): renderiza el detalle real con datos mock,
+  // sin wallet conectada y sin backend. Detrás de `import.meta.env.DEV` → sin efecto en prod.
+  const isMockPreview = import.meta.env.DEV && (id?.startsWith('mock') ?? false);
+
   useEffect(() => {
-    if (!id || !publicKey) return;
+    if (!id) return;
+    if (!publicKey && !isMockPreview) return;
 
     setLoading(true);
     setError(null);
 
-    getOwnerInvoice(id, publicKey)
+    getOwnerInvoice(id, publicKey ?? '')
       .then(setInvoice)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [id, publicKey]);
+  }, [id, publicKey, isMockPreview]);
 
   const paymentLink = invoice ? `${window.location.origin}/pay/${invoice.id}` : '';
-  const isOwner = invoice?.freelancerWallet === publicKey;
+  const isOwner = isMockPreview ? true : invoice?.freelancerWallet === publicKey;
 
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(paymentLink);

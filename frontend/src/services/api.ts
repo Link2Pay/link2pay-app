@@ -183,6 +183,13 @@ export async function getOwnerInvoice(
   id: string,
   walletAddress: string
 ): Promise<Invoice> {
+  // Preview solo-dev del detalle de link: devuelve un fixture sin tocar el backend.
+  // El guard `import.meta.env.DEV` + import dinámico eliminan esta rama en producción.
+  if (import.meta.env.DEV && id.startsWith('mock')) {
+    const { getMockLink } = await import('../dev/mockLinks');
+    const inv = getMockLink(id);
+    if (inv) return inv;
+  }
   return request<Invoice>(`/invoices/${id}/owner`, {}, walletAddress);
 }
 

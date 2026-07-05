@@ -37,6 +37,12 @@ const CheckoutPreviewIndex = import.meta.env.DEV
   ? lazy(() => import('./dev/CheckoutPreviewIndex'))
   : null;
 
+// Preview solo-dev del detalle de link (InvoiceDetail con datos mock). Mismo
+// guard que arriba → excluido del build de producción.
+const LinkPreviewIndex = import.meta.env.DEV
+  ? lazy(() => import('./dev/LinkPreviewIndex'))
+  : null;
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -102,6 +108,17 @@ export default function App() {
           {/* Índice de preview del checkout — solo desarrollo. */}
           {import.meta.env.DEV && CheckoutPreviewIndex && (
             <Route path="/dev/checkout" element={<CheckoutPreviewIndex />} />
+          )}
+
+          {/* Preview del detalle de link — solo desarrollo. Fuera del guard de
+              <Layout>, renderiza el InvoiceDetail real con datos mock. */}
+          {import.meta.env.DEV && LinkPreviewIndex && (
+            <Route path="/dev/links" element={<LinkPreviewIndex />} />
+          )}
+          {import.meta.env.DEV && (
+            <Route element={<Layout />}>
+              <Route path="/dev/links/:id" element={<InvoiceDetail />} />
+            </Route>
           )}
 
           {/* Public marketing pages */}

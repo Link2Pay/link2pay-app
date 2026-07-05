@@ -71,6 +71,10 @@ export default function Layout() {
 
   const profileInitial = (publicKey?.[0] || 'L').toUpperCase();
 
+  // Preview solo-dev (`/dev/*`): renderiza el contenido con el chrome real del
+  // dashboard sin exigir wallet conectada. Rama muerta en producción.
+  const isDevPreview = import.meta.env.DEV && location.pathname.startsWith('/dev/');
+
   return (
     <div className="min-h-screen md:flex">
       <aside className="hidden border-r border-sidebar-border bg-sidebar md:fixed md:z-10 md:flex md:h-full md:w-64 md:flex-col">
@@ -222,7 +226,7 @@ export default function Layout() {
         />
 
         <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 md:px-8">
-          {connected ? (
+          {connected || isDevPreview ? (
             <Outlet />
           ) : privyLoading ? (
             <div className="flex min-h-[60vh] items-center justify-center">
