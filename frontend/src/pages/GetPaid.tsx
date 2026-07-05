@@ -6,7 +6,7 @@ import { Copy, FilePlus2, Landmark, QrCode } from 'lucide-react';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import { useWalletStore } from '../store/walletStore';
-import { getBusinessProfile } from '../services/api';
+import { getBusinessProfile, getKycStatus } from '../services/api';
 import { shortenAddress } from '../lib/format';
 import { railByCountry, FIAT_RAILS } from '../config/rails';
 import { config } from '../config';
@@ -27,6 +27,9 @@ const COPY: Record<
     receiveFiat: string;
     receiveCop: string;
     receiveCopDesc: string;
+    fiatKycTitle: string;
+    fiatKycDesc: string;
+    fiatKycCta: string;
     noAlias: string;
     setupAlias: string;
     needItemized: string;
@@ -47,6 +50,9 @@ const COPY: Record<
     receiveFiat: 'Receive in fiat',
     receiveCop: 'Receive in COP · Bre-B',
     receiveCopDesc: 'Share your Bre-B llave so payers can send pesos.',
+    fiatKycTitle: 'Identity verification required',
+    fiatKycDesc: 'Verify your identity to receive pesos with Bre-B and set up your QR.',
+    fiatKycCta: 'Verify identity',
     noAlias: 'No Bre-B alias saved yet.',
     setupAlias: 'Add one in your business profile',
     needItemized: 'Need an itemized request with line items and tax?',
@@ -66,6 +72,9 @@ const COPY: Record<
     receiveFiat: 'Recibir en fiat',
     receiveCop: 'Recibir en COP · Bre-B',
     receiveCopDesc: 'Comparte tu llave Bre-B para que te envien pesos.',
+    fiatKycTitle: 'Se requiere verificación de identidad',
+    fiatKycDesc: 'Verifica tu identidad para recibir pesos con Bre-B y configurar tu QR.',
+    fiatKycCta: 'Verificar identidad',
     noAlias: 'Aun no guardaste una llave Bre-B.',
     setupAlias: 'Agrega una en tu perfil de negocio',
     needItemized: '¿Necesitas una solicitud con items e impuestos?',
@@ -85,6 +94,9 @@ const COPY: Record<
     receiveFiat: 'Receber em fiat',
     receiveCop: 'Receber em COP · Bre-B',
     receiveCopDesc: 'Compartilhe sua chave Bre-B para receber pesos.',
+    fiatKycTitle: 'Verificação de identidade necessária',
+    fiatKycDesc: 'Verifique sua identidade para receber com Bre-B e configurar seu QR.',
+    fiatKycCta: 'Verificar identidade',
     noAlias: 'Nenhuma chave Bre-B salva ainda.',
     setupAlias: 'Adicione uma no seu perfil de negocio',
     needItemized: 'Precisa de uma solicitacao com itens e impostos?',
@@ -102,6 +114,8 @@ export default function GetPaid() {
   const { publicKey } = useWalletStore();
   const [alias, setAlias] = useState<string | null>(null);
   const [country, setCountry] = useState('');
+
+  const [kycCleared, setKycCleared] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!publicKey) return;
@@ -126,6 +140,20 @@ export default function GetPaid() {
   const fiatRail = railByCountry(country) ?? FIAT_RAILS.BRE_B;
   // Usable only when rolled out AND this environment allows fiat (testnet walls it).
   const fiatLive = fiatRail.status === 'live' && config.fiatRailsEnabled;
+
+  useEffect(() => {
+    if (!publicKey || !fiatLive) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const view = await getKycStatus(publicKey);
+        if (!cancelled) setKycCleared(view.status === 'VERIFIED' || !view.enforced);
+      } catch {
+        if (!cancelled) setKycCleared(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [publicKey, fiatLive]);
 
   const payUri = publicKey ? `web+stellar:pay?destination=${publicKey}` : '';
 
@@ -190,6 +218,14 @@ export default function GetPaid() {
 
               {!fiatLive ? (
                 <ComingSoonWall rail={fiatRail} wallet={publicKey} />
+              ) : kycCleared === false ? (
+                <div className="rounded-xl border border-surface-3 bg-muted p-4 text-center">
+                  <p className="text-sm font-semibold text-ink-1">{copy.fiatKycTitle}</p>
+                  <p className="mt-1 text-xs text-ink-3">{copy.fiatKycDesc}</p>
+                  <Link to="/dashboard/profile-options#kyc-section" className="btn-primary mt-3 inline-flex text-sm">
+                    {copy.fiatKycCta}
+                  </Link>
+                </div>
               ) : (
                 <>
                   <p className="mb-4 text-xs text-ink-3">{copy.receiveCopDesc}</p>
