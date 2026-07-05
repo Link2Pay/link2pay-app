@@ -627,7 +627,9 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   // A rail is usable when it's rolled out AND this environment allows fiat
   // (testnet walls fiat — the anchor there only simulates settlement).
   const fiatLive = fiatRail.status === 'live' && config.fiatRailsEnabled;
-  const fiatSelected = payoutMethod === 'BRE_B';
+  // On fiat-disabled environments the option isn't rendered, so BRE_B can
+  // never be selected; the extra guard keeps stale state from resurfacing it.
+  const fiatSelected = payoutMethod === 'BRE_B' && config.fiatRailsEnabled;
   const fiatWalled = fiatSelected && !fiatLive;
   const directAmountId = `${formId}-direct-amount`;
   const directCurrencyId = `${formId}-direct-currency`;
@@ -729,9 +731,11 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
 
   const renderSettlementSection = (compact = false) => (
     <div className="space-y-3">
+      {/* Fiat is an environment capability: on fiat-disabled environments
+          (testnet is crypto-only) the option is not rendered at all. */}
       <fieldset>
         <legend className="label mb-2">{copy.settlement}</legend>
-        <div className={`grid grid-cols-1 gap-2 ${compact ? '' : 'sm:grid-cols-2'}`}>
+        <div className={`grid grid-cols-1 gap-2 ${compact || !config.fiatRailsEnabled ? '' : 'sm:grid-cols-2'}`}>
           <SettlementOptionCard
             id={`${formId}-settlement-crypto`}
             name={`${formId}-settlement`}
@@ -742,16 +746,18 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
             description={t('rail.cryptoDesc', { currency })}
             onChange={setPayoutMethod}
           />
-          <SettlementOptionCard
-            id={`${formId}-settlement-fiat`}
-            name={`${formId}-settlement`}
-            value="BRE_B"
-            checked={fiatSelected}
-            compact={compact}
-            title={`${t('rail.fiatOfframp')} · ${fiatRail.railName} (${fiatRail.currency})`}
-            description={t('rail.fiatDesc', { currency, fiat: fiatRail.currency })}
-            onChange={setPayoutMethod}
-          />
+          {config.fiatRailsEnabled && (
+            <SettlementOptionCard
+              id={`${formId}-settlement-fiat`}
+              name={`${formId}-settlement`}
+              value="BRE_B"
+              checked={fiatSelected}
+              compact={compact}
+              title={`${t('rail.fiatOfframp')} · ${fiatRail.railName} (${fiatRail.currency})`}
+              description={t('rail.fiatDesc', { currency, fiat: fiatRail.currency })}
+              onChange={setPayoutMethod}
+            />
+          )}
         </div>
       </fieldset>
       {fiatSelected && fiatLive && (

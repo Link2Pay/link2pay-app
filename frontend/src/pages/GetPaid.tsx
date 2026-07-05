@@ -177,7 +177,9 @@ export default function GetPaid() {
               </div>
             </div>
 
-            {/* Receive in local fiat — Bre-B live, Pix / Transferência 3.0 walled */}
+            {/* Receive in local fiat — Bre-B live, Pix / Transferência 3.0 walled.
+                Hidden entirely on fiat-disabled environments (testnet is crypto-only). */}
+            {config.fiatRailsEnabled && (
             <div className="card p-5">
               <div className="mb-1 flex items-center gap-2">
                 <Landmark className="h-4 w-4 text-ink-3" />
@@ -220,6 +222,7 @@ export default function GetPaid() {
                 </>
               )}
             </div>
+            )}
           </div>
 
           {/* Itemized request CTA */}
