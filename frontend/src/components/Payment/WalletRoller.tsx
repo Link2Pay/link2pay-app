@@ -25,11 +25,13 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
   const [connecting, setConnecting] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  // "Ver más" progresivo: se revela un lote por clic. El lote = nº de columnas
-  // del grid (2 en <640px, 3 en ≥640px), alineado con `sm:grid-cols-3`.
+  // "Ver más" progresivo. El nº de columnas del grid es 2 en <640px y 3 en
+  // ≥640px (alineado con `sm:grid-cols-3`): se muestran 3/2 al inicio y cada
+  // clic revela el doble (6 en desktop, 4 en mobile).
   const isDesktop = useMediaQuery('(min-width: 640px)');
-  const perBatch = isDesktop ? 3 : 2;
-  const [rowsShown, setRowsShown] = useState(1);
+  const perRow = isDesktop ? 3 : 2;
+  const [moreClicks, setMoreClicks] = useState(0);
+  const visibleCount = perRow + moreClicks * perRow * 2;
 
   useEffect(() => {
     let cancelled = false;
@@ -96,7 +98,7 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
 
   // Una vez conectada una wallet no tiene sentido paginar (el flujo avanza y la
   // elegida siempre estuvo en el lote visible). Si no, mostramos por lotes.
-  const visible = connectedAddress ? sorted : sorted.slice(0, rowsShown * perBatch);
+  const visible = connectedAddress ? sorted : sorted.slice(0, visibleCount);
   const hiddenCount = sorted.length - visible.length;
 
   return (
@@ -174,7 +176,7 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
       {!connectedAddress && hiddenCount > 0 && (
         <button
           type="button"
-          onClick={() => setRowsShown((r) => r + 1)}
+          onClick={() => setMoreClicks((c) => c + 1)}
           className="btn-ghost w-full text-sm"
         >
           {t('wallet.showMore')} ({hiddenCount})
