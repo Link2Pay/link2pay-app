@@ -600,3 +600,21 @@ export async function getPaymentStatus(
 }> {
   return request(`/payments/${invoiceId}/status`);
 }
+
+// ─── Scan-session handoff API ─────────────────────────────────────
+export interface ScanSessionCreated {
+  token: string;
+  expiresAt: number;
+}
+
+export type ScanSessionState =
+  | { status: 'pending' }
+  | { status: 'ready'; llave: string };
+
+export async function createScanSession(walletAddress: string): Promise<ScanSessionCreated> {
+  return request<ScanSessionCreated>('/profile/scan-session', { method: 'POST' }, walletAddress);
+}
+
+export async function getScanSession(token: string, walletAddress: string): Promise<ScanSessionState> {
+  return request<ScanSessionState>(`/profile/scan-session/${token}`, {}, walletAddress);
+}
