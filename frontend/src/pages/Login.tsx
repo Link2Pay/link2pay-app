@@ -63,6 +63,10 @@ export default function Login() {
             )}
           </div>
 
+          {privyEnabled && (
+            <p className="mt-4 text-2xs text-ink-3 text-center">{t('login.sameMethodHint')}</p>
+          )}
+
           {/* Trust signals */}
           <div className="mt-6 flex items-center justify-center gap-4 border-t border-border pt-5">
             {trust.map(({ icon: Icon, label }) => (

@@ -50,3 +50,5 @@ references/
 .agents/
 # Playwright MCP scratch output
 .playwright-mcp/
+# Vercel CLI project link
+.vercel

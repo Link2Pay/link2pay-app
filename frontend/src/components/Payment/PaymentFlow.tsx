@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Check, X, AlertCircle, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { Check, X, Info } from 'lucide-react';
 import { getInvoice, createPayIntent, submitPayment, getPaymentStatus, getXlmPrice } from '../../services/api';
-import { useWalletStore } from '../../store/walletStore';
+import { kitSignWith, kitGetNetwork } from '../../services/walletsKit';
 import InvoiceStatusBadge from '../Invoice/InvoiceStatusBadge';
-import WalletConnect from '../Wallet/WalletConnect';
+import WalletRoller from './WalletRoller';
 import OffRampPayment from './OffRampPayment';
 import LanguageToggle from '../LanguageToggle';
 import ThemeToggle from '../ThemeToggle';
@@ -13,10 +13,11 @@ import BrandWordmark from '../BrandWordmark';
 import type { PublicInvoice, InvoiceStatus } from '../../types';
 import InvoiceDocument from '../Invoice/InvoiceDocument';
 import { formatAmount } from '../../lib/format';
+import { config } from '../../config';
 import { useI18n } from '../../i18n/I18nProvider';
 import type { Language } from '../../i18n/translations';
 
-type PayStep = 'loading' | 'view' | 'connect' | 'paying' | 'confirming' | 'success' | 'error' | 'closed';
+type PayStep = 'loading' | 'view' | 'paying' | 'confirming' | 'success' | 'error' | 'closed';
 
 type CheckoutStepLabels = {
   progress: string;
@@ -102,16 +103,14 @@ async function launchSep7Uri(uri: string): Promise<boolean> {
 
 export default function PaymentFlow() {
   const { id } = useParams<{ id: string }>();
-  const { connected, publicKey, signTransaction, disconnect, getFreighterNetwork, _externalSigner } = useWalletStore();
   const { t, language } = useI18n();
   const [invoice, setInvoice] = useState<PublicInvoice | null>(null);
   const [step, setStep] = useState<PayStep>('loading');
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [xlmPriceUsd, setXlmPriceUsd] = useState<number | null>(null);
-  const [freighterNetwork, setFreighterNetwork] = useState<string | null>(null);
+  const [kitAddress, setKitAddress] = useState<string | null>(null);
   const [hasNetworkMismatch, setHasNetworkMismatch] = useState(false);
-  const [showMismatchDetails, setShowMismatchDetails] = useState(false);
   // Open-amount invoices: the payer types the amount here at pay time.
   const [payAmount, setPayAmount] = useState('');
   const stepLabels = CHECKOUT_STEP_LABELS[language];
@@ -141,62 +140,25 @@ export default function PaymentFlow() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Detect Kit wallet network mismatch when a connected wallet is on the wrong network.
   useEffect(() => {
-    if (connected && step === 'connect') {
-      setStep('view');
-    }
-  }, [connected, step]);
-
-  // Detect Freighter's network when connected and check against invoice network.
-  // Only applies to the Freighter browser extension — Privy (or any embedded
-  // wallet, exposed via _externalSigner) signs on the invoice's own network, so
-  // there is nothing to poll and no mismatch to guard against.
-  useEffect(() => {
-    if (!connected || !invoice || _externalSigner) {
-      setFreighterNetwork(null);
-      setHasNetworkMismatch(false);
-      return;
-    }
-
-    const detectFreighterNetwork = async () => {
-      try {
-        const detectedPassphrase = await getFreighterNetwork();
-
-        setFreighterNetwork(detectedPassphrase);
-
-        // Check if Freighter matches the invoice network
-        const hasMismatch = Boolean(
-          detectedPassphrase &&
-            invoice.networkPassphrase &&
-            detectedPassphrase !== invoice.networkPassphrase
-        );
-
-        if (hasMismatch) {
-          setHasNetworkMismatch(true);
-        } else {
-          // Network matches now - if there was a mismatch before, disconnect and reload
-          if (
-            hasNetworkMismatch &&
-            detectedPassphrase &&
-            invoice.networkPassphrase &&
-            detectedPassphrase === invoice.networkPassphrase
-          ) {
-            disconnect();
-            setTimeout(() => window.location.reload(), 500);
-          }
-          setHasNetworkMismatch(false);
-        }
-      } catch (err) {
-        console.error('[PaymentFlow] Error detecting Freighter network:', err);
+    if (!kitAddress || !invoice) return;
+    let cancelled = false;
+    const check = async () => {
+      const info = await kitGetNetwork();
+      if (cancelled || !info) return;
+      const mismatch = info.networkPassphrase !== invoice.networkPassphrase;
+      if (mismatch !== hasNetworkMismatch) {
+        setHasNetworkMismatch(mismatch);
       }
     };
-
-    detectFreighterNetwork();
-
-    // Poll for network changes every 2 seconds
-    const interval = setInterval(detectFreighterNetwork, 2000);
-    return () => clearInterval(interval);
-  }, [connected, disconnect, getFreighterNetwork, hasNetworkMismatch, invoice, _externalSigner]);
+    check();
+    const interval = setInterval(check, 3000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [kitAddress, invoice, hasNetworkMismatch]);
 
   // Fetch XLM price for USD equivalent display
   useEffect(() => {
@@ -295,12 +257,11 @@ export default function PaymentFlow() {
 
   const handlePay = async () => {
     if (!invoice || !id) return;
-    const canSignInPage = Boolean(publicKey);
     const mobileDevice = isLikelyMobileDevice();
 
     // Block payment if there's a network mismatch
     if (hasNetworkMismatch) {
-      setError('Please switch your Freighter wallet to the correct network first');
+      setError('Please switch your wallet to the correct network first.');
       return;
     }
 
@@ -310,11 +271,10 @@ export default function PaymentFlow() {
       return;
     }
 
-    // On desktop, prefer in-page Freighter signing over SEP-7 deep links.
-    // This avoids "no handler registered" failures for web+stellar URIs.
-    if (!canSignInPage && !mobileDevice) {
+    // On desktop, if no Kit wallet is connected, try SEP-7 deep link on mobile only.
+    // Desktop without Kit wallet shows the roller — no old Freighter fallback.
+    if (!kitAddress && !mobileDevice) {
       setError(t('payment.desktopConnectRequired'));
-      setStep('connect');
       return;
     }
 
@@ -322,18 +282,15 @@ export default function PaymentFlow() {
     setError(null);
 
     try {
-      // Use the networkPassphrase from the invoice
-      console.log('[PaymentFlow] Using networkPassphrase from invoice:', invoice.networkPassphrase);
       const payIntent = await createPayIntent(
         id,
-        canSignInPage ? publicKey : undefined,
+        kitAddress || undefined,
         invoice.networkPassphrase,
         invoice.isOpenAmount ? payAmount : undefined
       );
 
       // When no in-page wallet is connected, use SEP-7 deep link flow.
-      if (!canSignInPage && payIntent.sep7Uri) {
-        console.log('[PaymentFlow] No in-page wallet connected, opening SEP-7 URI');
+      if (!kitAddress && payIntent.sep7Uri) {
         const launched = await launchSep7Uri(payIntent.sep7Uri);
         if (!launched) {
           throw new Error(t('payment.sep7NoHandlerMobile'));
@@ -354,7 +311,7 @@ export default function PaymentFlow() {
         throw new Error('Unable to build transaction for signing. Please reconnect your wallet and try again.');
       }
 
-      const signedXdr = await signTransaction(payIntent.transactionXdr, payIntent.networkPassphrase);
+      const signedXdr = await kitSignWith(kitAddress!, payIntent.transactionXdr, payIntent.networkPassphrase);
 
       setStep('confirming');
       const result = await submitPayment(id, signedXdr);
@@ -362,9 +319,6 @@ export default function PaymentFlow() {
       if (result.success) {
         setTxHash(result.transactionHash);
         setStep('success');
-        // The payment already succeeded — refreshing the invoice is a nice-to-have
-        // for the receipt view. Never let a failed refetch throw us into the catch
-        // and show the payer an error for a payment that actually went through.
         getInvoice(id).then(setInvoice).catch(() => {});
       } else {
         throw new Error(t('payment.txSubmissionFailed'));
@@ -385,8 +339,7 @@ export default function PaymentFlow() {
   const checkoutStage = (() => {
     if (step === 'success' || invoice?.status === 'PAID') return 3;
     if (step === 'confirming' || step === 'paying') return 2;
-    // "Wallet connected" is only truthful once a wallet is actually connected.
-    if (connected) return 1;
+    if (kitAddress) return 1;
     return 0;
   })();
 
@@ -431,67 +384,23 @@ export default function PaymentFlow() {
         </div>
 
         {/* Network Mismatch Warning Banner */}
-        {hasNetworkMismatch && freighterNetwork && invoice && (
+        {hasNetworkMismatch && kitAddress && invoice && (
           <div className="mb-4 rounded-lg border border-destructive-border bg-destructive-subtle p-4">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <Info className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-bold text-destructive mb-2">
                   {t('payment.networkMismatchTitle')}
                 </h3>
                 <p className="text-xs text-destructive mb-3">
                   {t('payment.networkMismatchDesc', {
-                    current: freighterNetwork === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet',
+                    current: invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Mainnet' : 'Testnet',
                     required: invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet',
                   })}
                 </p>
-
-                {/* Collapsible instructions — always visible on md+, toggle on mobile */}
-                <div className="hidden md:block bg-destructive-subtle border border-destructive-border rounded-lg p-3 mb-3">
-                  <p className="text-xs font-semibold text-destructive mb-2">
-                    {t('payment.switchInstructions', { network: invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet' })}
-                  </p>
-                  <ol className="text-xs text-destructive space-y-1.5 ml-4 list-decimal">
-                    <li>{t('payment.switchStep1')}</li>
-                    <li>{t('payment.switchStep2')}</li>
-                    <li>{t('payment.switchStep3')}</li>
-                    <li>{t('payment.switchStep4', { network: invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet' })}</li>
-                    <li>{t('payment.switchStep5')}</li>
-                  </ol>
-                </div>
-
-                {/* Mobile: collapsible */}
-                <div className="md:hidden mb-3">
-                  <button
-                    onClick={() => setShowMismatchDetails(!showMismatchDetails)}
-                    className="flex items-center gap-1 text-xs font-semibold text-destructive hover:text-destructive"
-                  >
-                    {showMismatchDetails ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                    {t('payment.showInstructions')}
-                  </button>
-                  {showMismatchDetails && (
-                    <div className="mt-2 bg-destructive-subtle border border-destructive-border rounded-lg p-3">
-                      <ol className="text-xs text-destructive space-y-1.5 ml-4 list-decimal">
-                        <li>{t('payment.switchStep1')}</li>
-                        <li>{t('payment.switchStep2')}</li>
-                        <li>{t('payment.switchStep3')}</li>
-                        <li>{t('payment.switchStep4', { network: invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet' })}</li>
-                        <li>{t('payment.switchStep5')}</li>
-                      </ol>
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  onClick={() => {
-                    disconnect();
-                    setHasNetworkMismatch(false);
-                    setTimeout(() => window.location.reload(), 300);
-                  }}
-                  className="btn-secondary text-xs py-1.5 px-3 w-full"
-                >
-                  {t('payment.disconnectReconnect')}
-                </button>
+                <p className="text-xs text-destructive">
+                  {t('payment.switchInstructions', { network: invoice.networkPassphrase === 'Test SDF Network ; September 2015' ? 'Testnet' : 'Mainnet' })}
+                </p>
               </div>
             </div>
           </div>
@@ -630,26 +539,17 @@ export default function PaymentFlow() {
               />
             )}
 
-            {invoice.payoutMethod !== 'BRE_B' && step === 'connect' && (
-              <div className="text-center space-y-4">
-                <p className="text-sm text-ink-2">{t('payment.connectWalletPrompt')}</p>
-                {error && (
-                  <p className="text-xs text-danger">{error}</p>
-                )}
-                {invoice.networkPassphrase && (
-                  <div className="inline-flex items-center gap-1.5 rounded-md border border-surface-3 bg-surface-1 px-3 py-1.5 text-xs text-ink-2">
-                    <Info className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
-                    {invoice.networkPassphrase === 'Test SDF Network ; September 2015'
-                      ? t('payment.requiresTestnet')
-                      : t('payment.requiresMainnet')}
-                  </div>
-                )}
-                <WalletConnect variant="large" />
-              </div>
-            )}
-
             {invoice.payoutMethod !== 'BRE_B' && step === 'view' && (
               <div className="space-y-4">
+                {/* Wallet roller for in-page Kit wallet connection */}
+                {config.enableWalletsKit && (
+                  <WalletRoller
+                    networkPassphrase={invoice.networkPassphrase || ''}
+                    onConnect={setKitAddress}
+                    connectedAddress={kitAddress}
+                  />
+                )}
+
                 {invoice.isOpenAmount && (
                   <div>
                     <label className="mb-1 block text-xs font-medium uppercase tracking-wider text-ink-3">
@@ -671,14 +571,6 @@ export default function PaymentFlow() {
                         {invoice.currency}
                       </span>
                     </div>
-                  </div>
-                )}
-                {publicKey && (
-                  <div className="text-xs text-ink-3 text-center">
-                    {t('payment.payingFrom')}{' '}
-                    <span className="font-mono">
-                      {publicKey.slice(0, 8)}...{publicKey.slice(-4)}
-                    </span>
                   </div>
                 )}
                 <button
