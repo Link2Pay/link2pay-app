@@ -187,7 +187,7 @@ function AnalyticsSkeleton() {
   return (
     <div className="space-y-6 animate-pulse sm:space-y-8">
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         {[...Array(6)].map((_, i) => (
           <div key={i} className="card flex items-center justify-between gap-3 p-6">
             <div className="space-y-2">
@@ -466,7 +466,7 @@ export default function Analytics() {
         <AnalyticsSkeleton />
       ) : (
         <>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         {kpiCards.map((stat) => (
           <StatCard key={stat.label} {...stat} />
         ))}
