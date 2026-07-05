@@ -70,6 +70,13 @@ router.post(
 
       res.status(201).json(invoice);
     } catch (error: any) {
+      if (error?.message === 'FIAT_LIQUIDITY_INSUFFICIENT') {
+        return res.status(422).json({
+          error: 'FIAT_LIQUIDITY_INSUFFICIENT',
+          message:
+            'The fiat off-ramp cannot settle this amount right now. Try a smaller amount or create a crypto invoice.',
+        });
+      }
       log.error('Create invoice error', { error: error?.message });
       res.status(500).json({ error: 'Failed to create invoice' });
     }

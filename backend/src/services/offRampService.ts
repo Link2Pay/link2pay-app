@@ -39,9 +39,41 @@ function isValidBreBTransition(from: InvoiceStatus, to: InvoiceStatus): boolean 
 
 export class OffRampService {
   private adapter: AnchorAdapter;
+  private liquidityCache: { at: number; available: number; fresh: boolean } | null = null;
 
   constructor() {
     this.adapter = getAdapter();
+  }
+
+  /**
+   * Best-effort pre-check that the anchor can settle `sellAmount` USDC.
+   *
+   * Only meaningful on the real Abroad anchor (mock/testnet adapters simulate
+   * settlement). Fails OPEN when liquidity is unknown — the check is a UX
+   * guard against creating invoices that cannot settle, not a security
+   * control; the payout itself still fails safely at the anchor if liquidity
+   * ran out in between. Result is cached for 60s because Abroad's upstream
+   * liquidity feed is slow and often returns cached figures itself.
+   */
+  async checkLiquidity(sellAmount: string): Promise<{ ok: boolean; available?: number }> {
+    if (this.adapter.id !== 'abroad') return { ok: true };
+    const amount = Number(sellAmount);
+    if (!Number.isFinite(amount) || amount <= 0) return { ok: true };
+
+    const now = Date.now();
+    if (!this.liquidityCache || now - this.liquidityCache.at > 60_000) {
+      const liq = await abroadAdapter.getLiquidity('BREB');
+      if (!liq) {
+        // Unknown liquidity must not block invoicing; the anchor re-checks at payout.
+        return { ok: true };
+      }
+      this.liquidityCache = { at: now, ...liq };
+    }
+
+    const { available } = this.liquidityCache;
+    if (amount <= available) return { ok: true, available };
+    log.warn('[OffRampService] insufficient Bre-B liquidity', { amount, available });
+    return { ok: false, available };
   }
 
   /**
@@ -66,6 +98,14 @@ export class OffRampService {
     // add BRL/ARS once live. Falls back to COP for the legacy single-rail case.
     const rail = railById(invoice.payoutMethod);
     const buyCurrency = rail?.buyCurrency ?? 'COP';
+
+    // Re-check liquidity at quote time: it may have drained since the
+    // invoice was created, and a firm quote the anchor cannot fill would
+    // strand the payer mid-flow.
+    const liquidity = await this.checkLiquidity(params.sellAmount);
+    if (!liquidity.ok) {
+      throw new Error('FIAT_LIQUIDITY_INSUFFICIENT');
+    }
 
     log.info('[OffRampService] Requesting quote', {
       invoiceId,

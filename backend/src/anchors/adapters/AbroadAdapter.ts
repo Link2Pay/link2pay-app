@@ -54,6 +54,15 @@ interface AbroadStatusResponse {
   kycLink?: string | null;
 }
 
+// GET /payments/liquidity — USDC the anchor can settle right now for a rail.
+// `success: false` with a numeric `liquidity` means Abroad's upstream feed
+// timed out and the figure is their last cached value — usable but stale.
+interface AbroadLiquidityResponse {
+  liquidity?: number;
+  success?: boolean;
+  message?: string;
+}
+
 export class AbroadAdapter implements AnchorAdapter {
   readonly id = 'abroad' as const;
 
@@ -81,6 +90,29 @@ export class AbroadAdapter implements AnchorAdapter {
       throw new Error(`ABROAD_API_ERROR ${res.status}`);
     }
     return (await res.json()) as T;
+  }
+
+  /**
+   * Available settlement liquidity (USDC) for a rail, or null when the
+   * check itself fails — callers treat null as "unknown", never as zero.
+   */
+  async getLiquidity(
+    paymentMethod: 'BREB' | 'PIX' = 'BREB'
+  ): Promise<{ available: number; fresh: boolean } | null> {
+    try {
+      const data = await this.call<AbroadLiquidityResponse>(
+        `/payments/liquidity?paymentMethod=${paymentMethod}`,
+        { signal: AbortSignal.timeout(8000) }
+      );
+      if (typeof data.liquidity !== 'number') return null;
+      return { available: data.liquidity, fresh: data.success === true };
+    } catch (err) {
+      log.warn('[AbroadAdapter] liquidity check failed', {
+        paymentMethod,
+        error: (err as Error)?.message,
+      });
+      return null;
+    }
   }
 
   async getQuote(params: {
