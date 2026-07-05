@@ -53,3 +53,8 @@ references/
 .playwright-mcp/
 # Vercel CLI project link
 .vercel
+
+# Claude Code project instructions and agent specs/plans — local tooling,
+# not part of the shared codebase
+CLAUDE.md
+docs/superpowers/
