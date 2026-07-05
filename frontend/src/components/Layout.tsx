@@ -46,12 +46,22 @@ export default function Layout() {
     let cancelled = false;
     setProfileGate('checking');
     (async () => {
-      try {
-        const profile = await getBusinessProfile(publicKey);
-        if (!cancelled) setProfileGate(isProfileComplete(profile) ? 'complete' : 'incomplete');
-      } catch {
-        if (!cancelled) setProfileGate('complete');
+      // Auth headers (Privy token / wallet signature) can fail transiently
+      // right after startup, so retry before conceding — otherwise a startup
+      // race fails open and the gate silently never runs for this session.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const profile = await getBusinessProfile(publicKey);
+          if (!cancelled) setProfileGate(isProfileComplete(profile) ? 'complete' : 'incomplete');
+          return;
+        } catch {
+          if (cancelled) return;
+          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+        }
       }
+      // Still failing after retries: fail-open. This is a UX gate, not a
+      // security boundary — an API outage must not lock merchants out.
+      if (!cancelled) setProfileGate('complete');
     })();
     return () => { cancelled = true; };
   }, [connected, publicKey]);
