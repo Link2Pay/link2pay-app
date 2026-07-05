@@ -416,7 +416,7 @@ export default function PaymentFlow() {
           <ThemeToggle />
         </div>
         <div className="mb-6 text-center">
-          <BrandMark className="mx-auto mb-3 h-10 w-10 rounded-xl" />
+          <BrandMark className="mx-auto mb-3 h-9 w-9" />
           <h1 className="text-lg font-semibold">
             <BrandWordmark />
           </h1>

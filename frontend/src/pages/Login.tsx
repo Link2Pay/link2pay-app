@@ -41,7 +41,7 @@ export default function Login() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
-          <BrandMark className="h-14 w-14 rounded-2xl" />
+          <BrandMark className="h-11 w-11" />
           <BrandWordmark className="text-2xl font-semibold" />
           <p className="text-sm text-muted-foreground">{t('login.tagline')}</p>
         </div>
