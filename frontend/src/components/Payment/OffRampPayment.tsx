@@ -215,16 +215,16 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
           <Landmark className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
           <span className="text-2xs font-medium uppercase tracking-label">{t('payment.offramp.title')}</span>
         </div>
-        <div className="mt-3 flex items-center justify-center gap-3 text-sm">
-          <div className="text-center">
-            <p className="font-mono text-base font-bold text-ink-0 [font-variant-numeric:tabular-nums]">
+        <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 text-sm">
+          <div className="min-w-0 text-center">
+            <p className="truncate font-mono text-base font-bold text-ink-0 [font-variant-numeric:tabular-nums]">
               {displayPay.toFixed(2)} {invoice.currency}
             </p>
             <p className="text-3xs uppercase tracking-wider text-ink-3">{t('payment.offramp.youPay')}</p>
           </div>
-          <ArrowRight className="h-4 w-4 text-ink-3" aria-hidden="true" />
-          <div className="text-center">
-            <p className="font-mono text-base font-bold text-warning [font-variant-numeric:tabular-nums]">
+          <ArrowRight className="h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" />
+          <div className="min-w-0 text-center">
+            <p className="truncate font-mono text-base font-bold text-warning [font-variant-numeric:tabular-nums]">
               {displayCop ? `≈ $${displayCop} COP` : '—'}
             </p>
             <p className="text-3xs uppercase tracking-wider text-ink-3">{t('payment.offramp.receiverGets')}</p>

@@ -7,18 +7,11 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { MOCK_SCENARIOS } from './mockInvoices';
 import BrandMark from '../components/BrandMark';
-import ThemeToggle from '../components/ThemeToggle';
-import LanguageToggle from '../components/LanguageToggle';
 
 export default function CheckoutPreviewIndex() {
   return (
-    <div className="min-h-screen bg-surface-1 p-4 sm:p-6">
+    <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="mx-auto w-full max-w-lg">
-        <div className="mb-4 flex justify-end gap-2">
-          <LanguageToggle />
-          <ThemeToggle />
-        </div>
-
         <div className="mb-6 flex items-center gap-3">
           <BrandMark className="h-8 w-8" />
           <div>
