@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import toast from 'react-hot-toast';
-import { Copy, LogOut, Save, UserCircle2 } from 'lucide-react';
+import { Copy, LogOut, Save, ScanLine, UserCircle2 } from 'lucide-react';
 import LanguageToggle from '../components/LanguageToggle';
 import ThemeToggle from '../components/ThemeToggle';
 import KycGate from '../components/Kyc/KycGate';
@@ -17,6 +17,9 @@ import { getBusinessProfile, saveBusinessProfile } from '../services/api';
 import { shortenAddress } from '../lib/format';
 import { COUNTRY_OPTIONS, railByCountry } from '../config/rails';
 import type { Currency, SaveProfileData } from '../types';
+import { extractLlave } from '../lib/brebQr';
+
+const QrScanner = lazy(() => import('../components/Profile/QrScanner'));
 
 const COPY: Record<
   Language,
@@ -51,6 +54,7 @@ const COPY: Record<
     defaultAliasLabel: string;
     aliasHint: string;
     aliasKycLocked: string;
+    scanQr: string;
     crypto: string;
     breb: string;
     save: string;
@@ -96,6 +100,7 @@ const COPY: Record<
     defaultAliasLabel: 'Default Bre-B alias (llave)',
     aliasHint: 'Saved even if your default settlement is Crypto — lets you offer Bre-B on individual invoices.',
     aliasKycLocked: 'Verify your identity below to add a Bre-B key.',
+    scanQr: 'Scan QR',
     crypto: 'Crypto',
     breb: 'Bre-B (COP)',
     save: 'Save profile',
@@ -140,6 +145,7 @@ const COPY: Record<
     defaultAliasLabel: 'Llave Bre-B predeterminada',
     aliasHint: 'Se guarda aunque tu liquidación por defecto sea Cripto — te permite ofrecer Bre-B en facturas puntuales.',
     aliasKycLocked: 'Verifica tu identidad más abajo para agregar una llave Bre-B.',
+    scanQr: 'Escanear QR',
     crypto: 'Cripto',
     breb: 'Bre-B (COP)',
     save: 'Guardar perfil',
@@ -184,6 +190,7 @@ const COPY: Record<
     defaultAliasLabel: 'Chave Bre-B padrao',
     aliasHint: 'Salva mesmo que sua liquidacao padrao seja Cripto — permite oferecer Bre-B em faturas pontuais.',
     aliasKycLocked: 'Verifique sua identidade abaixo para adicionar uma chave Bre-B.',
+    scanQr: 'Escanear QR',
     crypto: 'Cripto',
     breb: 'Bre-B (COP)',
     save: 'Salvar perfil',
@@ -224,6 +231,7 @@ export default function ProfileOptions() {
   const [copied, setCopied] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [kycVerified, setKycVerified] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   const [form, setForm] = useState<SaveProfileData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -487,10 +495,22 @@ export default function ProfileOptions() {
               label={settlementRail.aliasLabel}
               hint={kycVerified ? copy.aliasHint : copy.aliasKycLocked}
             >
-              <input id="pf-alias" className="input" value={form.defaultPayoutAlias ?? ''}
-                onChange={(e) => set('defaultPayoutAlias', e.target.value)}
-                placeholder={settlementRail.aliasPlaceholder}
-                disabled={!kycVerified} />
+              <div className="flex gap-2">
+                <input id="pf-alias" className="input flex-1" value={form.defaultPayoutAlias ?? ''}
+                  onChange={(e) => set('defaultPayoutAlias', e.target.value)}
+                  placeholder={settlementRail.aliasPlaceholder}
+                  disabled={!kycVerified} />
+                <button
+                  type="button"
+                  className="btn-ghost shrink-0"
+                  onClick={() => setScannerOpen(true)}
+                  disabled={!kycVerified}
+                  aria-label={copy.scanQr}
+                >
+                  <ScanLine className="h-4 w-4" aria-hidden="true" />
+                  <span className="hidden sm:inline">{copy.scanQr}</span>
+                </button>
+              </div>
             </Field>
           </div>
           )}
@@ -522,6 +542,19 @@ export default function ProfileOptions() {
           {copy.disconnect}
         </button>
       </SectionCard>
+
+      {scannerOpen && (
+        <Suspense fallback={null}>
+          <QrScanner
+            onResult={(text) => {
+              set('defaultPayoutAlias', extractLlave(text));
+              setScannerOpen(false);
+              document.getElementById('pf-alias')?.focus();
+            }}
+            onClose={() => setScannerOpen(false)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
