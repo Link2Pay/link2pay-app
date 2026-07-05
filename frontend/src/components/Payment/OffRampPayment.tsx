@@ -8,12 +8,11 @@ import {
   offrampSetAmount,
   getFxRate,
 } from '../../services/api';
-import { useWalletStore } from '../../store/walletStore';
-import WalletConnect from '../Wallet/WalletConnect';
+import WalletRoller from './WalletRoller';
 import type { PublicInvoice } from '../../types';
 import { useI18n } from '../../i18n/I18nProvider';
 import { config } from '../../config';
-import { kitMountButton, kitGetAddress, kitSign } from '../../services/walletsKit';
+import { kitSignWith } from '../../services/walletsKit';
 
 type OffRampStep = 'idle' | 'paying' | 'settling' | 'settled' | 'error';
 
@@ -40,14 +39,11 @@ function formatCop(amount?: string | null): string | null {
 }
 
 export default function OffRampPayment({ invoice, onRefresh }: Props) {
-  const { publicKey, signTransaction } = useWalletStore();
   const { t } = useI18n();
   const [step, setStep] = useState<OffRampStep>('idle');
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(invoice.transactionHash || null);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Guards against an in-flight poll that resolves *after* cleanup: without it,
-  // the awaited request would reschedule a fresh timeout the cleanup can't reach.
   const pollActiveRef = useRef(false);
 
   // Open-amount Bre-B: the payer sets the amount here before the pay step.
@@ -55,12 +51,8 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   const [settingAmount, setSettingAmount] = useState(false);
   const needsAmount = invoice.isOpenAmount && invoice.status === 'PENDING';
 
-  // Phase 6: multi-wallet connect via Stellar Wallets Kit (flagged on).
-  const walletsKit = config.enableWalletsKit;
-  const kitBtnRef = useRef<HTMLDivElement | null>(null);
+  // Wallet roller: payer identity stays page-local; never touches walletStore.
   const [kitAddress, setKitAddress] = useState<string | null>(null);
-  // Effective payer: a Wallets-Kit wallet if connected, else Freighter via the store.
-  const effectiveKey = kitAddress || publicKey;
 
   // Phase 7: optional live Reflector FX estimate (dormant unless the feed has COP).
   const [fxEstimate, setFxEstimate] = useState<string | null>(null);
@@ -150,24 +142,6 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
     };
   }, [isPathPay, sourceAsset, invoice.id, invoice.networkPassphrase]);
 
-  // Mount the Wallets Kit button and detect a connected wallet by polling.
-  useEffect(() => {
-    if (!walletsKit || !readyToPay || effectiveKey || !kitBtnRef.current) return;
-    let cancelled = false;
-    kitMountButton(kitBtnRef.current, invoice.networkPassphrase).catch(() => {});
-    const iv = setInterval(async () => {
-      const addr = await kitGetAddress();
-      if (!cancelled && addr) {
-        setKitAddress(addr);
-        clearInterval(iv);
-      }
-    }, 1500);
-    return () => {
-      cancelled = true;
-      clearInterval(iv);
-    };
-  }, [walletsKit, readyToPay, effectiveKey, invoice.networkPassphrase]);
-
   // Fetch the live oracle estimate once (flagged; only shows if the feed has it).
   useEffect(() => {
     if (!config.enableFxPreview) return;
@@ -204,26 +178,23 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   };
 
   const handlePay = async () => {
-    if (!effectiveKey) return;
+    if (!kitAddress) return;
     setStep('paying');
     setError(null);
     try {
       const intent = await offrampPayIntent(
         invoice.id,
-        effectiveKey,
+        kitAddress,
         invoice.networkPassphrase,
         isPathPay ? sourceAsset : undefined
       );
-      const signedXdr = kitAddress
-        ? await kitSign(intent.transactionXdr, intent.networkPassphrase)
-        : await signTransaction(intent.transactionXdr, intent.networkPassphrase);
+      const signedXdr = await kitSignWith(kitAddress, intent.transactionXdr, intent.networkPassphrase);
       const result = await offrampSubmit(invoice.id, signedXdr, intent.depositAddress);
       if (!result.success) throw new Error('Transaction submission failed.');
       setTxHash(result.transactionHash);
       setStep('settling');
       onRefresh();
     } catch (err: any) {
-      // Thin liquidity — guide the payer back to paying USDC directly.
       if (err?.message === 'NO_PATH_FOUND' || err?.status === 409) {
         setSourceAsset(invoice.currency);
         setError(`No swap route for ${sourceAsset} right now — pay ${invoice.currency} directly instead.`);
@@ -322,21 +293,23 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
         </div>
       )}
 
-      {readyToPay && !effectiveKey && (
-        <div className="space-y-3 text-center">
-          <p className="text-sm text-ink-2">Connect a Stellar wallet to pay USDC to the anchor.</p>
-          {walletsKit ? (
-            <div ref={kitBtnRef} className="flex justify-center" />
-          ) : (
-            <WalletConnect variant="large" />
-          )}
+      {readyToPay && !kitAddress && (
+        <div className="space-y-3">
+          <p className="text-sm text-ink-2 text-center">Connect a Stellar wallet to pay USDC to the anchor.</p>
+          {config.enableWalletsKit ? (
+            <WalletRoller
+              networkPassphrase={invoice.networkPassphrase}
+              onConnect={setKitAddress}
+              connectedAddress={kitAddress}
+            />
+          ) : null}
         </div>
       )}
 
-      {readyToPay && effectiveKey && (
+      {readyToPay && kitAddress && (
         <div className="space-y-3">
           <div className="text-center text-xs text-ink-3">
-            Paying from <span className="font-mono">{effectiveKey.slice(0, 8)}...{effectiveKey.slice(-4)}</span>
+            Paying from <span className="font-mono">{kitAddress.slice(0, 8)}...{kitAddress.slice(-4)}</span>
           </div>
           {pathEnabled && (
             <div>

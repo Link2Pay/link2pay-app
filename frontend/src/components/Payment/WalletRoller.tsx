@@ -1,0 +1,174 @@
+import { useEffect, useState, useCallback } from 'react';
+import { getKitModules, kitSetWallet, kitGetAddress } from '../../services/walletsKit';
+import { useI18n } from '../../i18n/I18nProvider';
+import { shortenAddress } from '../../lib/format';
+import type { ModuleInterface } from '@creit.tech/stellar-wallets-kit/types';
+
+interface WalletRollerProps {
+  networkPassphrase: string;
+  onConnect: (address: string) => void;
+  connectedAddress: string | null;
+}
+
+interface WalletEntry {
+  module: ModuleInterface;
+  available: boolean;
+  checking: boolean;
+}
+
+export default function WalletRoller({ networkPassphrase, onConnect, connectedAddress }: WalletRollerProps) {
+  const { t } = useI18n();
+  const [entries, setEntries] = useState<WalletEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [connecting, setConnecting] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const modules = getKitModules();
+    const initial: WalletEntry[] = modules.map((m) => ({ module: m, available: false, checking: true }));
+    setEntries(initial);
+
+    Promise.all(
+      modules.map(async (mod, index) => {
+        let available = false;
+        try {
+          available = await Promise.race([
+            mod.isAvailable(),
+            new Promise<boolean>((_, reject) => setTimeout(() => reject(new Error('timeout')), 1200)),
+          ]);
+        } catch {
+          available = false;
+        }
+        if (!cancelled) {
+          setEntries((prev) => {
+            const next = [...prev];
+            next[index] = { module: mod, available, checking: false };
+            return next;
+          });
+        }
+      })
+    ).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  const sorted = [...entries].sort((a, b) => {
+    const aWC = a.module.moduleType === 'BRIDGE_WALLET';
+    const bWC = b.module.moduleType === 'BRIDGE_WALLET';
+    if (a.available && !b.available) return -1;
+    if (!a.available && b.available) return 1;
+    if (aWC && !bWC) return -1;
+    if (!aWC && bWC) return 1;
+    return 0;
+  });
+
+  const handleSelect = useCallback(async (entry: WalletEntry) => {
+    setError(null);
+    setConnecting(entry.module.productId);
+    try {
+      kitSetWallet(entry.module.productId, networkPassphrase);
+      const address = await kitGetAddress(networkPassphrase);
+      if (address) {
+        setSelectedId(entry.module.productId);
+        onConnect(address);
+      } else {
+        setError(t('wallet.addressError'));
+      }
+    } catch {
+      setError(t('wallet.connectError'));
+    } finally {
+      setConnecting(null);
+    }
+  }, [onConnect, networkPassphrase, t]);
+
+  if (!entries.length && !loading) return null;
+
+  return (
+    <div className="space-y-2">
+      <p className="text-2xs uppercase tracking-label text-ink-3">{t('wallet.selectWallet')}</p>
+      <div className="overflow-x-auto snap-x flex gap-3 pb-1">
+        {loading && !entries.length ? (
+          <div className="flex-1 text-center py-4 text-xs text-ink-3">{t('wallet.loading')}</div>
+        ) : (
+          sorted.map((entry) => {
+            const { module, available, checking } = entry;
+            const isSelected = Boolean(connectedAddress) && selectedId === module.productId;
+            const isConnecting = connecting === module.productId;
+            const icon = module.productIcon;
+
+            let stateDot: string;
+            let stateLabel: string;
+            if (isConnecting) {
+              stateDot = 'bg-accent-ink animate-pulse';
+              stateLabel = '';
+            } else if (checking) {
+              stateDot = 'bg-ink-3 animate-pulse';
+              stateLabel = '';
+            } else if (available) {
+              stateDot = 'bg-success';
+              stateLabel = t('wallet.detected');
+            } else if (module.moduleType === 'BRIDGE_WALLET') {
+              stateDot = 'bg-ink-3';
+              stateLabel = t('wallet.tapToConnect');
+            } else {
+              stateDot = 'bg-ink-4';
+              stateLabel = '';
+            }
+
+            return (
+              <button
+                key={module.productId}
+                onClick={() => handleSelect(entry)}
+                disabled={isConnecting || !!connectedAddress}
+                className={`snap-start flex-shrink-0 flex flex-col items-center gap-1.5 min-w-[88px] sm:min-w-[96px]
+                  rounded-xl p-3 transition-colors duration-150 text-center
+                  ${isSelected ? 'ring-2 ring-accent-ink bg-card border-l-2 border-success' : 'bg-card hover:bg-muted border border-surface-3'}
+                  ${connectedAddress && !isSelected ? 'opacity-60' : ''}
+                  disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ink`}
+              >
+                {icon ? (
+                  <img src={icon} alt={module.productName} className="h-8 w-8 rounded-lg object-contain" />
+                ) : (
+                  <div className="h-8 w-8 rounded-lg bg-surface-2 flex items-center justify-center text-xs font-bold text-ink-3">
+                    {module.productName.charAt(0)}
+                  </div>
+                )}
+                <span className="text-3xs font-medium text-ink-1 leading-tight">{module.productName}</span>
+                <span className={`inline-block h-1.5 w-1.5 rounded-full flex-shrink-0 ${stateDot}`} />
+                {stateLabel && (
+                  <span className="text-3xs text-ink-3">{stateLabel}</span>
+                )}
+                {!available && !checking && module.moduleType !== 'BRIDGE_WALLET' && (
+                  <a
+                    href={module.productUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-3xs text-ink-4 hover:text-ink-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {t('wallet.install')}
+                  </a>
+                )}
+              </button>
+            );
+          })
+        )}
+      </div>
+
+      {connectedAddress && (
+        <div className="mt-2 text-center text-xs text-ink-3">
+          {t('wallet.payingFrom')}{' '}
+          <span className="font-mono tabular-nums">{shortenAddress(connectedAddress, 8, 4)}</span>
+        </div>
+      )}
+
+      {error && (
+        <p className="text-xs text-danger text-center">{error}</p>
+      )}
+    </div>
+  );
+}

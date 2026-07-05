@@ -8,6 +8,7 @@ import PageHeader from '../components/ui/PageHeader';
 import SectionCard from '../components/ui/SectionCard';
 import Field from '../components/ui/Field';
 import Select from '../components/ui/Select';
+import LinkedAccounts from '../components/Profile/LinkedAccounts';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import { useWalletStore } from '../store/walletStore';
@@ -15,6 +16,7 @@ import { useNetworkStore } from '../store/networkStore';
 import { getBusinessProfile, saveBusinessProfile } from '../services/api';
 import { shortenAddress } from '../lib/format';
 import { COUNTRY_OPTIONS, railByCountry } from '../config/rails';
+import { config } from '../config';
 import type { Currency, SaveProfileData } from '../types';
 
 const COPY: Record<
@@ -465,10 +467,16 @@ export default function ProfileOptions() {
         </div>
       </SectionCard>
 
-      {/* Verificación de identidad (KYC) */}
-      <SectionCard title={copy.kycTitle} hint={copy.kycDesc}>
-        <KycGate active />
-      </SectionCard>
+      {/* Verificación de identidad (KYC) — fiat-only capability, hidden on
+          fiat-disabled environments (testnet is crypto-only) */}
+      {config.fiatRailsEnabled && (
+        <SectionCard title={copy.kycTitle} hint={copy.kycDesc}>
+          <KycGate active />
+        </SectionCard>
+      )}
+
+      {/* Cuentas vinculadas — Google/LinkedIn/X/Email para iniciar sesión */}
+      <LinkedAccounts />
 
       {/* Preferencias del espacio */}
       <SectionCard title={copy.preferencesTitle} hint={copy.preferencesDesc}>
