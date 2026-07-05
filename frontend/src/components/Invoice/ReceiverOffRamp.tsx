@@ -19,7 +19,23 @@ export default function ReceiverOffRamp({ invoice, onUpdated }: Props) {
   const { publicKey } = useWalletStore();
   const { t } = useI18n();
   const [alias, setAlias] = useState(invoice.payoutAlias || '');
-  const [quote, setQuote] = useState<OffRampQuote | null>(null);
+  // Rehydrate a quote that already lives on the invoice (page reload after a
+  // failed initiate left the invoice in AWAITING_ANCHOR) — otherwise the
+  // panel would offer "Get quote", which the state machine rejects.
+  const [quote, setQuote] = useState<OffRampQuote | null>(() =>
+    invoice.status === 'AWAITING_ANCHOR' && invoice.quoteId && invoice.quoteBuyAmount
+      ? {
+          quoteId: invoice.quoteId,
+          sellAsset: invoice.currency,
+          buyAsset: 'COP',
+          sellAmount: invoice.total,
+          buyAmount: invoice.quoteBuyAmount,
+          rate: (parseFloat(invoice.quoteBuyAmount) / parseFloat(invoice.total)).toFixed(2),
+          feeTotal: '0',
+          expiresAt: '',
+        }
+      : null
+  );
   const [intent, setIntent] = useState<OffRampIntentResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -181,6 +197,15 @@ export default function ReceiverOffRamp({ invoice, onUpdated }: Props) {
                 className="btn-primary w-full text-sm disabled:opacity-50"
               >
                 {loading ? 'Initiating…' : 'Initiate off-ramp & generate payment link'}
+              </button>
+              {/* Anchor quotes expire (~1h) — let the merchant refresh instead
+                  of getting an opaque anchor error on initiate. */}
+              <button
+                onClick={handleQuote}
+                disabled={loading || !alias.trim()}
+                className="btn-ghost w-full text-xs disabled:opacity-50"
+              >
+                Refresh quote
               </button>
             </div>
           )}

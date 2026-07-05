@@ -215,7 +215,10 @@ export class OffRampService {
     if (!invoice) throw new Error('Invoice not found');
     if (invoice.freelancerWallet !== freelancerWallet) throw new Error('Unauthorized');
     if (invoice.payoutMethod !== 'BRE_B') throw new Error('Invoice is not a Bre-B off-ramp');
-    if (!isValidBreBTransition(invoice.status as InvoiceStatus, 'AWAITING_ANCHOR')) {
+    // Re-quoting from AWAITING_ANCHOR is allowed: it refreshes an expired or
+    // stranded quote (e.g. a failed initiate) without restarting the invoice.
+    const requoting = invoice.status === 'AWAITING_ANCHOR';
+    if (!requoting && !isValidBreBTransition(invoice.status as InvoiceStatus, 'AWAITING_ANCHOR')) {
       throw new Error(`Cannot request quote from status ${invoice.status}`);
     }
 
