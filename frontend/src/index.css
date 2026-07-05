@@ -93,6 +93,7 @@
     --ref-warm-300: 60 4% 83%; /* #D6D6D2 */
     --ref-warm-400: 217 8% 80%; /* #C9CCD1 */
     --ref-warm-500: 220 6% 64%; /* #9CA0A8 ink-muted */
+    --ref-warm-600: 222 5% 45%; /* #6E7178 ink-muted (light) — AA sobre blanco */
     --ref-warm-700: 240 5% 31%; /* #4B4B52 */
     --ref-warm-900: 240 6% 10%; /* #17171A ink */
 
@@ -133,7 +134,7 @@
     --secondary-foreground: var(--ref-warm-700);
 
     --muted: var(--ref-warm-50);
-    --muted-foreground: var(--ref-warm-500);
+    --muted-foreground: var(--ref-warm-600);
 
     /* accent = indigo; sobre bg-accent el texto va en blanco */
     --accent: var(--ref-indigo-500);
@@ -174,7 +175,7 @@
        tinta (mismo idioma de énfasis que el resto del sistema). */
     --sidebar-background: var(--ref-warm-0);
     --sidebar-foreground: var(--ref-warm-700);
-    --sidebar-muted: var(--ref-warm-500);
+    --sidebar-muted: var(--ref-warm-600);
     --sidebar-primary: var(--ref-indigo-500); /* item activo = mismo azul que --accent / la card */
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: var(--ref-warm-50); /* hover */
@@ -186,7 +187,7 @@
     --surface-elevated: var(--ref-warm-0);
     --surface-strong: var(--ref-warm-300);
     --text-secondary: var(--ref-warm-700);
-    --text-muted: var(--ref-warm-500);
+    --text-muted: var(--ref-warm-600);
 
     /* Objeto oscuro estable en ambos temas (Credit Card, stat card "ink") */
     --card-invert: var(--ref-warm-900);
@@ -978,6 +979,18 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.55);
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+  background: transparent;
 }
 
 /* Global focus-visible fallback for interactive elements */

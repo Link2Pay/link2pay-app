@@ -262,7 +262,7 @@ export default function GetPaid() {
           </div>
 
           {/* Itemized request CTA */}
-          <div className="card flex flex-col items-start gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="card flex flex-col items-center gap-3 p-5 text-center">
             <p className="text-sm text-ink-2">{copy.needItemized}</p>
             <Link to="/dashboard/create-link" className="btn-primary text-sm">
               <FilePlus2 className="h-4 w-4" />

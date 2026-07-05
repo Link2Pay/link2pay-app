@@ -589,8 +589,8 @@ export default function Dashboard() {
       </div>
 
       <div className="card p-5">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+        <div className="mb-4 flex items-start justify-between gap-2">
+          <div className="min-w-0">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-0">
               <Users2 className="h-4 w-4 text-ink-3" />
               {copy.clientActivityTitle}
@@ -599,7 +599,7 @@ export default function Dashboard() {
           </div>
           <Link
             to="/dashboard/clients"
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             {copy.viewClients}
             <ChevronRight className="h-3.5 w-3.5" />
@@ -637,14 +637,14 @@ export default function Dashboard() {
       </div>
 
       <div>
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-4 flex items-center justify-between gap-2">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-0">
             <History className="h-4 w-4 text-ink-3" />
             {copy.recentInvoices}
           </h3>
           <Link
             to="/dashboard/links"
-            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             {copy.viewAll}
             <ChevronRight className="h-3.5 w-3.5" />
