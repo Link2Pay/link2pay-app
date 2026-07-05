@@ -20,6 +20,8 @@ import AccountPanel from './AccountPanel';
 import { useI18n } from '../i18n/I18nProvider';
 import { shortenAddress } from '../lib/format';
 import { useWalletBalances } from '../hooks/useWalletBalances';
+import { getBusinessProfile } from '../services/api';
+import { isProfileComplete } from '../lib/profileCompleteness';
 
 export default function Layout() {
   const location = useLocation();
@@ -30,6 +32,23 @@ export default function Layout() {
 
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
+
+  const [profileGate, setProfileGate] = useState<'checking' | 'complete' | 'incomplete'>('checking');
+
+  useEffect(() => {
+    if (!connected || !publicKey) return;
+    let cancelled = false;
+    setProfileGate('checking');
+    (async () => {
+      try {
+        const profile = await getBusinessProfile(publicKey);
+        if (!cancelled) setProfileGate(isProfileComplete(profile) ? 'complete' : 'incomplete');
+      } catch {
+        if (!cancelled) setProfileGate('complete');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [connected, publicKey]);
 
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const mobileNavTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -226,8 +245,18 @@ export default function Layout() {
         />
 
         <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 md:px-8">
-          {connected || isDevPreview ? (
+          {isDevPreview ? (
             <Outlet />
+          ) : connected ? (
+            profileGate === 'incomplete' ? (
+              <Navigate to="/register" replace />
+            ) : profileGate === 'checking' ? (
+              <div className="flex min-h-[60vh] items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
+              </div>
+            ) : (
+              <Outlet />
+            )
           ) : privyLoading ? (
             <div className="flex min-h-[60vh] items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
