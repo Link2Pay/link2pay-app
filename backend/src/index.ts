@@ -63,17 +63,24 @@ app.use(
     permittedCrossDomainPolicies: false,
   })
 );
-// Production locks CORS to the configured FRONTEND_URL. In development we allow
-// any localhost / 127.0.0.1 origin regardless of port, because the Vite dev
-// server frequently auto-bumps its port (5173 -> 5174 -> 5180 ...) and chasing
-// it via env every time is brittle.
+// Production locks CORS to the configured FRONTEND_URL — a comma-separated
+// list, because the apex and www origins are distinct to browsers (Vercel
+// 308s apex → www, so both exist in the wild). In development we allow any
+// localhost / 127.0.0.1 origin regardless of port, because the Vite dev
+// server frequently auto-bumps its port (5173 -> 5174 -> 5180 ...) and
+// chasing it via env every time is brittle.
 const localhostOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+
+const frontendOrigins = config.frontendUrl
+  .split(',')
+  .map((o) => o.trim().replace(/\/$/, ''))
+  .filter(Boolean);
 
 const corsOrigin: CorsOptions['origin'] =
   config.nodeEnv === 'production'
-    ? [config.frontendUrl]
+    ? frontendOrigins
     : (origin, callback) => {
-        if (!origin || origin === config.frontendUrl || localhostOrigin.test(origin)) {
+        if (!origin || frontendOrigins.includes(origin) || localhostOrigin.test(origin)) {
           callback(null, true);
         } else {
           callback(new Error(`Not allowed by CORS: ${origin}`));

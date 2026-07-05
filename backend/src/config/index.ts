@@ -15,7 +15,14 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(['development', 'production', 'test'])
     .default('development'),
-  FRONTEND_URL: z.string().url().default('http://localhost:5173'),
+  // One origin or a comma-separated list (apex + www are distinct origins).
+  FRONTEND_URL: z
+    .string()
+    .refine(
+      (v) => v.split(',').every((o) => /^https?:\/\/[^\s,]+$/.test(o.trim())),
+      'FRONTEND_URL must be one or more comma-separated http(s) origins'
+    )
+    .default('http://localhost:5173'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 
   STELLAR_NETWORK: z.enum(['testnet', 'public']).default('testnet'),
