@@ -1,58 +1,12 @@
-import { useEffect, useRef } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
-import { useCreateWallet, useSignRawHash } from '@privy-io/react-auth/extended-chains';
-import { useWalletStore } from '../../store/walletStore';
-import { buildPrivySigner } from '../../services/privy';
 
-function getStellarAddress(user: any): string | null {
-  const account = user?.linkedAccounts?.find(
-    (a: any) => a.type === 'wallet' && a.chainType === 'stellar'
-  );
-  return account?.address ?? null;
-}
-
+/**
+ * Sign in / sign out button. The actual wallet-store sync lives in
+ * PrivyWalletBridge (mounted once, globally) so it keeps working regardless
+ * of which page is rendered — see that file for why.
+ */
 export default function PrivyLogin({ variant = 'compact' }: { variant?: 'compact' | 'large' }) {
-  const { authenticated, login, logout, ready, user, getAccessToken } = usePrivy();
-  const { createWallet } = useCreateWallet();
-  const { signRawHash } = useSignRawHash();
-
-  const { setExternalWallet, clearExternalWallet, setPrivyLoading, connected, setPrivyGetToken } = useWalletStore();
-
-  const signRef = useRef(signRawHash);
-  useEffect(() => { signRef.current = signRawHash; }, [signRawHash]);
-
-  const getAccessTokenRef = useRef(getAccessToken);
-  useEffect(() => { getAccessTokenRef.current = getAccessToken; }, [getAccessToken]);
-
-  const stellarAddress = getStellarAddress(user);
-
-  // Signal to Layout that Privy is authenticated but wallet isn't bridged yet
-  useEffect(() => {
-    if (authenticated && !stellarAddress) {
-      setPrivyLoading(true);
-      createWallet({ chainType: 'stellar' } as any).catch(() => setPrivyLoading(false));
-    }
-  }, [authenticated, stellarAddress, createWallet, setPrivyLoading]);
-
-  // Register/unregister the Privy token getter (used by auth.ts instead of nonce signing)
-  useEffect(() => {
-    if (authenticated) {
-      const getter = () => getAccessTokenRef.current();
-      setPrivyGetToken(getter);
-    } else {
-      setPrivyGetToken(null);
-    }
-  }, [authenticated, setPrivyGetToken]);
-
-  // Bridge Stellar wallet → walletStore once address is available
-  useEffect(() => {
-    if (authenticated && stellarAddress) {
-      const signer = buildPrivySigner(stellarAddress, (input) => signRef.current(input));
-      setExternalWallet(stellarAddress, signer);
-    } else if (!authenticated && connected) {
-      clearExternalWallet();
-    }
-  }, [authenticated, stellarAddress, setExternalWallet, clearExternalWallet, connected]);
+  const { authenticated, login, logout, ready } = usePrivy();
 
   if (!ready) return null;
 

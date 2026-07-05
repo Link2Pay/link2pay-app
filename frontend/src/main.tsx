@@ -6,6 +6,7 @@ import './index.css';
 import { applyTheme, getPreferredTheme } from './lib/theme';
 import { LanguageProvider } from './i18n/I18nProvider';
 import { config } from './config';
+import PrivyWalletBridge from './components/Auth/PrivyWalletBridge';
 
 applyTheme(getPreferredTheme());
 
@@ -66,6 +67,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       // Privy dashboard — without credentials those buttons 403 in production.
       config={{ loginMethods: ['google', 'email'] }}
     >
+      <PrivyWalletBridge />
       {inner}
     </PrivyProvider>
   ) : inner
