@@ -1,8 +1,10 @@
+import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 interface SectionCardProps {
   id?: string;
   title: string;
+  titleIcon?: LucideIcon;
   eyebrow?: string;
   hint?: string;
   action?: ReactNode;
@@ -20,6 +22,7 @@ interface SectionCardProps {
 export default function SectionCard({
   id,
   title,
+  titleIcon: TitleIcon,
   eyebrow,
   hint,
   action,
@@ -44,7 +47,10 @@ export default function SectionCard({
               {eyebrow}
             </p>
           )}
-          <h3 className={titleClass}>{title}</h3>
+          <h3 className={`flex items-center gap-2 ${titleClass}`}>
+            {TitleIcon ? <TitleIcon className="h-4 w-4 shrink-0 text-ink-3" aria-hidden="true" /> : null}
+            <span>{title}</span>
+          </h3>
           {hint && <p className="mt-1 text-xs text-ink-3">{hint}</p>}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}

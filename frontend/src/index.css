@@ -980,6 +980,18 @@
   background: hsl(var(--muted-foreground) / 0.55);
 }
 
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+  background: transparent;
+}
+
 /* Global focus-visible fallback for interactive elements */
 a:focus-visible,
 button:focus-visible,
