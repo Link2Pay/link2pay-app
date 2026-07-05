@@ -110,6 +110,7 @@ const en = {
   'wallet.loading': 'Loading wallets…',
   'wallet.connectError': 'Connection cancelled or failed.',
   'wallet.addressError': 'Could not get the wallet address.',
+  'wallet.showMore': 'Show more',
 
   'payment.loadingInvoice': 'Loading payment link...',
   'payment.invoiceNotFound': 'Payment link not found',
@@ -342,6 +343,7 @@ const es: Record<TranslationKey, string> = {
   'wallet.loading': 'Cargando wallets…',
   'wallet.connectError': 'Conexión cancelada o fallida.',
   'wallet.addressError': 'No se pudo obtener la dirección de la wallet.',
+  'wallet.showMore': 'Ver más',
 
   'payment.loadingInvoice': 'Cargando link de pago...',
   'payment.invoiceNotFound': 'Link de pago no encontrado',
@@ -572,6 +574,7 @@ const pt: Record<TranslationKey, string> = {
   'wallet.loading': 'Carregando wallets…',
   'wallet.connectError': 'Conexão cancelada ou falhou.',
   'wallet.addressError': 'Não foi possível obter o endereço da wallet.',
+  'wallet.showMore': 'Ver mais',
   'payment.loadingInvoice': 'Carregando link de pagamento...',
   'payment.invoiceNotFound': 'Link de pagamento não encontrado',
   'payment.invoicePayment': 'Checkout de link de pagamento',
