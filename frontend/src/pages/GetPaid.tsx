@@ -246,7 +246,10 @@ export default function GetPaid() {
                           <Copy className="h-3.5 w-3.5" />
                           {copy.copyAddress}
                         </button>
-                        <span className="text-2xs text-warning">{copy.simulated}</span>
+                        {/* Only local dev runs the mock anchor — deployed envs settle for real. */}
+                        {import.meta.env.DEV && (
+                          <span className="text-2xs text-warning">{copy.simulated}</span>
+                        )}
                       </div>
                     </>
                   ) : (

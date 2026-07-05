@@ -79,7 +79,10 @@ export default function ReceiverOffRamp({ invoice, onUpdated }: Props) {
         <Landmark className="h-4 w-4" aria-hidden="true" />
         <span className="text-sm font-semibold">Bre-B fiat off-ramp (COP)</span>
       </div>
-      <p className="mt-1 text-2xs text-warning">{t('payment.simulatedSettlement')}</p>
+      {/* Only local dev runs the mock anchor — deployed envs settle for real. */}
+      {import.meta.env.DEV && (
+        <p className="mt-1 text-2xs text-warning">{t('payment.simulatedSettlement')}</p>
+      )}
 
       {!ready && !intent && invoice.isOpenAmount ? (
         <div className="mt-3 space-y-2 text-sm">

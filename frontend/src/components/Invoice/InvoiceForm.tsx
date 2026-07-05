@@ -842,9 +842,12 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
                   aria-describedby={fiatAliasHintId}
                 />
               </Field>
-              <p className="text-2xs text-ink-3">
-                {copy.settlementDemo.replace('{rail}', fiatRail.railName)}
-              </p>
+              {/* Only local dev runs the mock anchor — deployed envs settle for real. */}
+              {import.meta.env.DEV && (
+                <p className="text-2xs text-ink-3">
+                  {copy.settlementDemo.replace('{rail}', fiatRail.railName)}
+                </p>
+              )}
             </div>
             <KycGate active={fiatSelected && fiatLive} onVerifiedChange={setKycVerified} />
           </div>
