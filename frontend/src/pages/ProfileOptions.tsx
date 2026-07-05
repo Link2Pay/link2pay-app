@@ -50,6 +50,7 @@ const COPY: Record<
     defaultSettlementLabel: string;
     defaultAliasLabel: string;
     aliasHint: string;
+    aliasKycLocked: string;
     crypto: string;
     breb: string;
     save: string;
@@ -94,6 +95,7 @@ const COPY: Record<
     defaultSettlementLabel: 'Default settlement',
     defaultAliasLabel: 'Default Bre-B alias (llave)',
     aliasHint: 'Saved even if your default settlement is Crypto — lets you offer Bre-B on individual invoices.',
+    aliasKycLocked: 'Verify your identity below to add a Bre-B key.',
     crypto: 'Crypto',
     breb: 'Bre-B (COP)',
     save: 'Save profile',
@@ -137,6 +139,7 @@ const COPY: Record<
     defaultSettlementLabel: 'Liquidacion predeterminada',
     defaultAliasLabel: 'Llave Bre-B predeterminada',
     aliasHint: 'Se guarda aunque tu liquidación por defecto sea Cripto — te permite ofrecer Bre-B en facturas puntuales.',
+    aliasKycLocked: 'Verifica tu identidad más abajo para agregar una llave Bre-B.',
     crypto: 'Cripto',
     breb: 'Bre-B (COP)',
     save: 'Guardar perfil',
@@ -180,6 +183,7 @@ const COPY: Record<
     defaultSettlementLabel: 'Liquidacao padrao',
     defaultAliasLabel: 'Chave Bre-B padrao',
     aliasHint: 'Salva mesmo que sua liquidacao padrao seja Cripto — permite oferecer Bre-B em faturas pontuais.',
+    aliasKycLocked: 'Verifique sua identidade abaixo para adicionar uma chave Bre-B.',
     crypto: 'Cripto',
     breb: 'Bre-B (COP)',
     save: 'Salvar perfil',
@@ -219,6 +223,7 @@ export default function ProfileOptions() {
   const { network } = useNetworkStore();
   const [copied, setCopied] = useState(false);
   const [logoError, setLogoError] = useState(false);
+  const [kycVerified, setKycVerified] = useState(false);
 
   const [form, setForm] = useState<SaveProfileData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -276,7 +281,12 @@ export default function ProfileOptions() {
       await saveBusinessProfile(form, publicKey);
       toast.success(copy.saved);
     } catch (err: any) {
-      toast.error(err?.message || copy.saveError);
+      const message = err instanceof Error ? err.message : '';
+      if (message.includes('KYC_REQUIRED') || message.toLowerCase().includes('identity verification')) {
+        toast.error(copy.aliasKycLocked);
+      } else {
+        toast.error(err?.message || copy.saveError);
+      }
     } finally {
       setSaving(false);
     }
@@ -466,11 +476,12 @@ export default function ProfileOptions() {
             <Field
               id="pf-alias"
               label={settlementRail ? settlementRail.aliasLabel : copy.defaultAliasLabel}
-              hint={copy.aliasHint}
+              hint={kycVerified ? copy.aliasHint : copy.aliasKycLocked}
             >
               <input id="pf-alias" className="input" value={form.defaultPayoutAlias ?? ''}
                 onChange={(e) => set('defaultPayoutAlias', e.target.value)}
-                placeholder={settlementRail?.aliasPlaceholder ?? '@nequi-3001234567'} />
+                placeholder={settlementRail?.aliasPlaceholder ?? '@nequi-3001234567'}
+                disabled={!kycVerified} />
             </Field>
           </div>
         </div>
@@ -480,7 +491,7 @@ export default function ProfileOptions() {
           AND for BUSINESS_INVOICE/SERVICE_INVOICE links regardless of payout
           method, so it stays visible even on fiat-disabled environments. */}
       <SectionCard id="kyc-section" title={copy.kycTitle} hint={copy.kycDesc}>
-        <KycGate active />
+        <KycGate active onVerifiedChange={setKycVerified} />
       </SectionCard>
 
       {/* Cuentas vinculadas — Google/LinkedIn/X/Email para iniciar sesión */}
