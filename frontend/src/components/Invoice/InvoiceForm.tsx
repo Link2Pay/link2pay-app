@@ -12,6 +12,7 @@ import KycGate from '../Kyc/KycGate';
 import ComingSoonWall from '../Offramp/ComingSoonWall';
 import { railByCountry, FIAT_RAILS } from '../../config/rails';
 import { config } from '../../config';
+import { endOfDayIso } from '../../lib/format';
 import type { Currency, InvoiceType } from '../../types';
 import type { Language } from '../../i18n/translations';
 import usdcLogo from '../../assets/logos/usdc.png';
@@ -746,7 +747,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
           payoutMethod: fiatSelected && fiatLive ? 'BRE_B' : 'CRYPTO',
           payoutAlias: fiatSelected && fiatLive ? payoutAlias.trim() || undefined : undefined,
           taxRate: taxRate ? parseFloat(taxRate) : undefined,
-          dueDate: dueDate ? new Date(dueDate).toISOString() : undefined,
+          dueDate: dueDate ? endOfDayIso(dueDate) : undefined,
           networkPassphrase,
           invoiceType,
           isOpenAmount: openAmount || undefined,

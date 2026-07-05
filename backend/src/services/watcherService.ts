@@ -5,6 +5,13 @@ import { log } from '../utils/logger';
 import { offRampService } from './offRampService';
 import { invoiceService } from './invoiceService';
 
+// A crypto payment that lands on-chain shortly after an invoice flips to
+// EXPIRED (e.g. a slower mobile wallet losing the race against the poll
+// cycle) should still be reconciled — the merchant did receive the funds.
+// This grace window keeps recently-expired crypto invoices in the scan
+// instead of ignoring them forever the moment they expire.
+const RECENTLY_EXPIRED_GRACE_MS = 24 * 60 * 60 * 1000; // 24h
+
 /**
  * WatcherService monitors the Stellar network for incoming payments
  * and matches them to pending invoices using transaction memos.
@@ -68,12 +75,22 @@ export class WatcherService {
   }
 
   /**
-   * Check all pending/processing/awaiting-payment invoices for on-chain payments
+   * Check all pending/processing/awaiting-payment invoices for on-chain payments.
+   * Also re-checks crypto invoices that expired within the grace window, so a
+   * payment that lands late (e.g. a slower mobile wallet) still gets credited
+   * instead of being ignored forever the instant status flips to EXPIRED.
    */
   async checkPendingInvoices() {
     const pendingInvoices = await prisma.invoice.findMany({
       where: {
-        status: { in: ['PENDING', 'PROCESSING', 'AWAITING_PAYMENT', 'SETTLING'] },
+        OR: [
+          { status: { in: ['PENDING', 'PROCESSING', 'AWAITING_PAYMENT', 'SETTLING'] } },
+          {
+            status: 'EXPIRED',
+            payoutMethod: { not: 'BRE_B' },
+            dueDate: { gt: new Date(Date.now() - RECENTLY_EXPIRED_GRACE_MS) },
+          },
+        ],
       },
       select: {
         id: true,
