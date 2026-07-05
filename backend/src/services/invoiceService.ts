@@ -4,6 +4,8 @@ import { generateInvoiceNumber } from '../utils/generators';
 import { config } from '../config';
 import prisma from '../db';
 import { offRampService } from './offRampService';
+import { emailService } from '../email/emailService';
+import { log } from '../utils/logger';
 
 const HERO_PREVIEW_REFERENCE_LINE = 'Reference: __hero_preview_v1__';
 
@@ -278,7 +280,7 @@ export class InvoiceService {
     payerWallet: string,
     paidAmount?: string
   ) {
-    return prisma.$transaction(
+    const invoice = await prisma.$transaction(
       async (tx) => {
         // Re-read inside the transaction to get a fresh, locked view.
         const current = await tx.invoice.findUnique({ where: { id } });
@@ -336,6 +338,31 @@ export class InvoiceService {
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
     );
+
+    // Merchant email copy — attached to the PAID *transition* (this method runs
+    // exactly once per invoice thanks to the serializable already-paid check),
+    // fire-and-forget: an email failure must never fail payment processing.
+    void (async () => {
+      try {
+        const profile = await prisma.businessProfile.findUnique({
+          where: { walletAddress: invoice.freelancerWallet },
+          select: { email: true },
+        });
+        if (!profile?.email) {
+          log.info('Invoice paid: merchant has no profile email, skipping copy', { invoiceId: invoice.id });
+          return;
+        }
+        await emailService.sendInvoicePaidCopy(invoice, profile.email);
+        log.info('Merchant invoice copy sent', { invoiceId: invoice.id });
+      } catch (error) {
+        log.error('Merchant invoice copy failed', {
+          invoiceId: invoice.id,
+          error: (error as Error)?.message,
+        });
+      }
+    })();
+
+    return invoice;
   }
 
   /**
