@@ -157,6 +157,109 @@ function toNumber(value: string | null | undefined): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+// Alturas fijas para las barras del chart de tendencia del skeleton: dan un
+// perfil "de gráfico" realista sin depender de datos ni de valores aleatorios.
+const TREND_BAR_HEIGHTS = ['h-10', 'h-16', 'h-12', 'h-20', 'h-14', 'h-8', 'h-16', 'h-12', 'h-16', 'h-20', 'h-10', 'h-14'];
+
+/**
+ * Skeleton de carga de la página de analítica: replica la geometría real
+ * (6 KPIs + 2 cards de barras horizontales + card de tendencia con toggle +
+ * tabla Top Clients) con las mismas primitivas (.card, bg-surface-2) para una
+ * transición sin reflow.
+ */
+function AnalyticsSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse sm:space-y-8">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="card flex items-center justify-between gap-3 p-6">
+            <div className="space-y-2">
+              <div className="h-3.5 w-16 rounded bg-surface-2" />
+              <div className="h-7 w-14 rounded bg-surface-2" />
+            </div>
+            <div className="h-9 w-9 shrink-0 rounded-full bg-surface-2" />
+          </div>
+        ))}
+      </div>
+
+      {/* Dos cards de barras horizontales (Status / Asset mix) */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {[4, 3].map((rows, card) => (
+          <div key={card} className="card p-5">
+            <div className="h-4 w-40 rounded bg-surface-2" />
+            <div className="mt-2 h-3 w-56 rounded bg-surface-2" />
+            <div className="mt-5 space-y-3">
+              {[...Array(rows)].map((_, r) => (
+                <div key={r}>
+                  <div className="mb-1 flex items-center justify-between">
+                    <div className="h-3 w-16 rounded bg-surface-2" />
+                    <div className="h-3 w-8 rounded bg-surface-2" />
+                  </div>
+                  <div className="h-2 rounded-full bg-surface-2" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Activity Trend (barras verticales + toggle de rango) */}
+      <div className="card p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <div className="h-4 w-36 rounded bg-surface-2" />
+            <div className="mt-2 h-3 w-52 rounded bg-surface-2" />
+          </div>
+          <div className="h-9 w-40 rounded-full bg-surface-2" />
+        </div>
+        <div
+          className="mt-5 grid gap-2"
+          style={{ gridTemplateColumns: `repeat(${TREND_BAR_HEIGHTS.length}, minmax(0, 1fr))` }}
+        >
+          {TREND_BAR_HEIGHTS.map((height, i) => (
+            <div key={i} className="rounded-xl border border-border bg-card p-2">
+              <div className="mx-auto mb-2 h-2.5 w-6 rounded bg-surface-2" />
+              <div className="mx-auto flex h-20 w-6 items-end rounded bg-muted">
+                <div className={`w-full rounded bg-surface-2 ${height}`} />
+              </div>
+              <div className="mx-auto mt-2 h-2.5 w-4 rounded bg-surface-2" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Top Clients (tabla de 3 columnas) */}
+      <div className="card p-5">
+        <div className="h-4 w-32 rounded bg-surface-2" />
+        <div className="mt-2 h-3 w-48 rounded bg-surface-2" />
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[560px]">
+            <thead>
+              <tr className="border-b border-border">
+                {[...Array(3)].map((_, i) => (
+                  <th key={i} className="px-3 py-2">
+                    <div className={`h-3 w-16 rounded bg-surface-2 ${i >= 1 ? 'ml-auto' : ''}`} />
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {[...Array(6)].map((_, r) => (
+                <tr key={r}>
+                  <td className="px-3 py-2.5"><div className="h-3.5 w-32 rounded bg-surface-2" /></td>
+                  <td className="px-3 py-2.5"><div className="ml-auto h-3.5 w-10 rounded bg-surface-2" /></td>
+                  <td className="px-3 py-2.5"><div className="ml-auto h-3.5 w-20 rounded bg-surface-2" /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Analytics() {
   const { publicKey } = useWalletStore();
   const { networkPassphrase } = useNetworkStore();
@@ -339,14 +442,14 @@ export default function Analytics() {
     },
   ];
 
-  if (loading) {
-    return <div className="card p-12 text-center text-sm text-ink-3">{copy.loading}</div>;
-  }
-
   return (
     <div className="space-y-6 animate-in sm:space-y-8">
       <PageHeader title={copy.title} subtitle={copy.subtitle} />
 
+      {loading ? (
+        <AnalyticsSkeleton />
+      ) : (
+        <>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
         {kpiCards.map((stat) => (
           <StatCard key={stat.label} {...stat} />
@@ -515,6 +618,8 @@ export default function Analytics() {
             total links {stats.totalInvoices} | paid {stats.paidInvoices} | pending {stats.pendingInvoices} | revenue {toNumber(stats.totalRevenue).toFixed(2)}
           </p>
         </div>
+      )}
+        </>
       )}
     </div>
   );
