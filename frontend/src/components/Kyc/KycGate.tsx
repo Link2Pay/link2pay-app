@@ -28,6 +28,7 @@ const COPY: Record<Language, {
   pending: string;
   pendingHint: string;
   refresh: string;
+  reopen: string;
   rejected: string;
   retry: string;
   connectFirst: string;
@@ -45,8 +46,9 @@ const COPY: Record<Language, {
     verifying: 'Starting…',
     verified: 'Identity verified',
     pending: 'Verification in progress',
-    pendingHint: 'Complete it in the window that opened, then refresh.',
+    pendingHint: 'Complete it in the window that opened, then refresh — or reopen it if you closed the window.',
     refresh: 'Refresh status',
+    reopen: 'Reopen verification',
     rejected: 'Verification was declined.',
     retry: 'Try again',
     connectFirst: 'Connect your wallet to verify your identity.',
@@ -64,8 +66,9 @@ const COPY: Record<Language, {
     verifying: 'Iniciando…',
     verified: 'Identidad verificada',
     pending: 'Verificación en progreso',
-    pendingHint: 'Complétala en la ventana que se abrió y luego actualiza.',
+    pendingHint: 'Complétala en la ventana que se abrió y luego actualiza — o reábrela si cerraste la ventana.',
     refresh: 'Actualizar estado',
+    reopen: 'Reabrir verificación',
     rejected: 'La verificación fue rechazada.',
     retry: 'Intentar de nuevo',
     connectFirst: 'Conecta tu wallet para verificar tu identidad.',
@@ -83,8 +86,9 @@ const COPY: Record<Language, {
     verifying: 'Iniciando…',
     verified: 'Identidade verificada',
     pending: 'Verificação em andamento',
-    pendingHint: 'Conclua na janela que abriu e depois atualize.',
+    pendingHint: 'Conclua na janela que abriu e depois atualize — ou reabra se fechou a janela.',
     refresh: 'Atualizar status',
+    reopen: 'Reabrir verificação',
     rejected: 'A verificação foi recusada.',
     retry: 'Tentar novamente',
     connectFirst: 'Conecte sua wallet para verificar sua identidade.',
@@ -236,9 +240,22 @@ export default function KycGate({ active, onVerifiedChange, className }: Props) 
         <div className="mt-4 pl-11">
           <p className="text-xs font-semibold text-foreground">{copy.pending}</p>
           <p className="mt-0.5 text-2xs text-ink-3">{copy.pendingHint}</p>
-          <button type="button" onClick={refresh} className="btn-ghost mt-2 text-xs px-3 py-1.5">
-            {copy.refresh}
-          </button>
+          <div className="mt-2 flex gap-2">
+            <button type="button" onClick={refresh} className="btn-ghost text-xs px-3 py-1.5">
+              {copy.refresh}
+            </button>
+            {/* startKyc on a PENDING profile issues a fresh provider session,
+                so closing the window is always recoverable. */}
+            <button
+              type="button"
+              onClick={handleVerify}
+              disabled={starting}
+              className="btn-secondary inline-flex items-center gap-1.5 text-xs px-3 py-1.5"
+            >
+              {starting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {starting ? copy.verifying : copy.reopen}
+            </button>
+          </div>
         </div>
       ) : (
         <div className="mt-4 pl-11">
