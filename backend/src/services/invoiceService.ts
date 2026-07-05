@@ -3,6 +3,7 @@ import { CreateInvoiceInput, InvoicePublicView } from '../types';
 import { generateInvoiceNumber } from '../utils/generators';
 import { config } from '../config';
 import prisma from '../db';
+import { offRampService } from './offRampService';
 
 const HERO_PREVIEW_REFERENCE_LINE = 'Reference: __hero_preview_v1__';
 
@@ -38,6 +39,16 @@ export class InvoiceService {
       : new Prisma.Decimal(0);
 
     const total = subtotal.plus(taxAmount).minus(discount);
+
+    // Bre-B invoices above the anchor's available liquidity cannot settle —
+    // reject at creation instead of stranding the payer later. Open-amount
+    // invoices (total 0 here) are checked at quote time instead.
+    if (input.payoutMethod === 'BRE_B' && total.greaterThan(0)) {
+      const liquidity = await offRampService.checkLiquidity(total.toString());
+      if (!liquidity.ok) {
+        throw new Error('FIAT_LIQUIDITY_INSUFFICIENT');
+      }
+    }
 
     const invoice = await prisma.$transaction(async (tx) => {
       const created = await tx.invoice.create({

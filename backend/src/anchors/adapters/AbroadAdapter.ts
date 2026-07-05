@@ -54,6 +54,15 @@ interface AbroadStatusResponse {
   kycLink?: string | null;
 }
 
+// GET /payments/liquidity — USDC the anchor can settle right now for a rail.
+// `success: false` with a numeric `liquidity` means Abroad's upstream feed
+// timed out and the figure is their last cached value — usable but stale.
+interface AbroadLiquidityResponse {
+  liquidity?: number;
+  success?: boolean;
+  message?: string;
+}
+
 export class AbroadAdapter implements AnchorAdapter {
   readonly id = 'abroad' as const;
 
@@ -81,6 +90,37 @@ export class AbroadAdapter implements AnchorAdapter {
       throw new Error(`ABROAD_API_ERROR ${res.status}`);
     }
     return (await res.json()) as T;
+  }
+
+  /**
+   * Available settlement liquidity (USDC) for a rail, or null when the
+   * check itself fails — callers treat null as "unknown", never as zero.
+   */
+  async getLiquidity(
+    paymentMethod: 'BREB' | 'PIX' = 'BREB'
+  ): Promise<{ available: number; fresh: boolean } | null> {
+    try {
+      // Deliberately NOT this.call(): when Abroad's upstream feed times out
+      // they respond 400 with { liquidity: <cached figure>, success: false }.
+      // The stale figure is still the best available signal, so parse the
+      // body regardless of HTTP status.
+      const res = await fetch(
+        `${this.baseUrl}/payments/liquidity?paymentMethod=${paymentMethod}`,
+        {
+          headers: { 'X-API-Key': config.abroad.apiKey as string },
+          signal: AbortSignal.timeout(8000),
+        }
+      );
+      const data = (await res.json()) as AbroadLiquidityResponse;
+      if (typeof data.liquidity !== 'number') return null;
+      return { available: data.liquidity, fresh: data.success === true };
+    } catch (err) {
+      log.warn('[AbroadAdapter] liquidity check failed', {
+        paymentMethod,
+        error: (err as Error)?.message,
+      });
+      return null;
+    }
   }
 
   async getQuote(params: {
