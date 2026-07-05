@@ -140,6 +140,13 @@ router.post(
       res.json(result);
     } catch (error: any) {
       const msg = error?.message || 'Failed to set amount';
+      if (msg === 'FIAT_AMOUNT_BELOW_MINIMUM') {
+        return res.status(422).json({
+          error: 'FIAT_AMOUNT_BELOW_MINIMUM',
+          message:
+            'This amount is below the Bre-B payout minimum (5,000 COP, about 1.6 USDC). Enter a larger amount.',
+        });
+      }
       const status = msg === 'Invoice not found'
         ? 404
         : /open-amount|Bre-B|already set|greater than zero|payout alias/i.test(msg)

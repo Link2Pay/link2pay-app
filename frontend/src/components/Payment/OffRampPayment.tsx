@@ -71,14 +71,20 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
   // Real anchor estimate for the summary, fetched before any firm quote
   // exists. Best-effort: unavailable → the summary shows "—" (never a made-up
   // rate on deployed envs; the demo constant remains as a dev-only fallback).
-  const [estimate, setEstimate] = useState<{ buyAmount?: string; rate?: string } | null>(null);
+  const [estimate, setEstimate] = useState<{
+    buyAmount?: string;
+    rate?: string;
+    belowMinimum?: boolean;
+    minCop?: number;
+  } | null>(null);
 
   useEffect(() => {
     if (invoice.quoteBuyAmount) return; // firm quote already on the invoice
     let cancelled = false;
     getOfframpEstimate(invoice.id)
       .then((e) => {
-        if (!cancelled && e.available) setEstimate({ buyAmount: e.buyAmount, rate: e.rate });
+        // belowMinimum arrives with available:false but is still worth showing.
+        if (!cancelled && (e.available || e.belowMinimum)) setEstimate(e);
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -257,6 +263,11 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
         {invoice.payoutAlias && (
           <p className="mt-2 text-center text-2xs text-ink-3">
             {t('payment.offramp.toLlave')} <span className="font-mono">{invoice.payoutAlias}</span>
+          </p>
+        )}
+        {estimate?.belowMinimum && (
+          <p className="mt-2 text-center text-2xs text-danger">
+            {t('payment.offramp.belowMinimum', { min: (estimate.minCop ?? 5000).toLocaleString('es-CO') })}
           </p>
         )}
         {fxEstimate && (

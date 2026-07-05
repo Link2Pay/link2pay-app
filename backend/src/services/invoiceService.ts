@@ -50,6 +50,12 @@ export class InvoiceService {
       if (!liquidity.ok) {
         throw new Error('FIAT_LIQUIDITY_INSUFFICIENT');
       }
+      // Mirror the anchor's payout floor (5,000 COP) — a below-minimum
+      // invoice is a guaranteed dead end for the payer at quote time.
+      const minimum = await offRampService.checkMinimum(total.toString());
+      if (!minimum.ok) {
+        throw new Error('FIAT_AMOUNT_BELOW_MINIMUM');
+      }
     }
 
     const invoice = await prisma.$transaction(async (tx) => {

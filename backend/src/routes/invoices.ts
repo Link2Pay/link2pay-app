@@ -84,6 +84,13 @@ router.post(
             'The fiat off-ramp cannot settle this amount right now. Try a smaller amount or create a crypto invoice.',
         });
       }
+      if (error?.message === 'FIAT_AMOUNT_BELOW_MINIMUM') {
+        return res.status(422).json({
+          error: 'FIAT_AMOUNT_BELOW_MINIMUM',
+          message:
+            'This amount is below the Bre-B payout minimum (5,000 COP, about 1.6 USDC). Increase the amount or create a crypto invoice.',
+        });
+      }
       log.error('Create invoice error', { error: error?.message });
       res.status(500).json({ error: 'Failed to create invoice' });
     }

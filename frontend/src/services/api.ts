@@ -119,7 +119,9 @@ async function request<T>(
     }
 
     throw new ApiError(
-      data?.error || `Request failed with status ${response.status}`,
+      // Prefer the human-readable message; error codes stay available via
+      // the message content for callers that match on them.
+      data?.message || data?.error || `Request failed with status ${response.status}`,
       response.status,
       data?.details
     );
@@ -606,6 +608,9 @@ export interface OfframpEstimate {
   available: boolean;
   buyAmount?: string;
   rate?: string;
+  belowMinimum?: boolean;
+  minCop?: number;
+  minUsdc?: string;
 }
 
 export async function getOfframpEstimate(invoiceId: string): Promise<OfframpEstimate> {

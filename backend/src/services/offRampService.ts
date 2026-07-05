@@ -86,13 +86,70 @@ export class OffRampService {
   // is still the source of truth.
   private estimateCache = new Map<string, { buyAmount: string | null; rate: string; at: number }>();
 
+  // Abroad refuses COP payouts under this floor ("The minimum allowed amount
+  // for COP is 5000 COP") — mirror it at creation so merchants can't mint
+  // invoices that are guaranteed dead ends for the payer.
+  static readonly FIAT_MIN_COP = 5000;
+
+  // Cached USDC→COP anchor rate for minimum checks and open-amount previews.
+  // Probed with an amount safely above the anchor's own minimum.
+  private rateCache: { rate: number; at: number } | null = null;
+
+  private async getAnchorRate(): Promise<number | null> {
+    if (this.rateCache && Date.now() - this.rateCache.at < 60_000) {
+      return this.rateCache.rate;
+    }
+    try {
+      const quote = await this.adapter.getQuote({
+        sellAmount: '10',
+        buyCurrency: 'COP',
+        payoutAlias: '',
+      });
+      const rate = Number(quote.rate);
+      if (!Number.isFinite(rate) || rate <= 0) return null;
+      this.rateCache = { rate, at: Date.now() };
+      return rate;
+    } catch (error) {
+      log.warn('[OffRampService] Anchor rate probe failed', {
+        error: (error as Error)?.message,
+      });
+      return null;
+    }
+  }
+
+  /**
+   * Anchor minimum guard: fails when the amount converts to less than the
+   * anchor's COP floor. Fail-open when the rate is unknown — the anchor
+   * itself is the final arbiter at quote time.
+   */
+  async checkMinimum(
+    sellAmount: string
+  ): Promise<{ ok: true } | { ok: false; minUsdc: string; minCop: number }> {
+    if (this.adapter.id !== 'abroad') return { ok: true };
+    const amount = Number(sellAmount);
+    if (!(amount > 0)) return { ok: true };
+    const rate = await this.getAnchorRate();
+    if (!rate) return { ok: true };
+    if (amount * rate >= OffRampService.FIAT_MIN_COP) return { ok: true };
+    return {
+      ok: false,
+      minUsdc: (OffRampService.FIAT_MIN_COP / rate).toFixed(2),
+      minCop: OffRampService.FIAT_MIN_COP,
+    };
+  }
+
   /**
    * Public estimate of what the receiver gets, for the /pay page summary.
    * No auth: reveals nothing beyond what the payment page already shows.
    */
-  async getPublicEstimate(
-    invoiceId: string
-  ): Promise<{ available: boolean; buyAmount?: string; rate?: string }> {
+  async getPublicEstimate(invoiceId: string): Promise<{
+    available: boolean;
+    buyAmount?: string;
+    rate?: string;
+    belowMinimum?: boolean;
+    minCop?: number;
+    minUsdc?: string;
+  }> {
     const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
     if (!invoice) throw new Error('Invoice not found');
     if (invoice.payoutMethod !== 'BRE_B') throw new Error('Invoice is not a Bre-B off-ramp');
@@ -119,6 +176,12 @@ export class OffRampService {
 
     try {
       if (Number(total) > 0) {
+        // Below the anchor's floor the quote endpoint just 400s — answer from
+        // the cached rate instead so the page can explain the minimum.
+        const minimum = await this.checkMinimum(total);
+        if (!minimum.ok) {
+          return { available: false, belowMinimum: true, minCop: minimum.minCop, minUsdc: minimum.minUsdc };
+        }
         const quote = await this.adapter.getQuote({
           sellAmount: total,
           buyCurrency,
@@ -127,15 +190,12 @@ export class OffRampService {
         this.estimateCache.set(invoiceId, { buyAmount: quote.buyAmount, rate: quote.rate, at: Date.now() });
         return { available: true, buyAmount: quote.buyAmount, rate: quote.rate };
       }
-      // Open-amount before the payer sets it: probe with 1 USDC so the page
-      // can preview `typed amount × rate` live.
-      const quote = await this.adapter.getQuote({
-        sellAmount: '1',
-        buyCurrency,
-        payoutAlias: invoice.payoutAlias ?? '',
-      });
-      this.estimateCache.set(invoiceId, { buyAmount: null, rate: quote.rate, at: Date.now() });
-      return { available: true, rate: quote.rate };
+      // Open-amount before the payer sets it: expose the cached anchor rate so
+      // the page can preview `typed amount × rate` live.
+      const rate = await this.getAnchorRate();
+      if (!rate) return { available: false };
+      this.estimateCache.set(invoiceId, { buyAmount: null, rate: String(rate), at: Date.now() });
+      return { available: true, rate: String(rate) };
     } catch (error) {
       // Estimate is best-effort UI sugar — anchor hiccups must not error the page.
       log.warn('[OffRampService] Public estimate unavailable', {
@@ -302,6 +362,13 @@ export class OffRampService {
       throw new Error('Amount must be greater than zero');
     }
     const sellAmountStr = amount.toString();
+
+    // Same anchor floor as invoice creation — reject before claiming the
+    // invoice so the payer can simply try a larger amount.
+    const minimum = await this.checkMinimum(sellAmountStr);
+    if (!minimum.ok) {
+      throw new Error('FIAT_AMOUNT_BELOW_MINIMUM');
+    }
 
     // Atomically claim the invoice (PENDING → AWAITING_ANCHOR) so two concurrent
     // set-amount calls can't both pass the status check and double-quote.
