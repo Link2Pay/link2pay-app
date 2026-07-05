@@ -10,7 +10,7 @@ import { useWalletStore } from '../../store/walletStore';
 import { useNetworkStore } from '../../store/networkStore';
 import KycGate from '../Kyc/KycGate';
 import ComingSoonWall from '../Offramp/ComingSoonWall';
-import { railByCountry, FIAT_RAILS } from '../../config/rails';
+import { railByCountry } from '../../config/rails';
 import { config } from '../../config';
 import { endOfDayIso } from '../../lib/format';
 import type { Currency, InvoiceType } from '../../types';
@@ -655,15 +655,16 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   const total = subtotal + taxAmount;
 
   // The fiat off-ramp rail is fixed by the merchant's country. Bre-B (Colombia)
-  // is live; Pix (Brazil) and Transferência 3.0 (Argentina) are walled. Falls
-  // back to Bre-B when no country is set so today's behaviour is preserved.
-  const fiatRail = railByCountry(merchantCountry) ?? FIAT_RAILS.BRE_B;
+  // is live; Pix (Brazil) and Transferência 3.0 (Argentina) are walled. No
+  // country (or one without a rail) means no fiat option at all.
+  const fiatRail = railByCountry(merchantCountry);
   // A rail is usable when it's rolled out AND this environment allows fiat
   // (testnet walls fiat — the anchor there only simulates settlement).
-  const fiatLive = fiatRail.status === 'live' && config.fiatRailsEnabled;
-  // On fiat-disabled environments the option isn't rendered, so BRE_B can
-  // never be selected; the extra guard keeps stale state from resurfacing it.
-  const fiatSelected = payoutMethod === 'BRE_B' && config.fiatRailsEnabled;
+  const fiatLive = fiatRail?.status === 'live' && config.fiatRailsEnabled;
+  // Where fiat isn't offered (env-disabled or no rail for the country) the
+  // option isn't rendered, so BRE_B can never be selected; the extra guard
+  // keeps stale state from resurfacing it.
+  const fiatSelected = payoutMethod === 'BRE_B' && config.fiatRailsEnabled && Boolean(fiatRail);
   const fiatWalled = fiatSelected && !fiatLive;
   const directAmountId = `${formId}-direct-amount`;
   const directCurrencyId = `${formId}-direct-currency`;
@@ -773,7 +774,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
           (testnet is crypto-only) the option is not rendered at all. */}
       <fieldset>
         <legend className="label mb-2">{copy.settlement}</legend>
-        <div className={`grid grid-cols-1 gap-2 ${compact || !config.fiatRailsEnabled ? '' : 'sm:grid-cols-2'}`}>
+        <div className={`grid grid-cols-1 gap-2 ${compact || !config.fiatRailsEnabled || !fiatRail ? '' : 'sm:grid-cols-2'}`}>
           <SettlementOptionCard
             id={`${formId}-settlement-crypto`}
             name={`${formId}-settlement`}
@@ -784,7 +785,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
             description={t('rail.cryptoDesc', { currency })}
             onChange={setPayoutMethod}
           />
-          {config.fiatRailsEnabled && (
+          {config.fiatRailsEnabled && fiatRail && (
             <SettlementOptionCard
               id={`${formId}-settlement-fiat`}
               name={`${formId}-settlement`}
@@ -799,7 +800,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
           )}
         </div>
       </fieldset>
-      {config.fiatRailsEnabled && !hasBreBKey && (
+      {config.fiatRailsEnabled && fiatRail && !hasBreBKey && (
         <p className="flex flex-wrap items-center gap-1.5 px-1 text-2xs text-ink-3">
           <Lock className="h-3 w-3 shrink-0" aria-hidden="true" />
           {copy.breBKeyLockedLabel}
@@ -849,7 +850,7 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
           </div>
         </div>
       )}
-      {fiatWalled && <ComingSoonWall rail={fiatRail} wallet={publicKey} />}
+      {fiatWalled && fiatRail && <ComingSoonWall rail={fiatRail} wallet={publicKey} />}
     </div>
   );
 

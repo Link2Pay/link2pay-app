@@ -8,7 +8,7 @@ import type { Language } from '../i18n/translations';
 import { useWalletStore } from '../store/walletStore';
 import { getBusinessProfile, getKycStatus } from '../services/api';
 import { shortenAddress } from '../lib/format';
-import { railByCountry, FIAT_RAILS } from '../config/rails';
+import { railByCountry } from '../config/rails';
 import { config } from '../config';
 import PageHeader from '../components/ui/PageHeader';
 import ComingSoonWall from '../components/Offramp/ComingSoonWall';
@@ -135,11 +135,12 @@ export default function GetPaid() {
     };
   }, [publicKey]);
 
-  // The fiat card follows the merchant's country. Bre-B (Colombia) is live;
-  // Pix / Transferência 3.0 render the coming-soon wall instead.
-  const fiatRail = railByCountry(country) ?? FIAT_RAILS.BRE_B;
+  // The fiat card follows the merchant's country: Bre-B (Colombia) is live,
+  // Pix / Transferência 3.0 render the coming-soon wall, and a country with
+  // no rail (or none set) shows no fiat card at all.
+  const fiatRail = railByCountry(country);
   // Usable only when rolled out AND this environment allows fiat (testnet walls it).
-  const fiatLive = fiatRail.status === 'live' && config.fiatRailsEnabled;
+  const fiatLive = fiatRail?.status === 'live' && config.fiatRailsEnabled;
 
   useEffect(() => {
     if (!publicKey || !fiatLive) return;
@@ -206,8 +207,9 @@ export default function GetPaid() {
             </div>
 
             {/* Receive in local fiat — Bre-B live, Pix / Transferência 3.0 walled.
-                Hidden entirely on fiat-disabled environments (testnet is crypto-only). */}
-            {config.fiatRailsEnabled && (
+                Hidden entirely on fiat-disabled environments (testnet is crypto-only)
+                and for merchants whose country has no rail. */}
+            {config.fiatRailsEnabled && fiatRail && (
             <div className="card p-5">
               <div className="mb-1 flex items-center gap-2">
                 <Landmark className="h-4 w-4 text-ink-3" />

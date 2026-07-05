@@ -460,30 +460,40 @@ export default function ProfileOptions() {
               value={form.defaultPayoutMethod ?? 'CRYPTO'}
               options={[
                 { value: 'CRYPTO', label: copy.crypto },
-                {
-                  value: 'BRE_B',
-                  label: settlementRail ? `${settlementRail.railName} (${settlementRail.currency})` : copy.breb,
-                },
+                // Fiat settlement is only offered when the merchant's country
+                // has a LIVE rail (payoutMethod non-null). Walled rails
+                // (Pix / Transferência 3.0) and rail-less countries get
+                // crypto only.
+                ...(settlementRail?.payoutMethod
+                  ? [{
+                      value: settlementRail.payoutMethod,
+                      label: `${settlementRail.railName} (${settlementRail.currency})`,
+                    }]
+                  : []),
               ]}
               onChange={(v) => set('defaultPayoutMethod', v)}
             />
           </Field>
-          {/* Always visible, independent of defaultPayoutMethod: a merchant may
-              want a saved Bre-B key for occasional fiat invoices without
-              switching their default settlement method (see Wall 2 —
+          {/* Rendered only when the merchant's country has a fiat rail — the
+              payout key is rail-specific (llave / Pix key / CBU), so there is
+              nothing to save elsewhere. Independent of defaultPayoutMethod: a
+              merchant may want a saved key for occasional fiat invoices
+              without switching their default settlement (see Wall 2 —
               requireBreBKeyForFiat only checks this field's presence). */}
+          {settlementRail && (
           <div className="sm:col-span-2">
             <Field
               id="pf-alias"
-              label={settlementRail ? settlementRail.aliasLabel : copy.defaultAliasLabel}
+              label={settlementRail.aliasLabel}
               hint={kycVerified ? copy.aliasHint : copy.aliasKycLocked}
             >
               <input id="pf-alias" className="input" value={form.defaultPayoutAlias ?? ''}
                 onChange={(e) => set('defaultPayoutAlias', e.target.value)}
-                placeholder={settlementRail?.aliasPlaceholder ?? '@nequi-3001234567'}
+                placeholder={settlementRail.aliasPlaceholder}
                 disabled={!kycVerified} />
             </Field>
           </div>
+          )}
         </div>
       </SectionCard>
 
