@@ -66,7 +66,7 @@ export default function HomeHero() {
     <section className="aurora-field aurora-veil border-b border-border">
       <div className={`relative ${MARKETING_CONTAINER} py-16 lg:flex lg:min-h-[calc(100dvh-4rem)] lg:items-center lg:py-20`}>
         <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14">
-          <div className="max-w-2xl">
+          <div className="mx-auto max-w-2xl text-center lg:mx-0 lg:text-left">
             <span className="inline-flex items-center rounded-full border border-border bg-card/70 px-4 py-2 text-2xs font-medium uppercase tracking-label text-foreground">
               {copy.badge}
             </span>
@@ -82,7 +82,7 @@ export default function HomeHero() {
               {copy.description}
             </p>
 
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
               <Link to="/app" className="btn-primary px-6 text-sm">
                 {copy.primaryCta}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -92,7 +92,7 @@ export default function HomeHero() {
               </a>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-2.5">
+            <div className="mt-8 flex flex-wrap justify-center gap-2.5 lg:justify-start">
               {copy.tags.map((tag, index) => {
                 const Icon = TAG_ICONS[index];
                 return (

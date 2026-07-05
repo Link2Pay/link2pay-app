@@ -1,4 +1,4 @@
-import { CheckCircle2, Landmark, QrCode, Wallet } from 'lucide-react';
+import { Landmark, QrCode, Wallet } from 'lucide-react';
 import { useI18n } from '../../../i18n/I18nProvider';
 import type { Language } from '../../../i18n/translations';
 import { MARKETING_CONTAINER } from '../layout';
@@ -16,7 +16,7 @@ type CopyBlock = {
   operationsLabel: string;
   operationsTitle: string;
   operationsDescription: string;
-  timeline: Array<{ code: string; description: string; badgeClass: string }>;
+  timeline: Array<{ code: string; description: string }>;
   settlementLine: string;
   auditLine: string;
 };
@@ -39,9 +39,9 @@ const COPY: Record<Language, CopyBlock> = {
     operationsTitle: 'Behind the scenes, the flow moves from created to confirmed.',
     operationsDescription: 'The product already tracks each state and exposes it in the dashboard and public checkout.',
     timeline: [
-      { code: 'CREATED', description: 'Link generated and ready to share.', badgeClass: 'badge-draft' },
-      { code: 'PENDING', description: 'Waiting for wallet confirmation and submission.', badgeClass: 'badge-processing' },
-      { code: 'CONFIRMED', description: 'Settled on Stellar and ready for the payout rail.', badgeClass: 'badge-paid' },
+      { code: 'CREATED', description: 'Link generated and ready to share.' },
+      { code: 'PENDING', description: 'Waiting for wallet confirmation and submission.' },
+      { code: 'CONFIRMED', description: 'Settled on Stellar and ready for the payout rail.' },
     ],
     settlementLine: 'You receive locally through the configured payout rail once the payment is confirmed.',
     auditLine: 'Every confirmed payment can be checked later from the checkout and the dashboard.',
@@ -63,9 +63,9 @@ const COPY: Record<Language, CopyBlock> = {
     operationsTitle: 'Por detrás, el flujo va de creado a confirmado.',
     operationsDescription: 'El producto ya sigue cada estado y lo muestra tanto en el dashboard como en el checkout público.',
     timeline: [
-      { code: 'CREATED', description: 'Link generado y listo para compartir.', badgeClass: 'badge-draft' },
-      { code: 'PENDING', description: 'Esperando confirmación y envío desde la wallet.', badgeClass: 'badge-processing' },
-      { code: 'CONFIRMED', description: 'Liquidado en Stellar y listo para pasar al riel local.', badgeClass: 'badge-paid' },
+      { code: 'CREATED', description: 'Link generado y listo para compartir.' },
+      { code: 'PENDING', description: 'Esperando confirmación y envío desde la wallet.' },
+      { code: 'CONFIRMED', description: 'Liquidado en Stellar y listo para pasar al riel local.' },
     ],
     settlementLine: 'Vos recibís localmente por el riel configurado una vez que el pago queda confirmado.',
     auditLine: 'Cada pago confirmado se puede revisar después desde el checkout y el dashboard.',
@@ -87,9 +87,9 @@ const COPY: Record<Language, CopyBlock> = {
     operationsTitle: 'Nos bastidores, o fluxo vai de criado a confirmado.',
     operationsDescription: 'O produto já acompanha cada estado e o expõe no dashboard e no checkout público.',
     timeline: [
-      { code: 'CREATED', description: 'Link gerado e pronto para compartilhar.', badgeClass: 'badge-draft' },
-      { code: 'PENDING', description: 'Aguardando confirmação e envio pela wallet.', badgeClass: 'badge-processing' },
-      { code: 'CONFIRMED', description: 'Liquidado na Stellar e pronto para o trilho local.', badgeClass: 'badge-paid' },
+      { code: 'CREATED', description: 'Link gerado e pronto para compartilhar.' },
+      { code: 'PENDING', description: 'Aguardando confirmação e envio pela wallet.' },
+      { code: 'CONFIRMED', description: 'Liquidado na Stellar e pronto para o trilho local.' },
     ],
     settlementLine: 'Você recebe localmente pelo trilho configurado assim que o pagamento é confirmado.',
     auditLine: 'Cada pagamento confirmado pode ser conferido depois no checkout e no dashboard.',
@@ -112,14 +112,9 @@ export default function HomeTwoSteps() {
 
       <div className="mt-12 grid gap-4 lg:grid-cols-2">
         <article className="card border border-border p-8">
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
-              {copy.customerLabel}
-            </p>
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-accent-ink">
-              <QrCode className="h-5 w-5" aria-hidden="true" />
-            </div>
-          </div>
+          <p className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
+            {copy.customerLabel}
+          </p>
 
           <h3 className="mt-4 font-display text-2xl font-bold tracking-tight text-foreground [text-wrap:balance]">
             {copy.customerTitle}
@@ -156,14 +151,9 @@ export default function HomeTwoSteps() {
         </article>
 
         <article className="card border border-border p-8">
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
-              {copy.operationsLabel}
-            </p>
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-success-subtle text-success">
-              <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
-            </div>
-          </div>
+          <p className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
+            {copy.operationsLabel}
+          </p>
 
           <h3 className="mt-4 font-display text-2xl font-bold tracking-tight text-foreground [text-wrap:balance]">
             {copy.operationsTitle}
@@ -175,17 +165,14 @@ export default function HomeTwoSteps() {
           <div className="mt-8 space-y-4">
             {copy.timeline.map((item, index) => (
               <div key={item.code} className="rounded-2xl border border-border bg-muted/40 p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="font-mono text-2xs font-semibold text-muted-foreground">
-                      0{index + 1}
-                    </p>
-                    <h4 className="mt-1 text-sm font-semibold text-foreground">{item.code}</h4>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
-                      {item.description}
-                    </p>
-                  </div>
-                  <span className={item.badgeClass}>{item.code}</span>
+                <div className="min-w-0">
+                  <p className="font-mono text-2xs font-semibold text-muted-foreground">
+                    0{index + 1}
+                  </p>
+                  <h4 className="mt-1 text-sm font-semibold text-foreground">{item.code}</h4>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+                    {item.description}
+                  </p>
                 </div>
               </div>
             ))}
