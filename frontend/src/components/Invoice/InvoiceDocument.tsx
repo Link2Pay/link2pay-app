@@ -12,8 +12,8 @@ function formatDate(iso: string) {
 export default function InvoiceDocument({ invoice }: Props) {
   const { t } = useI18n();
   const isService = invoice.invoiceType === 'SERVICE_INVOICE';
-  const qtyLabel = isService ? 'Hrs' : 'Qty';
-  const rateLabel = isService ? 'Rate/hr' : 'Unit';
+  const qtyLabel = isService ? t('payment.doc.hrs') : t('payment.doc.qty');
+  const rateLabel = isService ? t('payment.doc.ratePerHr') : t('payment.doc.unit');
 
   return (
     <div className="text-sm">
@@ -42,7 +42,7 @@ export default function InvoiceDocument({ invoice }: Props) {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-xl font-black uppercase tracking-widest text-ink-0">Invoice</p>
+          <p className="text-xl font-black uppercase tracking-widest text-ink-0">{t('payment.doc.invoice')}</p>
           <p className="text-xs font-mono text-ink-3 mt-0.5">{invoice.invoiceNumber}</p>
         </div>
       </div>
@@ -50,7 +50,7 @@ export default function InvoiceDocument({ invoice }: Props) {
       {/* Bill From / Bill To */}
       <div className="grid grid-cols-2 gap-3 mb-5">
         <div className="rounded-lg bg-surface-1 p-3">
-          <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1.5 font-medium">From</p>
+          <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1.5 font-medium">{t('payment.from')}</p>
           {invoice.freelancerCompany && (
             <p className="font-semibold text-ink-0 text-sm">{invoice.freelancerCompany}</p>
           )}
@@ -63,7 +63,7 @@ export default function InvoiceDocument({ invoice }: Props) {
             <p className="text-xs text-ink-2">{t('payment.freelancer')}</p>
           )}
           {invoice.freelancerTaxId && (
-            <p className="text-2xs text-ink-3 mt-1">Tax ID: {invoice.freelancerTaxId}</p>
+            <p className="text-2xs text-ink-3 mt-1">{t('payment.doc.taxId')}: {invoice.freelancerTaxId}</p>
           )}
           {invoice.freelancerAddress && (
             <p className="text-2xs text-ink-3">{invoice.freelancerAddress}</p>
@@ -76,13 +76,13 @@ export default function InvoiceDocument({ invoice }: Props) {
           )}
         </div>
         <div className="rounded-lg bg-surface-1 p-3">
-          <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1.5 font-medium">Bill To</p>
+          <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1.5 font-medium">{t('payment.doc.billTo')}</p>
           <p className="font-semibold text-ink-0 text-sm">{invoice.clientName}</p>
           {invoice.clientCompany && (
             <p className="text-xs text-ink-2">{invoice.clientCompany}</p>
           )}
           {invoice.clientTaxId && (
-            <p className="text-2xs text-ink-3 mt-1">Tax ID: {invoice.clientTaxId}</p>
+            <p className="text-2xs text-ink-3 mt-1">{t('payment.doc.taxId')}: {invoice.clientTaxId}</p>
           )}
           {invoice.clientAddress && (
             <p className="text-2xs text-ink-3">{invoice.clientAddress}</p>
@@ -96,17 +96,17 @@ export default function InvoiceDocument({ invoice }: Props) {
       {/* Dates + Currency */}
       <div className="grid grid-cols-3 gap-3 mb-5 text-xs">
         <div>
-          <p className="uppercase tracking-wider text-ink-3 mb-1 font-medium">Issue Date</p>
+          <p className="uppercase tracking-wider text-ink-3 mb-1 font-medium">{t('payment.doc.issueDate')}</p>
           <p className="font-medium text-ink-0">{formatDate(invoice.createdAt)}</p>
         </div>
         {invoice.dueDate && (
           <div>
-            <p className="uppercase tracking-wider text-ink-3 mb-1 font-medium">Due Date</p>
+            <p className="uppercase tracking-wider text-ink-3 mb-1 font-medium">{t('payment.doc.dueDate')}</p>
             <p className="font-medium text-ink-0">{formatDate(invoice.dueDate)}</p>
           </div>
         )}
         <div>
-          <p className="uppercase tracking-wider text-ink-3 mb-1 font-medium">Currency</p>
+          <p className="uppercase tracking-wider text-ink-3 mb-1 font-medium">{t('payment.doc.currency')}</p>
           <p className="font-medium text-ink-0">{invoice.currency}</p>
         </div>
       </div>
@@ -126,10 +126,10 @@ export default function InvoiceDocument({ invoice }: Props) {
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-surface-3">
-              <th className="text-left pb-2 text-3xs uppercase tracking-wider text-ink-3 font-medium w-[50%]">Description</th>
+              <th className="text-left pb-2 text-3xs uppercase tracking-wider text-ink-3 font-medium w-[50%]">{t('payment.doc.description')}</th>
               <th className="text-right pb-2 text-3xs uppercase tracking-wider text-ink-3 font-medium">{qtyLabel}</th>
               <th className="text-right pb-2 text-3xs uppercase tracking-wider text-ink-3 font-medium">{rateLabel}</th>
-              <th className="text-right pb-2 text-3xs uppercase tracking-wider text-ink-3 font-medium">Amount</th>
+              <th className="text-right pb-2 text-3xs uppercase tracking-wider text-ink-3 font-medium">{t('payment.doc.amount')}</th>
             </tr>
           </thead>
           <tbody>
@@ -152,30 +152,29 @@ export default function InvoiceDocument({ invoice }: Props) {
       {/* Totals */}
       <div className="ml-auto max-w-[220px] text-xs space-y-1.5">
         <div className="flex justify-between text-ink-3">
-          <span>Subtotal</span>
-          <span className="font-mono">{parseFloat(invoice.subtotal).toFixed(2)}</span>
+          <span>{t('payment.subtotal')}</span>
+          <span className="font-mono [font-variant-numeric:tabular-nums]">{parseFloat(invoice.subtotal).toFixed(2)}</span>
         </div>
         {invoice.taxAmount && parseFloat(invoice.taxAmount) > 0 && (
           <div className="flex justify-between text-ink-3">
             <span>
-              Tax
               {invoice.taxRate && parseFloat(invoice.taxRate) > 0
-                ? ` (${parseFloat(invoice.taxRate)}%)`
-                : ''}
+                ? t('payment.tax', { rate: String(parseFloat(invoice.taxRate)) })
+                : t('payment.doc.taxLabel')}
             </span>
-            <span className="font-mono">{parseFloat(invoice.taxAmount).toFixed(2)}</span>
+            <span className="font-mono [font-variant-numeric:tabular-nums]">{parseFloat(invoice.taxAmount).toFixed(2)}</span>
           </div>
         )}
         <div className="flex justify-between pt-2 border-t border-surface-3 text-sm font-semibold text-ink-0">
-          <span>Total Due</span>
-          <span className="font-mono">{parseFloat(invoice.total).toFixed(2)} {invoice.currency}</span>
+          <span>{t('payment.totalDue')}</span>
+          <span className="font-display font-extrabold [font-variant-numeric:tabular-nums]">{parseFloat(invoice.total).toFixed(2)} {invoice.currency}</span>
         </div>
       </div>
 
       {/* Notes */}
       {invoice.notes && (
         <div className="mt-5 pt-4 border-t border-surface-2">
-          <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1 font-medium">Notes</p>
+          <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1 font-medium">{t('payment.doc.notes')}</p>
           <p className="text-xs text-ink-2 leading-relaxed">{invoice.notes}</p>
         </div>
       )}
