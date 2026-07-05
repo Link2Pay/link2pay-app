@@ -13,6 +13,7 @@ import { useNetworkStore } from '../../store/networkStore';
 import { useDashboardViewStore } from '../../store/dashboardViewStore';
 import type { InvoiceStatus } from '../../types';
 import { formatAmount } from '../../lib/format';
+import { displayClientName, isAnonymousClient } from '../../lib/payerDisplay';
 import type { Language } from '../../i18n/translations';
 
 const COPY: Record<Language, {
@@ -249,8 +250,15 @@ export default function InvoiceList() {
                       <p className="text-xs text-ink-3 mt-0.5">{invoice.title}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-sm text-ink-1">{invoice.clientName}</p>
-                      <p className="text-xs text-ink-3">{invoice.clientEmail}</p>
+                      {/* Anonymous quick links: payer wallet once paid, dash while unpaid. */}
+                      {isAnonymousClient(invoice) ? (
+                        <p className="font-mono text-sm text-ink-1">{displayClientName(invoice) ?? '—'}</p>
+                      ) : (
+                        <>
+                          <p className="text-sm text-ink-1">{invoice.clientName}</p>
+                          <p className="text-xs text-ink-3">{invoice.clientEmail}</p>
+                        </>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />

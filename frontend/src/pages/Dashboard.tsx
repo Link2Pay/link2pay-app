@@ -16,6 +16,7 @@ import {
   Users2,
 } from 'lucide-react';
 import { getDashboardStats, listInvoices } from '../services/api';
+import { displayClientName } from '../lib/payerDisplay';
 import InvoiceStatusBadge from '../components/Invoice/InvoiceStatusBadge';
 import PageHeader from '../components/ui/PageHeader';
 import StatCard, { type StatCardData } from '../components/ui/StatCard';
@@ -289,7 +290,7 @@ export default function Dashboard() {
       if (invoice.status !== 'PAID') return;
       const total = toAmount(invoice.total);
       if (!top || total > top.total) {
-        top = { total, currency: invoice.currency, clientName: invoice.clientName || '—' };
+        top = { total, currency: invoice.currency, clientName: displayClientName(invoice) ?? '—' };
       }
     });
     return top;
@@ -299,7 +300,10 @@ export default function Dashboard() {
     const map = new Map<string, { name: string; links: number; paid: number; pending: number }>();
 
     filteredInvoices.forEach((invoice) => {
-      const name = invoice.clientName || 'Unknown';
+      // Anonymous quick links: identified by payer wallet once paid, and
+      // omitted entirely while unpaid (there is no counterparty yet).
+      const name = displayClientName(invoice);
+      if (!name) return;
       const entry = map.get(name) || { name, links: 0, paid: 0, pending: 0 };
       entry.links += 1;
       if (invoice.status === 'PAID') entry.paid += 1;
@@ -680,7 +684,7 @@ export default function Dashboard() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-base font-bold text-ink-0">{invoice.title}</p>
                     <p className="truncate text-[13px] text-ink-3">
-                      {invoice.clientName} · {invoice.invoiceNumber}
+                      {displayClientName(invoice) ? `${displayClientName(invoice)} · ` : ''}{invoice.invoiceNumber}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">

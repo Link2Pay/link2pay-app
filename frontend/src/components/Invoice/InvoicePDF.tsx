@@ -8,6 +8,7 @@ import {
 } from '@react-pdf/renderer';
 import type { Invoice } from '../../types';
 import { CURRENCY_SYMBOLS } from '../../config';
+import { displayClientName, isAnonymousClient } from '../../lib/payerDisplay';
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
@@ -401,18 +402,23 @@ export function InvoicePDFDocument({ invoice, paymentLink }: InvoicePDFProps) {
             </Text>
           </View>
 
-          {/* To */}
-          <View style={styles.partyBox}>
-            <Text style={styles.partyLabel}>Bill To</Text>
-            <Text style={styles.partyName}>{invoice.clientName}</Text>
-            {invoice.clientCompany ? (
-              <Text style={styles.partyCompany}>{invoice.clientCompany}</Text>
-            ) : null}
-            <Text style={styles.partyDetail}>{invoice.clientEmail}</Text>
-            {invoice.clientAddress ? (
-              <Text style={styles.partyDetail}>{invoice.clientAddress}</Text>
-            ) : null}
-          </View>
+          {/* To — anonymous quick links show the payer wallet once paid and
+              omit the block entirely while unpaid (no fake identity). */}
+          {displayClientName(invoice) ? (
+            <View style={styles.partyBox}>
+              <Text style={styles.partyLabel}>{isAnonymousClient(invoice) ? 'Paid By' : 'Bill To'}</Text>
+              <Text style={styles.partyName}>{displayClientName(invoice)}</Text>
+              {!isAnonymousClient(invoice) && invoice.clientCompany ? (
+                <Text style={styles.partyCompany}>{invoice.clientCompany}</Text>
+              ) : null}
+              {!isAnonymousClient(invoice) ? (
+                <Text style={styles.partyDetail}>{invoice.clientEmail}</Text>
+              ) : null}
+              {!isAnonymousClient(invoice) && invoice.clientAddress ? (
+                <Text style={styles.partyDetail}>{invoice.clientAddress}</Text>
+              ) : null}
+            </View>
+          ) : null}
         </View>
 
         {/* ── Meta (dates) ── */}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BarChart3, CalendarDays, CheckCircle2, CircleDollarSign, Clock3, Gauge, PieChart, Timer, Users2 } from 'lucide-react';
 import { getDashboardStats, listInvoices } from '../services/api';
+import { displayClientName } from '../lib/payerDisplay';
 import PageHeader from '../components/ui/PageHeader';
 import StatCard, { type StatCardData } from '../components/ui/StatCard';
 import { useWalletStore } from '../store/walletStore';
@@ -374,7 +375,9 @@ export default function Analytics() {
     const map = new Map<string, { name: string; links: number; paidVolume: number }>();
 
     periodInvoices.forEach((invoice) => {
-      const name = invoice.clientName || 'Unknown';
+      // Anonymous quick links: payer wallet once paid; omitted while unpaid.
+      const name = displayClientName(invoice);
+      if (!name) return;
       const current = map.get(name) || { name, links: 0, paidVolume: 0 };
       current.links += 1;
       if (invoice.status === 'PAID') {

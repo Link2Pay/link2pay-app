@@ -9,6 +9,7 @@ import { useWalletStore } from '../../store/walletStore';
 import type { Invoice, InvoiceStatus } from '../../types';
 import { config } from '../../config';
 import { formatAmount } from '../../lib/format';
+import { displayClientName, isAnonymousClient } from '../../lib/payerDisplay';
 import type { Language } from '../../i18n/translations';
 import { downloadInvoicePDF } from './InvoicePDF';
 import ReceiverOffRamp from './ReceiverOffRamp';
@@ -329,19 +330,24 @@ export default function InvoiceDetail() {
             <ArrowDown className="h-4 w-4 sm:hidden" />
           </div>
 
-          {/* PARA (cliente) — secundario, alineado a la derecha en desktop */}
+          {/* PARA (cliente) — secundario, alineado a la derecha en desktop.
+              Links anónimos: wallet del pagador una vez pagado, '—' antes. */}
           <div className="flex items-center gap-3 sm:justify-end sm:text-right">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted text-base font-semibold text-ink-1 sm:order-2">
-              {initial(invoice.clientName)}
+              {initial(displayClientName(invoice) ?? '—')}
             </span>
             <div className="min-w-0 sm:order-1">
               <p className="label mb-0.5">{copy.to}</p>
-              <p className="truncate text-sm font-semibold text-ink-0">{invoice.clientName}</p>
-              {invoice.clientCompany && <p className="truncate text-xs text-ink-3">{invoice.clientCompany}</p>}
-              <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-3 sm:justify-end">
-                <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                <span className="truncate">{invoice.clientEmail}</span>
+              <p className={`truncate text-sm font-semibold text-ink-0 ${isAnonymousClient(invoice) ? 'font-mono' : ''}`}>
+                {displayClientName(invoice) ?? '—'}
               </p>
+              {!isAnonymousClient(invoice) && invoice.clientCompany && <p className="truncate text-xs text-ink-3">{invoice.clientCompany}</p>}
+              {!isAnonymousClient(invoice) && (
+                <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-3 sm:justify-end">
+                  <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{invoice.clientEmail}</span>
+                </p>
+              )}
             </div>
           </div>
         </div>

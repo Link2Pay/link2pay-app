@@ -14,6 +14,18 @@ const CURRENCY_SYMBOLS: Record<string, string> = { XLM: 'XLM', USDC: '$', EURC: 
 
 const dec = (v: unknown): string => (v == null ? '0' : String(v));
 
+// Anonymous quick links store this sentinel (see frontend InvoiceForm /
+// lib/payerDisplay); this PDF only renders on PAID invoices, so the payer
+// wallet is the honest identity there.
+const isAnonymousClient = (inv: InvoiceWithLineItems): boolean =>
+  inv.clientName === 'Payer' && inv.clientEmail === 'payer@link2pay.io';
+
+const displayClientName = (inv: InvoiceWithLineItems): string | null => {
+  if (!isAnonymousClient(inv)) return inv.clientName;
+  const wallet = inv.payerWallet || inv.clientWallet;
+  return wallet ? `${wallet.slice(0, 6)}…${wallet.slice(-4)}` : null;
+};
+
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
@@ -379,18 +391,23 @@ function InvoicePdfDocument({ invoice }: InvoicePDFProps) {
             </Text>
           </View>
 
-          {/* To */}
-          <View style={styles.partyBox}>
-            <Text style={styles.partyLabel}>Bill To</Text>
-            <Text style={styles.partyName}>{invoice.clientName}</Text>
-            {invoice.clientCompany ? (
-              <Text style={styles.partyCompany}>{invoice.clientCompany}</Text>
-            ) : null}
-            <Text style={styles.partyDetail}>{invoice.clientEmail}</Text>
-            {invoice.clientAddress ? (
-              <Text style={styles.partyDetail}>{invoice.clientAddress}</Text>
-            ) : null}
-          </View>
+          {/* To — anonymous quick links show the payer wallet (this PDF is
+              only generated for PAID invoices); never the fake sentinel. */}
+          {displayClientName(invoice) ? (
+            <View style={styles.partyBox}>
+              <Text style={styles.partyLabel}>{isAnonymousClient(invoice) ? 'Paid By' : 'Bill To'}</Text>
+              <Text style={styles.partyName}>{displayClientName(invoice)}</Text>
+              {!isAnonymousClient(invoice) && invoice.clientCompany ? (
+                <Text style={styles.partyCompany}>{invoice.clientCompany}</Text>
+              ) : null}
+              {!isAnonymousClient(invoice) ? (
+                <Text style={styles.partyDetail}>{invoice.clientEmail}</Text>
+              ) : null}
+              {!isAnonymousClient(invoice) && invoice.clientAddress ? (
+                <Text style={styles.partyDetail}>{invoice.clientAddress}</Text>
+              ) : null}
+            </View>
+          ) : null}
         </View>
 
         {/* ── Meta (dates) ── */}
