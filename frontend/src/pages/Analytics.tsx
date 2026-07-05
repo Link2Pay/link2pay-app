@@ -187,7 +187,7 @@ function AnalyticsSkeleton() {
   return (
     <div className="space-y-6 animate-pulse sm:space-y-8">
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         {[...Array(6)].map((_, i) => (
           <div key={i} className="card flex items-center justify-between gap-3 p-6">
             <div className="space-y-2">
@@ -469,7 +469,7 @@ export default function Analytics() {
         <AnalyticsSkeleton />
       ) : (
         <>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
         {kpiCards.map((stat) => (
           <StatCard key={stat.label} {...stat} />
         ))}
@@ -550,7 +550,7 @@ export default function Analytics() {
             </h3>
             <p className="mt-1 text-xs text-ink-3">{copy.trendSubtitle}</p>
           </div>
-          <div className="pill-toggle flex max-w-full overflow-x-auto overflow-y-hidden">
+          <div className="pill-toggle scrollbar-none flex max-w-full overflow-x-auto overflow-y-hidden">
             {([
               { value: 7 as const, label: copy.period7 },
               { value: 15 as const, label: copy.period15 },
@@ -576,7 +576,7 @@ export default function Analytics() {
         {trendPeak <= 0 ? (
           <p className="mt-5 text-xs text-ink-3">{copy.noData}</p>
         ) : (
-          <div className="mt-5 overflow-x-auto pb-1">
+          <div className="scrollbar-none mt-5 overflow-x-auto">
             <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${activityTrend.length}, minmax(2.5rem, 1fr))` }}>
               {activityTrend.map((bucket) => (
               <div key={bucket.startMs} className="rounded-xl border border-border bg-card p-2">

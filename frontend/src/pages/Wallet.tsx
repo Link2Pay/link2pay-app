@@ -17,6 +17,7 @@ import {
   Plus,
   QrCode,
   RefreshCw,
+  Settings,
   Wallet as WalletIcon,
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
@@ -386,12 +387,14 @@ export default function Wallet() {
             <SectionCard
               title={copy.balanceLabel}
               hint={copy.balanceHint}
+              headerVariant="dashboard"
+              inlineHeader
               action={
                 <button
                   type="button"
                   onClick={refresh}
                   disabled={loading}
-                  className="btn-ghost shrink-0 text-xs"
+                  className="btn-ghost shrink-0 self-start text-xs"
                   aria-label={copy.refresh}
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -487,6 +490,8 @@ export default function Wallet() {
             <SectionCard
               title={copy.receiveEyebrow}
               hint={activated ? copy.receiveHint : copy.receivePendingHint}
+              headerVariant="dashboard"
+              inlineHeader
               action={
                 <StatusPill
                   label={activated ? copy.active : copy.pending}
@@ -517,6 +522,8 @@ export default function Wallet() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.95fr)]">
             <SectionCard
               title={copy.setupTitle}
+              titleIcon={Settings}
+              headerVariant="dashboard"
               action={activated && hasUsdc ? <StatusPill label={copy.active} tone="success" /> : undefined}
             >
               {!activated ? (
@@ -563,12 +570,9 @@ export default function Wallet() {
 
             <SectionCard
               title={copy.getPaidTitle}
+              titleIcon={QrCode}
+              headerVariant="dashboard"
               inlineHeader
-              action={
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-ink-2">
-                  <QrCode className="h-5 w-5" aria-hidden="true" />
-                </span>
-              }
             >
               <div className="flex flex-col gap-4 rounded-2xl border border-border bg-muted p-5">
                 <p className="text-sm leading-6 text-ink-2">{getPaidNote}</p>
