@@ -36,13 +36,19 @@ export function kitSetWallet(id: string, networkPassphrase: string): void {
   StellarWalletsKit.setWallet(id);
 }
 
-/** Currently connected address, or null if no wallet is selected yet. */
+/**
+ * Address of the connected wallet, or null if none is connected yet.
+ * Uses fetchAddress (not getAddress) because getAddress only reads the Kit's
+ * in-memory cache, which is empty until fetchAddress has actually asked the
+ * module/extension for the address at least once.
+ */
 export async function kitGetAddress(networkPassphrase?: string): Promise<string | null> {
   if (networkPassphrase) ensureInit(networkPassphrase);
   try {
-    const { address } = await StellarWalletsKit.getAddress();
+    const { address } = await StellarWalletsKit.fetchAddress();
     return address || null;
-  } catch {
+  } catch (err) {
+    console.error('[walletsKit] getAddress failed:', err);
     return null;
   }
 }

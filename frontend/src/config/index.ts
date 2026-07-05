@@ -29,6 +29,10 @@ export const config = {
   // Privy social login (Google/email → Stellar embedded wallet).
   // When set, replaces the Freighter connect button in the dashboard header.
   privyAppId: import.meta.env.VITE_PRIVY_APP_ID || '',
+  // Client ID of the Privy "app client" whose allowed origins include this
+  // deployment's domain (e.g. localhost for dev). Required alongside appId
+  // once the app has more than one app client configured in the dashboard.
+  privyClientId: import.meta.env.VITE_PRIVY_CLIENT_ID || '',
 } as const;
 
 export const CURRENCY_LABELS: Record<string, string> = {
