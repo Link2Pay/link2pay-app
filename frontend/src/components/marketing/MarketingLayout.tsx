@@ -8,8 +8,6 @@ import BrandWordmark from '../BrandWordmark';
 import MobileNavDrawer from '../MobileNavDrawer';
 import { useI18n } from '../../i18n/I18nProvider';
 
-const NETWORK_ASSETS = ['XLM', 'USDC', 'EURC'] as const;
-
 export default function MarketingLayout() {
   const { t } = useI18n();
   const location = useLocation();
@@ -32,7 +30,6 @@ export default function MarketingLayout() {
     { label: t('marketing.nav.features'), to: '/payment-links' },
     { label: t('marketing.nav.pricing'), to: '/plans' },
     { label: t('marketing.nav.sdk'), to: '/sdk' },
-    { label: t('marketing.openApp'), to: '/app' },
   ];
 
   const footerCompany = [
@@ -173,17 +170,7 @@ export default function MarketingLayout() {
               <h2 className="mb-4 text-2xs font-medium uppercase tracking-label text-muted-foreground">
                 {t('marketing.network')}
               </h2>
-              <div className="flex flex-wrap gap-2">
-                {NETWORK_ASSETS.map((asset) => (
-                  <span
-                    key={asset}
-                    className="inline-flex rounded-full border border-border bg-muted px-3 py-1 text-2xs font-semibold uppercase tracking-[0.08em] text-foreground"
-                  >
-                    {asset}
-                  </span>
-                ))}
-              </div>
-              <div className="mt-5 space-y-2.5">
+              <div className="space-y-2.5">
                 <a
                   href="https://stellar.org"
                   target="_blank"
@@ -210,10 +197,7 @@ export default function MarketingLayout() {
               <Heart className="h-3.5 w-3.5 text-destructive" />
               {t('marketing.forLatam')}
             </p>
-            <div className="flex items-center gap-2">
-              <LanguageToggle />
-              <ThemeToggle />
-            </div>
+            <p className="text-xs text-muted-foreground">{t('marketing.rightsReserved')}</p>
           </div>
         </div>
       </footer>
