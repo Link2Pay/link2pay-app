@@ -11,6 +11,7 @@ import {
 import WalletRoller from './WalletRoller';
 import type { PublicInvoice } from '../../types';
 import { useI18n } from '../../i18n/I18nProvider';
+import { shortenAddress } from '../../lib/format';
 import { config } from '../../config';
 import { kitSignWith } from '../../services/walletsKit';
 
@@ -308,7 +309,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
         <div className="space-y-3">
           <div className="text-center text-xs text-ink-3">
             {t('payment.offramp.payingFrom')}{' '}
-            <span className="font-mono">{kitAddress.slice(0, 8)}...{kitAddress.slice(-4)}</span>
+            <span className="font-mono tabular-nums">{shortenAddress(kitAddress, 8, 4)}</span>
           </div>
           {pathEnabled && (
             <div>
@@ -318,7 +319,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
                 onChange={(e) => setSourceAsset(e.target.value)}
                 className="input"
               >
-                <option value={invoice.currency}>{invoice.currency} (direct)</option>
+                <option value={invoice.currency}>{invoice.currency} {t('payment.offramp.direct')}</option>
                 {['XLM', 'USDC', 'EURC']
                   .filter((a) => a !== invoice.currency)
                   .map((a) => (
@@ -326,7 +327,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
                   ))}
               </select>
               {isPathPay && pathPreview && (
-                <p className="mt-1 text-2xs text-ink-3">You send {pathPreview}; anchor receives exactly {parseFloat(invoice.total).toFixed(2)} {invoice.currency}.</p>
+                <p className="mt-1 text-2xs text-ink-3">{t('payment.offramp.pathPreview', { preview: pathPreview, amount: `${parseFloat(invoice.total).toFixed(2)} ${invoice.currency}` })}</p>
               )}
             </div>
           )}

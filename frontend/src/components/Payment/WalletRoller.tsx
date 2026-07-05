@@ -88,11 +88,11 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
   if (!entries.length && !loading) return null;
 
   return (
-    <div className="space-y-2">
-      <p className="text-2xs uppercase tracking-label text-ink-3">{t('wallet.selectWallet')}</p>
-      <div className="overflow-x-auto snap-x flex gap-3 pb-1">
+    <div className="space-y-3">
+      <p className="text-sm font-semibold text-ink-0">{t('wallet.selectWallet')}</p>
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
         {loading && !entries.length ? (
-          <div className="flex-1 text-center py-4 text-xs text-ink-3">{t('wallet.loading')}</div>
+          <div className="col-span-full py-4 text-center text-xs text-ink-3">{t('wallet.loading')}</div>
         ) : (
           sorted.map((entry) => {
             const { module, available, checking } = entry;
@@ -124,7 +124,7 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
                 key={module.productId}
                 onClick={() => handleSelect(entry)}
                 disabled={isConnecting || !!connectedAddress}
-                className={`snap-start flex-shrink-0 flex flex-col items-center gap-1.5 min-w-[88px] sm:min-w-[96px]
+                className={`flex flex-col items-center gap-1.5
                   rounded-xl p-3 transition-colors duration-150 text-center
                   ${isSelected ? 'ring-2 ring-accent-ink bg-card border-l-2 border-success' : 'bg-card hover:bg-muted border border-surface-3'}
                   ${connectedAddress && !isSelected ? 'opacity-60' : ''}
@@ -137,17 +137,17 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
                     {module.productName.charAt(0)}
                   </div>
                 )}
-                <span className="text-3xs font-medium text-ink-1 leading-tight">{module.productName}</span>
-                <span className={`inline-block h-1.5 w-1.5 rounded-full flex-shrink-0 ${stateDot}`} />
-                {stateLabel && (
-                  <span className="text-3xs text-ink-3">{stateLabel}</span>
-                )}
+                <span className="text-xs font-semibold text-ink-1 leading-tight">{module.productName}</span>
+                <span className="flex items-center gap-1.5">
+                  <span className={`inline-block h-1.5 w-1.5 rounded-full flex-shrink-0 ${stateDot}`} />
+                  {stateLabel && <span className="text-2xs text-ink-3">{stateLabel}</span>}
+                </span>
                 {!available && !checking && module.moduleType !== 'BRIDGE_WALLET' && (
                   <a
                     href={module.productUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-3xs text-ink-4 hover:text-ink-2"
+                    className="text-2xs font-medium text-accent-ink hover:underline"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {t('wallet.install')}

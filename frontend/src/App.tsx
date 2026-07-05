@@ -30,6 +30,13 @@ const ProfileOptions = lazy(() => import('./pages/ProfileOptions'));
 const GetPaid = lazy(() => import('./pages/GetPaid'));
 const Wallet = lazy(() => import('./pages/Wallet'));
 
+// Preview solo-dev del checkout. La condición `import.meta.env.DEV` deja este
+// lazy import en una rama muerta en el build de producción, así que ni el chunk
+// ni los fixtures (`src/dev/*`) se empaquetan.
+const CheckoutPreviewIndex = import.meta.env.DEV
+  ? lazy(() => import('./dev/CheckoutPreviewIndex'))
+  : null;
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -91,6 +98,11 @@ export default function App() {
           {/* Public payment page (no sidebar layout) */}
           <Route path="/pay/:id" element={<PaymentFlow />} />
           <Route path="/links/:id" element={<PaymentFlow />} />
+
+          {/* Índice de preview del checkout — solo desarrollo. */}
+          {import.meta.env.DEV && CheckoutPreviewIndex && (
+            <Route path="/dev/checkout" element={<CheckoutPreviewIndex />} />
+          )}
 
           {/* Public marketing pages */}
           <Route element={<MarketingLayout />}>

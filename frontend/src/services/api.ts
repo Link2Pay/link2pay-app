@@ -166,6 +166,14 @@ export async function listInvoices(
 }
 
 export async function getInvoice(id: string): Promise<PublicInvoice> {
+  // Preview solo-dev del checkout: devuelve un fixture sin tocar el backend.
+  // El guard `import.meta.env.DEV` hace que el bundler elimine esta rama (y el
+  // import dinámico de los fixtures) en el build de producción.
+  if (import.meta.env.DEV && id.startsWith('mock')) {
+    const { getMockInvoice } = await import('../dev/mockInvoices');
+    const inv = getMockInvoice(id);
+    if (inv) return inv;
+  }
   return request<PublicInvoice>(`/invoices/${id}`);
 }
 

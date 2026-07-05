@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Check, X, Info } from 'lucide-react';
+import { Check, X, Info, ArrowRight, ArrowDown } from 'lucide-react';
 import { getInvoice, createPayIntent, submitPayment, getPaymentStatus, getXlmPrice } from '../../services/api';
 import { kitSignWith, kitGetNetwork } from '../../services/walletsKit';
 import InvoiceStatusBadge from '../Invoice/InvoiceStatusBadge';
@@ -482,20 +482,53 @@ export default function PaymentFlow() {
             </>
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-4 border-b border-surface-3 bg-surface-1 p-4 sm:grid-cols-2 sm:p-6">
-                <div>
-                  <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1">{t('payment.from')}</p>
-                  <p className="text-sm font-medium text-ink-0">
-                    {invoice.freelancerName || t('payment.freelancer')}
-                  </p>
-                  {invoice.freelancerCompany && <p className="text-xs text-ink-3">{invoice.freelancerCompany}</p>}
-                </div>
-                <div>
-                  <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1">{t('payment.to')}</p>
-                  <p className="text-sm font-medium text-ink-0">{invoice.clientName}</p>
-                  {invoice.clientCompany && <p className="text-xs text-ink-3">{invoice.clientCompany}</p>}
-                </div>
-              </div>
+              {(() => {
+                const merchantName = invoice.freelancerName || invoice.freelancerCompany || t('payment.freelancer');
+                const merchantInitial = merchantName.charAt(0).toUpperCase();
+                const payerName = invoice.clientName || invoice.clientCompany || '';
+                const payerInitial = (payerName || '?').charAt(0).toUpperCase();
+                return (
+                  <div className="grid grid-cols-1 items-center gap-4 border-b border-surface-3 bg-surface-1 p-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-3 sm:p-6">
+                    {/* De (comercio) — emisor, énfasis de marca */}
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/15 text-base font-semibold text-primary">
+                        {invoice.freelancerLogoUrl ? (
+                          <img src={invoice.freelancerLogoUrl} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          merchantInitial
+                        )}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="label mb-0.5">{t('payment.from')}</p>
+                        <p className="truncate font-display text-base font-bold text-ink-0">{merchantName}</p>
+                        {invoice.freelancerCompany && invoice.freelancerName && (
+                          <p className="truncate text-xs text-ink-3">{invoice.freelancerCompany}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Dirección De → Para (flecha horizontal en desktop, vertical en mobile) */}
+                    <div className="flex items-center justify-center text-ink-3" aria-hidden="true">
+                      <ArrowRight className="hidden h-4 w-4 sm:block" />
+                      <ArrowDown className="h-4 w-4 sm:hidden" />
+                    </div>
+
+                    {/* Para (pagador) — secundario, neutro */}
+                    <div className="flex items-center gap-3 sm:justify-end sm:text-right">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted text-base font-semibold text-ink-2 sm:order-2">
+                        {payerInitial}
+                      </span>
+                      <div className="min-w-0 sm:order-1">
+                        <p className="label mb-0.5">{t('payment.to')}</p>
+                        <p className="truncate text-sm font-semibold text-ink-0">{payerName || '—'}</p>
+                        {invoice.clientCompany && invoice.clientName && (
+                          <p className="truncate text-xs text-ink-3">{invoice.clientCompany}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {invoice.isOpenAmount ? (
                 <div className="border-b border-surface-3 bg-info-subtle p-4 sm:p-6">
