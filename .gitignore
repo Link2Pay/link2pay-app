@@ -25,6 +25,7 @@ coverage/
 
 # Local-only config
 *.local
+docker-compose.override.yml
 
 # Editor and OS files
 .vscode/*

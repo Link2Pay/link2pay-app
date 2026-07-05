@@ -8,7 +8,12 @@ import {
   requireWallet,
   createInvoiceSchema,
 } from '../middleware/validation';
-import { requireFiatEnabled, requireKycForFiat } from '../middleware/requireKyc';
+import {
+  requireFiatEnabled,
+  requireKycForFiat,
+  requireKycForInvoiceType,
+  requireBreBKeyForFiat,
+} from '../middleware/requireKyc';
 import { InvoiceStatus } from '@prisma/client';
 import { log } from '../utils/logger';
 
@@ -39,6 +44,8 @@ router.post(
   validateBody(createInvoiceSchema),
   requireFiatEnabled, // fiat is walled off entirely on testnet environments
   requireKycForFiat, // fiat (Bre-B) payouts require a verified merchant; crypto passes through
+  requireKycForInvoiceType, // business/service invoices require a verified merchant regardless of payout method
+  requireBreBKeyForFiat, // fiat (Bre-B) payouts require a saved Bre-B key on the profile
   async (req: Request, res: Response) => {
     try {
       const walletAddress = req.walletAddress as string;
