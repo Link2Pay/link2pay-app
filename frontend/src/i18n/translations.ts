@@ -6,9 +6,9 @@ const en = {
   'language.spanish': 'Spanish',
   'language.portuguese': 'Portuguese',
 
-  'theme.white': 'White',
-  'theme.dark': 'Dark',
-  'theme.switchToWhite': 'Switch to white mode',
+  'theme.white': 'Light mode',
+  'theme.dark': 'Dark mode',
+  'theme.switchToWhite': 'Switch to light mode',
   'theme.switchToDark': 'Switch to dark mode',
 
   'layout.nav.dashboard': 'Dashboard',
@@ -238,9 +238,9 @@ const es: Record<TranslationKey, string> = {
   'language.spanish': 'Español',
   'language.portuguese': 'Portugués',
 
-  'theme.white': 'Blanco',
-  'theme.dark': 'Oscuro',
-  'theme.switchToWhite': 'Cambiar a modo blanco',
+  'theme.white': 'Modo claro',
+  'theme.dark': 'Modo oscuro',
+  'theme.switchToWhite': 'Cambiar a modo claro',
   'theme.switchToDark': 'Cambiar a modo oscuro',
 
   'layout.nav.dashboard': 'Panel',
@@ -468,9 +468,9 @@ const pt: Record<TranslationKey, string> = {
   'language.spanish': 'Espanhol',
   'language.portuguese': 'Português',
 
-  'theme.white': 'Branco',
-  'theme.dark': 'Escuro',
-  'theme.switchToWhite': 'Mudar para modo branco',
+  'theme.white': 'Modo claro',
+  'theme.dark': 'Modo escuro',
+  'theme.switchToWhite': 'Mudar para modo claro',
   'theme.switchToDark': 'Mudar para modo escuro',
 
   'layout.nav.dashboard': 'Painel',
@@ -698,4 +698,3 @@ export const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
   es,
   pt,
 };
-
