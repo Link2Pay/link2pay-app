@@ -119,12 +119,12 @@ export default function MobileNavDrawer({
         role="dialog"
         aria-modal="true"
         aria-label={drawerTitle}
-        className={`fixed right-0 top-0 z-50 flex h-full w-[85%] max-w-xs flex-col border-l border-surface-3 bg-surface-1 shadow-modal transition-transform duration-200 ${
+        className={`fixed right-0 top-0 z-50 flex h-full w-[85%] max-w-xs flex-col border-l border-border bg-card shadow-overlay transition-transform duration-200 ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-surface-3 px-4 py-4">
+        <div className="flex items-center justify-between border-b border-border px-4 py-4">
           <div className="flex items-center gap-2">
             <BrandMark className="h-6 w-6" />
             <BrandWordmark className="text-base font-semibold leading-snug" />
@@ -155,7 +155,7 @@ export default function MobileNavDrawer({
                   className={({ isActive }) =>
                     `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors duration-150 ${
                       isActive
-                        ? 'bg-sidebar-primary text-white font-bold'
+                        ? 'bg-sidebar-primary text-sidebar-primary-foreground font-bold'
                         : 'text-foreground font-medium hover:bg-muted'
                     }`
                   }
@@ -182,7 +182,7 @@ export default function MobileNavDrawer({
 
         {/* Controls footer */}
         {footer && (
-          <div className="space-y-3 border-t border-surface-3 px-4 py-4">{footer}</div>
+          <div className="space-y-3 border-t border-border px-4 py-4">{footer}</div>
         )}
       </div>
     </div>

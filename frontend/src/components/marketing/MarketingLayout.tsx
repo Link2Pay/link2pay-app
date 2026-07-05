@@ -8,6 +8,8 @@ import BrandWordmark from '../BrandWordmark';
 import MobileNavDrawer from '../MobileNavDrawer';
 import { useI18n } from '../../i18n/I18nProvider';
 
+const NETWORK_ASSETS = ['XLM', 'USDC', 'EURC'] as const;
+
 export default function MarketingLayout() {
   const { t } = useI18n();
   const location = useLocation();
@@ -29,7 +31,8 @@ export default function MarketingLayout() {
   const footerProduct = [
     { label: t('marketing.nav.features'), to: '/payment-links' },
     { label: t('marketing.nav.pricing'), to: '/plans' },
-    { label: t('marketing.dashboard'), to: '/app' },
+    { label: t('marketing.nav.sdk'), to: '/sdk' },
+    { label: t('marketing.openApp'), to: '/app' },
   ];
 
   const footerCompany = [
@@ -40,25 +43,23 @@ export default function MarketingLayout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-md">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="flex min-h-14 items-center justify-between gap-3 py-2 md:min-h-16">
-            <Link to="/" className="flex items-center gap-2">
-              <BrandMark className="h-7 w-7" />
+      <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-md">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-10">
+          <div className="flex min-h-16 items-center justify-between gap-4 py-2">
+            <Link to="/" className="flex items-center gap-2.5" aria-label="Link2Pay">
+              <BrandMark className="h-8 w-8" />
               <BrandWordmark className="text-lg font-semibold leading-snug" />
             </Link>
 
-            <nav className="hidden items-center gap-1 md:flex">
+            <nav className="hidden items-center gap-1 md:flex" aria-label={t('layout.menu.title')}>
               {navItems.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
                   end={item.end}
                   className={({ isActive }) =>
-                    `rounded-lg px-3 py-2 text-sm transition-colors ${
-                      isActive
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    `inline-flex min-h-10 items-center rounded-full px-3.5 text-sm font-medium transition-colors ${
+                      isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
                     }`
                   }
                 >
@@ -67,13 +68,14 @@ export default function MarketingLayout() {
               ))}
             </nav>
 
-            {/* Desktop: language / theme controls */}
             <div className="hidden items-center gap-2 md:flex">
               <LanguageToggle />
               <ThemeToggle />
+              <Link to="/app" className="btn-primary h-10 px-4 text-sm">
+                {t('marketing.openApp')}
+              </Link>
             </div>
 
-            {/* Mobile: hamburger */}
             <button
               ref={mobileNavTriggerRef}
               type="button"
@@ -82,7 +84,7 @@ export default function MarketingLayout() {
               aria-haspopup="dialog"
               aria-expanded={mobileNavOpen}
               aria-controls="mobile-nav-drawer"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-muted md:hidden"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-muted md:hidden"
             >
               <Menu aria-hidden="true" className="h-5 w-5" />
             </button>
@@ -96,45 +98,47 @@ export default function MarketingLayout() {
         items={navItems}
         triggerRef={mobileNavTriggerRef}
         footer={
-          <div className="flex items-center gap-2">
-            <LanguageToggle />
-            <ThemeToggle />
+          <div className="space-y-3">
+            <Link to="/app" onClick={() => setMobileNavOpen(false)} className="btn-primary w-full justify-center text-sm">
+              {t('marketing.openApp')}
+            </Link>
+            <div className="flex items-center gap-2">
+              <LanguageToggle />
+              <ThemeToggle />
+            </div>
           </div>
         }
       />
 
-      <main>
+      <main className="overflow-x-clip">
         <Outlet />
       </main>
 
-      <footer className="mt-24 border-t border-border bg-card">
-        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Brand */}
-            <div className="sm:col-span-2 lg:col-span-2">
-              <div className="mb-3 flex items-center gap-2">
-                <BrandMark className="h-6 w-6" />
+      <footer className="border-t border-border bg-card">
+        <div className="mx-auto max-w-[1400px] px-4 py-14 sm:px-6 lg:px-10">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1fr)]">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <BrandMark className="h-7 w-7" />
                 <BrandWordmark className="text-base font-semibold" />
               </div>
-              <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
+              <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
                 {t('marketing.footerDescription')}
               </p>
-              <div className="mt-4 flex items-center gap-1 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Globe2 className="h-3.5 w-3.5" />
                 <span>{t('marketing.availableWorldwide')}</span>
               </div>
             </div>
 
-            {/* Product links */}
             <div>
-              <h4 className="mb-3 text-sm font-semibold text-foreground">{t('marketing.product')}</h4>
-              <ul className="space-y-2">
+              <h2 className="mb-4 text-2xs font-medium uppercase tracking-label text-muted-foreground">
+                {t('marketing.product')}
+              </h2>
+              <ul className="space-y-2.5">
                 {footerProduct.map((item) => (
                   <li key={item.label}>
-                    <Link
-                      to={item.to}
-                      className="text-sm text-muted-foreground transition-colors hover:text-primary"
-                    >
+                    <Link to={item.to} className="text-sm text-foreground transition-colors hover:text-accent-ink">
                       {item.label}
                     </Link>
                   </li>
@@ -142,39 +146,74 @@ export default function MarketingLayout() {
               </ul>
             </div>
 
-            {/* Company links */}
             <div>
-              <h4 className="mb-3 text-sm font-semibold text-foreground">{t('marketing.company')}</h4>
-              <ul className="space-y-2">
+              <h2 className="mb-4 text-2xs font-medium uppercase tracking-label text-muted-foreground">
+                {t('marketing.company')}
+              </h2>
+              <ul className="space-y-2.5">
                 {footerCompany.map((item) =>
                   item.to.startsWith('/') ? (
                     <li key={item.label}>
-                      <Link
-                        to={item.to}
-                        className="text-sm text-muted-foreground transition-colors hover:text-primary"
-                      >
+                      <Link to={item.to} className="text-sm text-foreground transition-colors hover:text-accent-ink">
                         {item.label}
                       </Link>
                     </li>
                   ) : (
                     <li key={item.label}>
-                      <a
-                        href={item.to}
-                        className="text-sm text-muted-foreground transition-colors hover:text-primary"
-                      >
+                      <a href={item.to} className="text-sm text-foreground transition-colors hover:text-accent-ink">
                         {item.label}
                       </a>
                     </li>
-                  )
+                  ),
                 )}
               </ul>
             </div>
+
+            <div>
+              <h2 className="mb-4 text-2xs font-medium uppercase tracking-label text-muted-foreground">
+                {t('marketing.network')}
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {NETWORK_ASSETS.map((asset) => (
+                  <span
+                    key={asset}
+                    className="inline-flex rounded-full border border-border bg-muted px-3 py-1 text-2xs font-semibold uppercase tracking-[0.08em] text-foreground"
+                  >
+                    {asset}
+                  </span>
+                ))}
+              </div>
+              <div className="mt-5 space-y-2.5">
+                <a
+                  href="https://stellar.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-sm text-foreground transition-colors hover:text-accent-ink"
+                >
+                  {t('marketing.builtOnStellar')}
+                </a>
+                <a
+                  href="https://stellar.expert"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-sm text-foreground transition-colors hover:text-accent-ink"
+                >
+                  {t('marketing.exploreTransactions')}
+                </a>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border pt-6 sm:flex-row">
-            <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              {t('marketing.madeWith')} <Heart className="h-3 w-3 text-destructive" /> {t('marketing.forFreelancers')}
+          <div className="mt-10 flex flex-col gap-4 border-t border-border pt-6 lg:flex-row lg:items-center lg:justify-between">
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              {t('marketing.madeWith')}
+              <Heart className="h-3.5 w-3.5 text-destructive" />
+              {t('marketing.forLatam')}
             </p>
+            <div className="flex items-center gap-2">
+              <LanguageToggle />
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </footer>

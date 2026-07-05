@@ -73,15 +73,20 @@ const en = {
   'marketing.connecting': 'Connecting...',
   'marketing.disconnect': 'Disconnect',
   'marketing.dashboard': 'Dashboard',
+  'marketing.openApp': 'Open app',
   'marketing.footerDescription':
     'The bridge between crypto and your bank account. Your customer pays global, you receive local. On the Stellar network.',
   'marketing.availableWorldwide': 'Available globally on the Stellar network',
   'marketing.product': 'Product',
   'marketing.company': 'Company',
+  'marketing.network': 'Network',
+  'marketing.builtOnStellar': 'Built on Stellar',
+  'marketing.exploreTransactions': 'Explore transactions',
   'marketing.terms': 'Terms',
   'marketing.privacy': 'Privacy',
   'marketing.madeWith': 'Made with',
   'marketing.forFreelancers': 'for builders worldwide',
+  'marketing.forLatam': 'for Latin America',
   'marketing.stellarTestnet': 'Link2Pay on Stellar',
 
   'wallet.disconnect': 'Disconnect',
@@ -231,15 +236,20 @@ const es: Record<TranslationKey, string> = {
   'marketing.connecting': 'Conectando...',
   'marketing.disconnect': 'Desconectar',
   'marketing.dashboard': 'Panel',
+  'marketing.openApp': 'Abrir la app',
   'marketing.footerDescription':
     'El puente entre crypto y tu cuenta bancaria. Tu cliente paga global, vos recibís local. Sobre la red Stellar.',
   'marketing.availableWorldwide': 'Disponible globalmente en la red Stellar',
   'marketing.product': 'Producto',
   'marketing.company': 'Empresa',
+  'marketing.network': 'Red',
+  'marketing.builtOnStellar': 'Construido sobre Stellar',
+  'marketing.exploreTransactions': 'Explorá transacciones',
   'marketing.terms': 'Términos',
   'marketing.privacy': 'Privacidad',
   'marketing.madeWith': 'Hecho con',
   'marketing.forFreelancers': 'para builders en todo el mundo',
+  'marketing.forLatam': 'para LatAm',
   'marketing.stellarTestnet': 'Link2Pay en Stellar',
 
   'wallet.disconnect': 'Desconectar',
@@ -387,15 +397,20 @@ const pt: Record<TranslationKey, string> = {
   'marketing.connecting': 'Conectando...',
   'marketing.disconnect': 'Desconectar',
   'marketing.dashboard': 'Painel',
+  'marketing.openApp': 'Abrir o app',
   'marketing.footerDescription':
     'A ponte entre as cripto e a sua conta bancária. Seu cliente paga global, você recebe local. Na rede Stellar.',
   'marketing.availableWorldwide': 'Disponível globalmente na rede Stellar',
   'marketing.product': 'Produto',
   'marketing.company': 'Empresa',
+  'marketing.network': 'Rede',
+  'marketing.builtOnStellar': 'Construído sobre Stellar',
+  'marketing.exploreTransactions': 'Explore transações',
   'marketing.terms': 'Termos',
   'marketing.privacy': 'Privacidade',
   'marketing.madeWith': 'Feito com',
   'marketing.forFreelancers': 'para builders no mundo todo',
+  'marketing.forLatam': 'para a América Latina',
   'marketing.stellarTestnet': 'Link2Pay na Stellar',
 
   'wallet.disconnect': 'Desconectar',
@@ -477,5 +492,4 @@ export const TRANSLATIONS: Record<Language, Record<TranslationKey, string>> = {
   es,
   pt,
 };
-
 
