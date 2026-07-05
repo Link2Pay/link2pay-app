@@ -135,3 +135,32 @@ One feature branch off `develop` (`feature/wallet-roller-login`), two
 commits minimum (roller; login+linking), validated on test.link2pay.xyz
 (testnet) before the develop→main PR. No backend changes; no schema changes;
 no new env vars.
+
+## Hand-off notes for coding agents
+
+Context an implementer needs that is not obvious from the tree:
+
+- **Local dev**: backend `cd backend && PORT=3007 npm run dev`; frontend
+  `cd frontend && VITE_API_URL=http://localhost:3007 npm run dev` (port 3001
+  is taken on the dev machine). Local runs on testnet; off-ramp needs
+  `FIAT_ENABLED=true` / `VITE_ENABLE_FIAT=true` (already in local .env).
+- **Key files**: `frontend/src/services/walletsKit.ts` (Kit wrapper —
+  extend, don't fork), `frontend/src/components/Payment/PaymentFlow.tsx`
+  (crypto payer flow; Freighter path to remove is around the
+  `getFreighterNetwork` effect and the `signTransaction` call),
+  `frontend/src/components/Payment/OffRampPayment.tsx` (kit button to
+  replace: `kitMountButton` ref), `frontend/src/main.tsx` (PrivyProvider
+  `loginMethods`), `frontend/src/pages/ProfileOptions.tsx` (profile surface
+  for LinkedAccounts), `frontend/src/i18n/translations.ts` (all user-facing
+  strings need en/es/pt keys — no hardcoded copy).
+- **Design tokens**: use the existing 3-layer CSS token system
+  (`frontend/src/index.css`, tailwind.config.js) — ink sidebar palette,
+  `--success` green for active/positive states, JetBrains Mono +
+  `[font-variant-numeric:tabular-nums]` for addresses/amounts. Do not
+  introduce new hex colors.
+- **Conventions**: coherent scoped conventional commits; never push —
+  the owner pushes; never commit secrets or .env files; TypeScript strict;
+  match surrounding code style.
+- **Verify before done**: `npm run build` passes in `frontend/`; pay a
+  testnet invoice end-to-end locally with at least one Kit wallet; all
+  three languages render the new strings.
