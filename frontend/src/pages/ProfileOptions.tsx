@@ -15,11 +15,13 @@ import { useWalletStore } from '../store/walletStore';
 import { useNetworkStore } from '../store/networkStore';
 import { getBusinessProfile, saveBusinessProfile } from '../services/api';
 import { shortenAddress } from '../lib/format';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import { COUNTRY_OPTIONS, railByCountry } from '../config/rails';
 import type { Currency, SaveProfileData } from '../types';
 import { extractLlave } from '../lib/brebQr';
 
 const QrScanner = lazy(() => import('../components/Profile/QrScanner'));
+const QrHandoff = lazy(() => import('../components/Profile/QrHandoff'));
 
 const COPY: Record<
   Language,
@@ -231,7 +233,9 @@ export default function ProfileOptions() {
   const [copied, setCopied] = useState(false);
   const [logoError, setLogoError] = useState(false);
   const [kycVerified, setKycVerified] = useState(false);
-  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanMode, setScanMode] = useState<'closed' | 'camera' | 'handoff'>('closed');
+
+  const isTouch = useMediaQuery('(pointer: coarse)');
 
   const [form, setForm] = useState<SaveProfileData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -503,7 +507,7 @@ export default function ProfileOptions() {
                 <button
                   type="button"
                   className="btn-ghost shrink-0"
-                  onClick={() => setScannerOpen(true)}
+                  onClick={() => setScanMode(isTouch ? 'camera' : 'handoff')}
                   disabled={!kycVerified}
                   aria-label={copy.scanQr}
                 >
@@ -543,15 +547,28 @@ export default function ProfileOptions() {
         </button>
       </SectionCard>
 
-      {scannerOpen && (
+      {scanMode === 'camera' && (
         <Suspense fallback={null}>
           <QrScanner
             onResult={(text) => {
               set('defaultPayoutAlias', extractLlave(text));
-              setScannerOpen(false);
+              setScanMode('closed');
               document.getElementById('pf-alias')?.focus();
             }}
-            onClose={() => setScannerOpen(false)}
+            onClose={() => setScanMode('closed')}
+          />
+        </Suspense>
+      )}
+      {scanMode === 'handoff' && (
+        <Suspense fallback={null}>
+          <QrHandoff
+            onResult={(llave) => {
+              set('defaultPayoutAlias', llave);
+              setScanMode('closed');
+              document.getElementById('pf-alias')?.focus();
+            }}
+            onUseCamera={() => setScanMode('camera')}
+            onClose={() => setScanMode('closed')}
           />
         </Suspense>
       )}
