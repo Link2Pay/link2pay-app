@@ -6,12 +6,30 @@ import { defaultModules } from '@creit.tech/stellar-wallets-kit/modules/utils';
 import { Networks } from '@creit.tech/stellar-wallets-kit/types';
 import type { ModuleInterface } from '@creit.tech/stellar-wallets-kit/types';
 
+// Payment wallets must work everywhere a payment link opens: browser
+// extension on desktop AND a native mobile app. Excluded from the kit's
+// defaults: albedo (web-only), rabet (mobile effectively unmaintained),
+// fordefi + cactuslink (institutional custody, not consumer payers).
+const MULTIPLATFORM_WALLET_IDS = new Set([
+  'freighter', // extension + mobile app
+  'xbull', // extension + iOS/Android
+  'lobstr', // mobile app + signer extension
+  'hana', // extension + mobile app
+  'klever', // mobile app + extension
+  'onekey', // extension + mobile app
+  'BitgetWallet', // extension + mobile app
+]);
+
+function paymentModules(): ModuleInterface[] {
+  return defaultModules({ filterBy: (m) => MULTIPLATFORM_WALLET_IDS.has(m.productId) });
+}
+
 let initialized = false;
 let _modules: ModuleInterface[] = [];
 
 function ensureInit(networkPassphrase: string): void {
   if (initialized) return;
-  _modules = defaultModules();
+  _modules = paymentModules();
   StellarWalletsKit.init({
     modules: _modules,
     network: networkPassphrase.includes('Test') ? Networks.TESTNET : Networks.PUBLIC,
@@ -21,7 +39,7 @@ function ensureInit(networkPassphrase: string): void {
 
 /** Return the module registry so the roller can build its card list. */
 export function getKitModules(): ModuleInterface[] {
-  return _modules.length > 0 ? _modules : defaultModules();
+  return _modules.length > 0 ? _modules : paymentModules();
 }
 
 /** Render the Kit's connect button into a container element. */
