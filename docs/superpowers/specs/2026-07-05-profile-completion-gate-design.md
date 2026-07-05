@@ -116,8 +116,10 @@ Invoice-side walls (`requireKycForFiat`, `requireKycForInvoiceType`,
 
 On fiat-disabled environments (testnet), the fiat receive setup does not
 render at all (existing rule), so the new KYC lock never shows there. The
-profile completion gate applies on **all** environments — it is about
-merchant data, not fiat.
+profile completion gate is **mainnet-only** (`config.requireProfileCompletion`,
+derived from the resolved network like `fiatRailsEnabled`; override with
+`VITE_REQUIRE_PROFILE` for local development) — testnet stays frictionless
+for testing, same philosophy as the crypto-only rule.
 
 ## Non-goals
 

@@ -26,6 +26,15 @@ export const config = {
       : import.meta.env.VITE_ENABLE_FIAT === 'false'
         ? false
         : RESOLVED_NETWORK === 'mainnet',
+  // Mandatory profile completion after signup is a mainnet (real merchant)
+  // requirement — testnet stays frictionless for testing. Override with
+  // VITE_REQUIRE_PROFILE=true for local gate development.
+  requireProfileCompletion:
+    import.meta.env.VITE_REQUIRE_PROFILE === 'true'
+      ? true
+      : import.meta.env.VITE_REQUIRE_PROFILE === 'false'
+        ? false
+        : RESOLVED_NETWORK === 'mainnet',
   // Privy social login (Google/email → Stellar embedded wallet).
   // When set, replaces the Freighter connect button in the dashboard header.
   privyAppId: import.meta.env.VITE_PRIVY_APP_ID || '',

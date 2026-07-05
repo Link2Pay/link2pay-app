@@ -22,6 +22,7 @@ import { shortenAddress } from '../lib/format';
 import { useWalletBalances } from '../hooks/useWalletBalances';
 import { getBusinessProfile } from '../services/api';
 import { isProfileComplete } from '../lib/profileCompleteness';
+import { config } from '../config';
 
 export default function Layout() {
   const location = useLocation();
@@ -33,9 +34,14 @@ export default function Layout() {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
 
-  const [profileGate, setProfileGate] = useState<'checking' | 'complete' | 'incomplete'>('checking');
+  // Gate disabled outside mainnet (testnet stays frictionless for testing) —
+  // start as 'complete' so the dashboard renders straight away there.
+  const [profileGate, setProfileGate] = useState<'checking' | 'complete' | 'incomplete'>(
+    config.requireProfileCompletion ? 'checking' : 'complete'
+  );
 
   useEffect(() => {
+    if (!config.requireProfileCompletion) return;
     if (!connected || !publicKey) return;
     let cancelled = false;
     setProfileGate('checking');
