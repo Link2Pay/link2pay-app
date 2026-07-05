@@ -19,3 +19,19 @@ export function shortenAddress(value: string, head = 6, tail = 4): string {
   if (value.length <= head + tail) return value;
   return `${value.slice(0, head)}...${value.slice(-tail)}`;
 }
+
+/**
+ * Convert a date-only value (from `<input type="date">`, e.g. "2026-07-05")
+ * into an end-of-day UTC ISO string, so a due date means "through the end of
+ * the chosen day" instead of "the instant that day starts in UTC".
+ *
+ * `new Date("2026-07-05")` parses as UTC midnight — for anyone west of UTC
+ * (most of the Americas), that instant has already passed by the time they
+ * finish creating the invoice, so it expires on arrival. Anchoring to
+ * end-of-day UTC instead gives the full chosen day everywhere except deep
+ * into UTC+ timezones, which is the safest default without a stored
+ * per-merchant timezone.
+ */
+export function endOfDayIso(dateOnly: string): string {
+  return new Date(`${dateOnly}T23:59:59.999Z`).toISOString();
+}
