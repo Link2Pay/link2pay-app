@@ -16,17 +16,12 @@ interface WalletEntry {
   checking: boolean;
 }
 
-function resolveIcon(icon: string): string {
-  if (!icon) return '';
-  if (icon.startsWith('http') || icon.startsWith('data:')) return icon;
-  return icon;
-}
-
 export default function WalletRoller({ networkPassphrase, onConnect, connectedAddress }: WalletRollerProps) {
   const { t } = useI18n();
   const [entries, setEntries] = useState<WalletEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -78,16 +73,17 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
       kitSetWallet(entry.module.productId, networkPassphrase);
       const address = await kitGetAddress(networkPassphrase);
       if (address) {
+        setSelectedId(entry.module.productId);
         onConnect(address);
       } else {
-        setError('Could not get wallet address.');
+        setError(t('wallet.addressError'));
       }
     } catch {
-      setError('Connection cancelled or failed.');
+      setError(t('wallet.connectError'));
     } finally {
       setConnecting(null);
     }
-  }, [onConnect, networkPassphrase]);
+  }, [onConnect, networkPassphrase, t]);
 
   if (!entries.length && !loading) return null;
 
@@ -96,13 +92,13 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
       <p className="text-2xs uppercase tracking-label text-ink-3">{t('wallet.selectWallet')}</p>
       <div className="overflow-x-auto snap-x flex gap-3 pb-1">
         {loading && !entries.length ? (
-          <div className="flex-1 text-center py-4 text-xs text-ink-3">Loading wallets…</div>
+          <div className="flex-1 text-center py-4 text-xs text-ink-3">{t('wallet.loading')}</div>
         ) : (
           sorted.map((entry) => {
             const { module, available, checking } = entry;
-            const isSelected = connectedAddress && !connecting;
+            const isSelected = Boolean(connectedAddress) && selectedId === module.productId;
             const isConnecting = connecting === module.productId;
-            const icon = resolveIcon(module.productIcon);
+            const icon = module.productIcon;
 
             let stateDot: string;
             let stateLabel: string;
@@ -165,7 +161,7 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
 
       {connectedAddress && (
         <div className="mt-2 text-center text-xs text-ink-3">
-          {t('wallet.connectToPay')}{' '}
+          {t('wallet.payingFrom')}{' '}
           <span className="font-mono tabular-nums">{shortenAddress(connectedAddress, 8, 4)}</span>
         </div>
       )}

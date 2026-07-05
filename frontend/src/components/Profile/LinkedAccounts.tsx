@@ -3,17 +3,17 @@ import toast from 'react-hot-toast';
 import { useI18n } from '../../i18n/I18nProvider';
 
 const PROVIDERS = [
-  { type: 'google_oauth', label: 'Google', linkFn: (h: ReturnType<typeof useLinkAccount>) => h.linkGoogle },
-  { type: 'linkedin_oauth', label: 'LinkedIn', linkFn: (h: ReturnType<typeof useLinkAccount>) => h.linkLinkedIn },
-  { type: 'twitter_oauth', label: 'X', linkFn: (h: ReturnType<typeof useLinkAccount>) => h.linkTwitter },
-  { type: 'email', label: 'Email', linkFn: (h: ReturnType<typeof useLinkAccount>) => h.linkEmail },
+  { type: 'google_oauth', label: 'Google' },
+  { type: 'linkedin_oauth', label: 'LinkedIn' },
+  { type: 'twitter_oauth', label: 'X' },
+  { type: 'email', label: 'Email' },
 ] as const;
 
 export default function LinkedAccounts() {
   const { ready, user } = usePrivy();
   const { t } = useI18n();
   const { linkEmail, linkGoogle, linkLinkedIn, linkTwitter } = useLinkAccount({
-    onError: (error: string, details: unknown) => {
+    onError: (error: string) => {
       if (error === 'linked_to_another_user') {
         toast.error(t('profile.linkConflict'));
       }
