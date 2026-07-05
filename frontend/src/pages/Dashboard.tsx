@@ -64,6 +64,7 @@ const COPY: Record<Language, {
   assetByLinks: string;
   topTicket: string;
   topClientLabel: string;
+  topClientPending: string;
 }> = {
   en: {
     loading: 'Loading...',
@@ -103,7 +104,8 @@ const COPY: Record<Language, {
     assetByValue: 'By value',
     assetByLinks: 'By links',
     topTicket: 'Largest ticket',
-    topClientLabel: 'Top client',
+    topClientLabel: 'Top payer',
+    topClientPending: 'Confirming…',
   },
   es: {
     loading: 'Cargando...',
@@ -143,7 +145,8 @@ const COPY: Record<Language, {
     assetByValue: 'Por valor',
     assetByLinks: 'Por links',
     topTicket: 'Mayor ticket',
-    topClientLabel: 'Cliente frecuente',
+    topClientLabel: 'Pagador frecuente',
+    topClientPending: 'Confirmando…',
   },
   pt: {
     loading: 'Carregando...',
@@ -183,7 +186,8 @@ const COPY: Record<Language, {
     assetByValue: 'Por valor',
     assetByLinks: 'Por links',
     topTicket: 'Maior ticket',
-    topClientLabel: 'Cliente frequente',
+    topClientLabel: 'Pagador frequente',
+    topClientPending: 'Confirmando…',
   },
 };
 
@@ -320,7 +324,11 @@ export default function Dashboard() {
     return `$${fixed}`;
   };
 
-  const topClient = topClients[0] ?? null;
+  // "Top payer" solo puede ser alguien que ya pagó: si solo hay pagos en
+  // camino (PENDING/PROCESSING) mostramos "confirmando" en vez de un nombre.
+  const topClient =
+    [...topClients].filter((c) => c.paid > 0).sort((a, b) => b.paid - a.paid || b.links - a.links)[0] ?? null;
+  const hasPendingPayers = topClients.some((c) => c.pending > 0);
 
   // Stat cards especulares (Design System §7.3, "máximo impacto"):
   // Volumen total = acento indigo · Total de links = ink · resto neutro categórico.
@@ -573,7 +581,7 @@ export default function Dashboard() {
             <div>
               <p className="text-[13px] text-ink-3">{copy.topClientLabel}</p>
               <p className="mt-0.5 truncate font-display text-lg font-bold text-ink-0">
-                {topClient ? topClient.name : '—'}
+                {topClient ? topClient.name : hasPendingPayers ? copy.topClientPending : '—'}
               </p>
             </div>
           </div>

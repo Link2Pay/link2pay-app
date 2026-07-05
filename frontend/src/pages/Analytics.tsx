@@ -67,14 +67,14 @@ const COPY: Record<
     assetMixSubtitle: 'Confirmed amount distribution',
     trendTitle: 'Activity Trend',
     trendSubtitle: 'Created links trend for selected period',
-    topClientsTitle: 'Top Clients',
-    topClientsSubtitle: 'Most active clients by paid volume',
+    topClientsTitle: 'Top Payers',
+    topClientsSubtitle: 'Most active payers by paid volume',
     noData: 'Not enough data yet',
     paid: 'Paid',
     inProgress: 'In Progress',
     failed: 'Failed',
     other: 'Other',
-    client: 'Client',
+    client: 'Payer',
     links: 'Links',
     paidVolume: 'Paid volume',
     avgMin: 'min',
@@ -102,14 +102,14 @@ const COPY: Record<
     assetMixSubtitle: 'Distribución de montos confirmados',
     trendTitle: 'Tendencia de actividad',
     trendSubtitle: 'Tendencia de links creados en el período seleccionado',
-    topClientsTitle: 'Top clientes',
-    topClientsSubtitle: 'Clientes más activos por volumen pagado',
+    topClientsTitle: 'Top pagadores',
+    topClientsSubtitle: 'Pagadores más activos por volumen pagado',
     noData: 'Aún no hay suficientes datos',
     paid: 'Pagado',
     inProgress: 'En progreso',
     failed: 'Fallido',
     other: 'Otros',
-    client: 'Cliente',
+    client: 'Pagador',
     links: 'Links',
     paidVolume: 'Volumen pagado',
     avgMin: 'min',
@@ -137,14 +137,14 @@ const COPY: Record<
     assetMixSubtitle: 'Distribuição de valores confirmados',
     trendTitle: 'Tendência de atividade',
     trendSubtitle: 'Tendência de links criados no período selecionado',
-    topClientsTitle: 'Top clientes',
-    topClientsSubtitle: 'Clientes mais ativos por volume pago',
+    topClientsTitle: 'Top pagadores',
+    topClientsSubtitle: 'Pagadores mais ativos por volume pago',
     noData: 'Ainda não há dados suficientes',
     paid: 'Pago',
     inProgress: 'Em progresso',
     failed: 'Falha',
     other: 'Outros',
-    client: 'Cliente',
+    client: 'Pagador',
     links: 'Links',
     paidVolume: 'Volume pago',
     avgMin: 'min',
@@ -383,7 +383,10 @@ export default function Analytics() {
       map.set(name, current);
     });
 
+    // Solo quien ya pagó cuenta como "payer": sin volumen pagado no hay fila
+    // (el empty state "no hay datos" cubre el caso de solo pagos en camino).
     return Array.from(map.values())
+      .filter((client) => client.paidVolume > 0)
       .sort((a, b) => b.paidVolume - a.paidVolume || b.links - a.links)
       .slice(0, 6);
   }, [periodInvoices]);
