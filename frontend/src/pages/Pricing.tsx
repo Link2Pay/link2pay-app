@@ -2,6 +2,7 @@
 import { ArrowRight, Check, HelpCircle, Sparkles } from 'lucide-react';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
+import { MARKETING_CONTAINER } from '../components/marketing/layout';
 
 type Plan = {
   name: string;
@@ -314,7 +315,7 @@ export default function Pricing() {
     <div>
       <section className="relative overflow-hidden border-b border-border bg-card">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(ellipse_at_top,_hsl(var(--accent-ink)_/_0.06),transparent_68%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-12 sm:px-6 sm:pb-16 sm:pt-20">
+        <div className={`relative ${MARKETING_CONTAINER} pb-10 pt-12 sm:pb-16 sm:pt-20`}>
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">{copy.heroTitle}</h1>
             <p className="mt-3 text-base leading-relaxed text-muted-foreground md:text-lg">{copy.heroSubtitle}</p>
@@ -325,7 +326,7 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-20">
+      <section className={`${MARKETING_CONTAINER} py-12 sm:py-20`}>
         <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
           {plans.map((plan, index) => (
             <article
@@ -392,7 +393,7 @@ export default function Pricing() {
       </section>
 
       <section className="border-t border-border bg-card">
-        <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-20">
+        <div className={`${MARKETING_CONTAINER} py-12 sm:py-20`}>
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-semibold text-foreground">{copy.faqTitle}</h2>
             <p className="mt-3 text-base text-muted-foreground">{copy.faqSubtitle}</p>

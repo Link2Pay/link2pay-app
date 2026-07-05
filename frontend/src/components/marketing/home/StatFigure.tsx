@@ -1,12 +1,8 @@
-import SourceLink from './SourceLink';
-
 type StatFigureTone = 'default' | 'inverse' | 'primary' | 'success';
 
 type StatFigureProps = {
   value: string;
   label: string;
-  source?: string;
-  sourceLabel?: string;
   tone?: StatFigureTone;
   className?: string;
 };
@@ -35,8 +31,6 @@ const LABEL_CLASSES: Record<StatFigureTone, string> = {
 export default function StatFigure({
   value,
   label,
-  source,
-  sourceLabel,
   tone = 'default',
   className = '',
 }: StatFigureProps) {
@@ -48,14 +42,6 @@ export default function StatFigure({
         {value}
       </div>
       <p className={`mt-3 text-sm leading-6 [text-wrap:pretty] ${LABEL_CLASSES[tone]}`}>{label}</p>
-      {source && sourceLabel ? (
-        <SourceLink
-          href={source}
-          label={sourceLabel}
-          tone={tone === 'inverse' ? 'inverse' : tone === 'primary' ? 'primary' : 'default'}
-          className="mt-5"
-        />
-      ) : null}
     </article>
   );
 }

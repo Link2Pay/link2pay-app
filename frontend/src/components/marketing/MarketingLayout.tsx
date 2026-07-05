@@ -7,6 +7,7 @@ import BrandMark from '../BrandMark';
 import BrandWordmark from '../BrandWordmark';
 import MobileNavDrawer from '../MobileNavDrawer';
 import { useI18n } from '../../i18n/I18nProvider';
+import { MARKETING_CONTAINER } from './layout';
 
 export default function MarketingLayout() {
   const { t } = useI18n();
@@ -41,7 +42,7 @@ export default function MarketingLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-md">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-10">
+        <div className={MARKETING_CONTAINER}>
           <div className="flex min-h-16 items-center justify-between gap-4 py-2">
             <Link to="/" className="flex items-center gap-2.5" aria-label="Link2Pay">
               <BrandMark className="h-8 w-8" />
@@ -112,7 +113,7 @@ export default function MarketingLayout() {
       </main>
 
       <footer className="border-t border-border bg-card">
-        <div className="mx-auto max-w-[1400px] px-4 py-14 sm:px-6 lg:px-10">
+        <div className={`${MARKETING_CONTAINER} py-14`}>
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1fr)]">
             <div className="space-y-4">
               <div className="flex items-center gap-2">

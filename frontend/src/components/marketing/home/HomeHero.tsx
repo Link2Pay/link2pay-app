@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useI18n } from '../../../i18n/I18nProvider';
 import type { Language } from '../../../i18n/translations';
 import HeroPaymentMockup from '../HeroPaymentMockup';
+import { MARKETING_CONTAINER } from '../layout';
 
 type CopyBlock = {
   badge: string;
@@ -63,7 +64,7 @@ export default function HomeHero() {
 
   return (
     <section className="aurora-field aurora-veil border-b border-border">
-      <div className="relative mx-auto max-w-[1400px] px-4 py-16 sm:px-6 lg:flex lg:min-h-[calc(100dvh-4rem)] lg:items-center lg:px-10 lg:py-20">
+      <div className={`relative ${MARKETING_CONTAINER} py-16 lg:flex lg:min-h-[calc(100dvh-4rem)] lg:items-center lg:py-20`}>
         <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14">
           <div className="max-w-2xl">
             <span className="inline-flex items-center rounded-full border border-border bg-card/70 px-4 py-2 text-2xs font-medium uppercase tracking-label text-foreground">

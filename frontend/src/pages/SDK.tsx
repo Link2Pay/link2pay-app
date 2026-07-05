@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen, Code2, KeyRound, Layers } from 'lucide-react';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import InteractiveLinkBuilder from '../components/marketing/InteractiveLinkBuilder';
+import { MARKETING_CONTAINER } from '../components/marketing/layout';
 
 type Item = { title: string; description: string };
 type ResourceItem = Item & { cta: string; to: string };
@@ -200,7 +201,7 @@ export default function SDK() {
     <div>
       <section className="relative overflow-hidden border-b border-border bg-card">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(ellipse_at_top,_hsl(var(--accent-ink)_/_0.06),transparent_68%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-20 sm:px-6">
+        <div className={`relative ${MARKETING_CONTAINER} pb-16 pt-20`}>
           <div className="mx-auto max-w-3xl text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
               <Code2 className="h-3.5 w-3.5" />
@@ -215,7 +216,7 @@ export default function SDK() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <section className={`${MARKETING_CONTAINER} py-20`}>
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold text-foreground">{copy.quickTitle}</h2>
           <p className="mt-3 text-base text-muted-foreground">{copy.quickSubtitle}</p>
@@ -237,7 +238,7 @@ export default function SDK() {
       </section>
 
       <section className="border-y border-border bg-card">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+        <div className={`${MARKETING_CONTAINER} py-20`}>
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-semibold text-foreground">{copy.builderTitle}</h2>
             <p className="mt-3 text-base text-muted-foreground">{copy.builderSubtitle}</p>
@@ -248,7 +249,7 @@ export default function SDK() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <section className={`${MARKETING_CONTAINER} py-20`}>
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold text-foreground">{copy.resourcesTitle}</h2>
           <p className="mt-3 text-base text-muted-foreground">{copy.resourcesSubtitle}</p>
@@ -273,7 +274,7 @@ export default function SDK() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
+      <section className={`${MARKETING_CONTAINER} pb-20`}>
         <div className="card overflow-hidden">
           <div className="bg-primary p-10 sm:p-14">
             <div className="mx-auto max-w-2xl text-center">

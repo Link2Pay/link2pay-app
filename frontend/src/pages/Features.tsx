@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
+import { MARKETING_CONTAINER } from '../components/marketing/layout';
 
 const CORE_FEATURE_ICONS = [Link2, Wallet, Zap, RefreshCw] as const;
 const INVOICE_FEATURE_ICONS = [FileText, Users, Receipt, BarChart3] as const;
@@ -348,7 +349,7 @@ export default function Features() {
     <div>
       <section className="relative overflow-hidden border-b border-border bg-card">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(ellipse_at_top,_hsl(var(--accent-ink)_/_0.06),transparent_68%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-20 sm:px-6">
+        <div className={`relative ${MARKETING_CONTAINER} pb-16 pt-20`}>
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
               {copy.heroTitleStart}{' '}
@@ -359,7 +360,7 @@ export default function Features() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <section className={`${MARKETING_CONTAINER} py-20`}>
         <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
           <div className="card p-8">
             <h2 className="text-3xl font-semibold text-foreground">{copy.sdkSectionTitle}</h2>
@@ -395,7 +396,7 @@ Share checkoutUrl
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <section className={`${MARKETING_CONTAINER} py-20`}>
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold text-foreground">{copy.coreTitle}</h2>
           <p className="mt-3 text-base text-muted-foreground">{copy.coreSubtitle}</p>
@@ -417,7 +418,7 @@ Share checkoutUrl
       </section>
 
       <section className="border-y border-border bg-card">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+        <div className={`${MARKETING_CONTAINER} py-20`}>
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-semibold text-foreground">{copy.managementTitle}</h2>
             <p className="mt-3 text-base text-muted-foreground">{copy.managementSubtitle}</p>
@@ -443,7 +444,7 @@ Share checkoutUrl
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <section className={`${MARKETING_CONTAINER} py-20`}>
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold text-foreground">{copy.comparisonTitle}</h2>
           <p className="mt-3 text-base text-muted-foreground">{copy.comparisonSubtitle}</p>
@@ -490,7 +491,7 @@ Share checkoutUrl
       </section>
 
       <section className="border-y border-border bg-card">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+        <div className={`${MARKETING_CONTAINER} py-20`}>
           <div className="mx-auto max-w-2xl text-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
               <Clock className="h-3.5 w-3.5" />
@@ -520,7 +521,7 @@ Share checkoutUrl
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <section className={`${MARKETING_CONTAINER} py-20`}>
         <div className="card overflow-hidden">
           <div className="bg-primary p-10 sm:p-14">
             <div className="mx-auto max-w-2xl text-center">

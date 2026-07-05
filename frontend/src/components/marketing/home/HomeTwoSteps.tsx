@@ -1,6 +1,7 @@
 import { CheckCircle2, Landmark, QrCode, Wallet } from 'lucide-react';
 import { useI18n } from '../../../i18n/I18nProvider';
 import type { Language } from '../../../i18n/translations';
+import { MARKETING_CONTAINER } from '../layout';
 import SectionHeading from './SectionHeading';
 
 type CopyBlock = {
@@ -100,7 +101,7 @@ export default function HomeTwoSteps() {
   const copy = COPY[language];
 
   return (
-    <section id="solucion" className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 lg:px-10">
+    <section id="solucion" className={`${MARKETING_CONTAINER} py-20`}>
       <SectionHeading
         eyebrow={copy.eyebrow}
         title={copy.title}

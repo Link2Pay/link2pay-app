@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
+import { MARKETING_CONTAINER } from '../components/marketing/layout';
 
 const VALUE_ICONS = [Shield, Lightbulb, Globe2, Lock] as const;
 const MILESTONE_ICONS = [Lightbulb, Rocket, Users, Target] as const;
@@ -246,7 +247,7 @@ export default function About() {
     <div>
       <section className="relative overflow-hidden border-b border-border bg-card">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(ellipse_at_top,_hsl(var(--accent-ink)_/_0.06),transparent_68%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-20 sm:px-6">
+        <div className={`relative ${MARKETING_CONTAINER} pb-16 pt-20`}>
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
               {copy.heroTitleStart}{' '}
@@ -257,7 +258,7 @@ export default function About() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <section className={`${MARKETING_CONTAINER} py-20`}>
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold text-foreground">{copy.storyTitle}</h2>
           <p className="mt-3 text-base text-muted-foreground">{copy.storySubtitle}</p>
@@ -273,7 +274,7 @@ export default function About() {
       </section>
 
       <section className="border-y border-border bg-card">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+        <div className={`${MARKETING_CONTAINER} py-20`}>
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-semibold text-foreground">{copy.valuesTitle}</h2>
             <p className="mt-3 text-base text-muted-foreground">{copy.valuesSubtitle}</p>
@@ -299,7 +300,7 @@ export default function About() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <section className={`${MARKETING_CONTAINER} py-20`}>
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold text-foreground">{copy.journeyTitle}</h2>
           <p className="mt-3 text-base text-muted-foreground">{copy.journeySubtitle}</p>
@@ -321,7 +322,7 @@ export default function About() {
       </section>
 
       <section className="border-y border-border bg-card">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <div className={`${MARKETING_CONTAINER} py-16`}>
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-2xl font-semibold text-foreground">{copy.poweredTitle}</h2>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{copy.poweredDescription}</p>
@@ -337,7 +338,7 @@ export default function About() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <section className={`${MARKETING_CONTAINER} py-20`}>
         <div className="card overflow-hidden">
           <div className="bg-primary p-10 sm:p-14">
             <div className="mx-auto max-w-2xl text-center">

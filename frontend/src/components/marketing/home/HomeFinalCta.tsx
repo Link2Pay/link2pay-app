@@ -2,6 +2,7 @@ import { ArrowRight, Rocket } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../../../i18n/I18nProvider';
 import type { Language } from '../../../i18n/translations';
+import { MARKETING_CONTAINER } from '../layout';
 
 type AudiencePill = {
   title: string;
@@ -65,7 +66,7 @@ export default function HomeFinalCta() {
 
   return (
     <section className="aurora-field aurora-field--cta aurora-veil border-t border-border">
-      <div className="relative mx-auto max-w-[1400px] px-4 py-20 sm:px-6 lg:px-10">
+      <div className={`relative ${MARKETING_CONTAINER} py-20`}>
         <div className="flex flex-wrap justify-center gap-3">
           {copy.audiences.map((audience) => (
             <div

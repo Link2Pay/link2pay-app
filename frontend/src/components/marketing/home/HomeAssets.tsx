@@ -4,6 +4,7 @@ import eurcLogo from '../../../assets/logos/eurc.png';
 import usdcLogo from '../../../assets/logos/usdc.png';
 import xlmLogo from '../../../assets/logos/xlm.png';
 import SectionHeading from './SectionHeading';
+import { MARKETING_CONTAINER } from '../layout';
 
 type AssetCard = {
   code: 'USDC' | 'XLM' | 'EURC';
@@ -110,7 +111,7 @@ export default function HomeAssets() {
 
   return (
     <section className="border-y border-border bg-card">
-      <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 lg:px-10">
+      <div className={`${MARKETING_CONTAINER} py-20`}>
         <div className="grid gap-8 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
           <SectionHeading
             eyebrow={copy.eyebrow}
