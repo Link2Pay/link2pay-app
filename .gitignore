@@ -61,3 +61,11 @@ docs/superpowers/
 
 # CommandCode tool artifacts
 .commandcode/
+
+# Agent tooling artifacts and retired configs — local only
+AGENTS.md
+agent-tasks/
+skills-lock.json
+IMPLEMENTATION_PLAN.md
+tmp-Link2Pay.pdf
+render.yaml
