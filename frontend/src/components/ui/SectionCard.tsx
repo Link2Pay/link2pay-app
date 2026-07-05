@@ -7,6 +7,7 @@ interface SectionCardProps {
   hint?: string;
   action?: ReactNode;
   inlineHeader?: boolean;
+  headerVariant?: 'section' | 'dashboard';
   children: ReactNode;
   className?: string;
 }
@@ -23,9 +24,15 @@ export default function SectionCard({
   hint,
   action,
   inlineHeader = false,
+  headerVariant = 'section',
   children,
   className = '',
 }: SectionCardProps) {
+  const titleClass =
+    headerVariant === 'dashboard'
+      ? 'text-sm font-semibold text-ink-0'
+      : 'font-display text-xl font-bold tracking-tight text-foreground';
+
   return (
     <section id={id} className={`card p-5 sm:p-6 ${className}`}>
       <div
@@ -37,7 +44,7 @@ export default function SectionCard({
               {eyebrow}
             </p>
           )}
-          <h3 className="font-display text-xl font-bold tracking-tight text-foreground">{title}</h3>
+          <h3 className={titleClass}>{title}</h3>
           {hint && <p className="mt-1 text-xs text-ink-3">{hint}</p>}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}
