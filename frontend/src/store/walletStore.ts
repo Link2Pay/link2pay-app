@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { useNetworkStore } from './networkStore';
 import { clearAuthToken } from '../services/auth';
+import { getPreferredLanguage } from '../i18n/language';
 
 type AppLanguage = 'en' | 'es' | 'pt';
 
@@ -36,17 +37,11 @@ interface WalletState {
   getFreighterNetwork: () => Promise<string | null>;
 }
 
-const LANGUAGE_STORAGE_KEY = 'link2pay-language';
 const TESTNET_PASSPHRASE = 'Test SDF Network ; September 2015';
 const MAINNET_PASSPHRASE = 'Public Global Stellar Network ; September 2015';
 
-const isAppLanguage = (value: string | null): value is AppLanguage =>
-  value === 'en' || value === 'es' || value === 'pt';
-
 const getActiveLanguage = (): AppLanguage => {
-  if (typeof window === 'undefined') return 'en';
-  const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  return isAppLanguage(stored) ? stored : 'en';
+  return getPreferredLanguage();
 };
 
 const MESSAGES: Record<
@@ -549,4 +544,3 @@ export const useWalletStore = create<WalletState>()(
     }
   )
 );
-

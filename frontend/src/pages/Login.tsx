@@ -6,8 +6,6 @@ import { useWalletStore } from '../store/walletStore';
 import PrivyLogin from '../components/Auth/PrivyLogin';
 import BrandMark from '../components/BrandMark';
 import BrandWordmark from '../components/BrandWordmark';
-import LanguageToggle from '../components/LanguageToggle';
-import ThemeToggle from '../components/ThemeToggle';
 import { config } from '../config';
 import { useI18n } from '../i18n/I18nProvider';
 import WalletConnect from '../components/Wallet/WalletConnect';
@@ -33,11 +31,6 @@ export default function Login() {
 
   return (
     <div className="gradient-bg relative flex min-h-screen items-center justify-center bg-background px-4 py-10">
-      <div className="absolute right-4 top-4 flex items-center gap-2">
-        <LanguageToggle />
-        <ThemeToggle />
-      </div>
-
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="mb-8 flex flex-col items-center gap-3 text-center">

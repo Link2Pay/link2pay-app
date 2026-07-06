@@ -1,7 +1,6 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ThemeToggle from '../components/ThemeToggle';
-import LanguageToggle from '../components/LanguageToggle';
 import BrandMark from '../components/BrandMark';
 import BrandWordmark from '../components/BrandWordmark';
 import { useWalletStore } from '../store/walletStore';
@@ -61,6 +60,17 @@ const COPY: Record<Language, {
   },
 };
 
+function RoleCardHeader({ title, icon }: { title: string; icon: ReactNode }) {
+  return (
+    <div className="mb-4 flex items-center gap-4 sm:mb-5 sm:flex-col sm:items-start sm:gap-5">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15 transition-colors group-hover:bg-primary/25">
+        {icon}
+      </div>
+      <h2 className="text-xl font-semibold text-foreground font-display">{title}</h2>
+    </div>
+  );
+}
+
 export default function RoleSelect() {
   const navigate = useNavigate();
   const { connected, isConnecting, error, connect } = useWalletStore();
@@ -90,14 +100,9 @@ export default function RoleSelect() {
   };
 
   return (
-    <div className="min-h-screen gradient-bg p-4 sm:p-6">
-      <div className="mx-auto w-full max-w-3xl">
-        <div className="mb-4 flex justify-end gap-2">
-          <LanguageToggle />
-          <ThemeToggle />
-        </div>
-
-        <div className="animate-in">
+    <div className="gradient-bg grid min-h-dvh place-items-center px-4 py-10 sm:px-6">
+      <div className="w-full max-w-3xl">
+        <div className="animate-in w-full">
           <div className="mb-8 text-center sm:mb-12">
             <BrandMark className="mx-auto mb-4 h-11 w-11" />
             <h1 className="mb-2 text-2xl font-bold font-display sm:text-3xl">
@@ -111,12 +116,14 @@ export default function RoleSelect() {
               disabled={isConnecting}
               className="glass-card group rounded-2xl p-5 text-left transition-colors duration-150 hover:border-accent-ink/40 sm:p-8"
             >
-              <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center mb-5 group-hover:bg-primary/25 transition-colors">
-                <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-foreground font-display mb-2">{copy.freelancerTitle}</h2>
+              <RoleCardHeader
+                title={copy.freelancerTitle}
+                icon={
+                  <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                }
+              />
               <p className="text-sm text-muted-foreground mb-4">{copy.freelancerDescription}</p>
               <div className="flex items-center gap-2 text-primary text-sm font-medium">
                 {isConnecting ? (
@@ -140,12 +147,14 @@ export default function RoleSelect() {
               onClick={() => navigate('/checkout')}
               className="glass-card group rounded-2xl p-5 text-left transition-colors duration-150 hover:border-accent-ink/40 sm:p-8"
             >
-              <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center mb-5 group-hover:bg-primary/25 transition-colors">
-                <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-semibold text-foreground font-display mb-2">{copy.clientTitle}</h2>
+              <RoleCardHeader
+                title={copy.clientTitle}
+                icon={
+                  <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                  </svg>
+                }
+              />
               <p className="text-sm text-muted-foreground mb-4">{copy.clientDescription}</p>
               <div className="flex items-center gap-2 text-primary text-sm font-medium">
                 {copy.payInvoice}
