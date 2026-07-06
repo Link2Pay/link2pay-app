@@ -91,7 +91,7 @@ const COPY: Record<Language, CopyBlock> = {
       },
     ],
     panelSummary: 'Velocidad, costo, continuidad y alcance no aparecen como claims decorativos. Son propiedades operativas del riel sobre el que corre Link2Pay.',
-    tags: ['Recibís en tu moneda', 'Liquidación en 3-5s', 'Sin saber de crypto'],
+    tags: ['Recibís fondos en\ntu moneda local', 'Liquidación en\n3-5 segundos', 'Sin saber nada\nde crypto'],
   },
   pt: {
     eyebrow: 'Infraestrutura',
@@ -133,6 +133,18 @@ export default function HomeStellarProof() {
   const { language } = useI18n();
   const copy = COPY[language];
 
+  const renderTag = (index: number, className = '') => {
+    const Icon = TAG_ICONS[index];
+    return (
+      <span
+        className={`inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-4 py-2 text-xs font-medium text-foreground ${className}`}
+      >
+        <Icon className="h-3.5 w-3.5 shrink-0 text-accent-ink" aria-hidden="true" />
+        <span className="whitespace-pre-line">{copy.tags[index]}</span>
+      </span>
+    );
+  };
+
   return (
     <section className="border-b border-border bg-background">
       <div className={`${MARKETING_CONTAINER} py-20`}>
@@ -155,19 +167,15 @@ export default function HomeStellarProof() {
               </p>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-2.5">
-              {copy.tags.map((tag, index) => {
-                const Icon = TAG_ICONS[index];
-                return (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-4 py-2 text-xs font-medium text-foreground"
-                  >
-                    <Icon className="h-3.5 w-3.5 text-accent-ink" aria-hidden="true" />
-                    {tag}
-                  </span>
-                );
-              })}
+            {/* Mobile: first pill centered on its own row, the other two side by
+                side below. From sm: a single inline wrapping row (wrapper uses
+                display:contents so all three become direct flex items). */}
+            <div className="mt-8 flex flex-col items-center gap-2.5 sm:flex-row sm:flex-wrap sm:items-start sm:justify-start">
+              {renderTag(0)}
+              <div className="mx-auto flex w-full max-w-xs gap-2.5 sm:contents">
+                {renderTag(1, 'flex-1 sm:flex-none')}
+                {renderTag(2, 'flex-1 sm:flex-none')}
+              </div>
             </div>
           </div>
 

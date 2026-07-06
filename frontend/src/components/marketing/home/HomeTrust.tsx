@@ -26,7 +26,7 @@ const COPY: Record<Language, CopyBlock> = {
     title: 'Your money is always safe.',
     description:
       'You stay in control the whole time: signatures happen on your device and every payment is recorded on-chain, so you can verify it whenever you want.',
-    signals: ['Non-custodial', 'Signed on your device', 'On-chain verifiable', 'No locked funds'],
+    signals: ['On-chain verifiable', 'Local signing', 'No locked funds', 'Non-custodial'],
     panelLabel: 'Payment',
     proofStatus: 'Confirmed',
     proofSteps: [
@@ -41,7 +41,7 @@ const COPY: Record<Language, CopyBlock> = {
     title: 'Tu plata siempre está segura.',
     description:
       'Vos mantenés el control en todo momento: las firmas ocurren en tu dispositivo y cada pago queda registrado on-chain para que puedas verificarlo cuando quieras.',
-    signals: ['No custodial', 'Firmas en tu dispositivo', 'Verificable on-chain', 'Sin bloqueo de fondos'],
+    signals: ['Verificable on-chain', 'Firma local', 'Sin bloqueo de fondos', 'No custodial'],
     panelLabel: 'Pago',
     proofStatus: 'Confirmado',
     proofSteps: [
@@ -56,7 +56,7 @@ const COPY: Record<Language, CopyBlock> = {
     title: 'O seu dinheiro está sempre seguro.',
     description:
       'Você mantém o controle o tempo todo: as assinaturas acontecem no seu dispositivo e cada pagamento fica registrado on-chain para você verificar quando quiser.',
-    signals: ['Não custodial', 'Assinado no seu dispositivo', 'Verificável on-chain', 'Sem bloqueio de fundos'],
+    signals: ['Verificável on-chain', 'Assinatura local', 'Sem bloqueio de fundos', 'Não custodial'],
     panelLabel: 'Pagamento',
     proofStatus: 'Confirmado',
     proofSteps: [
