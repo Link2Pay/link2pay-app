@@ -4,6 +4,7 @@ import { useWalletStore } from '../store/walletStore';
 import { useI18n } from '../i18n/I18nProvider';
 import { getBusinessProfile, saveBusinessProfile } from '../services/api';
 import Select from '../components/ui/Select';
+import BrandMark from '../components/BrandMark';
 import { COUNTRY_OPTIONS, railByCountry } from '../config/rails';
 import type { Language } from '../i18n/translations';
 
@@ -161,9 +162,8 @@ export default function Register() {
       <div className="mx-auto w-full max-w-md">
         <div className="animate-in">
           <div className="text-center mb-6 sm:mb-8">
-            <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground text-lg font-bold font-display">S</span>
-            </div>
+            <BrandMark className="mx-auto mb-3 block h-12 w-12" />
+
             <h1 className="text-xl font-bold text-foreground font-display mb-1 sm:text-2xl">{copy.title}</h1>
             <p className="text-sm text-muted-foreground">{copy.subtitle}</p>
           </div>
