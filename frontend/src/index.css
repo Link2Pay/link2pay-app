@@ -117,7 +117,7 @@
   :root {
     color-scheme: light; /* controles nativos / scrollbars siguen el tema */
 
-    --background: var(--ref-warm-100); /* canvas hueso */
+    --background: 45 40% 96%; /* PRUEBA crema — original: var(--ref-warm-100) (canvas hueso) */
     --foreground: var(--ref-warm-900);
 
     --card: var(--ref-warm-0);
