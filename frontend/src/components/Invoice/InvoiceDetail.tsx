@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ArrowDown, ArrowRight, Mail, Wallet } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
+import { ArrowDown, ArrowRight, Mail, Share2, Wallet } from 'lucide-react';
+import { buildShareCardPng, sharePng } from '../../lib/shareCard';
 import { cancelInvoice, deleteInvoice, getOwnerInvoice, sendInvoice } from '../../services/api';
 import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
@@ -31,6 +33,8 @@ const COPY: Record<Language, {
   copied: string;
   paymentLink: string;
   copy: string;
+  shareImage: string;
+  imageDownloaded: string;
   sharePaymentLinkHelp: string;
   from: string;
   to: string;
@@ -63,6 +67,8 @@ const COPY: Record<Language, {
     copied: 'Copied!',
     paymentLink: 'Payment Link',
     copy: 'Copy',
+    shareImage: 'Share image',
+    imageDownloaded: 'Image downloaded — attach it anywhere, the QR opens this link',
     sharePaymentLinkHelp: 'Share this link with your client so they can view and pay the invoice.',
     from: 'From',
     to: 'To',
@@ -95,6 +101,8 @@ const COPY: Record<Language, {
     copied: 'Copiado!',
     paymentLink: 'Link de pago',
     copy: 'Copiar',
+    shareImage: 'Compartir imagen',
+    imageDownloaded: 'Imagen descargada — adjúntala donde quieras, el QR abre este link',
     sharePaymentLinkHelp: 'Comparte este link con tu cliente para que vea y pague la factura.',
     from: 'De',
     to: 'Para',
@@ -127,6 +135,8 @@ const COPY: Record<Language, {
     copied: 'Copiado!',
     paymentLink: 'Link de pagamento',
     copy: 'Copiar',
+    shareImage: 'Compartilhar imagem',
+    imageDownloaded: 'Imagem baixada — anexe onde quiser, o QR abre este link',
     sharePaymentLinkHelp: 'Compartilhe este link com seu cliente para visualizar e pagar a fatura.',
     from: 'De',
     to: 'Para',
@@ -168,6 +178,8 @@ export default function InvoiceDetail() {
   const [actionLoading, setActionLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [sharingImage, setSharingImage] = useState(false);
+  const qrCanvasWrapRef = useRef<HTMLDivElement>(null);
 
   // Preview solo-dev (`/dev/links/mock-*`): renderiza el detalle real con datos mock,
   // sin wallet conectada y sin backend. Detrás de `import.meta.env.DEV` → sin efecto en prod.
@@ -193,6 +205,26 @@ export default function InvoiceDetail() {
     await navigator.clipboard.writeText(paymentLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleShareImage = async () => {
+    const qrCanvas = qrCanvasWrapRef.current?.querySelector('canvas');
+    if (!invoice || !qrCanvas) return;
+    setSharingImage(true);
+    try {
+      const blob = await buildShareCardPng({
+        qrCanvas,
+        amountLabel: formatAmount(invoice.total, invoice.currency),
+        name: invoice.freelancerName || invoice.freelancerCompany,
+        url: paymentLink,
+      });
+      const result = await sharePng(blob, `link2pay-${invoice.invoiceNumber}.png`, paymentLink);
+      if (result === 'downloaded') toast.success(copy.imageDownloaded);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create image');
+    } finally {
+      setSharingImage(false);
+    }
   };
 
   const handleSend = async () => {
@@ -296,8 +328,16 @@ export default function InvoiceDetail() {
             <button onClick={handleCopyLink} className="btn-secondary text-xs">
               {copied ? copy.copied : copy.copy}
             </button>
+            <button onClick={handleShareImage} disabled={sharingImage} className="btn-ghost text-xs">
+              <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
+              {copy.shareImage}
+            </button>
           </div>
           <p className="text-xs text-ink-3 mt-2">{copy.sharePaymentLinkHelp}</p>
+          {/* Offscreen QR source for the share-card PNG (crisp at 512px). */}
+          <div ref={qrCanvasWrapRef} className="hidden" aria-hidden="true">
+            <QRCodeCanvas value={paymentLink} size={512} marginSize={0} />
+          </div>
         </div>
       )}
 
