@@ -112,7 +112,7 @@ export default function HomeTwoSteps() {
         />
 
         <div className="mt-12 grid gap-4 lg:grid-cols-2">
-        <article className="card border border-border p-6">
+        <article className="card flex flex-col border border-border p-6">
           <p className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
             {copy.customerLabel}
           </p>
@@ -146,12 +146,12 @@ export default function HomeTwoSteps() {
             })}
           </ol>
 
-          <p className="mt-6 border-t border-border pt-4 font-mono text-xs text-foreground [font-variant-numeric:tabular-nums]">
+          <p className="mt-auto border-t border-border pt-4 font-mono text-xs text-foreground [font-variant-numeric:tabular-nums]">
             {copy.confirmLine}
           </p>
         </article>
 
-        <article className="card border border-border p-6">
+        <article className="card flex flex-col border border-border p-6">
           <p className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
             {copy.operationsLabel}
           </p>
@@ -179,7 +179,7 @@ export default function HomeTwoSteps() {
             ))}
           </ol>
 
-          <div className="mt-6 flex items-start gap-3 border-t border-border pt-4">
+          <div className="mt-auto flex items-start gap-3 border-t border-border pt-4">
             <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success-subtle text-success">
               <Landmark className="h-4.5 w-4.5" aria-hidden="true" />
             </div>

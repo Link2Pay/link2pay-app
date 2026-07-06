@@ -191,6 +191,7 @@
 
     /* Objeto oscuro estable en ambos temas (Credit Card, stat card "ink") */
     --card-invert: var(--ref-warm-900);
+    --card-invert-deep: 240 4% 14%; /* gris oscuro para bandas texturizadas */
     --card-invert-foreground: var(--ref-warm-50);
 
     /* Accent glow — apunta al indigo de marca */
@@ -280,6 +281,7 @@
 
     /* Objeto oscuro elevado sobre el canvas oscuro (se mantiene oscuro en dark) */
     --card-invert: 240 5% 16%;
+    --card-invert-deep: 240 4% 14%; /* gris oscuro para bandas texturizadas */
     --card-invert-foreground: 60 7% 95%;
 
     --neon-glow: var(--ref-indigo-400);
