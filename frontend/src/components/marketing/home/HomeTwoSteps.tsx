@@ -130,7 +130,7 @@ export default function HomeTwoSteps() {
               return (
                 <li key={step.title} className="flex gap-3 py-4 first:pt-0">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted/40 text-foreground">
-                    <Icon className="h-4.5 w-4.5" aria-hidden="true" />
+                    <Icon className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div className="min-w-0">
                     <h4 className="text-sm font-semibold text-foreground">
@@ -163,11 +163,11 @@ export default function HomeTwoSteps() {
             {copy.operationsDescription}
           </p>
 
-          <ol className="mt-6 flex items-stretch gap-2.5">
+          <ol className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
             {copy.timeline.map((item) => (
               <li
                 key={item.code}
-                className="min-w-0 flex-1 basis-0 rounded-xl border border-border bg-muted/40 px-3.5 py-3.5"
+                className="min-w-0 rounded-xl border border-border bg-muted/40 px-3.5 py-3.5"
               >
                 <p className="font-mono text-xs font-semibold tracking-label text-foreground">
                   {item.code}
@@ -181,7 +181,7 @@ export default function HomeTwoSteps() {
 
           <div className="mt-auto flex items-start gap-3 border-t border-border pt-4">
             <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success-subtle text-success">
-              <Landmark className="h-4.5 w-4.5" aria-hidden="true" />
+              <Landmark className="h-5 w-5" aria-hidden="true" />
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground [text-wrap:pretty]">
