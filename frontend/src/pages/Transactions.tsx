@@ -12,6 +12,8 @@ import { useI18n } from '../i18n/I18nProvider';
 import type { Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
 import { CURRENCY_SYMBOLS, config } from '../config';
+import { anonymousPayerWallet, displayClientName, isAnonymousClient } from '../lib/payerDisplay';
+import { stellarExpertUrl } from '../lib/stellarExplorer';
 
 type TransactionFilter = 'ALL' | 'IN_PROGRESS' | 'FAILED' | 'PAID';
 
@@ -443,8 +445,26 @@ export default function Transactions() {
                       <p className="text-xs text-ink-3">{invoice.title}</p>
                     </td>
                     <td className="px-4 py-3 text-sm text-ink-1">
-                      <p>{invoice.clientName}</p>
-                      <p className="text-xs text-ink-3">{invoice.clientEmail}</p>
+                      {/* Anonymous quick links: payer wallet once paid, dash while unpaid. */}
+                      {isAnonymousClient(invoice) ? (
+                        anonymousPayerWallet(invoice) ? (
+                          <a
+                            href={stellarExpertUrl('account', anonymousPayerWallet(invoice)!, invoice.networkPassphrase)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono hover:text-stellar-600 hover:underline"
+                          >
+                            {displayClientName(invoice)}
+                          </a>
+                        ) : (
+                          <p className="font-mono">—</p>
+                        )
+                      ) : (
+                        <>
+                          <p>{invoice.clientName}</p>
+                          <p className="text-xs text-ink-3">{invoice.clientEmail}</p>
+                        </>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />

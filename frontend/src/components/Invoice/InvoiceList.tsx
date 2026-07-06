@@ -13,7 +13,8 @@ import { useNetworkStore } from '../../store/networkStore';
 import { useDashboardViewStore } from '../../store/dashboardViewStore';
 import type { InvoiceStatus } from '../../types';
 import { formatAmount } from '../../lib/format';
-import { displayClientName, isAnonymousClient } from '../../lib/payerDisplay';
+import { anonymousPayerWallet, displayClientName, isAnonymousClient } from '../../lib/payerDisplay';
+import { stellarExpertUrl } from '../../lib/stellarExplorer';
 import type { Language } from '../../i18n/translations';
 
 const COPY: Record<Language, {
@@ -252,7 +253,18 @@ export default function InvoiceList() {
                     <td className="px-4 py-3">
                       {/* Anonymous quick links: payer wallet once paid, dash while unpaid. */}
                       {isAnonymousClient(invoice) ? (
-                        <p className="font-mono text-sm text-ink-1">{displayClientName(invoice) ?? '—'}</p>
+                        anonymousPayerWallet(invoice) ? (
+                          <a
+                            href={stellarExpertUrl('account', anonymousPayerWallet(invoice)!)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono text-sm text-ink-1 hover:text-stellar-600 hover:underline"
+                          >
+                            {displayClientName(invoice)}
+                          </a>
+                        ) : (
+                          <p className="font-mono text-sm text-ink-1">—</p>
+                        )
                       ) : (
                         <>
                           <p className="text-sm text-ink-1">{invoice.clientName}</p>

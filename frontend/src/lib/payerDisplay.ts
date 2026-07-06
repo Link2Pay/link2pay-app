@@ -31,3 +31,9 @@ export function displayClientName(invoice: ClientFields): string | null {
   const wallet = invoice.payerWallet || invoice.clientWallet;
   return wallet ? shortenAddress(wallet, 6, 4) : null;
 }
+
+/** Full payer wallet address for an anonymous link, for explorer links. */
+export function anonymousPayerWallet(invoice: ClientFields): string | null {
+  if (!isAnonymousClient(invoice)) return null;
+  return invoice.payerWallet || invoice.clientWallet || null;
+}

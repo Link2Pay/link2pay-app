@@ -9,7 +9,8 @@ import { useWalletStore } from '../../store/walletStore';
 import type { Invoice, InvoiceStatus } from '../../types';
 import { config } from '../../config';
 import { formatAmount } from '../../lib/format';
-import { displayClientName, isAnonymousClient } from '../../lib/payerDisplay';
+import { anonymousPayerWallet, displayClientName, isAnonymousClient } from '../../lib/payerDisplay';
+import { stellarExpertUrl } from '../../lib/stellarExplorer';
 import type { Language } from '../../i18n/translations';
 import { downloadInvoicePDF } from './InvoicePDF';
 import ReceiverOffRamp from './ReceiverOffRamp';
@@ -338,9 +339,20 @@ export default function InvoiceDetail() {
             </span>
             <div className="min-w-0 sm:order-1">
               <p className="label mb-0.5">{copy.to}</p>
-              <p className={`truncate text-sm font-semibold text-ink-0 ${isAnonymousClient(invoice) ? 'font-mono' : ''}`}>
-                {displayClientName(invoice) ?? '—'}
-              </p>
+              {anonymousPayerWallet(invoice) ? (
+                <a
+                  href={stellarExpertUrl('account', anonymousPayerWallet(invoice)!, invoice.networkPassphrase)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block truncate font-mono text-sm font-semibold text-ink-0 hover:text-stellar-600 hover:underline"
+                >
+                  {displayClientName(invoice)}
+                </a>
+              ) : (
+                <p className={`truncate text-sm font-semibold text-ink-0 ${isAnonymousClient(invoice) ? 'font-mono' : ''}`}>
+                  {displayClientName(invoice) ?? '—'}
+                </p>
+              )}
               {!isAnonymousClient(invoice) && invoice.clientCompany && <p className="truncate text-xs text-ink-3">{invoice.clientCompany}</p>}
               {!isAnonymousClient(invoice) && (
                 <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-3 sm:justify-end">
@@ -450,9 +462,14 @@ export default function InvoiceDetail() {
             {invoice.payerWallet && (
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-success">{copy.payer}</span>
-                <span className="font-mono text-xs text-success">
+                <a
+                  href={stellarExpertUrl('account', invoice.payerWallet, invoice.networkPassphrase)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono text-xs text-stellar-600 hover:underline"
+                >
                   {invoice.payerWallet.slice(0, 8)}...{invoice.payerWallet.slice(-4)}
-                </span>
+                </a>
               </div>
             )}
           </div>
