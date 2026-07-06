@@ -21,7 +21,7 @@ export default function LanguageToggle() {
 
   return (
     <div
-      className="relative inline-grid grid-cols-3 items-center rounded-lg border border-border bg-card p-0.5"
+      className="relative inline-grid h-11 grid-cols-3 rounded-lg border border-border bg-card p-0.5"
       role="group"
       aria-label={t('language.switch')}
       title={t('language.switch')}
@@ -42,7 +42,7 @@ export default function LanguageToggle() {
           key={option.code}
           type="button"
           onClick={() => setLanguage(option.code)}
-          className={`relative z-10 rounded-md px-2.5 py-2 text-center text-xs font-semibold tracking-wide transition-colors ${
+          className={`relative z-10 flex h-full items-center justify-center rounded-md px-2.5 text-xs font-semibold tracking-wide transition-colors ${
             language === option.code
               ? 'text-primary-foreground'
               : 'text-muted-foreground hover:text-foreground'
