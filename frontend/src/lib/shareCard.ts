@@ -92,6 +92,24 @@ export async function buildShareCardPng({ qrCanvas, amountLabel, name, url }: Sh
   });
 }
 
+export function downloadPng(blob: Blob, filename: string): void {
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+/** Whether the platform can share image files through the native share sheet. */
+export function canShareFiles(): boolean {
+  if (typeof navigator.canShare !== 'function') return false;
+  try {
+    return navigator.canShare({ files: [new File([''], 'x.png', { type: 'image/png' })] });
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Share the PNG through the native share sheet (with the link as caption)
  * when the platform supports sharing files; otherwise download it.
@@ -108,10 +126,6 @@ export async function sharePng(blob: Blob, filename: string, url: string): Promi
       if ((err as DOMException)?.name === 'AbortError') return 'shared';
     }
   }
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(link.href);
+  downloadPng(blob, filename);
   return 'downloaded';
 }
