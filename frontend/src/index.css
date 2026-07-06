@@ -97,6 +97,8 @@
     --ref-warm-700: 240 5% 31%; /* #4B4B52 */
     --ref-warm-900: 240 6% 10%; /* #17171A ink */
 
+    --ref-cream: 45 40% 96%; /* #F9F5EB canvas crema (fondo light definitivo) */
+
     /* Lavender accent (brand) */
     --ref-lavender-200: 240 73% 93%; /* #DFDFFA accent-soft */
     --ref-lavender-300: 239 67% 87%; /* #C7C8F4 accent */
@@ -117,7 +119,7 @@
   :root {
     color-scheme: light; /* controles nativos / scrollbars siguen el tema */
 
-    --background: 45 40% 96%; /* PRUEBA crema — original: var(--ref-warm-100) (canvas hueso) */
+    --background: var(--ref-cream); /* canvas crema cálido */
     --foreground: var(--ref-warm-900);
 
     --card: var(--ref-warm-0);
