@@ -182,7 +182,7 @@ export default function HomeStellarProof() {
           </div>
 
           {/* Right column — "Señales de la red" panel */}
-          <div className="card overflow-hidden border border-border">
+          <div className="card overflow-hidden border border-border bg-card/70 dark:bg-card">
             <div className="border-b border-border bg-muted/40 px-5 py-4 sm:px-6">
               <p className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
                 {copy.panelEyebrow}

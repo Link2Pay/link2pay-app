@@ -163,7 +163,7 @@ export default function HomeTwoSteps() {
             {copy.operationsDescription}
           </p>
 
-          <ol className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+          <ol className="mt-6 mb-6 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
             {copy.timeline.map((item) => (
               <li
                 key={item.code}

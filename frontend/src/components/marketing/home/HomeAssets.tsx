@@ -138,12 +138,12 @@ export default function HomeAssets() {
               key={asset.code}
               className={`relative flex flex-col rounded-2xl border p-6 transition-colors ${
                 asset.featured
-                  ? 'border-primary/30 bg-background hover:border-primary/50'
-                  : 'border-border bg-background hover:border-foreground/20'
+                  ? 'border-primary/30 bg-card/70 hover:border-primary/50 dark:bg-background'
+                  : 'border-border bg-card/70 hover:border-foreground/20 dark:bg-background'
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-card p-2">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primary/20 bg-primary/10 p-2">
                   <img
                     src={ASSET_LOGOS[asset.code]}
                     alt={asset.code}

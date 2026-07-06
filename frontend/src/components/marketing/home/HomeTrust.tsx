@@ -38,7 +38,7 @@ const COPY: Record<Language, CopyBlock> = {
   },
   es: {
     eyebrow: 'Confianza',
-    title: 'Tu plata siempre está segura.',
+    title: 'Tu dinero siempre está seguro.',
     description:
       'Vos mantenés el control en todo momento: las firmas ocurren en tu dispositivo y cada pago queda registrado on-chain para que puedas verificarlo cuando quieras.',
     signals: ['Verificable on-chain', 'Firma local', 'Sin bloqueo de fondos', 'No custodial'],

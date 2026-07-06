@@ -193,12 +193,14 @@ export default function MarketingLayout() {
           </div>
 
           <div className="mt-10 flex flex-col gap-4 border-t border-border pt-6 lg:flex-row lg:items-center lg:justify-between">
-            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground lg:justify-start">
               {t('marketing.madeWith')}
               <Heart className="h-3.5 w-3.5 text-destructive" />
               {t('marketing.forLatam')}
             </p>
-            <p className="text-xs text-muted-foreground">{t('marketing.rightsReserved')}</p>
+            <p className="text-center text-xs text-muted-foreground lg:text-left">
+              {t('marketing.rightsReserved')}
+            </p>
           </div>
         </div>
       </footer>

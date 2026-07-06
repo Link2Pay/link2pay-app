@@ -95,7 +95,7 @@ const en = {
   'marketing.madeWith': 'Made with',
   'marketing.forFreelancers': 'for builders worldwide',
   'marketing.forLatam': 'for Latin America',
-  'marketing.rightsReserved': '© 2026 Link2Pay. All rights reserved.',
+  'marketing.rightsReserved': '© 2026 Link2Pay · All rights reserved.',
   'marketing.stellarTestnet': 'Link2Pay on Stellar',
 
   'wallet.disconnect': 'Disconnect',
@@ -330,7 +330,7 @@ const es: Record<TranslationKey, string> = {
   'marketing.madeWith': 'Hecho con',
   'marketing.forFreelancers': 'para builders en todo el mundo',
   'marketing.forLatam': 'para LatAm',
-  'marketing.rightsReserved': '© 2026 Link2Pay. Todos los derechos reservados.',
+  'marketing.rightsReserved': '© 2026 Link2Pay · Todos los derechos reservados.',
   'marketing.stellarTestnet': 'Link2Pay en Stellar',
 
   'wallet.disconnect': 'Desconectar',
@@ -563,7 +563,7 @@ const pt: Record<TranslationKey, string> = {
   'marketing.madeWith': 'Feito com',
   'marketing.forFreelancers': 'para builders no mundo todo',
   'marketing.forLatam': 'para a América Latina',
-  'marketing.rightsReserved': '© 2026 Link2Pay. Todos os direitos reservados.',
+  'marketing.rightsReserved': '© 2026 Link2Pay · Todos os direitos reservados.',
   'marketing.stellarTestnet': 'Link2Pay na Stellar',
 
   'wallet.disconnect': 'Desconectar',
