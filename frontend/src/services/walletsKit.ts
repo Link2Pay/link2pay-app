@@ -3,8 +3,13 @@
 // The wallet roller on the payer flow builds its list from the Kit module registry.
 import { StellarWalletsKit } from '@creit.tech/stellar-wallets-kit/sdk';
 import { defaultModules } from '@creit.tech/stellar-wallets-kit/modules/utils';
+import {
+  WalletConnectModule,
+  WalletConnectTargetChain,
+} from '@creit.tech/stellar-wallets-kit/modules/wallet-connect';
 import { Networks } from '@creit.tech/stellar-wallets-kit/types';
 import type { ModuleInterface } from '@creit.tech/stellar-wallets-kit/types';
+import { config } from '../config';
 
 // Payment wallets must work everywhere a payment link opens: browser
 // extension on desktop AND a native mobile app. Excluded from the kit's
@@ -20,8 +25,47 @@ const MULTIPLATFORM_WALLET_IDS = new Set([
   'BitgetWallet', // extension + mobile app
 ]);
 
-function paymentModules(): ModuleInterface[] {
-  return defaultModules({ filterBy: (m) => MULTIPLATFORM_WALLET_IDS.has(m.productId) });
+// UA-based (not viewport-based) detection: what matters for WalletConnect is
+// whether the device can deep-link into a native wallet app, not its width.
+// Deliberately no coarse-pointer fallback — a touch laptop is still a desktop
+// with extensions.
+function isLikelyMobileDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const nav = navigator as Navigator & { userAgentData?: { mobile?: boolean } };
+  if (typeof nav.userAgentData?.mobile === 'boolean') return nav.userAgentData.mobile;
+  return /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(navigator.userAgent || '');
+}
+
+// WalletConnect is offered ONLY on mobile: on desktop every supported wallet
+// is reachable through its extension, while on a mobile browser no extension
+// exists and WC deep-links into the native apps instead. Of the Stellar
+// wallets registered with WalletConnect, Freighter supports pubnet + testnet
+// and LOBSTR is pubnet-only — on testnet only Freighter will complete the
+// handshake. Requires a Reown project ID; without it the module is skipped.
+function walletConnectModule(networkPassphrase: string): ModuleInterface | null {
+  if (!config.walletConnectProjectId || !isLikelyMobileDevice()) return null;
+  const origin = window.location.origin;
+  return new WalletConnectModule({
+    projectId: config.walletConnectProjectId,
+    metadata: {
+      name: config.appName,
+      description: 'Stellar payment links — pay invoices in USDC/XLM.',
+      url: origin,
+      icons: [`${origin}/link2pay-favicon.png`],
+    },
+    allowedChains: [
+      networkPassphrase.includes('Test')
+        ? WalletConnectTargetChain.TESTNET
+        : WalletConnectTargetChain.PUBLIC,
+    ],
+  });
+}
+
+function paymentModules(networkPassphrase: string): ModuleInterface[] {
+  const modules = defaultModules({ filterBy: (m) => MULTIPLATFORM_WALLET_IDS.has(m.productId) });
+  const wc = walletConnectModule(networkPassphrase);
+  if (wc) modules.push(wc);
+  return modules;
 }
 
 let initialized = false;
@@ -29,7 +73,7 @@ let _modules: ModuleInterface[] = [];
 
 function ensureInit(networkPassphrase: string): void {
   if (initialized) return;
-  _modules = paymentModules();
+  _modules = paymentModules(networkPassphrase);
   StellarWalletsKit.init({
     modules: _modules,
     network: networkPassphrase.includes('Test') ? Networks.TESTNET : Networks.PUBLIC,
@@ -38,8 +82,9 @@ function ensureInit(networkPassphrase: string): void {
 }
 
 /** Return the module registry so the roller can build its card list. */
-export function getKitModules(): ModuleInterface[] {
-  return _modules.length > 0 ? _modules : paymentModules();
+export function getKitModules(networkPassphrase: string): ModuleInterface[] {
+  ensureInit(networkPassphrase);
+  return _modules;
 }
 
 /** Render the Kit's connect button into a container element. */

@@ -35,6 +35,11 @@ export const config = {
       : import.meta.env.VITE_REQUIRE_PROFILE === 'false'
         ? false
         : RESOLVED_NETWORK === 'mainnet',
+  // WalletConnect (Reown) project ID — enables the WalletConnect option in
+  // the payer wallet roller on MOBILE browsers only (desktop already has the
+  // extensions). Unset → the WalletConnect card simply doesn't appear.
+  // Get one at https://dashboard.reown.com
+  walletConnectProjectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || '',
   // Privy social login (Google/email → Stellar embedded wallet).
   // When set, replaces the Freighter connect button in the dashboard header.
   privyAppId: import.meta.env.VITE_PRIVY_APP_ID || '',

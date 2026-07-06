@@ -35,7 +35,7 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
 
   useEffect(() => {
     let cancelled = false;
-    const modules = getKitModules();
+    const modules = getKitModules(networkPassphrase);
     const initial: WalletEntry[] = modules.map((m) => ({ module: m, available: false, checking: true }));
     setEntries(initial);
 
@@ -63,7 +63,7 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
     });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [networkPassphrase]);
 
   const sorted = [...entries].sort((a, b) => {
     const aWC = a.module.moduleType === 'BRIDGE_WALLET';
@@ -122,12 +122,14 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
             } else if (checking) {
               stateDot = 'bg-ink-3 animate-pulse';
               stateLabel = '';
+            } else if (module.moduleType === 'BRIDGE_WALLET') {
+              // WalletConnect is never "detected" locally — it always bridges
+              // out to a native wallet app, so the call to action is constant.
+              stateDot = 'bg-ink-3';
+              stateLabel = t('wallet.tapToConnect');
             } else if (available) {
               stateDot = 'bg-success';
               stateLabel = t('wallet.detected');
-            } else if (module.moduleType === 'BRIDGE_WALLET') {
-              stateDot = 'bg-ink-3';
-              stateLabel = t('wallet.tapToConnect');
             } else {
               stateDot = 'bg-ink-4';
               stateLabel = '';
