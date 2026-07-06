@@ -24,7 +24,7 @@ type CopyBlock = {
 const COPY: Record<Language, CopyBlock> = {
   en: {
     eyebrow: 'The solution',
-    title: 'Not another app. Payment infrastructure in two simple steps: scan and pay.',
+    title: "We're simplified payment infrastructure: Scan and pay.",
     description:
       'The buyer sees a simple checkout. Under the hood, Link2Pay creates, tracks, and confirms the payment until it settles on-chain and is ready for the local payout rail.',
     customerLabel: 'For your customer',
@@ -41,7 +41,7 @@ const COPY: Record<Language, CopyBlock> = {
     timeline: [
       { code: 'CREATED', description: 'Generated and ready to share.' },
       { code: 'PENDING', description: 'Awaiting wallet confirmation.' },
-      { code: 'CONFIRMED', description: 'Settled on Stellar, ready to pay out.' },
+      { code: 'CONFIRMED', description: 'Settled on Stellar, ready for the local rail.' },
     ],
     settlementLine: 'You receive locally through your payout rail once confirmed.',
     auditLine: 'Every payment stays auditable from the dashboard.',
@@ -72,7 +72,7 @@ const COPY: Record<Language, CopyBlock> = {
   },
   pt: {
     eyebrow: 'A solução',
-    title: 'Não somos outro app. Somos infraestrutura de pagamentos em dois passos simples: escanear e pagar.',
+    title: 'Somos infraestrutura de pagamentos simplificada: Escanear e pagar.',
     description:
       'O cliente vê um checkout simples. Nos bastidores, a Link2Pay cria, acompanha e confirma o pagamento até liquidar on-chain e ficar pronto para o trilho local.',
     customerLabel: 'Para o seu cliente',

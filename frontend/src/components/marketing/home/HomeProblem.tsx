@@ -22,7 +22,7 @@ const COPY: Record<Language, CopyBlock> = {
     eyebrow: 'The problem',
     title: 'Getting paid from abroad still costs too much.',
     description:
-      'Cross-border payments still eat margin, slow down cash flow, and force merchants to explain banking friction to their customers.',
+      'Cross-border payments still eat margin, slow down cash flow, and create banking friction.',
     descriptionCont:
       'Latin America already uses stablecoins. The missing piece is the bridge into the account you already operate with.',
     stats: [
@@ -74,7 +74,7 @@ const COPY: Record<Language, CopyBlock> = {
     eyebrow: 'O problema',
     title: 'Receber do exterior ainda custa caro demais.',
     description:
-      'Pagamentos internacionais ainda consomem margem, atrasam o caixa e obrigam o negócio a explicar a fricção bancária ao cliente.',
+      'Pagamentos internacionais ainda consomem margem, atrasam o caixa e geram fricção bancária.',
     descriptionCont:
       'A América Latina já usa stablecoins. O que falta é a ponte para a conta que você já usa.',
     stats: [
