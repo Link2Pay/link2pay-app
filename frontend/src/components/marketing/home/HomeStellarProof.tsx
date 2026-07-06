@@ -146,8 +146,9 @@ export default function HomeStellarProof() {
   };
 
   return (
-    <section className="border-b border-border bg-background">
-      <div className={`${MARKETING_CONTAINER} py-20`}>
+    <section className="relative overflow-hidden border-y border-border bg-card-invert-deeper text-card-invert-foreground">
+      <div className="pointer-events-none absolute inset-0 pipeline-microtexture" aria-hidden="true" />
+      <div className={`relative ${MARKETING_CONTAINER} py-20`}>
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-start lg:gap-12">
           {/* Left column — prose + authority signal (sticky on desktop) */}
           <div className="lg:sticky lg:top-24 lg:self-start">
@@ -155,15 +156,16 @@ export default function HomeStellarProof() {
               eyebrow={copy.eyebrow}
               title={copy.title}
               description={copy.description}
+              tone="inverse"
             />
 
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-card-invert-foreground/72 [text-wrap:pretty]">
               {copy.panelSummary}
             </p>
 
-            <div className="mt-8 border-l-2 border-border pl-4">
-              <p className="text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
-                <span className="font-semibold text-foreground">{copy.authorityLine}</span>
+            <div className="mt-8 border-l-2 border-card-invert-foreground/20 pl-4">
+              <p className="text-sm leading-6 text-card-invert-foreground/72 [text-wrap:pretty]">
+                <span className="font-semibold text-card-invert-foreground">{copy.authorityLine}</span>
               </p>
             </div>
 

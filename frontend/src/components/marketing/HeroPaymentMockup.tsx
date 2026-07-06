@@ -7,7 +7,7 @@ import { toPositiveAmount } from './InteractiveLinkBuilder';
 
 // Mirrors backend/src/anchors/adapters/MockBreBAdapter.ts SIMULATED_USDC_COP_RATE.
 const SIMULATED_USDC_COP_RATE = 4120.5;
-const QUICK_AMOUNTS = [49, 199, 499] as const;
+const QUICK_AMOUNTS = [49, 199, 499, 1000] as const;
 // Stellar assets Link2Pay supports for crypto settlement (see the "Accept the assets" section below).
 const STELLAR_TOKENS = ['XLM', 'USDC', 'EURC'] as const;
 type StellarToken = (typeof STELLAR_TOKENS)[number];
