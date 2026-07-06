@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import SectionCard from '../components/ui/SectionCard';
+import SendFundsModal from '../components/Wallet/SendFundsModal';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import { useWalletStore } from '../store/walletStore';
@@ -38,6 +39,7 @@ const COPY: Record<
     balanceLabel: string;
     balanceHint: string;
     refresh: string;
+    sendCta: string;
     balanceError: string;
     networkLabel: string;
     testnet: string;
@@ -84,6 +86,7 @@ const COPY: Record<
     balanceLabel: 'Balance',
     balanceHint: 'Current funds detected for this wallet on Stellar.',
     refresh: 'Refresh',
+    sendCta: 'Send',
     balanceError: "We couldn't refresh wallet balances right now.",
     networkLabel: 'Network',
     testnet: 'Testnet',
@@ -131,6 +134,7 @@ const COPY: Record<
     balanceLabel: 'Saldo',
     balanceHint: 'Fondos detectados actualmente para esta wallet en Stellar.',
     refresh: 'Actualizar',
+    sendCta: 'Enviar',
     balanceError: 'No pudimos actualizar los saldos de la wallet en este momento.',
     networkLabel: 'Red',
     testnet: 'Testnet',
@@ -178,6 +182,7 @@ const COPY: Record<
     balanceLabel: 'Saldo',
     balanceHint: 'Fundos detectados atualmente para esta wallet na Stellar.',
     refresh: 'Atualizar',
+    sendCta: 'Enviar',
     balanceError: 'Nao foi possivel atualizar os saldos da wallet neste momento.',
     networkLabel: 'Rede',
     testnet: 'Testnet',
@@ -267,6 +272,7 @@ export default function Wallet() {
   const { horizonUrl, networkPassphrase, network } = useNetworkStore();
   const { balances, loading, error, refresh } = useWalletBalances();
   const [addingTrust, setAddingTrust] = useState(false);
+  const [sendOpen, setSendOpen] = useState(false);
 
   const sortedBalances = useMemo(() => sortBalances(balances), [balances]);
   const activated = sortedBalances.length > 0;
@@ -390,16 +396,28 @@ export default function Wallet() {
               headerVariant="dashboard"
               inlineHeader
               action={
-                <button
-                  type="button"
-                  onClick={refresh}
-                  disabled={loading}
-                  className="btn-ghost shrink-0 self-start text-xs"
-                  aria-label={copy.refresh}
-                >
-                  <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-                  {copy.refresh}
-                </button>
+                <div className="flex shrink-0 gap-2 self-start">
+                  {activated && (
+                    <button
+                      type="button"
+                      onClick={() => setSendOpen(true)}
+                      className="btn-secondary text-xs"
+                    >
+                      <ArrowUpRight className="h-3.5 w-3.5" />
+                      {copy.sendCta}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={refresh}
+                    disabled={loading}
+                    className="btn-ghost text-xs"
+                    aria-label={copy.refresh}
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+                    {copy.refresh}
+                  </button>
+                </div>
               }
             >
               {loading ? (
@@ -584,6 +602,14 @@ export default function Wallet() {
             </SectionCard>
           </div>
         </div>
+      )}
+
+      {sendOpen && (
+        <SendFundsModal
+          balances={sortedBalances}
+          onClose={() => setSendOpen(false)}
+          onSent={refresh}
+        />
       )}
     </div>
   );
