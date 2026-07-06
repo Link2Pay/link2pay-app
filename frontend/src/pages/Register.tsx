@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ThemeToggle from '../components/ThemeToggle';
-import LanguageToggle from '../components/LanguageToggle';
 import { useWalletStore } from '../store/walletStore';
 import { useI18n } from '../i18n/I18nProvider';
 import { getBusinessProfile, saveBusinessProfile } from '../services/api';
@@ -161,11 +159,6 @@ export default function Register() {
   return (
     <div className="min-h-screen gradient-bg p-4 sm:p-6">
       <div className="mx-auto w-full max-w-md">
-        <div className="mb-4 flex justify-end gap-2">
-          <LanguageToggle />
-          <ThemeToggle />
-        </div>
-
         <div className="animate-in">
           <div className="text-center mb-6 sm:mb-8">
             <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary flex items-center justify-center">

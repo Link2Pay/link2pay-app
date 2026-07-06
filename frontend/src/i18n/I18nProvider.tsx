@@ -1,8 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { TRANSLATIONS, type Language, type TranslationKey } from './translations';
-
-const LANGUAGE_STORAGE_KEY = 'link2pay-language';
+import {
+  detectDeviceLanguage,
+  getPreferredLanguage,
+  getStoredUserLanguage,
+  setStoredUserLanguage,
+} from './language';
 
 type TranslationValues = Record<string, string | number>;
 
@@ -14,19 +18,6 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-const isLanguage = (value: string): value is Language =>
-  value === 'en' || value === 'es' || value === 'pt';
-
-const getInitialLanguage = (): Language => {
-  // Spanish-first: the product targets LATAM/Colombia merchants and freelancers.
-  if (typeof window === 'undefined') return 'es';
-
-  const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  if (stored && isLanguage(stored)) return stored;
-
-  return 'es';
-};
-
 const interpolate = (template: string, values?: TranslationValues): string => {
   if (!values) return template;
 
@@ -37,13 +28,29 @@ const interpolate = (template: string, values?: TranslationValues): string => {
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>(() => getInitialLanguage());
+  const [language, setLanguageState] = useState<Language>(() => getPreferredLanguage());
+
+  const setLanguage = useCallback((nextLanguage: Language) => {
+    setStoredUserLanguage(nextLanguage);
+    setLanguageState(nextLanguage);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.lang = language;
+  }, [language]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-    document.documentElement.lang = language;
-  }, [language]);
+
+    const handleLanguageChange = () => {
+      if (getStoredUserLanguage()) return;
+      setLanguageState(detectDeviceLanguage());
+    };
+
+    window.addEventListener('languagechange', handleLanguageChange);
+    return () => window.removeEventListener('languagechange', handleLanguageChange);
+  }, []);
 
   const t = useCallback((key: TranslationKey, values?: TranslationValues) => {
     const template = TRANSLATIONS[language][key] ?? TRANSLATIONS.en[key] ?? key;

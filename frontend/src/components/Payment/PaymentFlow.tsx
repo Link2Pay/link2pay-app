@@ -364,7 +364,7 @@ export default function PaymentFlow() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
+    <div className="min-h-dvh bg-background px-4 pb-4 pt-6 sm:px-6 sm:pb-6 sm:pt-8">
       <div className="mx-auto w-full max-w-4xl animate-in">
         <div className="mb-6 text-center">
           <BrandMark className="mx-auto mb-3 h-9 w-9" />
@@ -412,8 +412,8 @@ export default function PaymentFlow() {
         {/* ===== IZQUIERDA — Resumen del cobro ===== */}
         <div className="card overflow-hidden border border-border">
           <div className="border-b border-surface-3 p-5 sm:p-6">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <span className="text-xs font-mono text-ink-3">{invoice.invoiceNumber}</span>
+            <div className="mb-3 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+              <span className="break-all text-xs font-mono text-ink-3 sm:break-normal">{invoice.invoiceNumber}</span>
               <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />
             </div>
             <h2 className="font-display text-xl font-bold text-ink-0 sm:text-2xl">{invoice.title}</h2>
@@ -546,7 +546,7 @@ export default function PaymentFlow() {
                     style={{ width: `${(checkoutStage / 3) * 100}%` }}
                   />
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {[stepLabels.loaded, stepLabels.wallet, stepLabels.signed, stepLabels.settled].map((label, index) => {
                     const done = allStepsDone || index < checkoutStage;
                     const active = !allStepsDone && index === checkoutStage;
