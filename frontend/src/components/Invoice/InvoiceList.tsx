@@ -13,7 +13,7 @@ import { useNetworkStore } from '../../store/networkStore';
 import { useDashboardViewStore } from '../../store/dashboardViewStore';
 import type { InvoiceStatus } from '../../types';
 import { formatAmount } from '../../lib/format';
-import { anonymousPayerWallet, displayClientName, isAnonymousClient } from '../../lib/payerDisplay';
+import { counterpartyWallet, displayClientName, isAnonymousClient } from '../../lib/payerDisplay';
 import { stellarExpertUrl } from '../../lib/stellarExplorer';
 import type { Language } from '../../i18n/translations';
 
@@ -251,26 +251,23 @@ export default function InvoiceList() {
                       <p className="text-xs text-ink-3 mt-0.5">{invoice.title}</p>
                     </td>
                     <td className="px-4 py-3">
-                      {/* Anonymous quick links: payer wallet once paid, dash while unpaid. */}
-                      {isAnonymousClient(invoice) ? (
-                        anonymousPayerWallet(invoice) ? (
-                          <a
-                            href={stellarExpertUrl('account', anonymousPayerWallet(invoice)!)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-mono text-sm text-ink-1 hover:text-stellar-600 hover:underline"
-                          >
-                            {displayClientName(invoice)}
-                          </a>
-                        ) : (
-                          <p className="font-mono text-sm text-ink-1">—</p>
-                        )
+                      {/* Known wallet (payer or client) → name links to the explorer;
+                          anonymous links show the wallet once paid, dash while unpaid. */}
+                      {counterpartyWallet(invoice) && displayClientName(invoice) ? (
+                        <a
+                          href={stellarExpertUrl('account', counterpartyWallet(invoice)!, invoice.networkPassphrase)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`text-sm text-ink-1 hover:text-stellar-600 hover:underline ${isAnonymousClient(invoice) ? 'font-mono' : ''}`}
+                        >
+                          {displayClientName(invoice)}
+                        </a>
                       ) : (
-                        <>
-                          <p className="text-sm text-ink-1">{invoice.clientName}</p>
-                          <p className="text-xs text-ink-3">{invoice.clientEmail}</p>
-                        </>
+                        <p className={`text-sm text-ink-1 ${isAnonymousClient(invoice) ? 'font-mono' : ''}`}>
+                          {displayClientName(invoice) ?? '—'}
+                        </p>
                       )}
+                      {!isAnonymousClient(invoice) && <p className="text-xs text-ink-3">{invoice.clientEmail}</p>}
                     </td>
                     <td className="px-4 py-3">
                       <InvoiceStatusBadge status={invoice.status as InvoiceStatus} />

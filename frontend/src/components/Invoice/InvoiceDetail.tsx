@@ -9,7 +9,7 @@ import { useWalletStore } from '../../store/walletStore';
 import type { Invoice, InvoiceStatus } from '../../types';
 import { config } from '../../config';
 import { formatAmount } from '../../lib/format';
-import { anonymousPayerWallet, displayClientName, isAnonymousClient } from '../../lib/payerDisplay';
+import { counterpartyWallet, displayClientName, isAnonymousClient } from '../../lib/payerDisplay';
 import { stellarExpertUrl } from '../../lib/stellarExplorer';
 import type { Language } from '../../i18n/translations';
 import { downloadInvoicePDF } from './InvoicePDF';
@@ -332,19 +332,20 @@ export default function InvoiceDetail() {
           </div>
 
           {/* PARA (cliente) — secundario, alineado a la derecha en desktop.
-              Links anónimos: wallet del pagador una vez pagado, '—' antes. */}
+              Con wallet conocida (pagador o cliente) el nombre enlaza al explorer;
+              links anónimos muestran la wallet una vez pagado, '—' antes. */}
           <div className="flex items-center gap-3 sm:justify-end sm:text-right">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-muted text-base font-semibold text-ink-1 sm:order-2">
               {initial(displayClientName(invoice) ?? '—')}
             </span>
             <div className="min-w-0 sm:order-1">
               <p className="label mb-0.5">{copy.to}</p>
-              {anonymousPayerWallet(invoice) ? (
+              {counterpartyWallet(invoice) && displayClientName(invoice) ? (
                 <a
-                  href={stellarExpertUrl('account', anonymousPayerWallet(invoice)!, invoice.networkPassphrase)}
+                  href={stellarExpertUrl('account', counterpartyWallet(invoice)!, invoice.networkPassphrase)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block truncate font-mono text-sm font-semibold text-ink-0 hover:text-stellar-600 hover:underline"
+                  className={`block truncate text-sm font-semibold text-ink-0 hover:text-stellar-600 hover:underline ${isAnonymousClient(invoice) ? 'font-mono' : ''}`}
                 >
                   {displayClientName(invoice)}
                 </a>

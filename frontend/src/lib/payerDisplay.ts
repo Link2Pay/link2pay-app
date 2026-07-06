@@ -32,8 +32,11 @@ export function displayClientName(invoice: ClientFields): string | null {
   return wallet ? shortenAddress(wallet, 6, 4) : null;
 }
 
-/** Full payer wallet address for an anonymous link, for explorer links. */
-export function anonymousPayerWallet(invoice: ClientFields): string | null {
-  if (!isAnonymousClient(invoice)) return null;
+/**
+ * Full wallet address of the invoice's counterparty, for explorer links —
+ * the payer's wallet once paid, otherwise the client wallet stored at
+ * creation. Null when neither is known (e.g. unpaid anonymous link).
+ */
+export function counterpartyWallet(invoice: ClientFields): string | null {
   return invoice.payerWallet || invoice.clientWallet || null;
 }
