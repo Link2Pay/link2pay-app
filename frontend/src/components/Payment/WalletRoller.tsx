@@ -26,12 +26,12 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   // "Ver más" progresivo. El nº de columnas del grid es 2 en <640px y 3 en
-  // ≥640px (alineado con `sm:grid-cols-3`): se muestran 3/2 al inicio y cada
-  // clic revela el doble (6 en desktop, 4 en mobile).
+  // ≥640px (alineado con `sm:grid-cols-3`): se muestra una fila inicial y
+  // cada clic revela exactamente tres filas más.
   const isDesktop = useMediaQuery('(min-width: 640px)');
   const perRow = isDesktop ? 3 : 2;
   const [moreClicks, setMoreClicks] = useState(0);
-  const visibleCount = perRow + moreClicks * perRow * 2;
+  const visibleCount = perRow + moreClicks * perRow * 3;
 
   useEffect(() => {
     let cancelled = false;
