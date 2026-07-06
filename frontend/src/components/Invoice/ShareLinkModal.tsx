@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 import toast from 'react-hot-toast';
-import { X, Share2, Download } from 'lucide-react';
+import { X, Share2, Download, Copy } from 'lucide-react';
 import { buildShareCardPng, sharePng, downloadPng, canShareFiles } from '../../lib/shareCard';
 import { useI18n } from '../../i18n/I18nProvider';
 import type { Language } from '../../i18n/translations';
@@ -25,6 +25,8 @@ const COPY: Record<Language, {
   whatsapp: string;
   x: string;
   nativeShare: string;
+  copyImage: string;
+  copiedImage: string;
   download: string;
   downloaded: string;
   close: string;
@@ -37,6 +39,8 @@ const COPY: Record<Language, {
     whatsapp: 'WhatsApp',
     x: 'X',
     nativeShare: 'Share…',
+    copyImage: 'Copy image',
+    copiedImage: 'Image copied — paste it anywhere',
     download: 'Download image',
     downloaded: 'Image downloaded — the QR opens this link',
     close: 'Close',
@@ -49,6 +53,8 @@ const COPY: Record<Language, {
     whatsapp: 'WhatsApp',
     x: 'X',
     nativeShare: 'Compartir…',
+    copyImage: 'Copiar imagen',
+    copiedImage: 'Imagen copiada — pégala donde quieras',
     download: 'Descargar imagen',
     downloaded: 'Imagen descargada — el QR abre este link',
     close: 'Cerrar',
@@ -61,6 +67,8 @@ const COPY: Record<Language, {
     whatsapp: 'WhatsApp',
     x: 'X',
     nativeShare: 'Compartilhar…',
+    copyImage: 'Copiar imagem',
+    copiedImage: 'Imagem copiada — cole onde quiser',
     download: 'Baixar imagem',
     downloaded: 'Imagem baixada — o QR abre este link',
     close: 'Fechar',
@@ -131,6 +139,20 @@ export default function ShareLinkModal({ paymentLink, amountLabel, name, invoice
     toast.success(copy.downloaded);
   };
 
+  // Copying an image needs ClipboardItem (all evergreen browsers by now);
+  // hide the button where it's missing and let Download take the row.
+  const canCopyImage = typeof ClipboardItem !== 'undefined' && !!navigator.clipboard?.write;
+
+  const handleCopyImage = async () => {
+    if (!blobRef.current) return;
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobRef.current })]);
+      toast.success(copy.copiedImage);
+    } catch {
+      toast.error(copy.error);
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm p-4"
@@ -184,16 +206,22 @@ export default function ShareLinkModal({ paymentLink, amountLabel, name, invoice
             {copy.x}
           </a>
           {canShareFiles() && (
-            <button type="button" onClick={handleNativeShare} disabled={!previewUrl} className="btn-secondary text-sm">
+            <button type="button" onClick={handleNativeShare} disabled={!previewUrl} className="btn-secondary col-span-2 text-sm">
               <Share2 className="h-4 w-4" aria-hidden="true" />
               {copy.nativeShare}
+            </button>
+          )}
+          {canCopyImage && (
+            <button type="button" onClick={handleCopyImage} disabled={!previewUrl} className="btn-ghost text-sm">
+              <Copy className="h-4 w-4" aria-hidden="true" />
+              {copy.copyImage}
             </button>
           )}
           <button
             type="button"
             onClick={handleDownload}
             disabled={!previewUrl}
-            className={`btn-ghost text-sm ${canShareFiles() ? '' : 'col-span-2'}`}
+            className={`btn-ghost text-sm ${canCopyImage ? '' : 'col-span-2'}`}
           >
             <Download className="h-4 w-4" aria-hidden="true" />
             {copy.download}
