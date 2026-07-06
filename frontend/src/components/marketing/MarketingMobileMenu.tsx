@@ -174,7 +174,12 @@ export default function MarketingMobileMenu({
         {footer && (
           <div className="border-t border-border/60">
             <div className={MARKETING_CONTAINER}>
-              <div className="space-y-3 py-5">{footer}</div>
+              <div
+                className="space-y-3 pt-5"
+                style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
+              >
+                {footer}
+              </div>
             </div>
           </div>
         )}

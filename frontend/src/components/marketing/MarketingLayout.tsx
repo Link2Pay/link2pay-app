@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Globe2, Heart, Menu } from 'lucide-react';
+import { ArrowRight, Globe2, Heart, Menu } from 'lucide-react';
 import ThemeToggle from '../ThemeToggle';
 import LanguageToggle from '../LanguageToggle';
 import BrandMark from '../BrandMark';
@@ -97,26 +97,25 @@ export default function MarketingLayout() {
         triggerRef={mobileNavTriggerRef}
         footer={
           <div className="space-y-4">
-            <Link
-              to="/app"
-              onClick={() => setMobileNavOpen(false)}
-              className="btn-primary h-12 w-full justify-center text-base font-semibold"
-            >
-              {t('marketing.openApp')}
-            </Link>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
-                  {t('layout.menu.language')}
-                </span>
+            <div className="grid grid-cols-2 gap-4 sm:gap-6">
+              <div>
+                <p className="label">{t('layout.menu.language')}</p>
                 <LanguageToggle />
               </div>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
-                  {t('layout.menu.theme')}
-                </span>
+              <div className="border-l border-border pl-4 sm:pl-6">
+                <p className="label">{t('layout.menu.theme')}</p>
                 <ThemeToggle alwaysShowLabel />
               </div>
+            </div>
+            <div className="border-t border-border/60 pt-4">
+              <Link
+                to="/app"
+                onClick={() => setMobileNavOpen(false)}
+                className="btn-primary h-12 w-full justify-center gap-2 text-base font-semibold"
+              >
+                {t('marketing.openApp')}
+                <ArrowRight aria-hidden="true" className="h-5 w-5" />
+              </Link>
             </div>
           </div>
         }
