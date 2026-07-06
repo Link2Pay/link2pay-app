@@ -155,7 +155,7 @@ export default function HomeAssets() {
                 </div>
                 <div className="min-w-0">
                   <span className="text-lg font-semibold text-foreground">{asset.code}</span>
-                  <p className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
+                  <p className="text-2xs font-medium uppercase tracking-label text-secondary-foreground dark:text-muted-foreground">
                     {asset.name}
                   </p>
                 </div>
@@ -167,11 +167,11 @@ export default function HomeAssets() {
                 </span>
               ) : null}
 
-              <p className="mt-6 pb-6 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+              <p className="mt-6 pb-6 text-sm leading-6 text-secondary-foreground dark:text-muted-foreground [text-wrap:pretty]">
                 {asset.description}
               </p>
 
-              <p className="mt-auto border-t border-border pt-6 text-2xs text-muted-foreground">
+              <p className="mt-auto border-t border-border pt-6 text-2xs text-secondary-foreground dark:text-muted-foreground">
                 {asset.meta}
               </p>
             </article>

@@ -184,7 +184,7 @@ export default function HomeStellarProof() {
           {/* Right column — "Señales de la red" panel */}
           <div className="card overflow-hidden border border-border bg-card/70 dark:bg-card">
             <div className="border-b border-border bg-muted/40 px-5 py-4 sm:px-6">
-              <p className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
+              <p className="text-2xs font-medium uppercase tracking-label text-secondary-foreground dark:text-muted-foreground">
                 {copy.panelEyebrow}
               </p>
             </div>
@@ -198,10 +198,10 @@ export default function HomeStellarProof() {
                   <div className="font-display text-2xl font-bold tracking-tight text-foreground [font-variant-numeric:tabular-nums] sm:text-3xl">
                     {proof.value}
                   </div>
-                  <p className="mt-1 text-2xs font-medium uppercase tracking-label text-muted-foreground">
+                  <p className="mt-1 text-2xs font-medium uppercase tracking-label text-secondary-foreground dark:text-muted-foreground">
                     {proof.title}
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+                  <p className="mt-2 text-sm leading-6 text-secondary-foreground dark:text-muted-foreground [text-wrap:pretty]">
                     {proof.description}
                   </p>
                 </article>
