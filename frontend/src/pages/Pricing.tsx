@@ -2,7 +2,10 @@
 import { ArrowRight, Check, HelpCircle, Sparkles } from 'lucide-react';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
-import { MARKETING_CONTAINER } from '../components/marketing/layout';
+import MarketingHero from '../components/marketing/MarketingHero';
+import MarketingSection from '../components/marketing/MarketingSection';
+import MarketingCard from '../components/marketing/MarketingCard';
+import SectionHeading from '../components/marketing/home/SectionHeading';
 
 type Plan = {
   name: string;
@@ -313,30 +316,29 @@ export default function Pricing() {
 
   return (
     <div>
-      <section className="relative overflow-hidden border-b border-border bg-card">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(ellipse_at_top,_hsl(var(--accent-ink)_/_0.06),transparent_68%)]" />
-        <div className={`relative ${MARKETING_CONTAINER} pb-10 pt-12 sm:pb-16 sm:pt-20`}>
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl">{copy.heroTitle}</h1>
-            <p className="mt-3 text-base leading-relaxed text-muted-foreground md:text-lg">{copy.heroSubtitle}</p>
-            <p className="mx-auto mt-4 max-w-2xl rounded-xl border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
-              {copy.sdkFreeLine}
-            </p>
-          </div>
-        </div>
-      </section>
+      <MarketingHero
+        title={copy.heroTitle}
+        subtitle={copy.heroSubtitle}
+        note={
+          <p className="max-w-2xl rounded-xl border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-accent-ink">
+            {copy.sdkFreeLine}
+          </p>
+        }
+      />
 
-      <section className={`${MARKETING_CONTAINER} py-12 sm:py-20`}>
+      <MarketingSection>
         <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
           {plans.map((plan, index) => (
-            <article
+            <MarketingCard
               key={plan.name}
-              className={`card relative flex h-full flex-col p-6 animate-fade-in sm:p-8 ${plan.featured ? 'neon-border-strong shadow-overlay' : ''}`}
+              featured={plan.featured}
+              padding="roomy"
+              className="animate-in"
               style={{ animationDelay: `${0.06 + index * 0.1}s` }}
             >
               {plan.badge && (
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground">
-                  <Sparkles className="h-3 w-3" />
+                  <Sparkles className="h-3 w-3" aria-hidden="true" />
                   {plan.badge}
                 </span>
               )}
@@ -364,7 +366,7 @@ export default function Pricing() {
               <ul className="mb-8 flex-1 space-y-3 sm:mb-10">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-sm text-muted-foreground">
-                    <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                    <Check className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" aria-hidden="true" />
                     <span>{feature}</span>
                   </li>
                 ))}
@@ -372,16 +374,12 @@ export default function Pricing() {
 
               <Link
                 to={plan.to}
-                className={`mt-auto inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-medium transition-colors ${
-                  plan.featured
-                    ? 'bg-primary text-primary-foreground hover:brightness-110'
-                    : 'border border-border bg-card text-foreground hover:bg-muted'
-                }`}
+                className={`mt-auto px-6 text-sm ${plan.featured ? 'btn-primary' : 'btn-secondary'}`}
               >
                 {plan.cta}
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
-            </article>
+            </MarketingCard>
           ))}
         </div>
 
@@ -390,33 +388,34 @@ export default function Pricing() {
           <br />
           {copy.plansNoteLine2}
         </div>
-      </section>
+      </MarketingSection>
 
-      <section className="border-t border-border bg-card">
-        <div className={`${MARKETING_CONTAINER} py-12 sm:py-20`}>
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-semibold text-foreground">{copy.faqTitle}</h2>
-            <p className="mt-3 text-base text-muted-foreground">{copy.faqSubtitle}</p>
-          </div>
-          <div className="mt-8 grid gap-4 sm:mt-14 sm:grid-cols-2">
-            {faqs.map((faq, index) => (
-              <article
-                key={faq.q}
-                className="rounded-xl border border-border bg-background p-5 animate-fade-in sm:p-6"
-                style={{ animationDelay: `${0.04 + index * 0.06}s` }}
-              >
-                <div className="flex items-start gap-3">
-                  <HelpCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
-                  <div>
-                    <h3 className="text-sm font-semibold text-foreground">{faq.q}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
-                  </div>
+      <MarketingSection tone="inverse" band="infra-band">
+        <SectionHeading
+          title={copy.faqTitle}
+          description={copy.faqSubtitle}
+          align="center"
+          tone="inverse"
+          className="mx-auto max-w-2xl"
+        />
+        <div className="mt-12 grid gap-4 sm:grid-cols-2">
+          {faqs.map((faq, index) => (
+            <article
+              key={faq.q}
+              className="animate-in rounded-2xl border border-card-invert-foreground/10 bg-card-invert-foreground/[0.04] p-6"
+              style={{ animationDelay: `${0.04 + index * 0.06}s` }}
+            >
+              <div className="flex items-start gap-3">
+                <HelpCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-card-invert-foreground/70" aria-hidden="true" />
+                <div>
+                  <h3 className="text-sm font-semibold text-card-invert-foreground">{faq.q}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-card-invert-foreground/72">{faq.a}</p>
                 </div>
-              </article>
-            ))}
-          </div>
+              </div>
+            </article>
+          ))}
         </div>
-      </section>
+      </MarketingSection>
     </div>
   );
 }
