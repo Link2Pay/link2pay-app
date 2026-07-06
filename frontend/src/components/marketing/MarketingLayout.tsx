@@ -96,13 +96,27 @@ export default function MarketingLayout() {
         items={navItems}
         triggerRef={mobileNavTriggerRef}
         footer={
-          <div className="space-y-3">
-            <Link to="/app" onClick={() => setMobileNavOpen(false)} className="btn-primary w-full justify-center text-sm">
+          <div className="space-y-4">
+            <Link
+              to="/app"
+              onClick={() => setMobileNavOpen(false)}
+              className="btn-primary h-12 w-full justify-center text-base font-semibold"
+            >
               {t('marketing.openApp')}
             </Link>
-            <div className="flex items-center gap-2">
-              <LanguageToggle />
-              <ThemeToggle />
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
+                  {t('layout.menu.language')}
+                </span>
+                <LanguageToggle />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
+                  {t('layout.menu.theme')}
+                </span>
+                <ThemeToggle alwaysShowLabel />
+              </div>
             </div>
           </div>
         }
