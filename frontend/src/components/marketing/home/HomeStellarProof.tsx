@@ -1,3 +1,4 @@
+import { Landmark, ShieldCheck, Zap } from 'lucide-react';
 import { useI18n } from '../../../i18n/I18nProvider';
 import type { Language } from '../../../i18n/translations';
 import { MARKETING_CONTAINER } from '../layout';
@@ -18,7 +19,10 @@ type CopyBlock = {
   authorityLine: string;
   proofs: [ProofItem, ProofItem, ProofItem, ProofItem];
   panelSummary: string;
+  tags: [string, string, string];
 };
+
+const TAG_ICONS = [Landmark, Zap, ShieldCheck] as const;
 
 const COPY: Record<Language, CopyBlock> = {
   en: {
@@ -53,6 +57,7 @@ const COPY: Record<Language, CopyBlock> = {
       },
     ],
     panelSummary: 'Speed, cost, continuity, and reach are not decorative claims here. They are operating characteristics of the rail Link2Pay is built on.',
+    tags: ['Paid in your currency', 'Settles in 3-5s', 'No crypto know-how'],
   },
   es: {
     eyebrow: 'Infraestructura',
@@ -86,6 +91,7 @@ const COPY: Record<Language, CopyBlock> = {
       },
     ],
     panelSummary: 'Velocidad, costo, continuidad y alcance no aparecen como claims decorativos. Son propiedades operativas del riel sobre el que corre Link2Pay.',
+    tags: ['Recibís en tu moneda', 'Liquidación en 3-5s', 'Sin saber de crypto'],
   },
   pt: {
     eyebrow: 'Infraestrutura',
@@ -119,6 +125,7 @@ const COPY: Record<Language, CopyBlock> = {
       },
     ],
     panelSummary: 'Velocidade, custo, continuidade e alcance não aparecem como claims decorativos. São características operacionais do trilho sobre o qual a Link2Pay roda.',
+    tags: ['Recebe na sua moeda', 'Liquida em 3-5s', 'Sem saber de cripto'],
   },
 };
 
@@ -129,14 +136,42 @@ export default function HomeStellarProof() {
   return (
     <section className="border-b border-border bg-background">
       <div className={`${MARKETING_CONTAINER} py-20`}>
-        <div className="space-y-10">
-          <SectionHeading
-            eyebrow={copy.eyebrow}
-            title={copy.title}
-            description={copy.description}
-            className="max-w-3xl"
-          />
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-start lg:gap-12">
+          {/* Left column — prose + authority signal (sticky on desktop) */}
+          <div className="lg:sticky lg:top-24 lg:self-start">
+            <SectionHeading
+              eyebrow={copy.eyebrow}
+              title={copy.title}
+              description={copy.description}
+            />
 
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+              {copy.panelSummary}
+            </p>
+
+            <div className="mt-8 border-l-2 border-border pl-4">
+              <p className="text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+                <span className="font-semibold text-foreground">{copy.authorityLine}</span>
+              </p>
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-2.5">
+              {copy.tags.map((tag, index) => {
+                const Icon = TAG_ICONS[index];
+                return (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-4 py-2 text-xs font-medium text-foreground"
+                  >
+                    <Icon className="h-3.5 w-3.5 text-accent-ink" aria-hidden="true" />
+                    {tag}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right column — "Señales de la red" panel */}
           <div className="card overflow-hidden border border-border">
             <div className="border-b border-border bg-muted/40 px-5 py-4 sm:px-6">
               <p className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
@@ -148,36 +183,21 @@ export default function HomeStellarProof() {
               {copy.proofs.map((proof, index) => (
                 <article
                   key={proof.title}
-                  className={`grid gap-4 px-5 py-5 sm:px-6 sm:py-6 lg:grid-cols-[minmax(0,11rem)_minmax(0,1fr)] lg:gap-6 ${index !== 0 ? 'border-t border-border' : ''}`}
+                  className={`px-5 py-5 sm:px-6 ${index !== 0 ? 'border-t border-border' : ''}`}
                 >
-                  <div className="min-w-0">
-                    <div className="font-display text-3xl font-bold tracking-tight text-foreground [font-variant-numeric:tabular-nums] sm:text-4xl">
-                      {proof.value}
-                    </div>
-                    <p className="mt-2 text-2xs font-medium uppercase tracking-label text-muted-foreground">
-                      {proof.title}
-                    </p>
+                  <div className="font-display text-2xl font-bold tracking-tight text-foreground [font-variant-numeric:tabular-nums] sm:text-3xl">
+                    {proof.value}
                   </div>
-
-                  <p className="max-w-xl text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+                  <p className="mt-1 text-2xs font-medium uppercase tracking-label text-muted-foreground">
+                    {proof.title}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
                     {proof.description}
                   </p>
                 </article>
               ))}
             </div>
-
-            <div className="border-t border-border bg-card px-5 py-4 sm:px-6">
-              <p className="max-w-3xl text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
-                {copy.panelSummary}
-              </p>
-            </div>
           </div>
-        </div>
-
-        <div className="mt-10 border-t border-border pt-6">
-          <p className="max-w-3xl text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
-            <span className="font-semibold text-foreground">{copy.authorityLine}</span>
-          </p>
         </div>
       </div>
     </section>

@@ -13,7 +13,7 @@ type CopyBlock = {
   eyebrow: string;
   title: string;
   description: string;
-  bridgeLine: string;
+  descriptionCont: string;
   stats: [ProblemStat, ProblemStat, ProblemStat, ProblemStat];
 };
 
@@ -22,8 +22,9 @@ const COPY: Record<Language, CopyBlock> = {
     eyebrow: 'The problem',
     title: 'Getting paid from abroad still costs too much.',
     description:
-      'Cross-border payments still eat margin, slow down cash flow, and force merchants to explain banking friction to their customers. Latin America already uses stablecoins. The missing piece is the bridge into the account you already operate with.',
-    bridgeLine: 'Stablecoins already move the money. What is missing is the bridge into your account.',
+      'Cross-border payments still eat margin, slow down cash flow, and force merchants to explain banking friction to their customers.',
+    descriptionCont:
+      'Latin America already uses stablecoins. The missing piece is the bridge into the account you already operate with.',
     stats: [
       {
         value: '6.36%',
@@ -47,8 +48,9 @@ const COPY: Record<Language, CopyBlock> = {
     eyebrow: 'El problema',
     title: 'Cobrar desde el exterior sigue costando demasiado.',
     description:
-      'Los pagos internacionales siguen comiéndose margen, demorando el flujo de caja y obligando a explicar fricción bancaria. Latinoamérica ya usa stablecoins. La pieza que falta es el puente hacia la cuenta que ya usás todos los días.',
-    bridgeLine: 'La plata ya se mueve en stablecoins. Lo que falta es el puente a tu cuenta.',
+      'Los pagos internacionales siguen comiéndose margen, demorando el flujo de caja y generando fricción bancaria.',
+    descriptionCont:
+      'Latinoamérica ya usa stablecoins. La pieza que falta es el puente hacia la cuenta que ya usás todos los días.',
     stats: [
       {
         value: '6,36%',
@@ -72,8 +74,9 @@ const COPY: Record<Language, CopyBlock> = {
     eyebrow: 'O problema',
     title: 'Receber do exterior ainda custa caro demais.',
     description:
-      'Pagamentos internacionais ainda consomem margem, atrasam o caixa e obrigam o negócio a explicar a fricção bancária ao cliente. A América Latina já usa stablecoins. O que falta é a ponte para a conta que você já usa.',
-    bridgeLine: 'O dinheiro já se move em stablecoins. O que falta é a ponte até a sua conta.',
+      'Pagamentos internacionais ainda consomem margem, atrasam o caixa e obrigam o negócio a explicar a fricção bancária ao cliente.',
+    descriptionCont:
+      'A América Latina já usa stablecoins. O que falta é a ponte para a conta que você já usa.',
     stats: [
       {
         value: '6,36%',
@@ -103,7 +106,7 @@ export default function HomeProblem() {
     <section className="relative overflow-hidden border-b border-border bg-card-invert text-card-invert-foreground">
       <div className="pointer-events-none absolute inset-0 pipeline-microtexture" aria-hidden="true" />
       <div className={`relative ${MARKETING_CONTAINER} py-20`}>
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-start">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:items-start">
           <div className="max-w-xl">
             <SectionHeading
               eyebrow={copy.eyebrow}
@@ -111,8 +114,8 @@ export default function HomeProblem() {
               description={copy.description}
               tone="inverse"
             />
-            <p className="mt-8 border-t border-card-invert-foreground/10 pt-6 text-sm font-medium leading-6 text-card-invert-foreground/80 [text-wrap:pretty]">
-              {copy.bridgeLine}
+            <p className="mt-4 max-w-2xl text-base leading-7 text-card-invert-foreground/72 [text-wrap:pretty]">
+              {copy.descriptionCont}
             </p>
           </div>
 

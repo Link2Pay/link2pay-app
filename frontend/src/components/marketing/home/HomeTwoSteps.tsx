@@ -29,46 +29,46 @@ const COPY: Record<Language, CopyBlock> = {
       'The buyer sees a simple checkout. Under the hood, Link2Pay creates, tracks, and confirms the payment until it settles on-chain and is ready for the local payout rail.',
     customerLabel: 'For your customer',
     customerTitle: 'Scan the QR. Pay from the wallet already in use.',
-    customerDescription: 'The checkout stays simple even when the settlement logic is not.',
+    customerDescription: 'A simple checkout, even when settlement is not.',
     steps: [
-      { title: 'Scan the QR or open the link', description: 'The payer enters a live checkout with the amount already prepared.' },
-      { title: 'Approve the payment from the wallet', description: 'The payment is signed client-side and moves directly to the receiver.' },
+      { title: 'Scan the QR or open the link', description: 'A live checkout opens with the amount ready.' },
+      { title: 'Approve the payment from the wallet', description: 'Signed client-side and sent straight to the receiver.' },
     ],
     confirmLine: '3-5 seconds later, the payment is confirmed on-chain.',
     operationsLabel: 'For your operation',
     operationsTitle: 'Behind the scenes, the flow moves from created to confirmed.',
-    operationsDescription: 'The product already tracks each state and exposes it in the dashboard and public checkout.',
+    operationsDescription: 'Every state is tracked in the dashboard and public checkout.',
     timeline: [
-      { code: 'CREATED', description: 'Link generated and ready to share.' },
-      { code: 'PENDING', description: 'Waiting for wallet confirmation and submission.' },
-      { code: 'CONFIRMED', description: 'Settled on Stellar and ready for the payout rail.' },
+      { code: 'CREATED', description: 'Generated and ready to share.' },
+      { code: 'PENDING', description: 'Awaiting wallet confirmation.' },
+      { code: 'CONFIRMED', description: 'Settled on Stellar, ready to pay out.' },
     ],
-    settlementLine: 'You receive locally through the configured payout rail once the payment is confirmed.',
-    auditLine: 'Every confirmed payment can be checked later from the checkout and the dashboard.',
+    settlementLine: 'You receive locally through your payout rail once confirmed.',
+    auditLine: 'Every payment stays auditable from the dashboard.',
   },
   es: {
     eyebrow: 'La solución',
-    title: 'No somos otra app. Somos infraestructura de pagos en dos pasos simples: escanear y pagar.',
+    title: 'Somos infraestructura de pagos simplificada: Escanear y pagar.',
     description:
       'El cliente ve un checkout simple. Por detrás, Link2Pay crea, sigue y confirma el pago hasta que liquida on-chain y queda listo para pasar al riel local.',
     customerLabel: 'Para tu cliente',
     customerTitle: 'Escanea el QR. Paga desde la wallet que ya usa.',
-    customerDescription: 'El checkout se siente simple, aunque la lógica de liquidación no lo sea.',
+    customerDescription: 'Un checkout simple, aunque la liquidación no lo sea.',
     steps: [
-      { title: 'Escaneá el QR o abrí el link', description: 'El pagador entra a un checkout vivo con el monto ya preparado.' },
-      { title: 'Aprobá el pago desde la wallet', description: 'La transacción se firma del lado del cliente y va directo al receptor.' },
+      { title: 'Escaneá el QR o abrí el link', description: 'Se abre un checkout vivo con el monto ya listo.' },
+      { title: 'Aprobá el pago desde la wallet', description: 'Se firma del lado del cliente y va directo al receptor.' },
     ],
     confirmLine: '3-5 segundos después, el pago queda confirmado on-chain.',
     operationsLabel: 'Para tu operación',
     operationsTitle: 'Por detrás, el flujo va de creado a confirmado.',
-    operationsDescription: 'El producto ya sigue cada estado y lo muestra tanto en el dashboard como en el checkout público.',
+    operationsDescription: 'Cada estado se sigue en el dashboard y el checkout público.',
     timeline: [
-      { code: 'CREATED', description: 'Link generado y listo para compartir.' },
-      { code: 'PENDING', description: 'Esperando confirmación y envío desde la wallet.' },
-      { code: 'CONFIRMED', description: 'Liquidado en Stellar y listo para pasar al riel local.' },
+      { code: 'CREADA', description: 'Generado y listo para compartir.' },
+      { code: 'PENDIENTE', description: 'Esperando confirmación de la wallet.' },
+      { code: 'CONFIRMADA', description: 'Liquidado en Stellar, listo para el riel local.' },
     ],
-    settlementLine: 'Vos recibís localmente por el riel configurado una vez que el pago queda confirmado.',
-    auditLine: 'Cada pago confirmado se puede revisar después desde el checkout y el dashboard.',
+    settlementLine: 'Recibís localmente por tu riel configurado una vez confirmado.',
+    auditLine: 'Cada pago queda auditable desde el dashboard.',
   },
   pt: {
     eyebrow: 'A solução',
@@ -77,22 +77,22 @@ const COPY: Record<Language, CopyBlock> = {
       'O cliente vê um checkout simples. Nos bastidores, a Link2Pay cria, acompanha e confirma o pagamento até liquidar on-chain e ficar pronto para o trilho local.',
     customerLabel: 'Para o seu cliente',
     customerTitle: 'Escaneie o QR. Pague da wallet que já está em uso.',
-    customerDescription: 'O checkout parece simples, mesmo quando a liquidação não é.',
+    customerDescription: 'Um checkout simples, mesmo quando a liquidação não é.',
     steps: [
-      { title: 'Escaneie o QR ou abra o link', description: 'Quem paga entra em um checkout ativo com o valor já preparado.' },
-      { title: 'Aprove o pagamento na wallet', description: 'A transação é assinada do lado do cliente e segue direto para quem recebe.' },
+      { title: 'Escaneie o QR ou abra o link', description: 'Abre um checkout ativo com o valor já pronto.' },
+      { title: 'Aprove o pagamento na wallet', description: 'Assinada do lado do cliente e enviada direto a quem recebe.' },
     ],
     confirmLine: '3-5 segundos depois, o pagamento está confirmado on-chain.',
     operationsLabel: 'Para a sua operação',
     operationsTitle: 'Nos bastidores, o fluxo vai de criado a confirmado.',
-    operationsDescription: 'O produto já acompanha cada estado e o expõe no dashboard e no checkout público.',
+    operationsDescription: 'Cada estado é acompanhado no dashboard e no checkout público.',
     timeline: [
-      { code: 'CREATED', description: 'Link gerado e pronto para compartilhar.' },
-      { code: 'PENDING', description: 'Aguardando confirmação e envio pela wallet.' },
-      { code: 'CONFIRMED', description: 'Liquidado na Stellar e pronto para o trilho local.' },
+      { code: 'CRIADA', description: 'Gerado e pronto para compartilhar.' },
+      { code: 'PENDENTE', description: 'Aguardando confirmação da wallet.' },
+      { code: 'CONFIRMADA', description: 'Liquidado na Stellar, pronto para o trilho local.' },
     ],
-    settlementLine: 'Você recebe localmente pelo trilho configurado assim que o pagamento é confirmado.',
-    auditLine: 'Cada pagamento confirmado pode ser conferido depois no checkout e no dashboard.',
+    settlementLine: 'Você recebe localmente pelo seu trilho assim que confirmado.',
+    auditLine: 'Cada pagamento fica auditável no dashboard.',
   },
 };
 
@@ -101,41 +101,42 @@ export default function HomeTwoSteps() {
   const copy = COPY[language];
 
   return (
-    <section id="solucion" className={`${MARKETING_CONTAINER} py-20`}>
-      <SectionHeading
-        eyebrow={copy.eyebrow}
-        title={copy.title}
-        description={copy.description}
-        align="center"
-        className="max-w-3xl"
-      />
+    <section id="solucion" className="border-b border-border">
+      <div className={`${MARKETING_CONTAINER} py-20`}>
+        <SectionHeading
+          eyebrow={copy.eyebrow}
+          title={copy.title}
+          description={copy.description}
+          align="center"
+          className="max-w-3xl"
+        />
 
-      <div className="mt-12 grid gap-4 lg:grid-cols-2">
-        <article className="card border border-border p-8">
+        <div className="mt-12 grid gap-4 lg:grid-cols-2">
+        <article className="card border border-border p-6">
           <p className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
             {copy.customerLabel}
           </p>
 
-          <h3 className="mt-4 font-display text-2xl font-bold tracking-tight text-foreground [text-wrap:balance]">
+          <h3 className="mt-4 font-display text-xl font-bold tracking-tight text-foreground [text-wrap:balance]">
             {copy.customerTitle}
           </h3>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+          <p className="mt-2 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
             {copy.customerDescription}
           </p>
 
-          <ol className="mt-8 space-y-4">
+          <ol className="mt-6 divide-y divide-border">
             {copy.steps.map((step, index) => {
               const Icon = index === 0 ? QrCode : Wallet;
               return (
-                <li key={step.title} className="flex gap-4 rounded-2xl border border-border bg-muted/40 p-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-card text-foreground">
-                    <Icon className="h-5 w-5" aria-hidden="true" />
+                <li key={step.title} className="flex gap-3 py-4 first:pt-0">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted/40 text-foreground">
+                    <Icon className="h-4.5 w-4.5" aria-hidden="true" />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-mono text-2xs font-semibold text-muted-foreground">
-                      0{index + 1}
-                    </p>
-                    <h4 className="mt-1 text-sm font-semibold text-foreground">{step.title}</h4>
+                    <h4 className="text-sm font-semibold text-foreground">
+                      <span className="mr-2 font-mono text-2xs text-muted-foreground">0{index + 1}</span>
+                      {step.title}
+                    </h4>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
                       {step.description}
                     </p>
@@ -145,55 +146,54 @@ export default function HomeTwoSteps() {
             })}
           </ol>
 
-          <p className="mt-8 border-t border-border pt-5 font-mono text-xs text-foreground [font-variant-numeric:tabular-nums]">
+          <p className="mt-6 border-t border-border pt-4 font-mono text-xs text-foreground [font-variant-numeric:tabular-nums]">
             {copy.confirmLine}
           </p>
         </article>
 
-        <article className="card border border-border p-8">
+        <article className="card border border-border p-6">
           <p className="text-2xs font-medium uppercase tracking-label text-muted-foreground">
             {copy.operationsLabel}
           </p>
 
-          <h3 className="mt-4 font-display text-2xl font-bold tracking-tight text-foreground [text-wrap:balance]">
+          <h3 className="mt-4 font-display text-xl font-bold tracking-tight text-foreground [text-wrap:balance]">
             {copy.operationsTitle}
           </h3>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+          <p className="mt-2 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
             {copy.operationsDescription}
           </p>
 
-          <div className="mt-8 space-y-4">
-            {copy.timeline.map((item, index) => (
-              <div key={item.code} className="rounded-2xl border border-border bg-muted/40 p-4">
-                <div className="min-w-0">
-                  <p className="font-mono text-2xs font-semibold text-muted-foreground">
-                    0{index + 1}
-                  </p>
-                  <h4 className="mt-1 text-sm font-semibold text-foreground">{item.code}</h4>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
-                    {item.description}
-                  </p>
-                </div>
-              </div>
+          <ol className="mt-6 flex items-stretch gap-2.5">
+            {copy.timeline.map((item) => (
+              <li
+                key={item.code}
+                className="min-w-0 flex-1 basis-0 rounded-xl border border-border bg-muted/40 px-3.5 py-3.5"
+              >
+                <p className="font-mono text-xs font-semibold tracking-label text-foreground">
+                  {item.code}
+                </p>
+                <p className="mt-1.5 text-xs leading-5 text-muted-foreground [text-wrap:pretty]">
+                  {item.description}
+                </p>
+              </li>
             ))}
-          </div>
+          </ol>
 
-          <div className="mt-8 rounded-2xl border border-success-border bg-success-subtle p-4">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card text-success">
-                <Landmark className="h-4.5 w-4.5" aria-hidden="true" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground [text-wrap:pretty]">
-                  {copy.settlementLine}
-                </p>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
-                  {copy.auditLine}
-                </p>
-              </div>
+          <div className="mt-6 flex items-start gap-3 border-t border-border pt-4">
+            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success-subtle text-success">
+              <Landmark className="h-4.5 w-4.5" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground [text-wrap:pretty]">
+                {copy.settlementLine}
+              </p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+                {copy.auditLine}
+              </p>
             </div>
           </div>
         </article>
+        </div>
       </div>
     </section>
   );
