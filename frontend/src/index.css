@@ -626,6 +626,38 @@
     }
   }
 
+  /* Wallet logo marquee — infinite seamless horizontal glide. The track holds
+     the logo set duplicated x2, so translateX(-50%) loops with no visible jump. */
+  @keyframes walletMarquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .wallet-marquee {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      black 8%,
+      black 92%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(to right, transparent 0, black 8%, black 92%, transparent 100%);
+  }
+
+  .wallet-marquee-track {
+    width: max-content;
+    animation: walletMarquee 34s linear infinite;
+    will-change: transform;
+  }
+
+  .wallet-marquee:hover .wallet-marquee-track {
+    animation-play-state: paused;
+  }
+
   /* Shine — retirado (sin animación de brillo). No-op. */
   .shine {
     position: relative;
@@ -948,6 +980,7 @@
     .animate-in,
     .animate-fade-in,
     .animate-slide-up,
+    .wallet-marquee-track,
     .shine::after {
       animation: none !important;
     }

@@ -41,7 +41,7 @@ type CopyBlock = {
 
 const COPY: Record<Language, CopyBlock> = {
   en: {
-    eyebrow: 'Product tour',
+    eyebrow: 'Product',
     title: 'This is not a mockup. The product already works.',
     description:
       'The landing only sells what the product already does today: public checkout, on-chain confirmation, multi-wallet support, invoices, analytics, and non-custodial settlement.',
@@ -60,7 +60,7 @@ const COPY: Record<Language, CopyBlock> = {
     custodyTags: ['Client-side signing', 'Direct to receiver'],
   },
   es: {
-    eyebrow: 'Producto real',
+    eyebrow: 'Producto',
     title: 'Todo lo que ves acá ya está funcionando.',
     description:
       'Nada de esto es una demo ni una promesa a futuro: checkout público, confirmación on-chain, soporte multi-wallet, facturas, analítica y liquidación no custodial ya están disponibles y en uso hoy.',
@@ -79,7 +79,7 @@ const COPY: Record<Language, CopyBlock> = {
     custodyTags: ['Firma del lado del cliente', 'Directo al receptor'],
   },
   pt: {
-    eyebrow: 'Produto real',
+    eyebrow: 'Produto',
     title: 'Não é um mockup. O produto já funciona.',
     description:
       'A landing vende apenas o que o produto já entrega hoje: checkout público, confirmação on-chain, suporte multiwallet, faturas, analítica e liquidação não custodial.',
@@ -114,108 +114,98 @@ export default function HomeProductTour() {
           className="max-w-3xl"
         />
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-12">
+        <div className="mt-12 space-y-4">
           {/* Wallets — full-width supported-wallet showcase */}
-          <article className="card border border-border p-8 sm:col-span-2 lg:col-span-12">
-            <div className="lg:flex lg:items-start lg:justify-between lg:gap-10">
-              <div className="lg:max-w-sm">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-accent-ink">
-                  <WalletCards className="h-5 w-5" aria-hidden="true" />
+          <article className="card border border-border p-8">
+            <div className="max-w-2xl">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-accent-ink">
+                <WalletCards className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <h3 className="mt-5 text-lg font-semibold text-foreground">{copy.walletsTitle}</h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+                {copy.walletsDescription}
+              </p>
+            </div>
+
+            {/* Infinite logo marquee — CSS-only, seamless, reduced-motion safe */}
+            <div className="wallet-marquee mt-8 -mx-8 overflow-hidden">
+              <ul className="wallet-marquee-track flex items-center">
+                {[...WALLETS, ...WALLETS].map((wallet, index) => (
+                  <li
+                    key={index}
+                    aria-hidden={index >= WALLETS.length}
+                    className="group mr-3 flex shrink-0 items-center gap-2.5 rounded-full border border-border bg-muted/40 px-5 py-3"
+                  >
+                    <img
+                      src={wallet.src}
+                      alt={index < WALLETS.length ? wallet.name : ''}
+                      width={28}
+                      height={28}
+                      loading="lazy"
+                      className="h-7 w-7 object-contain grayscale transition duration-200 group-hover:grayscale-0"
+                    />
+                    <span className="whitespace-nowrap text-sm font-medium text-foreground">
+                      {wallet.name}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <p className="mt-6 text-2xs leading-5 text-muted-foreground [text-wrap:pretty]">
+              {copy.walletsNote}
+            </p>
+          </article>
+
+          {/* Bento — featured non-custodial tile + right rail of two capabilities */}
+          <div className="grid gap-4 lg:grid-cols-12">
+            {/* Featured: non-custodial */}
+            <article className="card relative flex flex-col overflow-hidden border border-success-border bg-success-subtle p-8 lg:col-span-7">
+              <ShieldCheck
+                className="pointer-events-none absolute -bottom-4 -right-4 h-40 w-40 text-success/10"
+                aria-hidden="true"
+              />
+              <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-card text-success">
+                <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+              </div>
+              <h3 className="relative mt-5 text-xl font-semibold text-foreground">{copy.custodyTitle}</h3>
+              <p className="relative mt-2 max-w-md text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+                {copy.custodyDescription}
+              </p>
+              <p className="relative mt-auto pt-6 text-2xs font-medium text-muted-foreground">
+                {copy.custodyTags.join(' · ')}
+              </p>
+            </article>
+
+            {/* Right rail */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:col-span-5 lg:grid-cols-1">
+              <article className="card flex flex-col border border-border p-6 transition-colors hover:border-foreground/20">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-accent-ink">
+                  <FileText className="h-5 w-5" aria-hidden="true" />
                 </div>
-                <h3 className="mt-5 text-lg font-semibold text-foreground">{copy.walletsTitle}</h3>
+                <h3 className="mt-4 text-base font-semibold text-foreground">{copy.invoicesTitle}</h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
-                  {copy.walletsDescription}
+                  {copy.invoicesDescription}
                 </p>
-              </div>
-
-              <div className="mt-6 lg:mt-0 lg:flex-1">
-                <ul className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-                  {WALLETS.map((wallet) => (
-                    <li
-                      key={wallet.name}
-                      className="group flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-muted/40 p-4 transition-colors hover:border-foreground/20"
-                    >
-                      <img
-                        src={wallet.src}
-                        alt={wallet.name}
-                        width={32}
-                        height={32}
-                        loading="lazy"
-                        className="h-8 w-8 object-contain grayscale transition duration-200 group-hover:grayscale-0"
-                      />
-                      <span className="text-2xs font-medium text-muted-foreground">{wallet.name}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-4 text-2xs leading-5 text-muted-foreground [text-wrap:pretty]">
-                  {copy.walletsNote}
+                <p className="mt-auto pt-4 text-2xs font-medium text-muted-foreground">
+                  {copy.invoicesTags.join(' · ')}
                 </p>
-              </div>
-            </div>
-          </article>
+              </article>
 
-          {/* Invoices */}
-          <article className="card flex flex-col border border-border p-8 transition-colors hover:border-foreground/20 lg:col-span-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-accent-ink">
-              <FileText className="h-5 w-5" aria-hidden="true" />
+              <article className="card flex flex-col border border-border p-6 transition-colors hover:border-foreground/20">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-accent-ink">
+                  <BarChart3 className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <h3 className="mt-4 text-base font-semibold text-foreground">{copy.analyticsTitle}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
+                  {copy.analyticsDescription}
+                </p>
+                <p className="mt-auto pt-4 text-2xs font-medium text-muted-foreground">
+                  {copy.analyticsTags.join(' · ')}
+                </p>
+              </article>
             </div>
-            <h3 className="mt-5 text-lg font-semibold text-foreground">{copy.invoicesTitle}</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
-              {copy.invoicesDescription}
-            </p>
-            <div className="mt-auto flex flex-wrap gap-2 pt-5">
-              {copy.invoicesTags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex rounded-full border border-border bg-muted px-2.5 py-1 text-2xs font-medium text-foreground"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </article>
-
-          {/* Analytics */}
-          <article className="card flex flex-col border border-border p-8 transition-colors hover:border-foreground/20 lg:col-span-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-accent-ink">
-              <BarChart3 className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <h3 className="mt-5 text-lg font-semibold text-foreground">{copy.analyticsTitle}</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
-              {copy.analyticsDescription}
-            </p>
-            <div className="mt-auto flex flex-wrap gap-2 pt-5">
-              {copy.analyticsTags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex rounded-full border border-border bg-muted px-2.5 py-1 text-2xs font-medium text-foreground"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </article>
-
-          {/* Custody — non-custodial highlight */}
-          <article className="card flex flex-col border border-success-border bg-success-subtle p-8 sm:col-span-2 lg:col-span-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-card text-success">
-              <ShieldCheck className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <h3 className="mt-5 text-lg font-semibold text-foreground">{copy.custodyTitle}</h3>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
-              {copy.custodyDescription}
-            </p>
-            <div className="mt-auto flex flex-wrap gap-2 pt-5">
-              {copy.custodyTags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex rounded-full border border-success-border bg-card px-2.5 py-1 text-2xs font-medium text-success"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </article>
+          </div>
         </div>
       </div>
     </section>
