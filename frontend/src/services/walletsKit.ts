@@ -29,7 +29,7 @@ const MULTIPLATFORM_WALLET_IDS = new Set([
 // whether the device can deep-link into a native wallet app, not its width.
 // Deliberately no coarse-pointer fallback — a touch laptop is still a desktop
 // with extensions.
-function isLikelyMobileDevice(): boolean {
+export function isLikelyMobileDevice(): boolean {
   if (typeof navigator === 'undefined') return false;
   const nav = navigator as Navigator & { userAgentData?: { mobile?: boolean } };
   if (typeof nav.userAgentData?.mobile === 'boolean') return nav.userAgentData.mobile;

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { getKitModules, kitSetWallet, kitGetAddress } from '../../services/walletsKit';
+import { getKitModules, kitSetWallet, kitGetAddress, isLikelyMobileDevice } from '../../services/walletsKit';
 import { useI18n } from '../../i18n/I18nProvider';
 import { shortenAddress } from '../../lib/format';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
@@ -65,7 +65,20 @@ export default function WalletRoller({ networkPassphrase, onConnect, connectedAd
     return () => { cancelled = true; };
   }, [networkPassphrase]);
 
-  const sorted = [...entries].sort((a, b) => {
+  // On phones, extension wallets can never connect from the browser — hide
+  // them and keep only what works there: xBull (web-wallet popup),
+  // WalletConnect (launches the native apps), and anything actually detected
+  // (i.e. the page is open inside that wallet's own dApp browser).
+  const mobile = isLikelyMobileDevice();
+  const usable = entries.filter(
+    (e) =>
+      !mobile ||
+      e.available ||
+      e.module.productId === 'xbull' ||
+      e.module.moduleType === 'BRIDGE_WALLET'
+  );
+
+  const sorted = [...usable].sort((a, b) => {
     const aWC = a.module.moduleType === 'BRIDGE_WALLET';
     const bWC = b.module.moduleType === 'BRIDGE_WALLET';
     if (a.available && !b.available) return -1;
