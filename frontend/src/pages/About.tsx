@@ -13,7 +13,11 @@ import {
 } from 'lucide-react';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
-import { MARKETING_CONTAINER } from '../components/marketing/layout';
+import MarketingHero from '../components/marketing/MarketingHero';
+import MarketingSection from '../components/marketing/MarketingSection';
+import MarketingCard from '../components/marketing/MarketingCard';
+import IconChip from '../components/marketing/IconChip';
+import SectionHeading from '../components/marketing/home/SectionHeading';
 
 const VALUE_ICONS = [Shield, Lightbulb, Globe2, Lock] as const;
 const MILESTONE_ICONS = [Lightbulb, Rocket, Users, Target] as const;
@@ -245,116 +249,120 @@ export default function About() {
 
   return (
     <div>
-      <section className="relative overflow-hidden border-b border-border bg-card">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(ellipse_at_top,_hsl(var(--accent-ink)_/_0.06),transparent_68%)]" />
-        <div className={`relative ${MARKETING_CONTAINER} pb-16 pt-20`}>
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
-              {copy.heroTitleStart}{' '}
-              <span className="text-gradient">{copy.heroTitleHighlight}</span>
-            </h1>
-            <p className="mt-4 text-base text-muted-foreground md:text-lg">{copy.heroDescription}</p>
-          </div>
-        </div>
-      </section>
+      <MarketingHero
+        title={
+          <>
+            {copy.heroTitleStart} <span className="text-success">{copy.heroTitleHighlight}</span>
+          </>
+        }
+        subtitle={copy.heroDescription}
+      />
 
-      <section className={`${MARKETING_CONTAINER} py-20`}>
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold text-foreground">{copy.storyTitle}</h2>
-          <p className="mt-3 text-base text-muted-foreground">{copy.storySubtitle}</p>
-        </div>
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+      <MarketingSection>
+        <SectionHeading
+          title={copy.storyTitle}
+          description={copy.storySubtitle}
+          align="center"
+          className="mx-auto max-w-2xl"
+        />
+        <div className="mt-12 grid gap-4 md:grid-cols-3">
           {storyBlocks.map((item, index) => (
-            <article key={item.title} className="card hover-glow p-8 animate-fade-in" style={{ animationDelay: `${0.05 + index * 0.1}s` }}>
+            <MarketingCard
+              key={item.title}
+              padding="roomy"
+              className="animate-in"
+              style={{ animationDelay: `${0.05 + index * 0.1}s` }}
+            >
               <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
-              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
-            </article>
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground [text-wrap:pretty]">{item.description}</p>
+            </MarketingCard>
           ))}
         </div>
-      </section>
+      </MarketingSection>
 
-      <section className="border-y border-border bg-card">
-        <div className={`${MARKETING_CONTAINER} py-20`}>
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-semibold text-foreground">{copy.valuesTitle}</h2>
-            <p className="mt-3 text-base text-muted-foreground">{copy.valuesSubtitle}</p>
-          </div>
-          <div className="mt-14 grid gap-6 sm:grid-cols-2">
-            {values.map((value, index) => {
-              const Icon = VALUE_ICONS[index];
-              return (
-                <article
-                  key={value.title}
-                  className="group rounded-xl border border-border bg-background p-8 transition-all hover:border-primary/30 animate-fade-in"
-                  style={{ animationDelay: `${0.05 + index * 0.08}s` }}
-                >
-                  <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground">{value.title}</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{value.description}</p>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section className={`${MARKETING_CONTAINER} py-20`}>
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold text-foreground">{copy.journeyTitle}</h2>
-          <p className="mt-3 text-base text-muted-foreground">{copy.journeySubtitle}</p>
-        </div>
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-          {milestones.map((milestone, index) => {
-            const Icon = MILESTONE_ICONS[index];
+      <MarketingSection tone="inverse" band="assets-band">
+        <SectionHeading
+          title={copy.valuesTitle}
+          description={copy.valuesSubtitle}
+          align="center"
+          tone="inverse"
+          className="mx-auto max-w-2xl"
+        />
+        <div className="mt-12 grid gap-4 sm:grid-cols-2">
+          {values.map((value, index) => {
+            const Icon = VALUE_ICONS[index];
             return (
-              <div key={milestone.label} className="card p-6 text-center animate-fade-in" style={{ animationDelay: `${0.05 + index * 0.08}s` }}>
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Icon className="h-6 w-6" />
-                </div>
-                <h3 className="text-sm font-semibold text-foreground">{milestone.label}</h3>
-                <p className="mt-2 text-xs text-muted-foreground">{milestone.detail}</p>
-              </div>
+              <article
+                key={value.title}
+                className="animate-in flex flex-col rounded-2xl border border-card-invert-foreground/10 bg-card-invert-foreground/[0.04] p-8 transition-colors hover:border-card-invert-foreground/25"
+                style={{ animationDelay: `${0.05 + index * 0.08}s` }}
+              >
+                <IconChip icon={Icon} variant="inverse" className="mb-4" />
+                <h3 className="text-lg font-semibold text-card-invert-foreground">{value.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-card-invert-foreground/72 [text-wrap:pretty]">{value.description}</p>
+              </article>
             );
           })}
         </div>
-      </section>
+      </MarketingSection>
 
-      <section className="border-y border-border bg-card">
-        <div className={`${MARKETING_CONTAINER} py-16`}>
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-semibold text-foreground">{copy.poweredTitle}</h2>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{copy.poweredDescription}</p>
-            <div className="mt-6 flex flex-wrap justify-center gap-4">
-              {poweredTags.map((item) => (
-                <span key={item} className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs text-primary">
-                  <Zap className="h-3 w-3" />
-                  {item}
-                </span>
-              ))}
-            </div>
+      <MarketingSection>
+        <SectionHeading
+          title={copy.journeyTitle}
+          description={copy.journeySubtitle}
+          align="center"
+          className="mx-auto max-w-2xl"
+        />
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+          {milestones.map((milestone, index) => {
+            const Icon = MILESTONE_ICONS[index];
+            return (
+              <MarketingCard
+                key={milestone.label}
+                className="items-center text-center animate-in"
+                style={{ animationDelay: `${0.05 + index * 0.08}s` }}
+              >
+                <IconChip icon={Icon} className="mb-4" />
+                <h3 className="text-sm font-semibold text-foreground">{milestone.label}</h3>
+                <p className="mt-2 text-xs text-muted-foreground [text-wrap:pretty]">{milestone.detail}</p>
+              </MarketingCard>
+            );
+          })}
+        </div>
+      </MarketingSection>
+
+      <MarketingSection tone="card" className="py-16">
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl [text-wrap:balance]">{copy.poweredTitle}</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground [text-wrap:pretty]">{copy.poweredDescription}</p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {poweredTags.map((item) => (
+              <span key={item} className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-accent-ink">
+                <Zap className="h-3 w-3" aria-hidden="true" />
+                {item}
+              </span>
+            ))}
           </div>
         </div>
-      </section>
+      </MarketingSection>
 
-      <section className={`${MARKETING_CONTAINER} py-20`}>
-        <div className="card overflow-hidden">
-          <div className="bg-primary p-10 sm:p-14">
+      <MarketingSection>
+        <div className="overflow-hidden rounded-2xl bg-primary">
+          <div className="p-10 sm:p-14">
             <div className="mx-auto max-w-2xl text-center">
-              <Heart className="mx-auto mb-4 h-8 w-8 text-primary-foreground/80" />
-              <h3 className="text-3xl font-semibold text-primary-foreground">{copy.finalTitle}</h3>
-              <p className="mt-4 text-base text-primary-foreground/80">{copy.finalDescription}</p>
+              <Heart className="mx-auto mb-4 h-8 w-8 text-primary-foreground/80" aria-hidden="true" />
+              <h2 className="font-display text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl [text-wrap:balance]">{copy.finalTitle}</h2>
+              <p className="mt-4 text-base leading-7 text-primary-foreground/80 [text-wrap:pretty]">{copy.finalDescription}</p>
               <div className="mt-8">
-                <Link to="/app" className="btn bg-background text-primary hover:bg-muted font-semibold px-6 py-3">
+                <Link to="/app" className="btn bg-background px-6 text-sm text-primary hover:bg-muted">
                   {copy.finalCta}
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </MarketingSection>
     </div>
   );
 }
