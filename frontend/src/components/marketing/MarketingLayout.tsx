@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Globe2, Heart, Menu } from 'lucide-react';
+import { ArrowRight, Globe2, Heart, Menu } from 'lucide-react';
 import ThemeToggle from '../ThemeToggle';
 import LanguageToggle from '../LanguageToggle';
 import BrandMark from '../BrandMark';
 import BrandWordmark from '../BrandWordmark';
-import MobileNavDrawer from '../MobileNavDrawer';
+import MarketingMobileMenu from './MarketingMobileMenu';
 import { useI18n } from '../../i18n/I18nProvider';
 import { MARKETING_CONTAINER } from './layout';
 
@@ -90,19 +90,32 @@ export default function MarketingLayout() {
         </div>
       </header>
 
-      <MobileNavDrawer
+      <MarketingMobileMenu
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
         items={navItems}
         triggerRef={mobileNavTriggerRef}
         footer={
-          <div className="space-y-3">
-            <Link to="/app" onClick={() => setMobileNavOpen(false)} className="btn-primary w-full justify-center text-sm">
-              {t('marketing.openApp')}
-            </Link>
-            <div className="flex items-center gap-2">
-              <LanguageToggle />
-              <ThemeToggle />
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 sm:gap-6">
+              <div>
+                <p className="label">{t('layout.menu.language')}</p>
+                <LanguageToggle />
+              </div>
+              <div className="border-l border-border pl-4 sm:pl-6">
+                <p className="label">{t('layout.menu.theme')}</p>
+                <ThemeToggle alwaysShowLabel />
+              </div>
+            </div>
+            <div className="border-t border-border/60 pt-4">
+              <Link
+                to="/app"
+                onClick={() => setMobileNavOpen(false)}
+                className="btn-primary h-12 w-full justify-center gap-2 text-base font-semibold"
+              >
+                {t('marketing.openApp')}
+                <ArrowRight aria-hidden="true" className="h-5 w-5" />
+              </Link>
             </div>
           </div>
         }

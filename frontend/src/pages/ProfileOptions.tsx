@@ -540,7 +540,7 @@ export default function ProfileOptions() {
           </div>
           <div className="border-l border-border pl-4 sm:pl-6">
             <p className="label">{copy.themeLabel}</p>
-            <ThemeToggle />
+            <ThemeToggle alwaysShowLabel />
           </div>
         </div>
       </SectionCard>

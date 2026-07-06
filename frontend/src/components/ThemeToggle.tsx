@@ -11,9 +11,11 @@ const getCurrentTheme = (): ThemeMode => {
 interface ThemeToggleProps {
   /** 'button' = pill con borde (default); 'menuItem' = fila para el menú de cuenta. */
   variant?: 'button' | 'menuItem' | 'actionRow';
+  /** Muestra siempre la etiqueta (por defecto se oculta en pantallas < 420px). */
+  alwaysShowLabel?: boolean;
 }
 
-export default function ThemeToggle({ variant = 'button' }: ThemeToggleProps) {
+export default function ThemeToggle({ variant = 'button', alwaysShowLabel = false }: ThemeToggleProps) {
   const [theme, setThemeState] = useState<ThemeMode>(() => getCurrentTheme());
   const { t } = useI18n();
   const whiteLabel = t('theme.white');
@@ -54,7 +56,7 @@ export default function ThemeToggle({ variant = 'button' }: ThemeToggleProps) {
       title={switchTitle}
     >
       <Icon className="h-4 w-4" />
-      <span className="relative hidden min-[420px]:inline-grid">
+      <span className={`relative ${alwaysShowLabel ? 'inline-grid' : 'hidden min-[420px]:inline-grid'}`}>
         <span className="invisible col-start-1 row-start-1">{whiteLabel}</span>
         <span className="invisible col-start-1 row-start-1">{darkLabel}</span>
         <span className="col-start-1 row-start-1">{switchLabel}</span>

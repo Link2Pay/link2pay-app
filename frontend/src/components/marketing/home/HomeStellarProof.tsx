@@ -57,7 +57,7 @@ const COPY: Record<Language, CopyBlock> = {
       },
     ],
     panelSummary: 'Speed, cost, continuity, and reach are not decorative claims here. They are operating characteristics of the rail Link2Pay is built on.',
-    tags: ['Paid in your currency', 'Settles in 3-5s', 'No crypto know-how'],
+    tags: ['You receive funds in\nyour local currency', 'Settlement in\n3-5 seconds', 'No crypto\nknowledge needed'],
   },
   es: {
     eyebrow: 'Infraestructura',
@@ -125,7 +125,7 @@ const COPY: Record<Language, CopyBlock> = {
       },
     ],
     panelSummary: 'Velocidade, custo, continuidade e alcance não aparecem como claims decorativos. São características operacionais do trilho sobre o qual a Link2Pay roda.',
-    tags: ['Recebe na sua moeda', 'Liquida em 3-5s', 'Sem saber de cripto'],
+    tags: ['Você recebe fundos na\nsua moeda local', 'Liquidação em\n3-5 segundos', 'Sem saber nada\nde cripto'],
   },
 };
 

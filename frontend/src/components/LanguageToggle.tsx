@@ -14,22 +14,38 @@ const LANGUAGE_OPTIONS: Array<{
 export default function LanguageToggle() {
   const { language, setLanguage, t } = useI18n();
 
+  const activeIndex = Math.max(
+    0,
+    LANGUAGE_OPTIONS.findIndex((option) => option.code === language),
+  );
+
   return (
     <div
-      className="inline-flex items-center rounded-lg border border-border bg-card p-0.5"
+      className="relative inline-grid h-11 grid-cols-3 rounded-lg border border-border bg-card p-0.5"
       role="group"
       aria-label={t('language.switch')}
       title={t('language.switch')}
     >
+      {/* Indicador deslizante: un único recuadro que se traslada al idioma activo. */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0.5 left-0.5 rounded-md bg-primary transition-transform duration-300 ease-out motion-reduce:transition-none"
+        style={{
+          width: 'calc((100% - 0.25rem) / 3)',
+          transform: `translateX(${activeIndex * 100}%)`,
+          transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
+      />
+
       {LANGUAGE_OPTIONS.map((option) => (
         <button
           key={option.code}
           type="button"
           onClick={() => setLanguage(option.code)}
-          className={`rounded-md px-2.5 py-1.5 text-2xs font-semibold tracking-wide transition-colors ${
+          className={`relative z-10 flex h-full items-center justify-center rounded-md px-2.5 text-xs font-semibold tracking-wide transition-colors ${
             language === option.code
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              ? 'text-primary-foreground'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
           aria-pressed={language === option.code}
           title={t(option.nameKey)}
