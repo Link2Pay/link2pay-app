@@ -1,78 +1,70 @@
-import { Landmark, Search, ShieldCheck } from 'lucide-react';
+import { ArrowUpRight, CheckCircle2, Lock, ShieldCheck } from 'lucide-react';
 import { useI18n } from '../../../i18n/I18nProvider';
 import type { Language } from '../../../i18n/translations';
 import { MARKETING_CONTAINER } from '../layout';
 import SectionHeading from './SectionHeading';
 
+type ProofStep = {
+  title: string;
+  detail: string;
+};
+
 type CopyBlock = {
   eyebrow: string;
   title: string;
   description: string;
-  custodyTitle: string;
-  custodyDescription: string;
-  auditTitle: string;
-  auditDescription: string;
-  roadmapTitle: string;
-  roadmapDescription: string;
-  demoLabel: string;
-  soonLabel: string;
-  mainnetOnly: string;
+  signals: string[];
+  panelLabel: string;
+  proofStatus: string;
+  proofSteps: [ProofStep, ProofStep, ProofStep];
+  auditLink: string;
 };
 
 const COPY: Record<Language, CopyBlock> = {
   en: {
     eyebrow: 'Trust',
-    title: 'Your money never passes through us.',
+    title: 'Your money is always safe.',
     description:
-      'The strongest claim on the page is also the easiest one to verify in the product: signatures happen client-side and each payment can be inspected later on-chain.',
-    custodyTitle: 'Real non-custodial flow',
-    custodyDescription:
-      'The payer signs from the device in use and the funds move directly from the payer wallet to the receiver account.',
-    auditTitle: 'Everything stays auditable',
-    auditDescription:
-      'Each payment can be reviewed from the public checkout, the dashboard, and the explorer trail on stellar.expert.',
-    roadmapTitle: 'Honest roadmap',
-    roadmapDescription:
-      'Bre-B (COP) is available in demo mode today. Pix (BRL) and Transferencias 3.0 (ARS) are next and already visible as upcoming rails.',
-    demoLabel: 'Bre-B demo today',
-    soonLabel: 'Pix and ARS next',
-    mainnetOnly: 'Fiat settlement only goes live on mainnet.',
+      'You stay in control the whole time: signatures happen on your device and every payment is recorded on-chain, so you can verify it whenever you want.',
+    signals: ['Non-custodial', 'Signed on your device', 'On-chain verifiable', 'No locked funds'],
+    panelLabel: 'Payment',
+    proofStatus: 'Confirmed',
+    proofSteps: [
+      { title: 'Signed on your device', detail: 'The signature never leaves your wallet.' },
+      { title: 'Sent straight to the receiver', detail: 'Funds never pass through Link2Pay.' },
+      { title: 'Confirmed on Stellar', detail: 'Settled on-chain in seconds.' },
+    ],
+    auditLink: 'View on stellar.expert',
   },
   es: {
     eyebrow: 'Confianza',
-    title: 'Tu plata nunca pasa por nosotros.',
+    title: 'Tu plata siempre está segura.',
     description:
-      'La afirmación más fuerte de la página también es la más fácil de verificar en el producto: las firmas suceden del lado del cliente y cada pago se puede revisar después on-chain.',
-    custodyTitle: 'Flujo no custodial real',
-    custodyDescription:
-      'El pagador firma desde su dispositivo y los fondos viajan directo desde la wallet pagadora hasta la cuenta receptora.',
-    auditTitle: 'Todo queda auditable',
-    auditDescription:
-      'Cada pago se puede revisar desde el checkout público, el dashboard y la traza en stellar.expert.',
-    roadmapTitle: 'Roadmap honesto',
-    roadmapDescription:
-      'Bre-B (COP) está disponible hoy en modo demo. Pix (BRL) y Transferencias 3.0 (ARS) siguen después y ya aparecen como rieles próximos.',
-    demoLabel: 'Bre-B demo hoy',
-    soonLabel: 'Pix y ARS después',
-    mainnetOnly: 'La liquidación fiat solo vive en mainnet.',
+      'Vos mantenés el control en todo momento: las firmas ocurren en tu dispositivo y cada pago queda registrado on-chain para que puedas verificarlo cuando quieras.',
+    signals: ['No custodial', 'Firmas en tu dispositivo', 'Verificable on-chain', 'Sin bloqueo de fondos'],
+    panelLabel: 'Pago',
+    proofStatus: 'Confirmado',
+    proofSteps: [
+      { title: 'Firmado en tu dispositivo', detail: 'La firma nunca sale de tu wallet.' },
+      { title: 'Enviado directo al receptor', detail: 'Los fondos no pasan por Link2Pay.' },
+      { title: 'Confirmado en Stellar', detail: 'Liquidado on-chain en segundos.' },
+    ],
+    auditLink: 'Ver en stellar.expert',
   },
   pt: {
     eyebrow: 'Confiança',
-    title: 'O seu dinheiro nunca passa por nós.',
+    title: 'O seu dinheiro está sempre seguro.',
     description:
-      'A afirmação mais forte da página também é a mais fácil de verificar no produto: as assinaturas acontecem do lado do cliente e cada pagamento pode ser auditado depois on-chain.',
-    custodyTitle: 'Fluxo não custodial de verdade',
-    custodyDescription:
-      'Quem paga assina do próprio dispositivo e os fundos seguem direto da wallet pagadora para a conta recebedora.',
-    auditTitle: 'Tudo fica auditável',
-    auditDescription:
-      'Cada pagamento pode ser revisado no checkout público, no dashboard e na trilha do stellar.expert.',
-    roadmapTitle: 'Roadmap honesto',
-    roadmapDescription:
-      'Bre-B (COP) está disponível hoje em modo demo. Pix (BRL) e Transferencias 3.0 (ARS) vêm a seguir e já aparecem como trilhos futuros.',
-    demoLabel: 'Bre-B demo hoje',
-    soonLabel: 'Pix e ARS depois',
-    mainnetOnly: 'A liquidação fiat só entra em produção na mainnet.',
+      'Você mantém o controle o tempo todo: as assinaturas acontecem no seu dispositivo e cada pagamento fica registrado on-chain para você verificar quando quiser.',
+    signals: ['Não custodial', 'Assinado no seu dispositivo', 'Verificável on-chain', 'Sem bloqueio de fundos'],
+    panelLabel: 'Pagamento',
+    proofStatus: 'Confirmado',
+    proofSteps: [
+      { title: 'Assinado no seu dispositivo', detail: 'A assinatura nunca sai da sua wallet.' },
+      { title: 'Enviado direto ao recebedor', detail: 'Os fundos não passam pela Link2Pay.' },
+      { title: 'Confirmado na Stellar', detail: 'Liquidado on-chain em segundos.' },
+    ],
+    auditLink: 'Ver na stellar.expert',
   },
 };
 
@@ -82,48 +74,70 @@ export default function HomeTrust() {
 
   return (
     <section className={`${MARKETING_CONTAINER} py-20`}>
-      <SectionHeading
-        eyebrow={copy.eyebrow}
-        title={copy.title}
-        description={copy.description}
-        className="max-w-3xl"
-      />
+      <div className="grid gap-10 lg:grid-cols-2 lg:items-center lg:gap-12">
+        {/* Left — reassurance statement */}
+        <div>
+          <SectionHeading eyebrow={copy.eyebrow} title={copy.title} description={copy.description} />
 
-      <div className="mt-12 grid gap-4 lg:grid-cols-3">
-        <article className="card border border-success-border bg-success-subtle p-8">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-card text-success">
-            <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+          <div className="mt-6 flex flex-wrap gap-2.5">
+            {copy.signals.map((signal) => (
+              <span
+                key={signal}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-success-border"
+              >
+                <Lock className="h-3.5 w-3.5 text-success" aria-hidden="true" />
+                {signal}
+              </span>
+            ))}
           </div>
-          <h3 className="mt-5 text-lg font-semibold text-foreground">{copy.custodyTitle}</h3>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
-            {copy.custodyDescription}
-          </p>
-        </article>
 
-        <article className="card border border-border p-8">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-accent-ink">
-            <Search className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <h3 className="mt-5 text-lg font-semibold text-foreground">{copy.auditTitle}</h3>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
-            {copy.auditDescription}
-          </p>
-        </article>
+        </div>
 
-        <article className="card border border-border p-8">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-accent-ink">
-            <Landmark className="h-5 w-5" aria-hidden="true" />
+        {/* Right — verifiable proof panel */}
+        <div className="card overflow-hidden border border-border">
+          <div className="flex items-center justify-between border-b border-border bg-muted/40 px-5 py-4 sm:px-6">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <ShieldCheck className="h-4 w-4 text-success" aria-hidden="true" />
+              <span className="text-2xs font-medium uppercase tracking-label">{copy.panelLabel}</span>
+            </div>
+            <span className="inline-flex items-center gap-1 rounded-full border border-success-border bg-success-subtle px-2.5 py-1 text-2xs font-semibold text-success">
+              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+              {copy.proofStatus}
+            </span>
           </div>
-          <h3 className="mt-5 text-lg font-semibold text-foreground">{copy.roadmapTitle}</h3>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground [text-wrap:pretty]">
-            {copy.roadmapDescription}
-          </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <span className="badge-processing">{copy.demoLabel}</span>
-            <span className="badge-draft">{copy.soonLabel}</span>
+
+          <ol className="px-5 py-5 sm:px-6">
+            {copy.proofSteps.map((step, index) => (
+              <li key={step.title} className="relative flex gap-4 pb-6 last:pb-0">
+                {index !== copy.proofSteps.length - 1 ? (
+                  <span
+                    className="absolute bottom-1 left-[9px] top-7 w-px bg-border"
+                    aria-hidden="true"
+                  />
+                ) : null}
+                <CheckCircle2 className="relative z-10 h-5 w-5 shrink-0 text-success" aria-hidden="true" />
+                <div className="min-w-0">
+                  <h3 className="text-sm font-semibold text-foreground">{step.title}</h3>
+                  <p className="mt-0.5 text-2xs leading-5 text-muted-foreground [text-wrap:pretty]">
+                    {step.detail}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          <div className="border-t border-border px-5 py-4 sm:px-6">
+            <a
+              href="https://stellar.expert"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm font-medium text-foreground transition-colors hover:text-accent-ink"
+            >
+              {copy.auditLink}
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </a>
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">{copy.mainnetOnly}</p>
-        </article>
+        </div>
       </div>
     </section>
   );
