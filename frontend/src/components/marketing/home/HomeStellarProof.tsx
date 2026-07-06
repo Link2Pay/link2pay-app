@@ -146,7 +146,7 @@ export default function HomeStellarProof() {
   };
 
   return (
-    <section className="relative overflow-hidden border-y border-border bg-card-invert-deeper text-card-invert-foreground">
+    <section className="relative overflow-hidden border-y border-border bg-[hsl(var(--infra-band))] text-card-invert-foreground">
       <div className="pointer-events-none absolute inset-0 pipeline-microtexture" aria-hidden="true" />
       <div className={`relative ${MARKETING_CONTAINER} py-20`}>
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-start lg:gap-12">

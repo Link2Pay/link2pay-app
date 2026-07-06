@@ -191,8 +191,9 @@
 
     /* Objeto oscuro estable en ambos temas (Credit Card, stat card "ink") */
     --card-invert: var(--ref-warm-900);
-    --card-invert-deep: 240 4% 14%; /* gris oscuro para bandas texturizadas */
-    --card-invert-deeper: 240 4% 11%; /* gris más oscuro */
+    --assets-band: var(--accent); /* indigo (= card "Volumen total") — banda ACTIVOS (solo light) */
+    --problem-band: var(--accent); /* indigo (= card "Volumen total") — banda EL PROBLEMA (solo light) */
+    --infra-band: var(--accent); /* indigo (= card "Volumen total") — banda INFRAESTRUCTURA (solo light) */
     --card-invert-foreground: var(--ref-warm-50);
 
     /* Accent glow — apunta al indigo de marca */
@@ -282,8 +283,9 @@
 
     /* Objeto oscuro elevado sobre el canvas oscuro (se mantiene oscuro en dark) */
     --card-invert: 240 5% 16%;
-    --card-invert-deep: 240 4% 14%; /* gris oscuro para bandas texturizadas */
-    --card-invert-deeper: 240 4% 11%; /* gris aún más oscuro para INFRAESTRUCTURA */
+    --assets-band: 240 4% 14%; /* gris — banda ACTIVOS en dark (sin cambios visuales) */
+    --problem-band: 240 5% 16%; /* gris — banda EL PROBLEMA en dark (= card-invert; sin cambios) */
+    --infra-band: 240 4% 11%; /* gris — banda INFRAESTRUCTURA en dark (sin cambios visuales) */
     --card-invert-foreground: 60 7% 95%;
 
     --neon-glow: var(--ref-indigo-400);

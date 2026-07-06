@@ -103,7 +103,7 @@ export default function HomeProblem() {
   const copy = COPY[language];
 
   return (
-    <section className="relative overflow-hidden border-b border-border bg-card-invert text-card-invert-foreground">
+    <section className="relative overflow-hidden border-b border-border bg-[hsl(var(--problem-band))] text-card-invert-foreground">
       <div className="pointer-events-none absolute inset-0 pipeline-microtexture" aria-hidden="true" />
       <div className={`relative ${MARKETING_CONTAINER} py-20`}>
         <div className="grid gap-10 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:items-start">

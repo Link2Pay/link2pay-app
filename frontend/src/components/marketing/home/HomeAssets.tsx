@@ -120,7 +120,7 @@ export default function HomeAssets() {
   const copy = COPY[language];
 
   return (
-    <section className="relative overflow-hidden border-y border-border bg-card-invert-deep text-card-invert-foreground">
+    <section className="relative overflow-hidden border-y border-border bg-[hsl(var(--assets-band))] text-card-invert-foreground">
       <div className="pointer-events-none absolute inset-0 pipeline-microtexture" aria-hidden="true" />
       <div className={`relative ${MARKETING_CONTAINER} py-20`}>
         <SectionHeading
