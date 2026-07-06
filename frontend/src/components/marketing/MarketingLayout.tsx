@@ -5,7 +5,7 @@ import ThemeToggle from '../ThemeToggle';
 import LanguageToggle from '../LanguageToggle';
 import BrandMark from '../BrandMark';
 import BrandWordmark from '../BrandWordmark';
-import MobileNavDrawer from '../MobileNavDrawer';
+import MarketingMobileMenu from './MarketingMobileMenu';
 import { useI18n } from '../../i18n/I18nProvider';
 import { MARKETING_CONTAINER } from './layout';
 
@@ -90,7 +90,7 @@ export default function MarketingLayout() {
         </div>
       </header>
 
-      <MobileNavDrawer
+      <MarketingMobileMenu
         open={mobileNavOpen}
         onClose={() => setMobileNavOpen(false)}
         items={navItems}
