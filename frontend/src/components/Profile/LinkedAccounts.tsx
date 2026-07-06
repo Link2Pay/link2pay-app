@@ -47,7 +47,7 @@ export default function LinkedAccounts() {
     <div className="card p-5 space-y-3">
       <h3 className="text-sm font-semibold text-ink-0">{t('profile.linkedAccounts')}</h3>
       <p className="text-xs text-ink-3">{t('profile.linkedAccountsDesc')}</p>
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {PROVIDERS.map(({ type, label }) => {
           const linked = linkedTypes.has(type);
           return (
@@ -62,15 +62,12 @@ export default function LinkedAccounts() {
                     {t('profile.linked')}
                   </span>
                 ) : (
-                  <>
-                    <span className="text-2xs text-ink-3">{t('profile.notLinked')}</span>
-                    <button
-                      onClick={() => linkHandlers[type]?.()}
-                      className="text-2xs font-medium text-ink-2 hover:text-ink-0 underline underline-offset-2"
-                    >
-                      {t('profile.link')}
-                    </button>
-                  </>
+                  <button
+                    onClick={() => linkHandlers[type]?.()}
+                    className="inline-flex items-center rounded-full border border-surface-3 bg-surface-0 px-2.5 py-0.5 text-2xs font-medium text-ink-2 hover:text-ink-0 hover:border-ink-3 transition-colors"
+                  >
+                    {t('profile.link')}
+                  </button>
                 )}
               </span>
             </div>

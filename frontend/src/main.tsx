@@ -65,7 +65,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       clientId={config.privyClientId || undefined}
       // linkedin/twitter return once their OAuth apps are configured in the
       // Privy dashboard — without credentials those buttons 403 in production.
-      config={{ loginMethods: ['google', 'email'] }}
+      // `appearance.theme: 'light'` fija el look nativo del modal de Privy para
+      // que NO herede el modo oscuro/colores de la app (input de email, etc.).
+      config={{
+        loginMethods: ['google', 'email'],
+        appearance: { theme: 'light' },
+      }}
     >
       <PrivyWalletBridge />
       {inner}

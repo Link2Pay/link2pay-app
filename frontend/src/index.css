@@ -1002,3 +1002,15 @@ select:focus-visible,
   outline: 2px solid hsl(var(--primary) / 0.5);
   outline-offset: 2px;
 }
+
+/* ── Modal de Privy — aislado del tema de la app ────────────────────────────
+   Privy monta su UI en un portal fuera de #root (#privy-dialog). En modo oscuro,
+   sus inputs nativos (fondo del campo de email, autofill del navegador) heredan
+   `color-scheme: dark` de `html.dark` y se pintan oscuros. Forzamos color-scheme
+   claro en el contenedor del modal para que Privy se muestre con su look nativo,
+   independientemente del tema de la app. (El tema visual de Privy además se fija
+   con `appearance.theme:'light'` en PrivyProvider.) */
+#privy-dialog,
+#privy-modal-content {
+  color-scheme: light;
+}

@@ -1,6 +1,6 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
 import toast from 'react-hot-toast';
-import { Copy, LogOut, Save, ScanLine, UserCircle2 } from 'lucide-react';
+import { Copy, Save, ScanLine, UserCircle2 } from 'lucide-react';
 import LanguageToggle from '../components/LanguageToggle';
 import ThemeToggle from '../components/ThemeToggle';
 import KycGate from '../components/Kyc/KycGate';
@@ -33,8 +33,8 @@ const COPY: Record<
     connected: string;
     preferencesTitle: string;
     preferencesDesc: string;
-    actionsTitle: string;
-    disconnect: string;
+    languageLabel: string;
+    themeLabel: string;
     copied: string;
     copy: string;
     notConnected: string;
@@ -77,10 +77,10 @@ const COPY: Record<
     profileTitle: 'Account Profile',
     wallet: 'Wallet address',
     connected: 'Connected',
-    preferencesTitle: 'Workspace Preferences',
+    preferencesTitle: 'Preferences',
     preferencesDesc: 'Language, theme, and network are applied instantly.',
-    actionsTitle: 'Session',
-    disconnect: 'Disconnect wallet',
+    languageLabel: 'Language',
+    themeLabel: 'Theme',
     copied: 'Copied',
     copy: 'Copy',
     notConnected: 'No wallet connected',
@@ -122,10 +122,10 @@ const COPY: Record<
     profileTitle: 'Perfil de cuenta',
     wallet: 'Direccion de wallet',
     connected: 'Conectada',
-    preferencesTitle: 'Preferencias del espacio',
+    preferencesTitle: 'Preferencias',
     preferencesDesc: 'Idioma, tema y red se aplican al instante.',
-    actionsTitle: 'Sesion',
-    disconnect: 'Desconectar wallet',
+    languageLabel: 'Idioma',
+    themeLabel: 'Tema',
     copied: 'Copiado',
     copy: 'Copiar',
     notConnected: 'No hay wallet conectada',
@@ -167,10 +167,10 @@ const COPY: Record<
     profileTitle: 'Perfil da conta',
     wallet: 'Endereco da wallet',
     connected: 'Conectada',
-    preferencesTitle: 'Preferencias do workspace',
+    preferencesTitle: 'Preferências',
     preferencesDesc: 'Idioma, tema e rede sao aplicados instantaneamente.',
-    actionsTitle: 'Sessao',
-    disconnect: 'Desconectar wallet',
+    languageLabel: 'Idioma',
+    themeLabel: 'Tema',
     copied: 'Copiado',
     copy: 'Copiar',
     notConnected: 'Nenhuma wallet conectada',
@@ -228,7 +228,7 @@ const EMPTY_FORM: SaveProfileData = {
 export default function ProfileOptions() {
   const { language } = useI18n();
   const copy = COPY[language];
-  const { publicKey, disconnect } = useWalletStore();
+  const { publicKey } = useWalletStore();
   const { network } = useNetworkStore();
   const [copied, setCopied] = useState(false);
   const [logoError, setLogoError] = useState(false);
@@ -531,20 +531,18 @@ export default function ProfileOptions() {
       {/* Cuentas vinculadas — Google/LinkedIn/X/Email para iniciar sesión */}
       <LinkedAccounts />
 
-      {/* Preferencias del espacio */}
+      {/* Preferencias */}
       <SectionCard title={copy.preferencesTitle} hint={copy.preferencesDesc}>
-        <div className="flex flex-wrap items-center gap-2">
-          <LanguageToggle />
-          <ThemeToggle />
+        <div className="grid grid-cols-2 gap-4 sm:gap-6">
+          <div>
+            <p className="label">{copy.languageLabel}</p>
+            <LanguageToggle />
+          </div>
+          <div className="border-l border-border pl-4 sm:pl-6">
+            <p className="label">{copy.themeLabel}</p>
+            <ThemeToggle />
+          </div>
         </div>
-      </SectionCard>
-
-      {/* Sesión */}
-      <SectionCard title={copy.actionsTitle}>
-        <button type="button" onClick={disconnect} className="btn-danger text-sm">
-          <LogOut className="h-4 w-4" />
-          {copy.disconnect}
-        </button>
       </SectionCard>
 
       {scanMode === 'camera' && (
