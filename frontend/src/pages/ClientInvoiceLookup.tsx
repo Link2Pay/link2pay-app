@@ -9,7 +9,7 @@ const COPY: Record<Language, {
   title: string;
   subtitle: string;
   inputLabel: string;
-  inputPlaceholder: string;
+  inputPlaceholderOr: string;
   inputHint: string;
   invalidInvoiceId: string;
   viewInvoice: string;
@@ -19,7 +19,7 @@ const COPY: Record<Language, {
     title: 'Open Payment Link',
     subtitle: 'Paste the checkout URL or payment link ID',
     inputLabel: 'Checkout URL or Link ID',
-    inputPlaceholder: 'https://link2pay.vercel.app/pay/abc123 or abc123',
+    inputPlaceholderOr: 'or',
     inputHint: 'Paste the full checkout URL or enter the link ID directly.',
     invalidInvoiceId: 'Could not find a link ID. Please paste a valid checkout URL or link ID.',
     viewInvoice: 'Open Checkout',
@@ -29,7 +29,7 @@ const COPY: Record<Language, {
     title: 'Abrir link de pago',
     subtitle: 'Pega la URL de checkout o el ID del link de pago',
     inputLabel: 'URL de checkout o ID del link',
-    inputPlaceholder: 'https://link2pay.vercel.app/pay/abc123 o abc123',
+    inputPlaceholderOr: 'o',
     inputHint: 'Pega la URL completa del checkout o ingresa el ID del link.',
     invalidInvoiceId: 'No se pudo encontrar un ID de link. Pega una URL o ID valido.',
     viewInvoice: 'Abrir checkout',
@@ -39,7 +39,7 @@ const COPY: Record<Language, {
     title: 'Abrir link de pagamento',
     subtitle: 'Cole a URL de checkout ou o ID do link de pagamento',
     inputLabel: 'URL de checkout ou ID do link',
-    inputPlaceholder: 'https://link2pay.vercel.app/pay/abc123 ou abc123',
+    inputPlaceholderOr: 'ou',
     inputHint: 'Cole a URL completa do checkout ou informe o ID do link.',
     invalidInvoiceId: 'Nao foi possivel encontrar um ID de link. Cole uma URL ou ID valido.',
     viewInvoice: 'Abrir checkout',
@@ -54,6 +54,8 @@ export default function ClientInvoiceLookup() {
   const [error, setError] = useState<string | null>(null);
 
   const copy = COPY[language];
+  // Example URL matches whichever deployment the user is on (prod/test/local).
+  const inputPlaceholder = `${window.location.origin}/pay/abc123 ${copy.inputPlaceholderOr} abc123`;
 
   const parseInvoiceId = (value: string): string | null => {
     const trimmed = value.trim();
@@ -104,7 +106,7 @@ export default function ClientInvoiceLookup() {
                 <input
                   type="text"
                   className="input font-mono text-sm"
-                  placeholder={copy.inputPlaceholder}
+                  placeholder={inputPlaceholder}
                   value={input}
                   onChange={(e) => {
                     setInput(e.target.value);
