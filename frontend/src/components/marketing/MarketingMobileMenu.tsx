@@ -104,10 +104,13 @@ export default function MarketingMobileMenu({
         role="dialog"
         aria-modal="true"
         aria-label={menuTitle}
-        className={`fixed inset-0 z-50 flex flex-col bg-background transition-[transform,opacity] duration-300 ease-out motion-reduce:transition-opacity ${
-          open
-            ? 'translate-y-0 opacity-100'
-            : 'pointer-events-none -translate-y-full opacity-0 motion-reduce:translate-y-0'
+        style={{
+          // Soft, non-linear fade — no vertical movement.
+          transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          transitionDuration: open ? '320ms' : '240ms',
+        }}
+        className={`fixed inset-0 z-50 flex flex-col bg-background transition-opacity ${
+          open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       >
         {/* Header row — mirrors the marketing header so the logo stays in place. */}
@@ -145,11 +148,13 @@ export default function MarketingMobileMenu({
                     end={item.end}
                     onClick={onClose}
                     style={{
-                      transitionDelay: open ? `${120 + index * 60}ms` : '0ms',
+                      transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                      transitionDuration: '650ms',
+                      transitionDelay: open ? `${150 + index * 75}ms` : '0ms',
                     }}
                     className={({ isActive }) =>
-                      `block py-2 text-3xl font-semibold tracking-tight transition-[color,transform,opacity] duration-300 ease-out motion-reduce:transition-none ${
-                        open ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'
+                      `block py-2 text-3xl font-semibold tracking-tight transition-[color,opacity] motion-reduce:transition-none ${
+                        open ? 'opacity-100' : 'opacity-0'
                       } ${
                         isActive
                           ? 'text-accent-ink'
