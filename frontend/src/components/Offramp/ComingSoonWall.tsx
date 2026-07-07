@@ -81,7 +81,7 @@ export default function ComingSoonWall({
           {t('rail.notifySuccess')}
         </div>
       ) : (
-        <form onSubmit={submit} className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <form onSubmit={submit} className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
           <input
             type="email"
             required
@@ -91,7 +91,7 @@ export default function ComingSoonWall({
               if (state === 'error') setState('idle');
             }}
             placeholder={t('rail.notifyPlaceholder')}
-            className="input flex-1 text-sm"
+            className="input flex-1"
             aria-label={t('rail.notifyPlaceholder')}
           />
           <button

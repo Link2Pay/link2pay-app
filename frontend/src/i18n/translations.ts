@@ -281,7 +281,7 @@ const es: Record<TranslationKey, string> = {
   'rail.cryptoDesc': 'El receptor conserva {currency} on-chain',
   'rail.fiatDesc': 'El pagador paga {currency}, el receptor recibe {fiat}',
   'rail.setCountryHint': 'Configura tu país en tu perfil para habilitar pagos locales en fiat.',
-  'rail.comingSoonTitle': 'Los pagos con {rail} llegan pronto',
+  'rail.comingSoonTitle': 'Los pagos con {rail} llegarán pronto',
   'rail.comingSoonBody': 'Estamos habilitando pagos con {rail} ({fiat}) en {country}. Deja tu correo y te avisamos apenas esté disponible.',
   'rail.notifyPlaceholder': 'tu@correo.com',
   'rail.notifyButton': 'Avísame',
