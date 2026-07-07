@@ -16,6 +16,7 @@ import { useNetworkStore } from '../store/networkStore';
 import BrandMark from './BrandMark';
 import BrandWordmark from './BrandWordmark';
 import MobileNavDrawer from './MobileNavDrawer';
+import BottomNav from './BottomNav';
 import AccountPanel from './AccountPanel';
 import { useI18n } from '../i18n/I18nProvider';
 import { shortenAddress } from '../lib/format';
@@ -260,7 +261,7 @@ export default function Layout() {
           }
         />
 
-        <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 md:px-8">
+        <div className="mx-auto max-w-5xl px-4 pt-6 pb-24 sm:px-6 md:px-8 md:pb-6">
           {isDevPreview ? (
             <Outlet />
           ) : connected ? (
@@ -281,6 +282,8 @@ export default function Layout() {
             <Navigate to="/login" replace />
           )}
         </div>
+
+        <BottomNav />
       </main>
     </div>
   );
