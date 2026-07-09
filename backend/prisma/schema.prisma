@@ -281,3 +281,34 @@ model InvoiceAuditLog {
   @@index([createdAt])
   @@map("invoice_audit_logs")
 }
+
+enum FundingLinkStatus {
+  PENDING
+  ACTIVE
+  CLAIMED
+  RECLAIMED
+}
+
+// Bearer-style "reverse payment link": crypto escrowed on-chain in a throwaway
+// account whose secret lives only in the sharer's URL fragment. This table
+// holds PUBLIC metadata only — there is deliberately no secret column; a DB
+// leak exposes nothing spendable. Status transitions are verified against
+// Horizon (see fundingLinkService), never taken on the client's word.
+model FundingLink {
+  id                String            @id @default(cuid())
+  creatorWallet     String            @map("creator_wallet")
+  escrowAccount     String            @unique @map("escrow_account")
+  asset             Currency          @default(USDC)
+  amount            Decimal           @db.Decimal(18, 7)
+  networkPassphrase String            @default("Test SDF Network ; September 2015") @map("network_passphrase")
+  expiresAt         DateTime?         @map("expires_at")
+  status            FundingLinkStatus @default(PENDING)
+  claimedBy         String?           @map("claimed_by")
+  claimTxHash       String?           @map("claim_tx_hash")
+  creationTxHash    String?           @map("creation_tx_hash")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  @@index([creatorWallet])
+  @@map("funding_links")
+}
