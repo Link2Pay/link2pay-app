@@ -25,6 +25,7 @@ import PageHeader from '../components/ui/PageHeader';
 import SectionCard from '../components/ui/SectionCard';
 import SendFundsModal from '../components/Wallet/SendFundsModal';
 import CreateFundingLinkModal from '../components/Wallet/CreateFundingLinkModal';
+import FundingLinksCard from '../components/Wallet/FundingLinksCard';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import { useWalletStore } from '../store/walletStore';
@@ -280,6 +281,7 @@ export default function Wallet() {
   const [addingTrust, setAddingTrust] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
   const [fundingOpen, setFundingOpen] = useState(false);
+  const [fundingRefresh, setFundingRefresh] = useState(0);
 
   const sortedBalances = useMemo(() => sortBalances(balances), [balances]);
   const activated = sortedBalances.length > 0;
@@ -618,6 +620,7 @@ export default function Wallet() {
               </div>
             </SectionCard>
           </div>
+          <FundingLinksCard refreshKey={fundingRefresh} />
         </div>
       )}
 
@@ -633,7 +636,7 @@ export default function Wallet() {
         <CreateFundingLinkModal
           balances={sortedBalances}
           onClose={() => setFundingOpen(false)}
-          onCreated={refresh}
+          onCreated={() => { refresh(); setFundingRefresh((n) => n + 1); }}
         />
       )}
     </div>
