@@ -14,6 +14,7 @@ import {
   ArrowUpRight,
   CheckCircle2,
   Copy,
+  Gift,
   Plus,
   QrCode,
   RefreshCw,
@@ -23,6 +24,7 @@ import {
 import PageHeader from '../components/ui/PageHeader';
 import SectionCard from '../components/ui/SectionCard';
 import SendFundsModal from '../components/Wallet/SendFundsModal';
+import CreateFundingLinkModal from '../components/Wallet/CreateFundingLinkModal';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
 import { useWalletStore } from '../store/walletStore';
@@ -40,6 +42,7 @@ const COPY: Record<
     balanceHint: string;
     refresh: string;
     sendCta: string;
+    fundingCta: string;
     balanceError: string;
     networkLabel: string;
     testnet: string;
@@ -87,6 +90,7 @@ const COPY: Record<
     balanceHint: 'Current funds detected for this wallet on Stellar.',
     refresh: 'Refresh',
     sendCta: 'Send',
+    fundingCta: 'Funding link',
     balanceError: "We couldn't refresh wallet balances right now.",
     networkLabel: 'Network',
     testnet: 'Testnet',
@@ -135,6 +139,7 @@ const COPY: Record<
     balanceHint: 'Fondos detectados actualmente para esta wallet en Stellar.',
     refresh: 'Actualizar',
     sendCta: 'Enviar',
+    fundingCta: 'Link con fondos',
     balanceError: 'No pudimos actualizar los saldos de la wallet en este momento.',
     networkLabel: 'Red',
     testnet: 'Testnet',
@@ -183,6 +188,7 @@ const COPY: Record<
     balanceHint: 'Fundos detectados atualmente para esta wallet na Stellar.',
     refresh: 'Atualizar',
     sendCta: 'Enviar',
+    fundingCta: 'Link com fundos',
     balanceError: 'Nao foi possivel atualizar os saldos da wallet neste momento.',
     networkLabel: 'Rede',
     testnet: 'Testnet',
@@ -273,6 +279,7 @@ export default function Wallet() {
   const { balances, loading, error, refresh } = useWalletBalances();
   const [addingTrust, setAddingTrust] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
+  const [fundingOpen, setFundingOpen] = useState(false);
 
   const sortedBalances = useMemo(() => sortBalances(balances), [balances]);
   const activated = sortedBalances.length > 0;
@@ -398,14 +405,24 @@ export default function Wallet() {
               action={
                 <div className="flex shrink-0 gap-2 self-start">
                   {activated && (
-                    <button
-                      type="button"
-                      onClick={() => setSendOpen(true)}
-                      className="btn-secondary text-xs"
-                    >
-                      <ArrowUpRight className="h-3.5 w-3.5" />
-                      {copy.sendCta}
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setSendOpen(true)}
+                        className="btn-secondary text-xs"
+                      >
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                        {copy.sendCta}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFundingOpen(true)}
+                        className="btn-secondary text-xs"
+                      >
+                        <Gift className="h-3.5 w-3.5" />
+                        {copy.fundingCta}
+                      </button>
+                    </>
                   )}
                   <button
                     type="button"
@@ -609,6 +626,14 @@ export default function Wallet() {
           balances={sortedBalances}
           onClose={() => setSendOpen(false)}
           onSent={refresh}
+        />
+      )}
+
+      {fundingOpen && (
+        <CreateFundingLinkModal
+          balances={sortedBalances}
+          onClose={() => setFundingOpen(false)}
+          onCreated={refresh}
         />
       )}
     </div>
