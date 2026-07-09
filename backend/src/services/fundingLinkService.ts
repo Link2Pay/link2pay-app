@@ -1,13 +1,13 @@
 // Horizon-side truth for funding links. The DB status is advisory; these
 // helpers are the only way status transitions happen. Pure Horizon logic —
 // the Prisma writes stay in the route layer so this file tests without a DB.
-import StellarSdk from '@stellar/stellar-sdk';
+import { Horizon } from '@stellar/stellar-sdk';
 import { getAssetIssuer, getHorizonUrl } from '../config';
 
-type HorizonServer = StellarSdk.Horizon.Server;
+type HorizonServer = Horizon.Server;
 
 export function serverFor(networkPassphrase: string): HorizonServer {
-  return new StellarSdk.Horizon.Server(getHorizonUrl(networkPassphrase));
+  return new Horizon.Server(getHorizonUrl(networkPassphrase));
 }
 
 /**

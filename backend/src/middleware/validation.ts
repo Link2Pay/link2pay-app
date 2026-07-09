@@ -182,6 +182,22 @@ export const waitlistSchema = z.object({
   wallet: z.string().max(80).optional(),
 });
 
+export const createFundingLinkSchema = z.object({
+  asset: z.enum(['XLM', 'USDC']),
+  amount: z.number().positive().max(1_000_000),
+  escrowAccount: z.string().regex(/^G[A-Z2-7]{55}$/),
+  networkPassphrase: z.string().min(1),
+  expiresAt: z.string().datetime().optional(),
+});
+
+export const activateFundingLinkSchema = z.object({
+  creationTxHash: z.string().regex(/^[0-9a-f]{64}$/),
+});
+
+export const sweepFundingLinkSchema = z.object({
+  txHash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
+});
+
 /**
  * Middleware factory for validating request body with Zod
  */
