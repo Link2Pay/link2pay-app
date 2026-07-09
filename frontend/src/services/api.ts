@@ -450,6 +450,71 @@ export async function getFxRate(
   return request(`/prices/fx/${encodeURIComponent(symbol)}`);
 }
 
+// ── Funding links (bearer "reverse payment links") ─────────────────────────
+
+export interface FundingLinkView {
+  id: string;
+  status: 'PENDING' | 'ACTIVE' | 'CLAIMED' | 'RECLAIMED';
+  asset: 'XLM' | 'USDC';
+  amount: string;
+  escrowAccount: string;
+  networkPassphrase: string;
+  expiresAt: string | null;
+  claimedBy: string | null;
+  claimTxHash: string | null;
+  createdAt: string;
+}
+
+export async function createFundingLink(
+  input: {
+    asset: 'XLM' | 'USDC';
+    amount: number;
+    escrowAccount: string;
+    networkPassphrase: string;
+    expiresAt?: string;
+  },
+  walletAddress: string
+): Promise<{ id: string }> {
+  return request('/funding-links', { method: 'POST', body: JSON.stringify(input) }, walletAddress);
+}
+
+export async function activateFundingLink(
+  id: string,
+  creationTxHash: string,
+  walletAddress: string
+): Promise<FundingLinkView> {
+  return request(
+    `/funding-links/${id}/activate`,
+    { method: 'PATCH', body: JSON.stringify({ creationTxHash }) },
+    walletAddress
+  );
+}
+
+export async function listFundingLinks(walletAddress: string): Promise<FundingLinkView[]> {
+  const data = await request<{ links: FundingLinkView[] }>('/funding-links', {}, walletAddress);
+  return data.links;
+}
+
+export async function getFundingLink(id: string): Promise<FundingLinkView> {
+  return request(`/funding-links/${id}`);
+}
+
+export async function reportFundingLinkClaimed(id: string, txHash: string): Promise<FundingLinkView> {
+  return request(`/funding-links/${id}/claimed`, { method: 'POST', body: JSON.stringify({ txHash }) });
+}
+
+export async function reportFundingLinkReclaimed(
+  id: string,
+  txHash: string,
+  walletAddress: string
+): Promise<FundingLinkView> {
+  return request(
+    `/funding-links/${id}/reclaimed`,
+    { method: 'POST', body: JSON.stringify({ txHash }) },
+    walletAddress
+  );
+}
+
 // ─── Off-ramp (USDC→COP / Bre-B) API ──────────────────────────────
 
 export interface OffRampQuote {
