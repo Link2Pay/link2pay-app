@@ -20,6 +20,7 @@ import type { Language } from '../../i18n/translations';
 import { useWalletStore } from '../../store/walletStore';
 import { useNetworkStore } from '../../store/networkStore';
 import { stellarExpertUrl } from '../../lib/stellarExplorer';
+import { spendableXlm } from '../../lib/stellarReserves';
 import type { WalletBalance } from '../../services/api';
 
 interface Props {
@@ -154,7 +155,7 @@ export default function SendFundsModal({ balances, onClose, onSent }: Props) {
     const bal = parseFloat(selected.balance);
     if (selected.code !== 'XLM') return bal;
     const trustlines = balances.filter((b) => b.code !== 'XLM').length;
-    return Math.max(0, bal - (1 + 0.5 * trustlines) - 0.1);
+    return spendableXlm(bal, trustlines);
   }, [selected, balances]);
 
   const validate = (): string | null => {
