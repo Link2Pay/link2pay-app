@@ -4,7 +4,7 @@ import { authService } from '../services/authService';
 
 // Zod schemas for request validation
 
-export const lineItemSchema = z.object({
+const lineItemSchema = z.object({
   description: z.string().min(1).max(500),
   quantity: z.number().positive().max(999999),
   rate: z.number().min(0).max(999999999),
@@ -59,6 +59,13 @@ export const createInvoiceSchema = z.object({
       code: z.ZodIssueCode.custom,
       message: 'At least one line item is required',
       path: ['lineItems'],
+    });
+  }
+  if (data.payoutMethod === 'BRE_B' && data.currency !== 'USDC') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Bre-B payouts require USDC invoices',
+      path: ['currency'],
     });
   }
 });
@@ -168,9 +175,7 @@ export const offrampOpenAmountSchema = z.object({
 });
 
 export const offrampSubmitPaymentSchema = z.object({
-  invoiceId: z.string().min(1),
   signedTransactionXdr: z.string().min(1),
-  depositAddress: z.string().min(56).max(56).regex(/^G[A-Z2-7]{55}$/, 'Invalid Stellar address'),
 });
 
 // Demand capture for fiat rails that aren't live yet. Only the walled rails are
@@ -251,7 +256,6 @@ export function requireWallet(
     }
 
     req.walletAddress = walletFromSession;
-    req.authVerified = true;
     return next();
   }
 
@@ -280,6 +284,5 @@ export function requireWallet(
   }
 
   req.walletAddress = walletAddress;
-  req.authVerified = true;
   next();
 }

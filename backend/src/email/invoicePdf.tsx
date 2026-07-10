@@ -14,11 +14,12 @@ const CURRENCY_SYMBOLS: Record<string, string> = { XLM: 'XLM', USDC: '$', EURC: 
 
 const dec = (v: unknown): string => (v == null ? '0' : String(v));
 
-// Anonymous quick links store this sentinel (see frontend InvoiceForm /
-// lib/payerDisplay); this PDF only renders on PAID invoices, so the payer
-// wallet is the honest identity there.
+// Older quick links used the .local sentinel; new links use the same .io
+// sentinel as the frontend. Paid PDFs show the payer wallet for either.
+const ANONYMOUS_PAYER_EMAILS = new Set(['payer@link2pay.io', 'payer@link2pay.local']);
+
 const isAnonymousClient = (inv: InvoiceWithLineItems): boolean =>
-  inv.clientName === 'Payer' && inv.clientEmail === 'payer@link2pay.io';
+  inv.clientName === 'Payer' && ANONYMOUS_PAYER_EMAILS.has(inv.clientEmail ?? '');
 
 const displayClientName = (inv: InvoiceWithLineItems): string | null => {
   if (!isAnonymousClient(inv)) return inv.clientName;

@@ -134,18 +134,8 @@ export class InvoiceService {
    * Get invoice by ID (full data for owner)
    */
   async getInvoice(id: string) {
-    return prisma.invoice.findUnique({
-      where: { id },
-      include: { lineItems: true, payments: true },
-    });
-  }
-
-  /**
-   * Get invoice by invoice number
-   */
-  async getInvoiceByNumber(invoiceNumber: string) {
-    return prisma.invoice.findUnique({
-      where: { invoiceNumber },
+    return prisma.invoice.findFirst({
+      where: { id, deletedAt: null },
       include: { lineItems: true, payments: true },
     });
   }
@@ -154,8 +144,8 @@ export class InvoiceService {
    * Get public view of invoice (sanitized for payers)
    */
   async getPublicInvoice(id: string): Promise<InvoicePublicView | null> {
-    const invoice = await prisma.invoice.findUnique({
-      where: { id },
+    const invoice = await prisma.invoice.findFirst({
+      where: { id, deletedAt: null },
       include: { lineItems: true },
     });
 
@@ -334,7 +324,7 @@ export class InvoiceService {
             action: 'PAID',
             actorWallet: payerWallet || 'unknown',
             changes: {
-              status: { from: 'PROCESSING', to: 'PAID' },
+              status: { from: current.status, to: 'PAID' },
               transactionHash: { from: null, to: transactionHash },
             },
           },
@@ -375,7 +365,7 @@ export class InvoiceService {
    * Update invoice details (only for DRAFT status)
    */
   async updateInvoice(id: string, input: Partial<CreateInvoiceInput>) {
-    const invoice = await prisma.invoice.findUnique({ where: { id } });
+    const invoice = await prisma.invoice.findFirst({ where: { id, deletedAt: null } });
     if (!invoice) throw new Error('Invoice not found');
     if (invoice.status !== 'DRAFT') {
       throw new Error('Can only edit invoices in DRAFT status');
@@ -392,7 +382,16 @@ export class InvoiceService {
     if (input.dueDate !== undefined) updateData.dueDate = input.dueDate ? new Date(input.dueDate) : null;
 
     // If line items changed, recalculate
-    if (input.lineItems) {
+    if (input.lineItems !== undefined) {
+      if (!Array.isArray(input.lineItems)) {
+        throw new Error('Line items must be an array');
+      }
+      if (!invoice.isOpenAmount && input.lineItems.length === 0) {
+        throw new Error('At least one line item is required');
+      }
+      if (input.lineItems.length > 50) {
+        throw new Error('No more than 50 line items are allowed');
+      }
       const lineItems = input.lineItems.map((item) => ({
         description: item.description,
         quantity: new Prisma.Decimal(item.quantity),
@@ -452,7 +451,7 @@ export class InvoiceService {
    * Sets deletedAt instead of removing the row, preserving the audit trail.
    */
   async deleteInvoice(id: string, freelancerWallet: string) {
-    const invoice = await prisma.invoice.findUnique({ where: { id } });
+    const invoice = await prisma.invoice.findFirst({ where: { id, deletedAt: null } });
     if (!invoice) throw new Error('Invoice not found');
     if (invoice.freelancerWallet !== freelancerWallet) {
       throw new Error('Unauthorized');

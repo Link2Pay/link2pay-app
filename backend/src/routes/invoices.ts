@@ -229,7 +229,12 @@ router.patch('/:id', requireWallet, async (req: Request, res: Response) => {
     const invoice = await invoiceService.updateInvoice(req.params.id, updates);
     res.json(invoice);
   } catch (error: any) {
-    if (error.message.includes('DRAFT')) {
+    if (
+      error.message.includes('DRAFT') ||
+      error.message === 'At least one line item is required' ||
+      error.message === 'Line items must be an array' ||
+      error.message === 'No more than 50 line items are allowed'
+    ) {
       return res.status(400).json({ error: error.message });
     }
     if (error.message === 'Invoice not found') {
@@ -332,6 +337,9 @@ router.delete('/:id', requireWallet, async (req: Request, res: Response) => {
     }
     if (error.message.includes('DRAFT')) {
       return res.status(400).json({ error: error.message });
+    }
+    if (error.message === 'Invoice not found') {
+      return res.status(404).json({ error: error.message });
     }
     log.error('Delete invoice error', { error: error?.message });
     res.status(500).json({ error: 'Failed to delete invoice' });

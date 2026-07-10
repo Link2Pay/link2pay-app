@@ -108,7 +108,7 @@ export class KycService {
         phone: profile.phone,
         country: profile.country,
       },
-      returnUrl: `${config.frontendUrl}/dashboard/profile-options?kyc=return`,
+      returnUrl: `${config.frontendUrl.split(',')[0].trim().replace(/\/+$/, '')}/dashboard/profile-options?kyc=return`,
     });
 
     await prisma.businessProfile.update({

@@ -39,7 +39,7 @@ function isValidBreBTransition(from: InvoiceStatus, to: InvoiceStatus): boolean 
 
 export class OffRampService {
   private adapter: AnchorAdapter;
-  private liquidityCache: { at: number; available: number; fresh: boolean } | null = null;
+  private liquidityCache: { at: number; available: number } | null = null;
 
   constructor() {
     this.adapter = getAdapter();
@@ -67,7 +67,7 @@ export class OffRampService {
         // Unknown liquidity must not block invoicing; the anchor re-checks at payout.
         return { ok: true };
       }
-      this.liquidityCache = { at: now, ...liq };
+      this.liquidityCache = { at: now, available: liq.available };
     }
 
     const { available } = this.liquidityCache;
@@ -76,10 +76,6 @@ export class OffRampService {
     return { ok: false, available };
   }
 
-  /**
-   * Request a firm off-ramp quote and advance invoice to AWAITING_ANCHOR.
-   * Only the receiver (freelancer) of a BRE_B PENDING invoice can call this.
-   */
   // Display-only COP estimates for the public payment page, cached 60s per
   // invoice: each anchor reverse-quote mints a quote_id server-side, so page
   // views shouldn't hammer it. Never persisted — the firm quote at pay time
@@ -206,6 +202,10 @@ export class OffRampService {
     }
   }
 
+  /**
+   * Request a firm off-ramp quote and advance invoice to AWAITING_ANCHOR.
+   * Only the receiver (freelancer) of a BRE_B PENDING invoice can call this.
+   */
   async getQuote(
     invoiceId: string,
     freelancerWallet: string,
@@ -227,23 +227,36 @@ export class OffRampService {
     // add BRL/ARS once live. Falls back to COP for the legacy single-rail case.
     const rail = railById(invoice.payoutMethod);
     const buyCurrency = rail?.buyCurrency ?? 'COP';
+    let sellAmount: Prisma.Decimal;
+    try {
+      sellAmount = new Prisma.Decimal(params.sellAmount);
+    } catch {
+      throw new Error('Cannot quote an invalid invoice amount');
+    }
+    if (!sellAmount.isFinite() || !sellAmount.greaterThan(0)) {
+      throw new Error('Cannot quote an invalid invoice amount');
+    }
+    if (!sellAmount.equals(invoice.total)) {
+      throw new Error('Cannot quote an amount different from the invoice total');
+    }
+    const invoiceSellAmount = invoice.total.toString();
 
     // Re-check liquidity at quote time: it may have drained since the
     // invoice was created, and a firm quote the anchor cannot fill would
     // strand the payer mid-flow.
-    const liquidity = await this.checkLiquidity(params.sellAmount);
+    const liquidity = await this.checkLiquidity(invoiceSellAmount);
     if (!liquidity.ok) {
       throw new Error('FIAT_LIQUIDITY_INSUFFICIENT');
     }
 
     log.info('[OffRampService] Requesting quote', {
       invoiceId,
-      sellAmount: params.sellAmount,
+      sellAmount: invoiceSellAmount,
       buyCurrency,
     });
 
     const quote = await this.adapter.getQuote({
-      sellAmount: params.sellAmount,
+      sellAmount: invoiceSellAmount,
       buyCurrency,
       payoutAlias: params.payoutAlias,
     });
@@ -504,13 +517,15 @@ export class OffRampService {
 
   /**
    * Mark that the anchor-bound payment was detected on-chain.
-   * Caller (watcher) provides the on-chain transaction hash.
+   * The submit route provides the verified on-chain payment details.
    * Advances AWAITING_PAYMENT → PROCESSING.
    */
   async markAnchorPayment(
     invoiceId: string,
     txHash: string,
-    fromWallet: string
+    ledgerNumber: number,
+    fromWallet: string,
+    toWallet: string
   ): Promise<void> {
     const invoice = await prisma.invoice.findUnique({ where: { id: invoiceId } });
     if (!invoice) throw new Error('Invoice not found');
@@ -525,6 +540,7 @@ export class OffRampService {
         data: {
           status: 'PROCESSING',
           transactionHash: txHash,
+          ledgerNumber,
           payerWallet: fromWallet,
           clientWallet: fromWallet,
         },
@@ -534,9 +550,9 @@ export class OffRampService {
         data: {
           invoiceId,
           transactionHash: txHash,
-          ledgerNumber: 0, // filled by watcher
+          ledgerNumber,
           fromWallet,
-          toWallet: invoice.freelancerWallet,
+          toWallet,
           amount: invoice.total,
           asset: invoice.currency,
         },

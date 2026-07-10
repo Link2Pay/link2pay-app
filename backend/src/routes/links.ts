@@ -43,7 +43,8 @@ function mapInvoiceStatusToLinkStatus(status: string): LinkStatus {
 }
 
 function getCheckoutUrl(linkId: string): string {
-  return `${config.frontendUrl.replace(/\/+$/, '')}/pay/${linkId}`;
+  const origin = config.frontendUrl.split(',')[0].trim().replace(/\/+$/, '');
+  return `${origin}/pay/${linkId}`;
 }
 
 const router = Router();
@@ -118,7 +119,7 @@ router.post(
       const reference = metadata?.reference?.trim();
       const notes = buildLinkNotes(reference, Boolean(activateNewAccounts));
       const payerName = metadata?.payerName?.trim() || 'Payer';
-      const payerEmail = metadata?.payerEmail?.trim() || 'payer@link2pay.local';
+      const payerEmail = metadata?.payerEmail?.trim() || 'payer@link2pay.io';
 
       const created = await invoiceService.createInvoice({
         freelancerWallet: targetWallet,

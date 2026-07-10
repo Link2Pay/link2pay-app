@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { invoicePaidHtml, invoicePaidSubject } from './templates';
 
-const invoice = {
+const invoice: Parameters<typeof invoicePaidHtml>[0] = {
   id: 'inv_1',
   invoiceNumber: 'INV-0001',
   clientName: 'ACME Corp',
@@ -27,5 +27,19 @@ describe('invoice paid email', () => {
     expect(html).toContain('abc123def456');
     expect(html).toContain('https://www.link2pay.xyz/dashboard/links/inv_1');
     expect(html).not.toContain('undefined');
+  });
+
+  it('uses the payer wallet for legacy anonymous quick links', () => {
+    const html = invoicePaidHtml(
+      {
+        ...invoice,
+        clientName: 'Payer',
+        clientEmail: 'payer@link2pay.local',
+        payerWallet: 'GBUMVWB7KO2R25AJHZP6V3HI4PNQNBNNZIR4BJMPN2NUZZN5ER3IQMO3',
+      },
+      'https://www.link2pay.xyz/dashboard/links/inv_1'
+    );
+
+    expect(html).toContain('GBUMVW…QMO3');
   });
 });

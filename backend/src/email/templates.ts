@@ -11,11 +11,14 @@ const esc = (v: unknown): string =>
 
 const amount = (v: unknown): string => String(v ?? '0');
 
-// Anonymous quick links store a sentinel client ("Payer"/payer@link2pay.io);
-// this email only fires on PAID invoices, so the payer wallet is the honest
-// name there. Mirrors frontend lib/payerDisplay.
+// Older quick links used the .local sentinel; new links use the same .io
+// sentinel as the frontend. Paid notices show the payer wallet for either.
+const ANONYMOUS_PAYER_EMAILS = new Set(['payer@link2pay.io', 'payer@link2pay.local']);
+
 const payerLabel = (inv: InvoiceWithLineItems): string => {
-  if (inv.clientName !== 'Payer' || inv.clientEmail !== 'payer@link2pay.io') return inv.clientName;
+  if (inv.clientName !== 'Payer' || !ANONYMOUS_PAYER_EMAILS.has(inv.clientEmail ?? '')) {
+    return inv.clientName;
+  }
   const wallet = inv.payerWallet || inv.clientWallet;
   return wallet ? `${wallet.slice(0, 6)}…${wallet.slice(-4)}` : 'A payer';
 };

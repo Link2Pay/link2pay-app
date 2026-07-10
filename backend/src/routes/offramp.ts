@@ -342,7 +342,9 @@ router.post(
       await offRampService.markAnchorPayment(
         req.params.id,
         submitResult.hash,
-        req.body.senderPublicKey || 'unknown'
+        submitResult.ledger,
+        anchorPayment.from,
+        anchorPayment.to
       );
 
       res.json({

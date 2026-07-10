@@ -105,8 +105,8 @@ This document is a **living reference** — update it whenever the architecture 
 - [x] **Prisma ORM** — no raw SQL. All queries use parameterized Prisma methods.
 - [x] **Amount computed server-side** — `invoice.total` from DB, never trusted from client.
 - [x] **Env vars validated** — Zod schema at startup; server exits on misconfiguration.
-- [ ] **Invoice item count limit** — no cap on number of line items per invoice (potential payload abuse).
-- [ ] **String length limits** — `sanitizeString` is defined but not consistently applied to all fields.
+- [x] **Invoice item count limit** — capped at 50 items for creation and draft edits.
+- [ ] **String length limits** — ensure every new request field has an explicit schema limit.
 
 ### Rate Limiting
 
