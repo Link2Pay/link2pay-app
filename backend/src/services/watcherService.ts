@@ -1,9 +1,10 @@
 import { stellarService } from './stellarService';
-import { config, assetMatches } from '../config';
+import { config, getAssetIssuer } from '../config';
 import prisma from '../db';
 import { log } from '../utils/logger';
 import { offRampService } from './offRampService';
 import { invoiceService } from './invoiceService';
+import { verifyInvoicePayment } from './paymentVerifier';
 
 // A crypto payment that lands on-chain shortly after an invoice flips to
 // EXPIRED (e.g. a slower mobile wallet losing the race against the poll
@@ -200,17 +201,30 @@ export class WatcherService {
         tx.hash,
         networkPassphrase
       );
-      if (!txDetails || !txDetails.successful) continue;
+      if (!txDetails) continue;
 
-      // Find the matching payment operation
-      const matchingPayment = txDetails.payments.find(
-        (p: any) =>
-          p.to === walletAddress &&
-          assetMatches(p, matchingInvoice.currency, matchingInvoice.networkPassphrase) &&
-          parseFloat(p.amount) >= parseFloat(matchingInvoice.total.toString())
+      // Check uniqueness
+      const alreadyPaid = !!(await prisma.payment.findUnique({
+        where: { transactionHash: txDetails.hash },
+      }));
+
+      const canonicalIssuer = getAssetIssuer(matchingInvoice.currency, matchingInvoice.networkPassphrase);
+      const verification = verifyInvoicePayment(
+        {
+          id: matchingInvoice.id,
+          invoiceNumber: matchingInvoice.invoiceNumber,
+          freelancerWallet: walletAddress,
+          networkPassphrase: matchingInvoice.networkPassphrase,
+          total: matchingInvoice.total.toString(),
+          currency: matchingInvoice.currency,
+          createdAt: new Date(0), // watcher scans recent txs only; skip time check
+        },
+        txDetails,
+        canonicalIssuer,
+        alreadyPaid
       );
 
-      if (!matchingPayment) continue;
+      if ('status' in verification) continue;
 
       // Mark invoice as paid through invoiceService.markAsPaid, which re-reads
       // status under SERIALIZABLE isolation and is idempotent by tx hash — this
@@ -221,8 +235,8 @@ export class WatcherService {
           matchingInvoice.id,
           txDetails.hash,
           txDetails.ledger,
-          matchingPayment.from,
-          matchingPayment.amount
+          verification.payment.from,
+          verification.payment.amount
         );
         // Drop it from this cycle's working set so a second matching tx in the
         // same wallet history can't re-enter the mark path.

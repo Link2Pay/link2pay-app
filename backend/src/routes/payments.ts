@@ -1,17 +1,19 @@
 import { Router, Request, Response } from 'express';
 import { invoiceService } from '../services/invoiceService';
 import { stellarService } from '../services/stellarService';
+import { verifyInvoicePayment } from '../services/paymentVerifier';
 import {
   validateBody,
   payIntentSchema,
   submitPaymentSchema,
   confirmPaymentSchema,
 } from '../middleware/validation';
-import { getAssetIssuer, assetMatches } from '../config';
+import { getAssetIssuer } from '../config';
 import { formatStellarAmount } from '../utils/generators';
 import { mapStellarError } from '../utils/stellarErrors';
 import { log } from '../utils/logger';
 import { hasActivateNewAccountsFlag } from '../utils/paymentLinks';
+import prisma from '../db';
 
 const router = Router();
 
@@ -208,47 +210,53 @@ router.post(
 
       if (result.successful) {
         // Horizon accepting the transaction only proves it's validly signed —
-        // not that it pays *this* invoice. Re-fetch it and require a matching
-        // payment op before marking paid, same check /confirm already does.
-        // Without this, any successfully-submitted transaction (regardless of
-        // destination or amount) would flip the invoice to PAID.
+        // not that it pays *this* invoice.  Use the centralized verifier
+        // (SEC-03) which enforces memo, asset, amount, time, and uniqueness.
         const txDetails = await stellarService.verifyTransaction(
           result.hash,
           invoice.networkPassphrase
         );
 
-        const matchingPayment = txDetails?.payments.find(
-          (p: any) =>
-            p.to === invoice.freelancerWallet &&
-            assetMatches(p, invoice.currency, invoice.networkPassphrase)
+        if (!txDetails) {
+          return res.status(400).json({ error: 'Transaction not found on network' });
+        }
+
+        // Check uniqueness before verification so we reject duplicate tx, not
+        // "check failed".
+        const alreadyPaid = !!(await prisma.payment.findUnique({
+          where: { transactionHash: result.hash },
+        }));
+        if (alreadyPaid) {
+          return res.json({ success: true, alreadyPaid: true });
+        }
+
+        const canonicalIssuer = getAssetIssuer(invoice.currency, invoice.networkPassphrase);
+        const verification = verifyInvoicePayment(
+          {
+            id: invoice.id,
+            invoiceNumber: invoice.invoiceNumber,
+            freelancerWallet: invoice.freelancerWallet,
+            networkPassphrase: invoice.networkPassphrase,
+            total: invoice.total.toString(),
+            currency: invoice.currency,
+            createdAt: invoice.createdAt,
+          },
+          txDetails,
+          canonicalIssuer,
+          alreadyPaid
         );
 
-        if (!matchingPayment) {
-          log.error('Submitted transaction does not pay this invoice', {
-            invoiceId,
-            transactionHash: result.hash,
-          });
-          return res.status(400).json({
-            error: 'Submitted transaction does not match this invoice\'s payment details',
-            transactionHash: result.hash,
-          });
+        if ('status' in verification) {
+          return res.status(verification.status).json({ error: verification.message, transactionHash: result.hash });
         }
 
-        const paidAmount = parseFloat(matchingPayment.amount);
-        const expectedAmount = parseFloat(invoice.total.toString());
-        if (paidAmount < expectedAmount) {
-          return res.status(400).json({
-            error: `Underpayment: paid ${paidAmount}, expected ${expectedAmount}`,
-            transactionHash: result.hash,
-          });
-        }
-
-        // Mark as paid
+        // Mark as paid with the verified payment details
         await invoiceService.markAsPaid(
           invoiceId,
           result.hash,
           result.ledger,
-          matchingPayment.from
+          verification.payment.from,
+          verification.payment.amount
         );
       }
 
@@ -295,7 +303,7 @@ router.post(
         });
       }
 
-      // Verify on-chain
+      // Verify on-chain (centralized verifier — SEC-03)
       const txDetails = await stellarService.verifyTransaction(
         transactionHash,
         invoice.networkPassphrase
@@ -304,38 +312,38 @@ router.post(
         return res.status(404).json({ error: 'Transaction not found on network' });
       }
 
-      if (!txDetails.successful) {
-        return res.status(400).json({ error: 'Transaction was not successful' });
-      }
+      // Check uniqueness
+      const existing = await prisma.payment.findUnique({
+        where: { transactionHash },
+      });
 
-      // Verify payment details match
-      const matchingPayment = txDetails.payments.find(
-        (p: any) =>
-          p.to === invoice.freelancerWallet &&
-          assetMatches(p, invoice.currency, invoice.networkPassphrase)
+      const canonicalIssuer = getAssetIssuer(invoice.currency, invoice.networkPassphrase);
+      const verification = verifyInvoicePayment(
+        {
+          id: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+          freelancerWallet: invoice.freelancerWallet,
+          networkPassphrase: invoice.networkPassphrase,
+          total: invoice.total.toString(),
+          currency: invoice.currency,
+          createdAt: invoice.createdAt,
+        },
+        txDetails,
+        canonicalIssuer,
+        !!existing
       );
 
-      if (!matchingPayment) {
-        return res.status(400).json({
-          error: 'Transaction does not match invoice payment details',
-        });
+      if ('status' in verification) {
+        return res.status(verification.status).json({ error: verification.message });
       }
 
-      const paidAmount = parseFloat(matchingPayment.amount);
-      const expectedAmount = parseFloat(invoice.total.toString());
-
-      if (paidAmount < expectedAmount) {
-        return res.status(400).json({
-          error: `Underpayment: paid ${paidAmount}, expected ${expectedAmount}`,
-        });
-      }
-
-      // Mark as paid
+      // Mark as paid with the verified payment
       await invoiceService.markAsPaid(
         invoiceId,
         transactionHash,
         txDetails.ledger,
-        matchingPayment.from
+        verification.payment.from,
+        verification.payment.amount
       );
 
       res.json({
