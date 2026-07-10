@@ -95,9 +95,10 @@ router.post(
       }
 
       // Validate invoice can be paid
-      // PROCESSING is included to allow retries if signing/submission failed
-      if (!['PENDING', 'DRAFT', 'PROCESSING'].includes(invoice.status)) {
-        return res.status(400).json({
+      // Only PENDING is acceptable now (SEC-04): PROCESSING means the amount
+      // has already been set by a previous pay-intent call.
+      if (!['PENDING'].includes(invoice.status)) {
+        return res.status(409).json({
           error: `Invoice cannot be paid. Current status: ${invoice.status}`,
         });
       }
@@ -107,9 +108,8 @@ router.post(
         return res.status(400).json({ error: 'Cannot pay your own invoice' });
       }
 
-      // Open-amount invoices: the payer supplies the amount. Persist it so the
-      // confirmation/matching pipeline (which compares against invoice.total)
-      // and receipts reflect what was actually charged.
+      // Open-amount invoices: the payer supplies the amount.  Set it
+      // atomically (SEC-04) — a second caller receives 409.
       let effectiveTotal = invoice.total.toString();
       if (invoice.isOpenAmount) {
         if (!payerAmount || payerAmount <= 0) {
@@ -118,6 +118,11 @@ router.post(
           });
         }
         const updated = await invoiceService.setInvoiceAmount(invoiceId, payerAmount);
+        if (!updated) {
+          return res.status(409).json({
+            error: 'This invoice amount has already been claimed. Please request a new payment link.',
+          });
+        }
         effectiveTotal = updated.total.toString();
       }
 
