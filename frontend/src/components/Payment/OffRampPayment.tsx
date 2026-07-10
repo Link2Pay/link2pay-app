@@ -10,7 +10,7 @@ import {
   getOfframpEstimate,
 } from '../../services/api';
 import WalletRoller from './WalletRoller';
-import type { PublicInvoice } from '../../types';
+import type { PublicCheckoutInvoice } from '../../types';
 import { useI18n } from '../../i18n/I18nProvider';
 import { shortenAddress } from '../../lib/format';
 import { config } from '../../config';
@@ -29,7 +29,7 @@ const PREPARING = new Set(['DRAFT', 'PENDING', 'AWAITING_ANCHOR']);
 const IN_FLIGHT = new Set(['PROCESSING', 'SETTLING']);
 
 interface Props {
-  invoice: PublicInvoice;
+  invoice: PublicCheckoutInvoice;
   onRefresh: () => void;
 }
 
@@ -260,11 +260,6 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
             <p className="text-3xs uppercase tracking-wider text-ink-3">{t('payment.offramp.receiverGets')}</p>
           </div>
         </div>
-        {invoice.payoutAlias && (
-          <p className="mt-2 text-center text-2xs text-ink-3">
-            {t('payment.offramp.toLlave')} <span className="font-mono">{invoice.payoutAlias}</span>
-          </p>
-        )}
         {estimate?.belowMinimum && (
           <p className="mt-2 text-center text-2xs text-danger">
             {t('payment.offramp.belowMinimum', { min: (estimate.minCop ?? 5000).toLocaleString('es-CO') })}
@@ -407,7 +402,7 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
             <h3 className="text-base font-semibold text-ink-0">{t('payment.offramp.settledTitle')}</h3>
             <p className="mt-1 text-sm text-ink-3">
               {copAmount
-                ? t('payment.offramp.settledBody', { amount: copAmount, alias: invoice.payoutAlias || t('payment.offramp.theBreBLlave') })
+                ? t('payment.offramp.settledBody', { amount: copAmount, alias: t('payment.offramp.theBreBLlave') })
                 : t('payment.offramp.settledBodyNoAmount')}
             </p>
             {import.meta.env.DEV && (
@@ -423,16 +418,6 @@ export default function OffRampPayment({ invoice, onRefresh }: Props) {
                 className="inline-flex items-center gap-1 text-xs font-medium text-accent-ink hover:underline"
               >
                 {t('payment.offramp.viewOnchainPayment')} <ExternalLink className="h-3 w-3" />
-              </a>
-            )}
-            {invoice.receiptTxHash && (
-              <a
-                href={`https://stellar.expert/explorer/${isTestnet ? 'testnet' : 'public'}/tx/${invoice.receiptTxHash}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-medium text-accent-ink hover:underline"
-              >
-                {t('payment.offramp.viewOnchainReceipt')} <ExternalLink className="h-3 w-3" />
               </a>
             )}
           </div>

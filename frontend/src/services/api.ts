@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import type {
   Invoice,
   PublicInvoice,
+  PublicCheckoutInvoice,
   CreateInvoiceData,
   PayIntentResponse,
   DashboardStats,
@@ -165,16 +166,16 @@ export async function listInvoices(
   );
 }
 
-export async function getInvoice(id: string): Promise<PublicInvoice> {
+export async function getInvoice(id: string): Promise<PublicCheckoutInvoice> {
   // Preview solo-dev del checkout: devuelve un fixture sin tocar el backend.
   // El guard `import.meta.env.DEV` hace que el bundler elimine esta rama (y el
   // import dinámico de los fixtures) en el build de producción.
   if (import.meta.env.DEV && id.startsWith('mock')) {
     const { getMockInvoice } = await import('../dev/mockInvoices');
     const inv = getMockInvoice(id);
-    if (inv) return inv;
+    if (inv) return inv as PublicCheckoutInvoice;
   }
-  return request<PublicInvoice>(`/invoices/${id}`);
+  return request<PublicCheckoutInvoice>(`/invoices/${id}`);
 }
 
 export async function getOwnerInvoice(

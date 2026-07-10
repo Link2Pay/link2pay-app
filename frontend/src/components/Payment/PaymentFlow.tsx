@@ -8,7 +8,7 @@ import WalletRoller from './WalletRoller';
 import OffRampPayment from './OffRampPayment';
 import BrandMark from '../BrandMark';
 import BrandWordmark from '../BrandWordmark';
-import type { PublicInvoice, InvoiceStatus } from '../../types';
+import type { PublicCheckoutInvoice, InvoiceStatus } from '../../types';
 import InvoiceDocument from '../Invoice/InvoiceDocument';
 import { formatAmount } from '../../lib/format';
 import { config } from '../../config';
@@ -102,7 +102,7 @@ async function launchSep7Uri(uri: string): Promise<boolean> {
 export default function PaymentFlow() {
   const { id } = useParams<{ id: string }>();
   const { t, language } = useI18n();
-  const [invoice, setInvoice] = useState<PublicInvoice | null>(null);
+  const [invoice, setInvoice] = useState<PublicCheckoutInvoice | null>(null);
   const [step, setStep] = useState<PayStep>('loading');
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -431,8 +431,8 @@ export default function PaymentFlow() {
               {(() => {
                 const merchantName = invoice.freelancerName || invoice.freelancerCompany || t('payment.freelancer');
                 const merchantInitial = merchantName.charAt(0).toUpperCase();
-                const payerName = invoice.clientName || invoice.clientCompany || '';
-                const payerInitial = (payerName || '?').charAt(0).toUpperCase();
+                const payerName = t('payment.to');
+                const payerInitial = '?';
                 return (
                   <div className="grid grid-cols-1 items-center gap-4 border-b border-surface-3 bg-surface-1 p-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-3 sm:p-6">
                     {/* De (comercio) — emisor, énfasis de marca */}
@@ -467,9 +467,6 @@ export default function PaymentFlow() {
                       <div className="min-w-0 sm:order-1">
                         <p className="label mb-0.5">{t('payment.to')}</p>
                         <p className="truncate text-sm font-semibold text-ink-0">{payerName || '—'}</p>
-                        {invoice.clientCompany && invoice.clientName && (
-                          <p className="truncate text-xs text-ink-3">{invoice.clientCompany}</p>
-                        )}
                       </div>
                     </div>
                   </div>

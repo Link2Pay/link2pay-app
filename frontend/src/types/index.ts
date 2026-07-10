@@ -116,6 +116,39 @@ export interface PublicInvoice {
   }[];
 }
 
+/**
+ * Public checkout DTO — strict allowlist matching the backend
+ * PublicCheckoutInvoice (SEC-02).  Forbidden fields (PII, payout metadata,
+ * internal identifiers) are intentionally absent so they cannot be used
+ * from the public checkout type.
+ */
+export interface PublicCheckoutInvoice {
+  id: string;
+  invoiceNumber: string;
+  status: InvoiceStatus;
+  invoiceType?: InvoiceType | null;
+  isOpenAmount: boolean;
+  freelancerName?: string | null;
+  freelancerCompany?: string | null;
+  freelancerLogoUrl?: string | null;
+  title: string;
+  description?: string | null;
+  lineItems: { description: string; quantity: string; rate: string; amount: string }[];
+  subtotal: string;
+  taxRate?: string | null;
+  taxAmount?: string | null;
+  discount?: string | null;
+  total: string;
+  currency: Currency;
+  createdAt: string;
+  dueDate?: string | null;
+  paidAt?: string | null;
+  transactionHash?: string | null;
+  networkPassphrase: string;
+  payoutMethod?: string | null;
+  quoteBuyAmount?: string | null;
+}
+
 export interface CreateInvoiceData {
   freelancerWallet: string;
   freelancerName?: string;

@@ -1,8 +1,8 @@
-import type { PublicInvoice } from '../../types';
+import type { PublicCheckoutInvoice } from '../../types';
 import { useI18n } from '../../i18n/I18nProvider';
 
 interface Props {
-  invoice: PublicInvoice;
+  invoice: PublicCheckoutInvoice;
 }
 
 function formatDate(iso: string) {
@@ -68,34 +68,10 @@ export default function InvoiceDocument({ invoice }: Props) {
           {!invoice.freelancerCompany && !invoice.freelancerName && (
             <p className="text-xs text-ink-2">{t('payment.freelancer')}</p>
           )}
-          {invoice.freelancerTaxId && (
-            <p className="text-2xs text-ink-3 mt-1">{t('payment.doc.taxId')}: {invoice.freelancerTaxId}</p>
-          )}
-          {invoice.freelancerAddress && (
-            <p className="text-2xs text-ink-3">{invoice.freelancerAddress}</p>
-          )}
-          {invoice.freelancerEmail && (
-            <p className="text-2xs text-ink-3 break-all">{invoice.freelancerEmail}</p>
-          )}
-          {invoice.freelancerPhone && (
-            <p className="text-2xs text-ink-3">{invoice.freelancerPhone}</p>
-          )}
         </div>
         <div className="rounded-lg bg-surface-1 p-3">
           <p className="mb-1.5 text-3xs font-medium uppercase tracking-wider text-ink-3">{t('payment.doc.billTo')}</p>
-          <p className="break-words text-sm font-semibold text-ink-0">{invoice.clientName}</p>
-          {invoice.clientCompany && (
-            <p className="break-words text-xs text-ink-2">{invoice.clientCompany}</p>
-          )}
-          {invoice.clientTaxId && (
-            <p className="text-2xs text-ink-3 mt-1">{t('payment.doc.taxId')}: {invoice.clientTaxId}</p>
-          )}
-          {invoice.clientAddress && (
-            <p className="text-2xs text-ink-3">{invoice.clientAddress}</p>
-          )}
-          {invoice.clientEmail && (
-            <p className="text-2xs text-ink-3 break-all">{invoice.clientEmail}</p>
-          )}
+          <p className="break-words text-sm font-semibold text-ink-0">{t('payment.doc.invoice')}</p>
         </div>
       </div>
 
@@ -199,13 +175,6 @@ export default function InvoiceDocument({ invoice }: Props) {
         </div>
       </div>
 
-      {/* Notes */}
-      {invoice.notes && (
-        <div className="mt-5 pt-4 border-t border-surface-2">
-          <p className="text-3xs uppercase tracking-wider text-ink-3 mb-1 font-medium">{t('payment.doc.notes')}</p>
-          <p className="text-xs text-ink-2 leading-relaxed">{invoice.notes}</p>
-        </div>
-      )}
     </div>
   );
 }
