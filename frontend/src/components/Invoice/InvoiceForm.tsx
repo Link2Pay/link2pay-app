@@ -43,9 +43,7 @@ const COPY: Record<Language, {
   company: string;
   clientName: string;
   clientEmail: string;
-  clientOptional: string;
   title: string;
-  titleDirectPlaceholder: string;
   amount: string;
   amountPlaceholder: string;
   currency: string;
@@ -117,9 +115,7 @@ const COPY: Record<Language, {
     company: 'Company',
     clientName: 'Client Name',
     clientEmail: 'Client Email',
-    clientOptional: 'Client (optional)',
     title: 'Title',
-    titleDirectPlaceholder: 'What are you charging for?',
     amount: 'Amount',
     amountPlaceholder: '0.00',
     currency: 'Currency',
@@ -191,9 +187,7 @@ const COPY: Record<Language, {
     company: 'Empresa',
     clientName: 'Nombre del cliente',
     clientEmail: 'Email del cliente',
-    clientOptional: 'Cliente (opcional)',
     title: 'Titulo',
-    titleDirectPlaceholder: '¿Por qué cobras?',
     amount: 'Monto',
     amountPlaceholder: '0.00',
     currency: 'Moneda',
@@ -265,9 +259,7 @@ const COPY: Record<Language, {
     company: 'Empresa',
     clientName: 'Nome do cliente',
     clientEmail: 'Email do cliente',
-    clientOptional: 'Cliente (opcional)',
     title: 'Titulo',
-    titleDirectPlaceholder: 'O que você está cobrando?',
     amount: 'Valor',
     amountPlaceholder: '0.00',
     currency: 'Moeda',
@@ -666,6 +658,13 @@ export default function InvoiceForm({ invoiceType = 'DIRECT_PAYMENT' }: Props) {
   // keeps stale state from resurfacing it.
   const fiatSelected = payoutMethod === 'BRE_B' && config.fiatRailsEnabled && Boolean(fiatRail);
   const fiatWalled = fiatSelected && !fiatLive;
+
+  // Bre-B settles through the anchor in USDC — the backend rejects other
+  // currencies for fiat payouts, so switching to fiat pins the currency.
+  useEffect(() => {
+    if (fiatSelected && fiatLive && currency !== 'USDC') setCurrency('USDC');
+  }, [fiatSelected, fiatLive, currency]);
+
   const directAmountId = `${formId}-direct-amount`;
   const directCurrencyId = `${formId}-direct-currency`;
   const directDueDateId = `${formId}-direct-due-date`;
