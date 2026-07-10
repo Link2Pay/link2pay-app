@@ -103,6 +103,7 @@ export class WatcherService {
         payoutMethod: true,
         anchorTxId: true,
         status: true,
+        createdAt: true,
       },
     });
 
@@ -168,6 +169,7 @@ export class WatcherService {
       total: any;
       currency: string;
       networkPassphrase: string;
+      createdAt: Date;
     }>
   ) {
     const transactions = await stellarService.getTransactionHistory(
@@ -217,7 +219,7 @@ export class WatcherService {
           networkPassphrase: matchingInvoice.networkPassphrase,
           total: matchingInvoice.total.toString(),
           currency: matchingInvoice.currency,
-          createdAt: new Date(0), // watcher scans recent txs only; skip time check
+          createdAt: matchingInvoice.createdAt,
         },
         txDetails,
         canonicalIssuer,

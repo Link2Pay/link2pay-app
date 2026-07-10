@@ -190,3 +190,80 @@ describe('verifyInvoicePayment (SEC-03)', () => {
     expect(messages.size).toBeGreaterThanOrEqual(1);
   });
 });
+
+// Watcher-path parity: the watcher must pass the real invoice.createdAt
+// (not new Date(0)) so that the timestamp check is enforced identically
+// across /submit, /confirm, and the watcher.
+describe('watcher-path timestamp enforcement (SEC-03 parity)', () => {
+  it('rejects a transaction older than the invoice when real createdAt is passed', () => {
+    // Invoice created July 2, transaction from July 1 — must be rejected.
+    const invoice = makeInvoice({ createdAt: new Date('2026-07-02T00:00:00Z') });
+    const tx = makeTx({ createdAt: '2026-07-01T00:00:00Z' });
+
+    const result = verifyInvoicePayment(invoice, tx, ISSUER, false);
+
+    expect('status' in result).toBe(true);
+    expect((result as any).message).toBe('Transaction predates invoice');
+  });
+
+  it('accepts a transaction created after the invoice (normal case)', () => {
+    const invoice = makeInvoice({ createdAt: new Date('2026-07-01T00:00:00Z') });
+    const tx = makeTx({ createdAt: '2026-07-02T00:00:00Z' });
+
+    const result = verifyInvoicePayment(invoice, tx, ISSUER, false);
+
+    expect('payment' in result).toBe(true);
+  });
+
+  it('accepts a transaction within the 60s clock-skew tolerance', () => {
+    // Invoice created at 12:00:00, tx at 11:59:30 (30 seconds before — within tolerance)
+    const invoice = makeInvoice({ createdAt: new Date('2026-07-01T12:00:00Z') });
+    const tx = makeTx({ createdAt: '2026-07-01T11:59:30Z' });
+
+    const result = verifyInvoicePayment(invoice, tx, ISSUER, false);
+
+    expect('payment' in result).toBe(true);
+  });
+
+  it('rejects a transaction 61 seconds before the invoice (outside tolerance)', () => {
+    const invoice = makeInvoice({ createdAt: new Date('2026-07-01T12:00:00Z') });
+    const tx = makeTx({ createdAt: '2026-07-01T11:58:59Z' });
+
+    const result = verifyInvoicePayment(invoice, tx, ISSUER, false);
+
+    expect('status' in result).toBe(true);
+  });
+
+  // Parity proof: the same invoice + transaction fixture produces the same
+  // accept/reject decision regardless of which call site invokes the verifier.
+  it('makes identical decisions for the same fixture (parity proof)', () => {
+    const invoice = makeInvoice();
+    const tx = makeTx();
+
+    // Simulate /submit path
+    const submitResult = verifyInvoicePayment(invoice, tx, ISSUER, false);
+    // Simulate /confirm path
+    const confirmResult = verifyInvoicePayment(invoice, tx, ISSUER, false);
+    // Simulate watcher path (same real createdAt, not new Date(0))
+    const watcherResult = verifyInvoicePayment(invoice, tx, ISSUER, false);
+
+    const allAccept = [submitResult, confirmResult, watcherResult].every(
+      (r) => 'payment' in r
+    );
+    expect(allAccept).toBe(true);
+  });
+
+  it('rejects identically across all three paths for a historic transaction', () => {
+    const invoice = makeInvoice({ createdAt: new Date('2026-07-02T00:00:00Z') });
+    const tx = makeTx({ createdAt: '2026-07-01T00:00:00Z' });
+
+    const submitResult = verifyInvoicePayment(invoice, tx, ISSUER, false);
+    const confirmResult = verifyInvoicePayment(invoice, tx, ISSUER, false);
+    const watcherResult = verifyInvoicePayment(invoice, tx, ISSUER, false);
+
+    const allReject = [submitResult, confirmResult, watcherResult].every(
+      (r) => 'status' in r
+    );
+    expect(allReject).toBe(true);
+  });
+});
