@@ -280,7 +280,7 @@ export default function SendFundsModal({ balances, onClose, onSent }: Props) {
               <Select id="send-asset" value={assetCode} options={assetOptions} onChange={setAssetCode} />
               {selected && (
                 <p className="mt-1 text-xs text-ink-3 [font-variant-numeric:tabular-nums]">
-                  {copy.available}: {maxAmount.toFixed(selected.code === 'XLM' ? 2 : 2)} {selected.code}
+                  {copy.available}: {maxAmount.toFixed(2)} {selected.code}
                 </p>
               )}
             </div>

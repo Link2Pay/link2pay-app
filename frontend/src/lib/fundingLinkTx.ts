@@ -44,7 +44,7 @@ function usdcAsset(spec: FundingSpec): Asset {
   return new Asset('USDC', spec.usdcIssuer);
 }
 
-export function escrowStartingBalance(spec: FundingSpec): string {
+function escrowStartingBalance(spec: FundingSpec): string {
   if (spec.asset === 'USDC') return USDC_ESCROW_XLM;
   return (parseFloat(spec.amount) + XLM_ESCROW_EXTRA).toFixed(7).replace(/\.?0+$/, '');
 }

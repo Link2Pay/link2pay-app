@@ -11,7 +11,7 @@ import { useDashboardViewStore } from '../store/dashboardViewStore';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Invoice, InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
-import { CURRENCY_SYMBOLS, config } from '../config';
+import { CURRENCY_SYMBOLS } from '../config';
 import { counterpartyWallet, displayClientName, isAnonymousClient } from '../lib/payerDisplay';
 import { stellarExpertUrl } from '../lib/stellarExplorer';
 
@@ -30,7 +30,6 @@ const COPY: Record<
     filterInProgress: string;
     filterFailed: string;
     filterSettled: string;
-    loading: string;
     empty: string;
     emptyFiltered: string;
     loadError: string;
@@ -60,7 +59,6 @@ const COPY: Record<
     filterInProgress: 'In Progress',
     filterFailed: 'Failed',
     filterSettled: 'Settled',
-    loading: 'Loading transactions...',
     empty: 'No transaction activity yet.',
     emptyFiltered: 'No transactions match this filter.',
     loadError: "Couldn't load transactions. Check your connection and try again.",
@@ -89,7 +87,6 @@ const COPY: Record<
     filterInProgress: 'En progreso',
     filterFailed: 'Fallidas',
     filterSettled: 'Liquidadas',
-    loading: 'Cargando transacciones...',
     empty: 'Aun no hay actividad de transacciones.',
     emptyFiltered: 'No hay transacciones para este filtro.',
     loadError: 'No se pudieron cargar las transacciones. Revisa tu conexion e intenta de nuevo.',
@@ -118,7 +115,6 @@ const COPY: Record<
     filterInProgress: 'Em progresso',
     filterFailed: 'Falhas',
     filterSettled: 'Liquidadas',
-    loading: 'Carregando transacoes...',
     empty: 'Ainda nao ha atividade de transacoes.',
     emptyFiltered: 'Nenhuma transacao para este filtro.',
     loadError: 'Nao foi possivel carregar as transacoes. Verifique sua conexao e tente novamente.',
@@ -472,7 +468,7 @@ export default function Transactions() {
                     <td className="px-4 py-3">
                       {invoice.transactionHash ? (
                         <a
-                          href={`https://stellar.expert/explorer/${config.stellarNetwork === 'testnet' ? 'testnet' : 'public'}/tx/${invoice.transactionHash}`}
+                          href={stellarExpertUrl('tx', invoice.transactionHash, invoice.networkPassphrase)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 font-mono text-[13px] text-muted-foreground hover:text-foreground hover:underline"

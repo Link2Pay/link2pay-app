@@ -8,9 +8,6 @@ import type {
   PublicInvoice,
   CreateInvoiceData,
   PayIntentResponse,
-  CreatePaymentLinkData,
-  PaymentLink,
-  PaymentLinkStatus,
   DashboardStats,
   SavedClient,
   SaveClientData,
@@ -52,10 +49,9 @@ function notifyUserError(key: string, message: string): void {
 /**
  * Core fetch wrapper.
  *
- * When `walletAddress` is provided the request is authenticated:
- *   1. Fetches a nonce from POST /api/auth/nonce  (cached ~5 min)
- *   2. Signs the nonce message via Freighter       (cached ~5 min)
- *   3. Injects x-wallet-address, x-auth-nonce, x-auth-signature
+ * When `walletAddress` is provided the request is authenticated via
+ * getAuthHeaders: a signed-nonce session for extension wallets, or a Privy
+ * bearer token for embedded wallets. Both are cached ~5 minutes.
  */
 async function request<T>(
   path: string,
@@ -195,21 +191,6 @@ export async function getOwnerInvoice(
   return request<Invoice>(`/invoices/${id}/owner`, {}, walletAddress);
 }
 
-export async function updateInvoice(
-  id: string,
-  data: Partial<CreateInvoiceData>,
-  walletAddress: string
-): Promise<Invoice> {
-  return request<Invoice>(
-    `/invoices/${id}`,
-    {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    },
-    walletAddress
-  );
-}
-
 export async function sendInvoice(
   id: string,
   walletAddress: string
@@ -293,30 +274,6 @@ export async function getDashboardStats(
   const query = params.toString();
   const path = query ? `/invoices/stats?${query}` : '/invoices/stats';
   return request<DashboardStats>(path, {}, walletAddress);
-}
-
-// Payment Link API ---------------------------------------------------
-
-export async function createLink(
-  data: CreatePaymentLinkData,
-  walletAddress: string
-): Promise<PaymentLink> {
-  return request<PaymentLink>(
-    '/links',
-    {
-      method: 'POST',
-      body: JSON.stringify(data),
-    },
-    walletAddress
-  );
-}
-
-export async function getLink(id: string): Promise<PaymentLink> {
-  return request<PaymentLink>(`/links/${id}`);
-}
-
-export async function getLinkStatus(id: string): Promise<PaymentLinkStatus> {
-  return request<PaymentLinkStatus>(`/links/${id}/status`);
 }
 
 // Client API ---------------------------------------------------
@@ -409,16 +366,6 @@ export async function submitPayment(
   return request('/payments/submit', {
     method: 'POST',
     body: JSON.stringify({ invoiceId, signedTransactionXdr }),
-  });
-}
-
-export async function confirmPayment(
-  invoiceId: string,
-  transactionHash: string
-): Promise<any> {
-  return request('/payments/confirm', {
-    method: 'POST',
-    body: JSON.stringify({ invoiceId, transactionHash }),
   });
 }
 

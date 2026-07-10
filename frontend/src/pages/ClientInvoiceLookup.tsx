@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import ThemeToggle from '../components/ThemeToggle';
+import BrandMark from '../components/BrandMark';
 import LanguageToggle from '../components/LanguageToggle';
 import { useI18n } from '../i18n/I18nProvider';
 import type { Language } from '../i18n/translations';
@@ -92,9 +93,7 @@ export default function ClientInvoiceLookup() {
 
         <div className="animate-in">
           <div className="text-center mb-6 sm:mb-8">
-            <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground text-lg font-bold font-display">S</span>
-            </div>
+            <BrandMark className="w-12 h-12 mx-auto mb-3" />
             <h1 className="text-xl font-bold text-foreground font-display mb-1 sm:text-2xl">{copy.title}</h1>
             <p className="text-sm text-muted-foreground">{copy.subtitle}</p>
           </div>

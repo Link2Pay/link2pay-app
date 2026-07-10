@@ -3,8 +3,8 @@ import { shortenAddress } from './format';
 // Quick direct-payment links are created without a real recipient — the form
 // stores this sentinel pair (see InvoiceForm). Real identity arrives at pay
 // time as the payer's wallet.
-export const ANONYMOUS_CLIENT_NAME = 'Payer';
-export const ANONYMOUS_CLIENT_EMAIL = 'payer@link2pay.io';
+const ANONYMOUS_CLIENT_NAME = 'Payer';
+const ANONYMOUS_CLIENT_EMAIL = 'payer@link2pay.io';
 
 interface ClientFields {
   clientName: string;

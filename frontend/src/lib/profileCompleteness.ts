@@ -1,6 +1,6 @@
 import type { BusinessProfile } from '../types';
 
-export const REQUIRED_PROFILE_FIELDS = ['displayName', 'email', 'phone', 'country'] as const;
+const REQUIRED_PROFILE_FIELDS = ['displayName', 'email', 'phone', 'country'] as const;
 
 export function isProfileComplete(profile: BusinessProfile | null | undefined): boolean {
   if (!profile) return false;

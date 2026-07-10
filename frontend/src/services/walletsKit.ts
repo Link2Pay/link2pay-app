@@ -97,12 +97,6 @@ export function getKitModules(networkPassphrase: string): ModuleInterface[] {
   return _modules;
 }
 
-/** Render the Kit's connect button into a container element. */
-export async function kitMountButton(el: HTMLElement, networkPassphrase: string): Promise<void> {
-  ensureInit(networkPassphrase);
-  await StellarWalletsKit.createButton(el);
-}
-
 /** Select a wallet by module id; must be called before getAddress/sign. */
 export function kitSetWallet(id: string, networkPassphrase: string): void {
   ensureInit(networkPassphrase);
@@ -133,18 +127,6 @@ export async function kitGetNetwork(): Promise<{ network: string; networkPassphr
   } catch {
     return null;
   }
-}
-
-/** Sign an XDR with the connected wallet; returns the signed XDR. */
-export async function kitSign(xdr: string, networkPassphrase: string): Promise<string> {
-  ensureInit(networkPassphrase);
-  const address = await kitGetAddress();
-  if (!address) throw new Error('No wallet connected');
-  const { signedTxXdr } = await StellarWalletsKit.signTransaction(xdr, {
-    networkPassphrase,
-    address,
-  });
-  return signedTxXdr;
 }
 
 /** Sign an XDR for a specific address (payer flow — address is page-local). */

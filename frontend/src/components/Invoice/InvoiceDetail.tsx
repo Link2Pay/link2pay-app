@@ -8,7 +8,6 @@ import InvoiceStatusBadge from './InvoiceStatusBadge';
 import { useI18n } from '../../i18n/I18nProvider';
 import { useWalletStore } from '../../store/walletStore';
 import type { Invoice, InvoiceStatus } from '../../types';
-import { config } from '../../config';
 import { formatAmount } from '../../lib/format';
 import { counterpartyWallet, displayClientName, isAnonymousClient } from '../../lib/payerDisplay';
 import { stellarExpertUrl } from '../../lib/stellarExplorer';

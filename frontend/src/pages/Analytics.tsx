@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { BarChart3, CalendarDays, CheckCircle2, CircleDollarSign, Clock3, Gauge, PieChart, Timer, Users2 } from 'lucide-react';
+import { CalendarDays, CheckCircle2, CircleDollarSign, Clock3, Gauge, PieChart, Timer, Users2 } from 'lucide-react';
 import { getDashboardStats, listInvoices } from '../services/api';
 import { displayClientName } from '../lib/payerDisplay';
 import PageHeader from '../components/ui/PageHeader';
@@ -43,7 +43,6 @@ const COPY: Record<
     links: string;
     paidVolume: string;
     avgMin: string;
-    loading: string;
     period7: string;
     period15: string;
     period30: string;
@@ -79,7 +78,6 @@ const COPY: Record<
     links: 'Links',
     paidVolume: 'Paid volume',
     avgMin: 'min',
-    loading: 'Loading analytics...',
     period7: '7D',
     period15: '15D',
     period30: '30D',
@@ -114,7 +112,6 @@ const COPY: Record<
     links: 'Links',
     paidVolume: 'Volumen pagado',
     avgMin: 'min',
-    loading: 'Cargando analítica...',
     period7: '7D',
     period15: '15D',
     period30: '30D',
@@ -149,7 +146,6 @@ const COPY: Record<
     links: 'Links',
     paidVolume: 'Volume pago',
     avgMin: 'min',
-    loading: 'Carregando analítica...',
     period7: '7D',
     period15: '15D',
     period30: '30D',
@@ -636,17 +632,6 @@ export default function Analytics() {
         )}
       </div>
 
-      {stats && (
-        <div className="card p-4">
-          <p className="text-xs text-ink-3">
-            <span className="inline-flex items-center gap-1">
-              <BarChart3 className="h-3.5 w-3.5" />
-              Global totals:
-            </span>{' '}
-            total links {stats.totalInvoices} | paid {stats.paidInvoices} | pending {stats.pendingInvoices} | revenue {toNumber(stats.totalRevenue).toFixed(2)}
-          </p>
-        </div>
-      )}
         </>
       )}
     </div>

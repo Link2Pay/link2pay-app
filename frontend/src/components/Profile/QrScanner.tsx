@@ -1,5 +1,3 @@
-// frontend/src/components/Profile/QrScanner.tsx
-//
 // Camera QR scanner modal. Loaded lazily (React.lazy in ProfileOptions) so
 // jsQR and this component stay out of the main bundle. Decodes ~10 frames/s
 // from getUserMedia; first hit wins. Never auto-saves — the caller decides

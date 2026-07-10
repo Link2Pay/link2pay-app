@@ -1,4 +1,3 @@
-//
 // Desktop side of the "continue on phone" handoff: mints a scan session,
 // shows its URL as a QR for the phone, and polls until the llave arrives.
 // Loaded lazily from ProfileOptions alongside QrScanner.

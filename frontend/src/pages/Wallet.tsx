@@ -51,9 +51,7 @@ const COPY: Record<
     pending: string;
     assetsTrackedCount: string;
     receiveEyebrow: string;
-    receiveTitle: string;
     receiveHint: string;
-    receivePendingTitle: string;
     receivePendingHint: string;
     assetsEyebrow: string;
     assetsTitle: string;
@@ -99,9 +97,7 @@ const COPY: Record<
     pending: 'Pending',
     assetsTrackedCount: 'assets',
     receiveEyebrow: 'Receive',
-    receiveTitle: 'Receive funds',
     receiveHint: 'Share this address or scan the QR to fund the wallet with XLM, USDC, or EURC.',
-    receivePendingTitle: 'Activate wallet',
     receivePendingHint: 'Send at least 1 XLM to this address to activate the account on Stellar.',
     assetsEyebrow: 'Assets',
     assetsTitle: 'On-chain balances',
@@ -148,9 +144,7 @@ const COPY: Record<
     pending: 'Pendiente',
     assetsTrackedCount: 'activos',
     receiveEyebrow: 'Recibir',
-    receiveTitle: 'Recibir fondos',
     receiveHint: 'Comparte esta direccion o escanea el QR para fondear la wallet con XLM, USDC o EURC.',
-    receivePendingTitle: 'Activar wallet',
     receivePendingHint: 'Envia al menos 1 XLM a esta direccion para activar la cuenta en Stellar.',
     assetsEyebrow: 'Activos',
     assetsTitle: 'Saldos on-chain',
@@ -197,9 +191,7 @@ const COPY: Record<
     pending: 'Pendente',
     assetsTrackedCount: 'ativos',
     receiveEyebrow: 'Receber',
-    receiveTitle: 'Receber fundos',
     receiveHint: 'Compartilhe este endereco ou escaneie o QR para fundear a wallet com XLM, USDC ou EURC.',
-    receivePendingTitle: 'Ativar wallet',
     receivePendingHint: 'Envie pelo menos 1 XLM para este endereco para ativar a conta na Stellar.',
     assetsEyebrow: 'Ativos',
     assetsTitle: 'Saldos on-chain',

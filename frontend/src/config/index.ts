@@ -1,4 +1,4 @@
-import { RESOLVED_NETWORK, RESOLVED_NETWORK_CONFIG } from './network';
+import { RESOLVED_NETWORK } from './network';
 
 export const config = {
   appName: import.meta.env.VITE_APP_NAME || 'Link2Pay',
@@ -6,9 +6,6 @@ export const config = {
   // Network is deployment-fixed (mainnet on the primary domain, testnet on the
   // `testnet.*` subdomain). See src/config/network.ts for resolution.
   stellarNetwork: RESOLVED_NETWORK,
-  networkPassphrase:
-    import.meta.env.VITE_NETWORK_PASSPHRASE ||
-    RESOLVED_NETWORK_CONFIG.networkPassphrase,
   // Phase 5: let payers pay a non-USDC asset (routed to USDC via the DEX).
   enablePathPayments: import.meta.env.VITE_ENABLE_PATH_PAYMENTS === 'true',
   // Phase 6: offer multi-wallet connect (Stellar Wallets Kit) on the payer flow.
@@ -48,12 +45,6 @@ export const config = {
   // once the app has more than one app client configured in the dashboard.
   privyClientId: import.meta.env.VITE_PRIVY_CLIENT_ID || '',
 } as const;
-
-export const CURRENCY_LABELS: Record<string, string> = {
-  XLM: 'Stellar Lumens (XLM)',
-  USDC: 'USD Coin (USDC)',
-  EURC: 'Euro Coin (EURC)',
-};
 
 export const CURRENCY_SYMBOLS: Record<string, string> = {
   XLM: 'XLM',

@@ -25,7 +25,6 @@ const COPY: Record<
     copyLink: string;
     copied: string;
     receiveFiat: string;
-    receiveCop: string;
     receiveCopDesc: string;
     fiatKycTitle: string;
     fiatKycDesc: string;
@@ -48,7 +47,6 @@ const COPY: Record<
     copyLink: 'Copy pay link',
     copied: 'Copied',
     receiveFiat: 'Receive in fiat',
-    receiveCop: 'Receive in COP · Bre-B',
     receiveCopDesc: 'Share your Bre-B llave so payers can send pesos.',
     fiatKycTitle: 'Identity verification required',
     fiatKycDesc: 'Verify your identity to receive pesos with Bre-B and set up your QR.',
@@ -70,7 +68,6 @@ const COPY: Record<
     copyLink: 'Copiar link de pago',
     copied: 'Copiado',
     receiveFiat: 'Recibir en fiat',
-    receiveCop: 'Recibir en COP · Bre-B',
     receiveCopDesc: 'Comparte tu llave Bre-B para que te envien pesos.',
     fiatKycTitle: 'Se requiere verificación de identidad',
     fiatKycDesc: 'Verifica tu identidad para recibir pesos con Bre-B y configurar tu QR.',
@@ -92,7 +89,6 @@ const COPY: Record<
     copyLink: 'Copiar link de pagamento',
     copied: 'Copiado',
     receiveFiat: 'Receber em fiat',
-    receiveCop: 'Receber em COP · Bre-B',
     receiveCopDesc: 'Compartilhe sua chave Bre-B para receber pesos.',
     fiatKycTitle: 'Verificação de identidade necessária',
     fiatKycDesc: 'Verifique sua identidade para receber com Bre-B e configurar seu QR.',

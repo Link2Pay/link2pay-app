@@ -17,14 +17,6 @@ export type Currency = 'XLM' | 'USDC' | 'EURC';
 
 export type InvoiceType = 'DIRECT_PAYMENT' | 'BUSINESS_INVOICE' | 'SERVICE_INVOICE';
 
-export type LinkStatus =
-  | 'CREATED'
-  | 'PENDING'
-  | 'CONFIRMED'
-  | 'EXPIRED'
-  | 'FAILED'
-  | 'CANCELLED';
-
 export interface LineItem {
   id?: string;
   description: string;
@@ -215,51 +207,6 @@ export interface PayIntentResponse {
   memo: string;
   networkPassphrase: string;
   timeout: number;
-}
-
-export interface CreatePaymentLinkData {
-  amount: number;
-  asset: Currency;
-  activateNewAccounts?: boolean;
-  recipientWallet?: string;
-  expiresAt?: string;
-  networkPassphrase?: string;
-  metadata?: {
-    title?: string;
-    description?: string;
-    reference?: string;
-    payerName?: string;
-    payerEmail?: string;
-  };
-}
-
-export interface PaymentLink {
-  id: string;
-  status: LinkStatus;
-  checkoutUrl: string;
-  amount: string;
-  asset: Currency;
-  createdAt: string;
-  expiresAt: string | null;
-  metadata: {
-    title: string;
-    description: string | null;
-    reference: string | null;
-    payerName: string | null;
-    payerEmail: string | null;
-  };
-  transactionHash?: string | null;
-  confirmedAt?: string | null;
-  legacyInvoiceId?: string;
-  legacyInvoiceNumber?: string;
-}
-
-export interface PaymentLinkStatus {
-  id: string;
-  status: LinkStatus;
-  transactionHash: string | null;
-  confirmedAt: string | null;
-  expiresAt: string | null;
 }
 
 export interface DashboardStats {

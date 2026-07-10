@@ -5,7 +5,7 @@ import { usePrivy } from '@privy-io/react-auth';
  * Disconnect action for Privy-authenticated sessions.
  *
  * A plain wallet-store `disconnect()` doesn't stick for Privy users: Privy stays
- * authenticated, so PrivyLogin's bridge effect immediately re-connects the
+ * authenticated, so PrivyWalletBridge's bridge effect immediately re-connects the
  * embedded wallet. Logging out of Privy is the real teardown — its
  * `authenticated → false` transition is what clears the wallet store.
  *

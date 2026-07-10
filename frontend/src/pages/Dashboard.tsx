@@ -27,7 +27,6 @@ import type { InvoiceStatus } from '../types';
 import type { Language } from '../i18n/translations';
 
 const COPY: Record<Language, {
-  loading: string;
   totalInvoices: string;
   paid: string;
   pending: string;
@@ -39,12 +38,10 @@ const COPY: Record<Language, {
   awaitingPayment: string;
   viewPending: string;
   pipelineTitle: string;
-  pipelineSubtitle: string;
   stageDraft: string;
   stageInFlight: string;
   stagePaid: string;
   stageClosed: string;
-  settledLabel: string;
   assetMixTitle: string;
   assetMixSubtitle: string;
   noSettledVolume: string;
@@ -68,7 +65,6 @@ const COPY: Record<Language, {
   topClientPending: string;
 }> = {
   en: {
-    loading: 'Loading...',
     totalInvoices: 'Total Links',
     paid: 'Confirmed',
     pending: 'Awaiting',
@@ -80,12 +76,10 @@ const COPY: Record<Language, {
     awaitingPayment: 'Pending Settlement',
     viewPending: 'View Pending',
     pipelineTitle: 'Payment Pipeline',
-    pipelineSubtitle: 'How links are moving through your lifecycle right now',
     stageDraft: 'Draft',
     stageInFlight: 'In flight',
     stagePaid: 'Paid',
     stageClosed: 'Closed',
-    settledLabel: 'settled links',
     assetMixTitle: 'Settled Asset Mix',
     assetMixSubtitle: 'Distribution of confirmed volume by asset',
     noSettledVolume: 'No settled volume yet',
@@ -109,7 +103,6 @@ const COPY: Record<Language, {
     topClientPending: 'Confirming…',
   },
   es: {
-    loading: 'Cargando...',
     totalInvoices: 'Total de links',
     paid: 'Confirmados',
     pending: 'En espera',
@@ -121,12 +114,10 @@ const COPY: Record<Language, {
     awaitingPayment: 'Liquidación pendiente',
     viewPending: 'Ver pendientes',
     pipelineTitle: 'Pipeline de pagos',
-    pipelineSubtitle: 'Cómo avanzan tus links en el ciclo de vida',
     stageDraft: 'Borrador',
     stageInFlight: 'En curso',
     stagePaid: 'Pagado',
     stageClosed: 'Cerrado',
-    settledLabel: 'links liquidados',
     assetMixTitle: 'Mix de activos liquidados',
     assetMixSubtitle: 'Distribución del volumen confirmado por activo',
     noSettledVolume: 'Aún no hay volumen liquidado',
@@ -150,7 +141,6 @@ const COPY: Record<Language, {
     topClientPending: 'Confirmando…',
   },
   pt: {
-    loading: 'Carregando...',
     totalInvoices: 'Total de links',
     paid: 'Confirmados',
     pending: 'Aguardando',
@@ -162,12 +152,10 @@ const COPY: Record<Language, {
     awaitingPayment: 'Liquidação pendente',
     viewPending: 'Ver pendentes',
     pipelineTitle: 'Pipeline de pagamentos',
-    pipelineSubtitle: 'Como seus links avançam no ciclo de vida',
     stageDraft: 'Rascunho',
     stageInFlight: 'Em andamento',
     stagePaid: 'Pago',
     stageClosed: 'Encerrado',
-    settledLabel: 'links liquidados',
     assetMixTitle: 'Mix de ativos liquidados',
     assetMixSubtitle: 'Distribuição do volume confirmado por ativo',
     noSettledVolume: 'Ainda não há volume liquidado',

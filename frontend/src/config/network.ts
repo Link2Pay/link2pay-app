@@ -36,7 +36,7 @@ export const NETWORK_CONFIGS: Record<StellarNetwork, NetworkEndpoints> = {
   },
 };
 
-export function resolveNetwork(): StellarNetwork {
+function resolveNetwork(): StellarNetwork {
   const env = (import.meta.env.VITE_STELLAR_NETWORK || '').toLowerCase();
   if (env === 'testnet' || env === 'mainnet') return env;
 

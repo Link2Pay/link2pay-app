@@ -14,29 +14,15 @@ interface NetworkConfig {
   networkPassphrase: string;
 }
 
-interface NetworkState extends NetworkConfig {
-  setNetwork: (network: StellarNetwork) => void;
-}
-
 const resolved: NetworkConfig = {
   network: RESOLVED_NETWORK,
   horizonUrl: NETWORK_CONFIGS[RESOLVED_NETWORK].horizonUrl,
   networkPassphrase: NETWORK_CONFIGS[RESOLVED_NETWORK].networkPassphrase,
 };
 
-export const useNetworkStore = create<NetworkState>()(
+export const useNetworkStore = create<NetworkConfig>()(
   persist(
-    (set) => ({
-      ...resolved,
-      setNetwork: (network: StellarNetwork) => {
-        const endpoints = NETWORK_CONFIGS[network];
-        set({
-          network,
-          horizonUrl: endpoints.horizonUrl,
-          networkPassphrase: endpoints.networkPassphrase,
-        });
-      },
-    }),
+    () => ({ ...resolved }),
     {
       name: 'link2pay-network-storage',
       version: 2,
@@ -52,7 +38,7 @@ export const useNetworkStore = create<NetworkState>()(
       // network win over whatever was stored.
       merge: (persisted, current) => ({
         ...current,
-        ...(persisted as Partial<NetworkState>),
+        ...(persisted as Partial<NetworkConfig>),
         ...resolved,
       }),
     }

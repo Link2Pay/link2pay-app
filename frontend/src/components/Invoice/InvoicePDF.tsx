@@ -550,10 +550,3 @@ export async function downloadInvoicePDF(invoice: Invoice, paymentLink: string):
   a.click();
   URL.revokeObjectURL(url);
 }
-
-// ─── Utility: generate PDF blob for email attachment flow ─────────────────────
-
-export async function getInvoicePDFBlob(invoice: Invoice, paymentLink: string): Promise<Blob> {
-  const doc = <InvoicePDFDocument invoice={invoice} paymentLink={paymentLink} />;
-  return pdf(doc).toBlob();
-}
