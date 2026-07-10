@@ -41,50 +41,113 @@ describe('InvoiceService active invoice lookups', () => {
   });
 });
 
-// SEC-04: open-amount setInvoiceAmount must be atomic
-describe('setInvoiceAmount atomicity (SEC-04)', () => {
+// SEC-04: open-amount claimOpenAmount must be atomic — amount + status
+// transition in a single conditional updateMany.
+describe('claimOpenAmount atomicity (SEC-04)', () => {
   const service = new InvoiceService();
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('returns null when updateMany affects zero rows (already claimed)', async () => {
-    prisma.invoice.updateMany.mockResolvedValue({ count: 0 });
-
-    const result = await service.setInvoiceAmount('inv-1', 100);
-
-    expect(result).toBeNull();
-    expect(prisma.invoice.updateMany).toHaveBeenCalledWith({
-      where: { id: 'inv-1', status: 'PENDING', isOpenAmount: true },
-      data: expect.objectContaining({
-        total: expect.anything(),
-      }),
-    });
-  });
-
-  it('returns the invoice when updateMany affects one row', async () => {
+  it('atomically sets amount AND status to PROCESSING in one updateMany', async () => {
     prisma.invoice.updateMany.mockResolvedValue({ count: 1 });
     prisma.invoice.findUnique.mockResolvedValue({
       id: 'inv-1',
       total: '100',
-      status: 'PENDING',
+      status: 'PROCESSING',
       isOpenAmount: true,
     } as any);
 
-    const result = await service.setInvoiceAmount('inv-1', 100);
+    const result = await service.claimOpenAmount('inv-1', 100);
 
     expect(result).not.toBeNull();
-    expect(result!.id).toBe('inv-1');
+    // The updateMany must include status: 'PROCESSING' in the data
+    const call = prisma.invoice.updateMany.mock.calls[0][0] as any;
+    expect(call.where).toEqual({ id: 'inv-1', status: 'PENDING', isOpenAmount: true });
+    expect(call.data.status).toBe('PROCESSING');
+    expect(call.data.total.toString()).toBe('100');
+    expect(call.data.subtotal.toString()).toBe('100');
+    expect(call.data.taxRate).toBeNull();
   });
 
-  it('only updates invoices where status is PENDING and isOpenAmount is true', async () => {
+  it('returns null when updateMany affects zero rows (already claimed)', async () => {
     prisma.invoice.updateMany.mockResolvedValue({ count: 0 });
 
-    await service.setInvoiceAmount('inv-1', 50);
+    const result = await service.claimOpenAmount('inv-1', 100);
+
+    expect(result).toBeNull();
+  });
+
+  it('clears tax and discount on claim', async () => {
+    prisma.invoice.updateMany.mockResolvedValue({ count: 1 });
+    prisma.invoice.findUnique.mockResolvedValue({
+      id: 'inv-1',
+      total: '75',
+      status: 'PROCESSING',
+      isOpenAmount: true,
+    } as any);
+
+    await service.claimOpenAmount('inv-1', 75);
 
     const call = prisma.invoice.updateMany.mock.calls[0][0] as any;
-    expect(call.where.status).toBe('PENDING');
-    expect(call.where.isOpenAmount).toBe(true);
+    expect(call.data.taxRate).toBeNull();
+    expect(call.data.taxAmount?.toString()).toBe('0');
+    expect(call.data.discount?.toString()).toBe('0');
+  });
+
+  // Concurrency test: two simultaneous calls with different amounts result
+  // in exactly one successful claim and one rejected claim. This simulates
+  // the race by having updateMany return count:1 for the first call and
+  // count:0 for the second (which is what PostgreSQL does with a conditional
+  // updateMany — the second sees the row already in PROCESSING).
+  it('two concurrent calls result in exactly one winner and one null', async () => {
+    let callCount = 0;
+    prisma.invoice.updateMany.mockImplementation(async () => {
+      callCount++;
+      // First call wins (row is PENDING), second call loses (row is now PROCESSING)
+      return { count: callCount === 1 ? 1 : 0 };
+    });
+    prisma.invoice.findUnique.mockResolvedValue({
+      id: 'inv-1',
+      total: '50',
+      status: 'PROCESSING',
+      isOpenAmount: true,
+    } as any);
+
+    // Fire both concurrently
+    const [result1, result2] = await Promise.all([
+      service.claimOpenAmount('inv-1', 50),
+      service.claimOpenAmount('inv-1', 999),
+    ]);
+
+    // Exactly one winner
+    const winners = [result1, result2].filter((r) => r !== null);
+    expect(winners.length).toBe(1);
+    expect(winners[0]!.total).toBe('50');
+
+    // The loser gets null
+    const losers = [result1, result2].filter((r) => r === null);
+    expect(losers.length).toBe(1);
+  });
+
+  it('does not call a separate updateStatus after the claim', async () => {
+    // Verify that claimOpenAmount does status transition itself — no
+    // separate prisma.invoice.update call should be made (only updateMany
+    // + findUnique).
+    prisma.invoice.updateMany.mockResolvedValue({ count: 1 });
+    prisma.invoice.findUnique.mockResolvedValue({
+      id: 'inv-1',
+      total: '100',
+      status: 'PROCESSING',
+      isOpenAmount: true,
+    } as any);
+
+    await service.claimOpenAmount('inv-1', 100);
+
+    // updateMany was called exactly once (not an additional update)
+    expect(prisma.invoice.updateMany).toHaveBeenCalledTimes(1);
+    // findUnique was called exactly once (re-read after claim)
+    expect(prisma.invoice.findUnique).toHaveBeenCalledTimes(1);
   });
 });

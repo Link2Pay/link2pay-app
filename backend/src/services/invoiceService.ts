@@ -112,19 +112,17 @@ export class InvoiceService {
   }
 
   /**
-   * Persist a payer-chosen amount onto an open-amount invoice.
-   * Sets subtotal = total = amount and clears tax/discount so the downstream
-   * payment + confirmation pipeline (which matches against invoice.total) works.
+   * Atomically claim an open-amount invoice: set the payer-chosen amount AND
+   * transition status PENDING → PROCESSING in a single conditional update.
+   * Only the first concurrent caller wins; subsequent callers see zero
+   * affected rows and receive null (the route returns 409).
    *
-   * SEC-04: The amount is set atomically — only when the invoice is in
-   * PENDING status.  Returns null if the invoice is not in PENDING (already
-   * claimed or in another state); a second caller receives 409 at the route
-   * level.
+   * SEC-04: the amount and payment state are immutable once claimed.
    */
-  async setInvoiceAmount(id: string, amount: number | string) {
+  async claimOpenAmount(id: string, amount: number | string) {
     const value = new Prisma.Decimal(amount);
-    // Atomic conditional update: only modifies the row when status is PENDING.
-    // A second concurrent request sees zero updated rows.
+    // Single atomic operation: match PENDING + isOpenAmount, write amount,
+    // and flip to PROCESSING. A second concurrent request sees count: 0.
     const result = await prisma.invoice.updateMany({
       where: { id, status: 'PENDING', isOpenAmount: true },
       data: {
@@ -133,12 +131,12 @@ export class InvoiceService {
         taxAmount: new Prisma.Decimal(0),
         discount: new Prisma.Decimal(0),
         total: value,
+        status: 'PROCESSING',
       },
     });
     if (result.count === 0) {
-      return null; // already claimed, not open-amount, or cancelled
+      return null; // already claimed, not open-amount, or not PENDING
     }
-    // Re-read to return the updated row
     return prisma.invoice.findUnique({ where: { id } });
   }
 

@@ -108,8 +108,15 @@ router.post(
         return res.status(400).json({ error: 'Cannot pay your own invoice' });
       }
 
-      // Open-amount invoices: the payer supplies the amount.  Set it
-      // atomically (SEC-04) — a second caller receives 409.
+      if (networkPassphrase !== invoice.networkPassphrase) {
+        return res.status(400).json({
+          error: 'Selected wallet network does not match the invoice network',
+        });
+      }
+
+      // Open-amount invoices: the payer supplies the amount.  Atomically
+      // claim it (SEC-04): set amount + transition to PROCESSING in one
+      // database operation. A second concurrent caller receives 409.
       let effectiveTotal = invoice.total.toString();
       if (invoice.isOpenAmount) {
         if (!payerAmount || payerAmount <= 0) {
@@ -117,23 +124,17 @@ router.post(
             error: 'This payment link requires you to enter an amount',
           });
         }
-        const updated = await invoiceService.setInvoiceAmount(invoiceId, payerAmount);
-        if (!updated) {
+        const claimed = await invoiceService.claimOpenAmount(invoiceId, payerAmount);
+        if (!claimed) {
           return res.status(409).json({
             error: 'This invoice amount has already been claimed. Please request a new payment link.',
           });
         }
-        effectiveTotal = updated.total.toString();
+        effectiveTotal = claimed.total.toString();
       }
 
       const amount = formatStellarAmount(effectiveTotal);
       const assetCode = invoice.currency;
-
-      if (networkPassphrase !== invoice.networkPassphrase) {
-        return res.status(400).json({
-          error: 'Selected wallet network does not match the invoice network',
-        });
-      }
 
       // Desktop flow returns an unsigned XDR for extension signing.
       // Mobile app flow may skip senderPublicKey and use SEP-7 only.
@@ -165,8 +166,11 @@ router.post(
         networkPassphrase: invoice.networkPassphrase,
       });
 
-      // Update invoice status to PROCESSING
-      await invoiceService.updateStatus(invoiceId, 'PROCESSING');
+      // For fixed-amount invoices, transition to PROCESSING now. Open-amount
+      // invoices already flipped to PROCESSING inside claimOpenAmount above.
+      if (!invoice.isOpenAmount) {
+        await invoiceService.updateStatus(invoiceId, 'PROCESSING');
+      }
 
       res.json({
         invoiceId,
