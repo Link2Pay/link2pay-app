@@ -353,11 +353,11 @@ router.post(
 
 /**
  * GET /api/payments/:invoiceId/status
- * Check payment status for an invoice
+ * Check payment status for an invoice (public — never exposes payerWallet).
  */
 router.get('/:invoiceId/status', async (req: Request, res: Response) => {
   try {
-    const invoice = await invoiceService.getInvoice(req.params.invoiceId);
+    const invoice = await invoiceService.getPublicCheckout(req.params.invoiceId);
     if (!invoice) {
       return res.status(404).json({ error: 'Invoice not found' });
     }
@@ -366,9 +366,8 @@ router.get('/:invoiceId/status', async (req: Request, res: Response) => {
       invoiceId: invoice.id,
       status: invoice.status,
       transactionHash: invoice.transactionHash,
-      ledgerNumber: invoice.ledgerNumber,
-      paidAt: invoice.paidAt?.toISOString() || null,
-      payerWallet: invoice.payerWallet,
+      ledgerNumber: null,
+      paidAt: invoice.paidAt,
     });
   } catch (error: any) {
     log.error('Payment status error', {

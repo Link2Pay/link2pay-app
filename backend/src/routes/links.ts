@@ -180,21 +180,21 @@ router.post(
 
 /**
  * GET /api/links/:id/status
- * Lightweight status endpoint for polling.
+ * Lightweight status endpoint for polling (public — never exposes PII).
  */
 router.get('/:id/status', async (req: Request, res: Response) => {
   try {
-    const invoice = await invoiceService.getInvoice(req.params.id);
-    if (!invoice) {
+    const checkout = await invoiceService.getPublicCheckout(req.params.id);
+    if (!checkout) {
       return res.status(404).json({ error: 'Link not found' });
     }
 
     res.json({
-      id: invoice.id,
-      status: mapInvoiceStatusToLinkStatus(invoice.status),
-      transactionHash: invoice.transactionHash,
-      confirmedAt: invoice.paidAt?.toISOString() || null,
-      expiresAt: invoice.dueDate?.toISOString() || null,
+      id: checkout.id,
+      status: mapInvoiceStatusToLinkStatus(checkout.status),
+      transactionHash: checkout.transactionHash,
+      confirmedAt: checkout.paidAt,
+      expiresAt: checkout.dueDate,
     });
   } catch (error: any) {
     log.error('Get payment link status error', {
@@ -207,11 +207,11 @@ router.get('/:id/status', async (req: Request, res: Response) => {
 
 /**
  * GET /api/links/:id
- * Fetch link details + current status.
+ * Fetch link details + current status (public — restricted DTO per SEC-02).
  */
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const invoice = await invoiceService.getPublicInvoice(req.params.id);
+    const invoice = await invoiceService.getPublicCheckout(req.params.id);
     if (!invoice) {
       return res.status(404).json({ error: 'Link not found' });
     }
@@ -227,11 +227,9 @@ router.get('/:id', async (req: Request, res: Response) => {
       metadata: {
         title: invoice.title,
         description: invoice.description,
-        reference: extractReferenceFromNotes(invoice.notes),
-        payerName: invoice.clientName,
-        payerEmail: null,
+        // `reference` extracted from notes is excluded — notes are internal
       },
-      activateNewAccounts: hasActivateNewAccountsFlag(invoice.notes),
+      activateNewAccounts: false,
       transactionHash: invoice.transactionHash,
       confirmedAt: invoice.paidAt,
       legacyInvoiceId: invoice.id,

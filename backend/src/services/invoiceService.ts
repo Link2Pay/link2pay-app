@@ -1,5 +1,5 @@
 import { InvoiceStatus, InvoiceType, Prisma } from '@prisma/client';
-import { CreateInvoiceInput, InvoicePublicView } from '../types';
+import { CreateInvoiceInput, InvoicePublicView, PublicCheckoutInvoice } from '../types';
 import { generateInvoiceNumber } from '../utils/generators';
 import { config } from '../config';
 import prisma from '../db';
@@ -194,6 +194,52 @@ export class InvoiceService {
         rate: item.rate.toString(),
         amount: item.amount.toString(),
       })),
+    };
+  }
+
+  /**
+   * Get the public checkout view — strict allowlist DTO (SEC-02).
+   * No merchant/ client PII, tax IDs, addresses, notes, payout aliases,
+   * or internal identifiers.  Only what the payer needs to see and pay.
+   */
+  async getPublicCheckout(id: string): Promise<PublicCheckoutInvoice | null> {
+    const invoice = await prisma.invoice.findFirst({
+      where: { id, deletedAt: null },
+      include: { lineItems: true },
+    });
+
+    if (!invoice) return null;
+
+    return {
+      id: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      status: invoice.status,
+      invoiceType: invoice.invoiceType,
+      isOpenAmount: invoice.isOpenAmount,
+      freelancerName: invoice.freelancerName,
+      freelancerCompany: invoice.freelancerCompany,
+      freelancerLogoUrl: invoice.freelancerLogoUrl,
+      title: invoice.title,
+      description: invoice.description,
+      lineItems: invoice.lineItems.map((item) => ({
+        description: item.description,
+        quantity: item.quantity.toString(),
+        rate: item.rate.toString(),
+        amount: item.amount.toString(),
+      })),
+      subtotal: invoice.subtotal.toString(),
+      taxRate: invoice.taxRate?.toString() ?? null,
+      taxAmount: invoice.taxAmount?.toString() ?? null,
+      discount: invoice.discount?.toString() ?? null,
+      total: invoice.total.toString(),
+      currency: invoice.currency,
+      createdAt: invoice.createdAt.toISOString(),
+      dueDate: invoice.dueDate?.toISOString() ?? null,
+      paidAt: invoice.paidAt?.toISOString() ?? null,
+      transactionHash: invoice.transactionHash,
+      networkPassphrase: invoice.networkPassphrase,
+      payoutMethod: invoice.payoutMethod,
+      quoteBuyAmount: invoice.quoteBuyAmount,
     };
   }
 

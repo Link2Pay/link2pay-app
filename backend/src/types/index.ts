@@ -80,6 +80,52 @@ export interface InvoicePublicView {
   }[];
 }
 
+/**
+ * Public checkout DTO — explicit allowlist.  Never serialize the Prisma
+ * model directly on an unauthenticated endpoint.  Only fields needed to
+ * present and pay an invoice are included.
+ *
+ * Removed from the public view (SEC-02):
+ *  - freelancerEmail, freelancerTaxId, freelancerAddress, freelancerPhone
+ *  - clientEmail, clientCompany, clientAddress, clientTaxId
+ *  - payoutAlias, anchorTxId, receiptTxHash
+ *  - notes (may contain internal references)
+ *  - payerWallet (only on status endpoint)
+ */
+export interface PublicCheckoutInvoice {
+  id: string;
+  invoiceNumber: string;
+  status: string;
+  invoiceType?: string | null;
+  isOpenAmount: boolean;
+  // Merchant display fields (intentionally shown for brand/trust)
+  freelancerName?: string | null;
+  freelancerCompany?: string | null;
+  freelancerLogoUrl?: string | null;
+  // Invoice content
+  title: string;
+  description?: string | null;
+  lineItems: { description: string; quantity: string; rate: string; amount: string }[];
+  // Financial — all needed by the checkout UI
+  subtotal: string;
+  taxRate?: string | null;
+  taxAmount?: string | null;
+  discount?: string | null;
+  total: string;
+  currency: string;
+  // Dates and state
+  createdAt: string;
+  dueDate?: string | null;
+  paidAt?: string | null;
+  // On-chain references
+  transactionHash?: string | null;
+  networkPassphrase: string;
+  // Payout method (CRYPTO/BRE_B) but without the recipient alias
+  payoutMethod?: string | null;
+  // Open quote estimate for display only
+  quoteBuyAmount?: string | null;
+}
+
 export interface SaveClientInput {
   name: string;
   email: string;

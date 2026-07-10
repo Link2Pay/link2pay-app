@@ -195,11 +195,11 @@ router.get('/:id/owner', requireWallet, async (req: Request, res: Response) => {
 
 /**
  * GET /api/invoices/:id
- * Get invoice details (public endpoint for payment page)
+ * Get invoice details (public checkout — restricted DTO per SEC-02)
  */
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const invoice = await invoiceService.getPublicInvoice(req.params.id);
+    const invoice = await invoiceService.getPublicCheckout(req.params.id);
     if (!invoice) {
       return res.status(404).json({ error: 'Invoice not found' });
     }
