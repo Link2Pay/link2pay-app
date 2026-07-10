@@ -1,8 +1,6 @@
 import { EmailProvider, SendEmailInput } from '../types';
 
 export class ResendEmailProvider implements EmailProvider {
-  readonly id = 'resend';
-
   constructor(
     private readonly apiKey: string,
     private readonly from: string

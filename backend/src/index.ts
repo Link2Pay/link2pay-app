@@ -152,7 +152,7 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-// Auth routes (nonce issuance)
+// Auth routes (nonce + session token exchange)
 app.use('/api/auth', authRoutes);
 
 // Price feed

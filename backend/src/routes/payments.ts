@@ -331,7 +331,7 @@ router.post(
       }
 
       // Mark as paid
-      const updated = await invoiceService.markAsPaid(
+      await invoiceService.markAsPaid(
         invoiceId,
         transactionHash,
         txDetails.ledger,

@@ -12,7 +12,6 @@
 import {
   Wallet,
   Anchor,
-  Sep38,
   Sep24,
   SigningKeypair,
   Types,
@@ -77,7 +76,6 @@ const TERMINAL_STATUSES = new Set<string>([
 export class TestAnchorAdapter implements AnchorAdapter {
   readonly id = 'testnet' as const;
 
-  private cachedAnchor: Anchor | null = null;
   private authToken: Types.AuthToken | null = null;
 
   private getSdk(): { wallet: Wallet; anchor: Anchor } {
@@ -86,7 +84,6 @@ export class TestAnchorAdapter implements AnchorAdapter {
       homeDomain: config.anchor.homeDomain,
       allowHttp: false,
     });
-    this.cachedAnchor = anchor;
     return { wallet, anchor };
   }
 

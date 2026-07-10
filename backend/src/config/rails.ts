@@ -60,23 +60,8 @@ export const FIAT_RAILS: Record<FiatRailId, FiatRail> = {
   },
 };
 
-export const FIAT_RAIL_LIST: FiatRail[] = Object.values(FIAT_RAILS);
-
-/** The rail offered to a merchant in the given country, or null (e.g. "Other"). */
-export function railByCountry(country?: string | null): FiatRail | null {
-  if (!country) return null;
-  const code = country.toUpperCase();
-  return FIAT_RAIL_LIST.find((r) => r.country === code) ?? null;
-}
-
 /** Look up a rail by its id (also the fiat PayoutMethod value for live rails). */
 export function railById(id?: string | null): FiatRail | null {
   if (!id) return null;
   return (FIAT_RAILS as Record<string, FiatRail>)[id] ?? null;
-}
-
-/** True only for rails that are actually wired end-to-end (Bre-B today). */
-export function isRailLive(id?: string | null): boolean {
-  const rail = railById(id);
-  return !!rail && rail.status === 'live';
 }

@@ -287,10 +287,8 @@ export class StellarService {
       memoType,
     } = params;
 
-    // Use provided networkPassphrase or fall back to default
     const effectiveNetworkPassphrase = networkPassphrase || this.networkPassphrase;
 
-    // Validate addresses
     if (!this.isValidAddress(senderPublicKey)) {
       throw new Error('INVALID_SENDER_ADDRESS');
     }
@@ -302,7 +300,6 @@ export class StellarService {
     const server = this.getServerForNetwork(effectiveNetworkPassphrase);
     const senderAccount = await this.withRetry(() => server.loadAccount(senderPublicKey));
 
-    // Determine asset based on network
     const asset = this.getAsset(assetCode, effectiveNetworkPassphrase);
 
     const shouldAutoActivate = Boolean(activateNewAccounts);
@@ -341,7 +338,6 @@ export class StellarService {
       );
     }
 
-    // Build transaction
     const transaction = txBuilder
       .addMemo(this.buildMemo(memo, memoType, invoiceId))
       .setTimeout(300) // 5 minutes
@@ -512,12 +508,6 @@ export class StellarService {
         resultCodes,
         httpStatus,
       });
-
-      // Preserve network mismatch as a user-fixable validation error.
-      if (typeof message === 'string' && message.startsWith('Network mismatch:')) {
-        (error as any).httpStatus = 400;
-        throw error;
-      }
 
       // Preserve structured Horizon data so route handlers can return clear user messages.
       const wrappedError = new Error(message) as Error & {

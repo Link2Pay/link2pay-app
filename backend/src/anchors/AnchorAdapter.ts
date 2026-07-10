@@ -1,7 +1,6 @@
 //
-// AnchorAdapter — unified interface for anchor/off-ramp providers
+// AnchorAdapter — unified interface for anchor/off-ramp providers.
 // Each adapter implements exactly these three methods.
-// spec §2.2
 //
 
 import type { BuyCurrency } from '../config/rails';

@@ -10,7 +10,6 @@ import { mockKycProvider } from './providers/MockKycProvider';
 import { diditKycProvider } from './providers/DiditKycProvider';
 
 export * from './KycProvider';
-export { MOCK_VERIFICATION_URL } from './providers/MockKycProvider';
 
 const PROVIDERS: Record<string, KycProvider> = {
   mock: mockKycProvider,

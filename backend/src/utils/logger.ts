@@ -4,7 +4,7 @@ const { combine, timestamp, json, colorize, simple } = winston.format;
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-export const logger = winston.createLogger({
+const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: isDevelopment
     ? combine(colorize(), simple())

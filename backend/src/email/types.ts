@@ -11,6 +11,5 @@ export interface SendEmailInput {
 }
 
 export interface EmailProvider {
-  readonly id: string;
   send(input: SendEmailInput): Promise<void>;
 }

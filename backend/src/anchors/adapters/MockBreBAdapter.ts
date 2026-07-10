@@ -20,8 +20,8 @@ const DEFAULT_MOCK_DEPOSIT_ADDRESS = 'GBKZZZWCJUUVUXNBFYGZ3EKWB725DKCLJECUSO3EG2
 export class MockBreBAdapter implements AnchorAdapter {
   readonly id = 'mock-breb' as const;
 
-  // In-memory simulated state — maps anchorTxId → { status, quote }
-  private stores: Map<string, { status: AnchorStatus; quote: Quote }> = new Map();
+  // In-memory simulated state — maps anchorTxId → current status
+  private stores: Map<string, { status: AnchorStatus }> = new Map();
   private quoteCounter = 0;
 
   async getQuote(params: {
@@ -72,16 +72,6 @@ export class MockBreBAdapter implements AnchorAdapter {
     // Store initial state
     this.stores.set(anchorTxId, {
       status: 'INITIATED',
-      quote: {
-        quoteId: params.quoteId,
-        sellAsset: 'USDC',
-        buyAsset: 'COP',
-        sellAmount: '0',
-        buyAmount: '0',
-        rate: SIMULATED_USDC_COP_RATE,
-        feeTotal: '0',
-        expiresAt: '',
-      },
     });
 
     log.info('[MockBreBAdapter] Initiated simulated off-ramp', {
@@ -146,19 +136,7 @@ export class MockBreBAdapter implements AnchorAdapter {
     // than flip an in-flight demo invoice to ANCHOR_ERROR, re-seed it and resume
     // the simulation from AWAITING_PAYMENT.
     log.warn('[MockBreBAdapter] Unknown anchorTxId — re-seeding after restart', { anchorTxId });
-    this.stores.set(anchorTxId, {
-      status: 'AWAITING_PAYMENT',
-      quote: {
-        quoteId: '',
-        sellAsset: 'USDC',
-        buyAsset: 'COP',
-        sellAmount: '0',
-        buyAmount: '0',
-        rate: SIMULATED_USDC_COP_RATE,
-        feeTotal: '0',
-        expiresAt: '',
-      },
-    });
+    this.stores.set(anchorTxId, { status: 'AWAITING_PAYMENT' });
     return 'AWAITING_PAYMENT';
   }
 }

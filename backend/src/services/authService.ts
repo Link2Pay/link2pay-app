@@ -37,7 +37,7 @@ interface SessionEntry {
 const NONCE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
-// Cleanup interval: remove expired nonces every minute
+// Expired nonces and sessions are swept every minute.
 const nonceStore = new Map<string, NonceEntry>();
 const sessionStore = new Map<string, SessionEntry>();
 setInterval(() => {
