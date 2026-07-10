@@ -140,15 +140,44 @@ export class AuthService {
   }
 
   /**
+   * Server-side Privy API call: fetch a user's linked Stellar wallet
+   * addresses using the app's server credentials. The `privyDid` comes from
+   * the verified token's `sub` claim.
+   *
+   * Returns null on any failure (network, auth, unexpected shape) — the
+   * endpoint fails closed: no wallet match = no session.
+   */
+  async fetchPrivyLinkedWallets(
+    privyDid: string,
+    appId: string,
+    appSecret: string
+  ): Promise<string[] | null> {
+    try {
+      const credentials = Buffer.from(`${appId}:${appSecret}`).toString('base64');
+      const res = await fetch(`https://auth.privy.io/api/v1/users/${encodeURIComponent(privyDid)}`, {
+        headers: { Authorization: `Basic ${credentials}` },
+      });
+      if (!res.ok) {
+        log.error('[Auth] Privy user lookup failed', { status: res.status });
+        return null;
+      }
+      const data = await res.json();
+      // Privy returns linked_accounts with type + address; extract Stellar ones
+      const accounts: any[] = data?.linked_accounts ?? [];
+      const wallets = accounts
+        .filter((a: any) => a.type === 'wallet' && typeof a.address === 'string')
+        .map((a: any) => a.address as string);
+      return wallets;
+    } catch (e) {
+      log.error('[Auth] Privy linked-wallet fetch error', { error: (e as Error)?.message });
+      return null;
+    }
+  }
+
+  /**
    * Verify a Privy access token: ES256 signature against the app's JWKS, plus
    * the iss/aud/exp claims. Returns the Privy user id (`sub`) or null. Fails
-   * closed — a token that can't be cryptographically verified is rejected, so a
-   * forged token (the app id is public) can no longer mint a session.
-   *
-   * NOTE: the Stellar wallet is not a token claim, so the caller's walletAddress
-   * is still trusted here. Binding the session to the token's user (to stop an
-   * authenticated user requesting a session for someone else's wallet) needs the
-   * Privy server SDK + app secret to look up the user's linked wallets.
+   * closed — a token that can't be cryptographically verified is rejected.
    */
   async verifyPrivyToken(token: string, appId: string): Promise<{ sub: string; exp: number } | null> {
     try {

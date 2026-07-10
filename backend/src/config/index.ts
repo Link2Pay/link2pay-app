@@ -94,8 +94,11 @@ const envSchema = z.object({
   ABROAD_API_BASE: z.string().url().optional(),
   ABROAD_API_KEY: z.string().optional(),
 
-  // Privy social login — required to accept POST /api/auth/privy-session
+  // Privy social login — required to accept POST /api/auth/privy-session.
+  // PRIVY_APP_SECRET is also required for the server-side wallet-binding
+  // step; without it the endpoint stays disabled (503) even with an app ID.
   PRIVY_APP_ID: z.string().optional(),
+  PRIVY_APP_SECRET: z.string().optional(),
 
   // ─── Merchant KYC (seller onboarding gate) ──────────────────────────────
   // Verifies the seller before a wallet may create invoices. 'mock' (default)
@@ -183,6 +186,7 @@ export const config = {
   },
 
   privyAppId: env.PRIVY_APP_ID ?? null,
+  privyAppSecret: env.PRIVY_APP_SECRET ?? null,
 
   kyc: {
     provider: env.KYC_PROVIDER,

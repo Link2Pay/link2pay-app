@@ -50,7 +50,9 @@ router.post('/session', validateBody(sessionSchema), (req: Request, res: Respons
 /**
  * POST /api/auth/privy-session
  * Exchange a Privy access token for a short-lived bearer session token.
- * Skips nonce signing — identity is proved by the Privy JWT.
+ * Skips nonce signing — identity is proved by the Privy JWT, and the
+ * requested Stellar wallet is verified server-side against the Privy
+ * user's linked wallets.
  */
 router.post('/privy-session', validateBody(privySessionSchema), async (req: Request, res: Response) => {
   const { privyToken, walletAddress } = req.body;
@@ -61,6 +63,34 @@ router.post('/privy-session', validateBody(privySessionSchema), async (req: Requ
 
   const parsed = await authService.verifyPrivyToken(privyToken, config.privyAppId);
   if (!parsed) {
+    return res.status(401).json({ error: 'Invalid or expired Privy token' });
+  }
+
+  // Bind the session to the Privy user's linked Stellar wallets.  If the
+  // app secret is not configured, the endpoint is disabled — we will not
+  // trust an unverified walletAddress from the request body.
+  if (!config.privyAppSecret) {
+    return res.status(503).json({ error: 'Privy server credentials not configured' });
+  }
+
+  const linkedWallets = await authService.fetchPrivyLinkedWallets(
+    parsed.sub,
+    config.privyAppId,
+    config.privyAppSecret
+  );
+
+  if (!linkedWallets) {
+    // Server-side lookup failed — fail closed; do not leak whether the
+    // user or wallet exists.
+    return res.status(401).json({ error: 'Invalid or expired Privy token' });
+  }
+
+  const normalizedRequested = walletAddress.toUpperCase();
+  const normalizedLinked = linkedWallets.map((w) => w.toUpperCase());
+
+  if (!normalizedLinked.includes(normalizedRequested)) {
+    // Valid Privy token, but wallet does not belong to this user.
+    // Return 401 (same shape as an invalid token) to avoid enumeration.
     return res.status(401).json({ error: 'Invalid or expired Privy token' });
   }
 
