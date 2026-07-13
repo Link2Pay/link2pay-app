@@ -154,8 +154,10 @@ export class AuthService {
   ): Promise<string[] | null> {
     try {
       const credentials = Buffer.from(`${appId}:${appSecret}`).toString('base64');
+      // Privy's server API requires the app id BOTH in the Basic credentials
+      // and as the privy-app-id header — without the header it 400s.
       const res = await fetch(`https://auth.privy.io/api/v1/users/${encodeURIComponent(privyDid)}`, {
-        headers: { Authorization: `Basic ${credentials}` },
+        headers: { Authorization: `Basic ${credentials}`, 'privy-app-id': appId },
       });
       if (!res.ok) {
         log.error('[Auth] Privy user lookup failed', { status: res.status });
