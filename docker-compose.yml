@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: link2pay
       POSTGRES_DB: link2pay
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - link2pay_pg_data:/var/lib/postgresql/data
     healthcheck:
@@ -16,6 +16,72 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+    networks:
+      - link2pay-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: link2pay-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - link2pay_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - link2pay-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: link2pay-backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://link2pay:link2pay@postgres:5432/link2pay?schema=public
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGIN: http://localhost:5173
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - link2pay-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: link2pay-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:3001
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - link2pay-network
 
 volumes:
   link2pay_pg_data:
+  link2pay_redis_data:
+
+networks:
+  link2pay-network:
+    driver: bridge

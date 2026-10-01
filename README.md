@@ -350,10 +350,32 @@ ANCHOR_HOME_DOMAIN=testanchor.stellar.org
 Hackathon project. Ready for demos and local deployments; production hardening is still in progress.
 
 - **Node.js** v18+ ([nodejs.org](https://nodejs.org/))
-- **Docker** + Docker Compose (for local PostgreSQL)
+- **Docker** + Docker Compose (for local PostgreSQL, Redis, Backend & Frontend)
 - **Freighter** browser extension ([freighter.app](https://freighter.app))
 
-### Automated Setup
+### Instant Local Development with Docker Compose (Recommended)
+
+Get the entire development environment (PostgreSQL, Redis, Backend with hot reload, and Frontend with Vite hot reload) running in under 2 minutes:
+
+```bash
+# 1. Copy the environment configuration template
+cp .env.example .env
+
+# 2. Build and start all services with one command
+docker-compose up -d
+
+# 3. Stream real-time logs across all services
+docker-compose logs -f
+```
+
+| Service | Container Name | Port / URL | Description |
+|---|---|---|---|
+| **Frontend** | `link2pay-frontend` | [http://localhost:5173](http://localhost:5173) | React + Vite UI with live hot-reloading |
+| **Backend API** | `link2pay-backend` | [http://localhost:3001](http://localhost:3001) | Express + Prisma API with tsx watch |
+| **PostgreSQL** | `link2pay-postgres` | `localhost:5432` | PostgreSQL 16 database with persistent storage |
+| **Redis** | `link2pay-redis` | `localhost:6379` | Redis 7 caching and session broker |
+
+### Automated Script Setup
 
 ```bash
 git clone https://github.com/Link2Pay/link2pay-app.git
